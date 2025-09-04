@@ -8,7 +8,7 @@ multi-queue: false
 # IPv4 address
 ipv4: 10.0.0.2
 # IPv6 address
-ipv6: 'fc00::1'
+#ipv6: 'fc00::1'
 # Post up script
 # post-up-script: up.sh
 # Pre down script
@@ -30,21 +30,21 @@ udp: 'udp'
 # Socket mark
 # mark: 0
 
-#mapdns:
+mapdns:
 # Mapped DNS address
-# address: 198.18.0.2
+ address: 8.8.8.8
 # Mapped DNS port
-# port: 53
+ port: 53
 # Mapped IP network base
-# network: 240.0.0.0
+ network: 240.0.0.0
 # Mapped IP network mask
-# netmask: 240.0.0.0
+ netmask: 240.0.0.0
 # Mapped DNS cache size
-# cache-size: 10000
+ cache-size: 10000
 
 misc:
 # task stack size (bytes)
-# task-stack-size: 86016
+ task-stack-size: 81920
 # tcp buffer size (bytes)
 # tcp-buffer-size: 65536
 # connect timeout (ms)
