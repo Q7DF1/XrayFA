@@ -5,7 +5,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
-import android.net.LocalSocket
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
@@ -14,16 +13,15 @@ import androidx.core.app.NotificationCompat
 import com.android.v2rayForAndroidUI.MainActivity
 import com.android.v2rayForAndroidUI.R
 import com.android.v2rayForAndroidUI.V2rayCoreManager
-import com.android.v2rayForAndroidUI.utils.Config
-import com.android.v2rayForAndroidUI.utils.Device
 import com.android.v2rayForAndroidUI.utils.NetPreferences
-import libv2ray.CoreCallbackHandler
-import libv2ray.CoreController
-import libv2ray.Libv2ray
 import java.io.File
 import java.io.FileOutputStream
+import javax.inject.Inject
 
-class TProxyService: VpnService() {
+class V2rayVpnService
+@Inject constructor(
+    val tun2SocksService: Tun2SocksService
+): VpnService() {
 
     private val v2rayCoreManager: V2rayCoreManager? = null
     companion object {
@@ -31,37 +29,7 @@ class TProxyService: VpnService() {
         const val TAG = "TProxyService"
         const val CHANNEL_ID = "foreground_service_v2rayFA_channel"
         const val NOTIFICATION_ID = 1
-        
-        @JvmStatic
-        external fun TProxyStartService(configPath: String,fd: Int)
-        @JvmStatic
-        external fun TProxyStopService()
-        @JvmStatic
-        external fun TProxyGetStats(): LongArray?
-
-
-        init {
-            System.loadLibrary("hev-socks5-tunnel")
-        }
     }
-
-    var coreCallbackHandler = object: CoreCallbackHandler {
-        override fun onEmitStatus(p0: Long, p1: String?): Long {
-            Log.i(TAG, "onEmitStatus: $p1")
-            return 0
-        }
-
-        override fun shutdown(): Long {
-            return 0
-        }
-
-        override fun startup(): Long {
-            return 0
-        }
-
-    }
-
-    var coreController: CoreController? = null
 
     var tunFd: ParcelFileDescriptor? = null
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -83,8 +51,6 @@ class TProxyService: VpnService() {
         super.onCreate()
         createNotificationChannel()
         Log.i(TAG, "onCreate: ${getExternalFilesDir("assets")?.absolutePath}")
-        Libv2ray.initCoreEnv(getExternalFilesDir("assets")?.absolutePath, Device.getDeviceIdForXUDPBaseKey())
-        coreController = Libv2ray.newCoreController(coreCallbackHandler)
     }
 
     override fun onDestroy() {
@@ -108,41 +74,19 @@ class TProxyService: VpnService() {
             .addDisallowedApplication("com.android.v2rayForAndroid")
             .setBlocking(false)
             .establish()
-
-        val ips = assets.open("tun2socks.yaml")
-        val configFile = File(cacheDir,"tun2socks1.yaml")
-        val fops = FileOutputStream(configFile)
-        val bytes = ips.readBytes()
-        fops.write(bytes)
-        fops.close()
-        ips.close()
+        tun2SocksService.startTun2Socks(tunFd!!.fd)
         Thread {
-            try {
-                TProxyStartService(configFile.absolutePath,tunFd!!.fd)
-            }catch (e : Exception) {
-                Log.e(TAG, "startTuntoSocks failed: ${e.message}")
-            }
             val notification = makeForegroundNotification(true)
 
             val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
             manager.notify(NOTIFICATION_ID, notification)
-            val clientIps = assets.open("v2.json")
-            val jsonConfig = Config.jsonToString(clientIps)
-            Log.i(TAG, "startVpn: $jsonConfig")
-            try {
-                coreController?.startLoop(jsonConfig)
-            }catch (e: Exception) {
-                Log.e(TAG, "startVpn: failed to startLoop ${e.message}")
-            }
         }.start()
     }
 
     fun stopVPN() {
         Log.i(TAG, "stopVPN: lishien++")
         stopForeground(STOP_FOREGROUND_REMOVE)
-        coreController?.stopLoop()
         stopSelf()
-        TProxyStopService()
         tunFd?.close()
         tunFd = null
     }

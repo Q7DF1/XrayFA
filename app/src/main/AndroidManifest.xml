@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
+        android:name=".V2rayFAApplication"
+        android:appComponentFactory="com.android.v2rayForAndroidUI.V2rayAppCompatFactory"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -16,6 +18,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.V2rayForAndroidUI"
+        tools:replace="android:appComponentFactory"
         tools:targetApi="31">
         <activity
             android:name=".MainActivity"
@@ -29,7 +32,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name="hev.htproxy.TProxyService"
+        <service android:name="hev.htproxy.V2rayVpnService"
             android:foregroundServiceType="specialUse"
             android:exported="true"
             android:permission="android.permission.BIND_VPN_SERVICE">
