@@ -20,7 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.android.v2rayForAndroidUI.ui.theme.V2rayForAndroidUITheme
-import hev.htproxy.V2rayVpnService
+import hev.htproxy.V2rayBaseService
 
 class MainActivity : ComponentActivity() {
 
@@ -38,6 +38,7 @@ class MainActivity : ComponentActivity() {
             activityResult ->
                 if (activityResult.resultCode == RESULT_OK) {
                     startVpnServiceByToggle()
+                    //startV2rayCoreByToggle()
                 }
         }
 
@@ -58,9 +59,11 @@ class MainActivity : ComponentActivity() {
                                         launcher.launch(intent)
                                     }else {
                                         startVpnServiceByToggle()
+                                        //startV2rayCoreByToggle()
                                     }
                                 }else {
                                     stopVpnServiceByToggle()
+                                    //stopV2rayCoreByToggle()
                                 }
                                 vpnState = !vpnState
                             }
@@ -79,7 +82,7 @@ class MainActivity : ComponentActivity() {
 
     private fun startVpnServiceByToggle() {
         Log.i(TAG, "startVpnServiceByToggle: lishien__")
-        val intent = Intent(this, V2rayVpnService::class.java).apply {
+        val intent = Intent(this, V2rayBaseService::class.java).apply {
                 action = "connect"
             }
         startForegroundService(intent)
@@ -95,7 +98,7 @@ class MainActivity : ComponentActivity() {
 
     private fun stopVpnServiceByToggle() {
         Log.i(TAG, "stopVpnServiceByToggle: lishien++")
-        val intent = Intent(this, V2rayVpnService::class.java).apply {
+        val intent = Intent(this, V2rayBaseService::class.java).apply {
             action = "disconnect"
         }
         startService(intent)

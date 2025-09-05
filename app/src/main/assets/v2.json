@@ -4,14 +4,13 @@
       "domain:googleapis.cn": "googleapis.com"
     },
     "servers": [
-      "1.1.1.1"
+      "8.8.8.8"
     ]
   },
   "inbounds": [
     {
-      "tag": "socks",
-      "port": 10808,
       "listen": "127.0.0.1",
+      "port": 10808,
       "protocol": "socks",
       "settings": {
         "auth": "noauth",
@@ -19,12 +18,13 @@
         "userLevel": 8
       },
       "sniffing": {
-        "enabled": true,
         "destOverride": [
           "http",
           "tls"
-        ]
-      }
+        ],
+        "enabled": true
+      },
+      "tag": "socks"
     }
   ],
   "log": {
@@ -95,12 +95,9 @@
     "domainStrategy": "IPIfNonMatch",
     "rules": [
       {
-        "ip": [
-          "1.1.1.1"
-        ],
+        "type": "field",
         "outboundTag": "proxy",
-        "port": "53",
-        "type": "field"
+        "domain": "www.google.com"
       }
     ]
   }

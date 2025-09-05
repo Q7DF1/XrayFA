@@ -5,12 +5,11 @@ import android.util.Log;
 
 import com.android.v2rayForAndroidUI.di.qualifier.Application;
 import com.android.v2rayForAndroidUI.di.qualifier.Background;
+import com.android.v2rayForAndroidUI.utils.NetPreferences;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.concurrent.Executor;
 
 import javax.inject.Inject;
@@ -27,14 +26,17 @@ public class TProxyService implements Tun2SocksService{
     private final Executor bgExecutor;
 
     private final Context context;
+    private final NetPreferences prefs;
 
     @Inject
     public TProxyService(
             @Application Context context,
-            @Background Executor bgExecutor
+            @Background Executor bgExecutor,
+            NetPreferences netPreferences
     ) {
         this.context = context;
         this.bgExecutor = bgExecutor;
+        this.prefs = netPreferences;
     }
 
     public static native void TProxyStartService(String configPath, int fd);
@@ -48,7 +50,11 @@ public class TProxyService implements Tun2SocksService{
     public void startTun2Socks(int fd) {
         bgExecutor.execute(()-> {
             String file_config = configure();
-            TProxyStartService(file_config,fd);
+            try {
+                TProxyStartService(file_config,fd);
+            }catch (Exception e){
+                Log.e(TAG, "startTun2Socks: "+ e.getMessage());
+            }
         });
     }
 
@@ -59,19 +65,42 @@ public class TProxyService implements Tun2SocksService{
 
 
     private String configure() {
-        File configFile = new File(context.getCacheDir(), "tun2socks_config.yaml");
-        try (InputStream inputStream = context.getAssets().open("tun2socks.yaml")) {
-            OutputStream outputStream = new FileOutputStream(configFile);
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = inputStream.read(buffer)) > 0) {
-                outputStream.write(buffer, 0, length);
+        File tproxy_file = new File(context.getCacheDir(), "tproxy.conf");
+        try {
+            tproxy_file.createNewFile();
+            FileOutputStream fos = new FileOutputStream(tproxy_file, false);
+
+            String tproxy_conf = "misc:\n" +
+                    "  task-stack-size: " + prefs.getTaskStackSize() + "\n" +
+                    "tunnel:\n" +
+                    "  mtu: " + prefs.getTunnelMtu() + "\n";
+
+            tproxy_conf += "socks5:\n" +
+                    "  port: " + prefs.getSocksPort() + "\n" +
+                    "  address: '" + prefs.getSocksAddress() + "'\n" +
+                    "  udp: '" + (prefs.getUdpInTcp() ? "tcp" : "udp") + "'\n";
+
+            if (!prefs.getSocksUsername().isEmpty() &&
+                    !prefs.getSocksPassword().isEmpty()) {
+                tproxy_conf += "  username: '" + prefs.getSocksUsername() + "'\n";
+                tproxy_conf += "  password: '" + prefs.getSocksPassword() + "'\n";
             }
-            outputStream.close();
+
+            if (prefs.getRemoteDns()) {
+                tproxy_conf += "mapdns:\n" +
+                        "  address: " + prefs.getMappedDns() + "\n" +
+                        "  port: 53\n" +
+                        "  network: 240.0.0.0\n" +
+                        "  netmask: 240.0.0.0\n" +
+                        "  cache-size: 10000\n";
+            }
+
+            fos.write(tproxy_conf.getBytes());
+            fos.close();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException();
         }
-        return configFile.getAbsolutePath();
+        return tproxy_file.getAbsolutePath();
     }
 
 }

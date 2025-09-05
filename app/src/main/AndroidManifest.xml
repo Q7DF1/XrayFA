@@ -6,7 +6,10 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.INTERNET" />
-
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <application
         android:name=".V2rayFAApplication"
         android:appComponentFactory="com.android.v2rayForAndroidUI.V2rayAppCompatFactory"
@@ -32,7 +35,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name="hev.htproxy.V2rayVpnService"
+        <service android:name="hev.htproxy.V2rayBaseService"
             android:foregroundServiceType="specialUse"
             android:exported="true"
             android:permission="android.permission.BIND_VPN_SERVICE">
