@@ -2,15 +2,18 @@ package com.android.v2rayForAndroidUI
 
 import android.content.Context
 import android.util.Log
+import com.android.v2rayForAndroidUI.di.qualifier.Application
 import com.android.v2rayForAndroidUI.utils.Config
 import com.android.v2rayForAndroidUI.utils.Device
 import libv2ray.CoreCallbackHandler
 import libv2ray.CoreController
 import libv2ray.Libv2ray
 import java.io.File
+import javax.inject.Inject
 
-class V2rayCoreManager(
-    private val context: Context,
+class V2rayCoreManager
+@Inject constructor(
+    @Application private val context: Context
 ) {
 
     companion object {
@@ -48,6 +51,7 @@ class V2rayCoreManager(
         Thread {
             try {
                 val clientIps = context.assets.open("v2.json")
+                Log.i(TAG, "startV2rayCore: ${context.assets}")
                 val jsonConfig = Config.jsonToString(clientIps)
                 coreController?.startLoop(jsonConfig)
             }catch (e: Exception) {

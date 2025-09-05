@@ -14,19 +14,17 @@ import com.android.v2rayForAndroidUI.MainActivity
 import com.android.v2rayForAndroidUI.R
 import com.android.v2rayForAndroidUI.V2rayCoreManager
 import com.android.v2rayForAndroidUI.utils.NetPreferences
-import java.io.File
-import java.io.FileOutputStream
 import javax.inject.Inject
 
-class V2rayVpnService
+class V2rayBaseService
 @Inject constructor(
-    val tun2SocksService: Tun2SocksService
+    private val tun2SocksService: Tun2SocksService,
+    private val v2rayCoreManager: V2rayCoreManager
 ): VpnService() {
 
-    private val v2rayCoreManager: V2rayCoreManager? = null
     companion object {
         
-        const val TAG = "TProxyService"
+        const val TAG = "V2rayCoreService"
         const val CHANNEL_ID = "foreground_service_v2rayFA_channel"
         const val NOTIFICATION_ID = 1
     }
@@ -37,12 +35,12 @@ class V2rayVpnService
         if (intent?.action == "disconnect") {
 
             Log.i(TAG, "onStartCommand: stop")
-            stopVPN()
+            stopV2rayCoreService()
             return  START_NOT_STICKY
         }else {
 
             Log.i(TAG, "onStartCommand: start")
-            startVpn()
+            startV2rayCoreService()
             return START_STICKY
         }
     }
@@ -62,35 +60,42 @@ class V2rayVpnService
 
 
 
-    fun startVpn() {
+    private fun startVpn() {
         startForegroundNotification()
         val prefs  = NetPreferences(this)
         val builder = Builder()
         tunFd = builder.setSession(resources.getString(R.string.app_label))
             .addAddress(prefs.tunnelIpv4Address, prefs.tunnelIpv4Prefix)
+            .addAllowedApplication("com.android.chrome")
             .addRoute("0.0.0.0",0)
-            .addDnsServer(prefs.dnsIpv4)
             .setMtu(prefs.tunnelMtu)
-            .addDisallowedApplication("com.android.v2rayForAndroid")
             .setBlocking(false)
             .establish()
-        tun2SocksService.startTun2Socks(tunFd!!.fd)
-        Thread {
-            val notification = makeForegroundNotification(true)
-
-            val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            manager.notify(NOTIFICATION_ID, notification)
-        }.start()
     }
 
-    fun stopVPN() {
-        Log.i(TAG, "stopVPN: lishien++")
-        stopForeground(STOP_FOREGROUND_REMOVE)
-        stopSelf()
+    private fun stopVPN() {
         tunFd?.close()
         tunFd = null
     }
 
+    private fun startV2rayCoreService() {
+        v2rayCoreManager.startV2rayCore()
+        startVpn()
+        tunFd?.let {
+            tun2SocksService.startTun2Socks(it.fd)
+        }
+
+        postUpdateForegroundNotification()
+    }
+
+    private fun stopV2rayCoreService() {
+
+        tun2SocksService.stopTun2Socks()
+        stopVPN()
+        v2rayCoreManager.stopV2rayCore()
+        stopSelf()
+        stopForeground(STOP_FOREGROUND_REMOVE)
+    }
 
     private fun makeForegroundNotification(connected: Boolean): Notification {
         var content :String = if (connected)
@@ -112,6 +117,12 @@ class V2rayVpnService
     private fun startForegroundNotification() {
         val notification = makeForegroundNotification(false)
         startForeground(NOTIFICATION_ID, notification)
+    }
+
+    private fun postUpdateForegroundNotification() {
+        val notification = makeForegroundNotification(true)
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        manager.notify(NOTIFICATION_ID, notification)
     }
 
     private fun createNotificationChannel() {
