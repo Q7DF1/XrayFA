@@ -19,8 +19,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.android.v2rayForAndroidUI.ui.component.V2rayFAContainer
 import com.android.v2rayForAndroidUI.ui.theme.V2rayForAndroidUITheme
 import hev.htproxy.V2rayBaseService
+import javax.inject.Inject
 
 class MainActivity : ComponentActivity() {
 
@@ -28,12 +30,10 @@ class MainActivity : ComponentActivity() {
         const val TAG = "MainActivity"
     }
 
-    var v2rayCoreManager: V2rayCoreManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.i("lishien", "onCreate: lishien++ ${applicationInfo.nativeLibraryDir}")
-        v2rayCoreManager = V2rayCoreManager(this)
         val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             activityResult ->
                 if (activityResult.resultCode == RESULT_OK) {
@@ -46,35 +46,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             V2rayForAndroidUITheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    var vpnState by remember { mutableStateOf(false) }
-                    Column(
-                        modifier = Modifier.padding(innerPadding)
-                    ) {
-                        Text("hello")
-                        Button(
-                            onClick = {
-                                if (!vpnState) {
-                                    val intent = VpnService.prepare(this@MainActivity)
-                                    if (intent != null) {
-                                        launcher.launch(intent)
-                                    }else {
-                                        startVpnServiceByToggle()
-                                        //startV2rayCoreByToggle()
-                                    }
-                                }else {
-                                    stopVpnServiceByToggle()
-                                    //stopV2rayCoreByToggle()
-                                }
-                                vpnState = !vpnState
-                            }
-                        ) {
-                            Text(
-                                text =
-                                    if (!vpnState) resources.getString(R.string.start_vpn)
-                                    else resources.getString(R.string.stop_vpn)
-                            )
-                        }
-                    }
+                    V2rayFAContainer(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
@@ -86,14 +58,6 @@ class MainActivity : ComponentActivity() {
                 action = "connect"
             }
         startForegroundService(intent)
-    }
-
-    private fun startV2rayCoreByToggle() {
-        v2rayCoreManager?.startV2rayCore()
-    }
-
-    private fun stopV2rayCoreByToggle() {
-        v2rayCoreManager?.stopV2rayCore()
     }
 
     private fun stopVpnServiceByToggle() {
