@@ -3,6 +3,22 @@ package com.android.v2rayForAndroidUI
 import android.content.Context
 import android.util.Log
 import com.android.v2rayForAndroidUI.di.qualifier.Application
+import com.android.v2rayForAndroidUI.model.DnsObject
+import com.android.v2rayForAndroidUI.model.InboundObject
+import com.android.v2rayForAndroidUI.model.LogObject
+import com.android.v2rayForAndroidUI.model.MuxObject
+import com.android.v2rayForAndroidUI.model.OutboundObject
+import com.android.v2rayForAndroidUI.model.RoutingObject
+import com.android.v2rayForAndroidUI.model.RuleObject
+import com.android.v2rayForAndroidUI.model.ServerObject
+import com.android.v2rayForAndroidUI.model.SniffingObject
+import com.android.v2rayForAndroidUI.model.SocksInboundConfigurationObject
+import com.android.v2rayForAndroidUI.model.StreamSettingsObject
+import com.android.v2rayForAndroidUI.model.UserObject
+import com.android.v2rayForAndroidUI.model.VLESSInboundConfigurationObject
+import com.android.v2rayForAndroidUI.model.VLESSOutboundConfigurationObject
+import com.android.v2rayForAndroidUI.model.XrayConfiguration
+import com.android.v2rayForAndroidUI.model.stream.RealitySettings
 import com.android.v2rayForAndroidUI.utils.Config
 import com.android.v2rayForAndroidUI.utils.Device
 import libv2ray.CoreCallbackHandler
@@ -58,6 +74,91 @@ class V2rayCoreManager
                 Log.e(TAG, "startV2rayCore failed: ${e.message}")
             }
         }.start()
+    }
+
+    fun getXrayConfiguration(): XrayConfiguration {
+        val dns = DnsObject(
+            hosts = mapOf(
+                "domain:googleapis.cn" to "googleapis.com"
+            ),
+            servers = listOf(
+                "8.8.8.8"
+            )
+        )
+        val inbounds = listOf(
+            InboundObject(
+                listen = "127.0.0.1",
+                port = 10808,
+                protocol = "socks",
+                settings = SocksInboundConfigurationObject(
+                    auth = "noauth",
+                    udp = true,
+                    userLevel = 8
+                ),
+                sniffing = SniffingObject(
+                    destOverride = listOf("http","lts"),
+                    enabled = true
+                ),
+                tag = "socks"
+            )
+        )
+        val xrayConfig = XrayConfiguration(
+            dns = dns,
+            inbounds = inbounds,
+            log = LogObject(logLevel = "warning"),
+            outbounds = listOf(
+                OutboundObject(
+                    mux = MuxObject(
+                        concurrency =  -1,
+                        enable = false,
+                        xudpConcurrency = 8,
+                        xudpProxyUDP443 = ""
+                    ),
+                    protocol = "vless",
+                    settings = VLESSOutboundConfigurationObject(
+                        vnext = listOf(
+                            ServerObject(
+                                address = "67.230.172.249",
+                                port = 18880,
+                                users = listOf(
+                                    UserObject(
+                                        encryption = "none",
+                                        flow = "xtls-rprx-vision",
+                                        id = "bc313a85-45dd-4904-80dc-37496b18e222",
+                                        level = 8
+                                    )
+                            )
+                        )
+                    )
+                ),
+                    streamSettings = StreamSettingsObject(
+                        network = "tcp",
+                        realitySettings = RealitySettings(
+                            fingerprint = "chrome",
+                            serverName = "www.paypal.com",
+                            shortId = "",
+                            spiderX = "",
+                            publicKey = "1CgDPWbxKfcyOa91dLnRxDZ3EuaEbU0GwFnkTIg2XWc",
+                            show = false
+                        ),
+                        security = "reality"
+                    ),
+                    tag = "proxy"
+            ),
+                OutboundObject(
+                    protocol = "freedom",
+                    settings = null,
+                    tag = "direct"
+                ),
+        ),
+            routing = RoutingObject(
+                domainStrategy = "IPIfNonMatch",
+                rules = listOf(
+                    RuleObject(
+                        //不正确
+                    )
+                )
+            )
     }
 
     fun stopV2rayCore() {
