@@ -66,7 +66,7 @@ class V2rayBaseService
         val builder = Builder()
         tunFd = builder.setSession(resources.getString(R.string.app_label))
             .addAddress(prefs.tunnelIpv4Address, prefs.tunnelIpv4Prefix)
-            .addAllowedApplication("com.android.chrome")
+            .addDisallowedApplication(applicationContext.packageName)
             .addRoute("0.0.0.0",0)
             .setMtu(prefs.tunnelMtu)
             .setBlocking(false)
