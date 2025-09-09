@@ -1,0 +1,3 @@
+[submodule "tun2socks/src/main/jni/hev-socks5-tunnel"]
+	path = tun2socks/src/main/jni/hev-socks5-tunnel
+	url = https://github.com/heiher/hev-socks5-tunnel.git
