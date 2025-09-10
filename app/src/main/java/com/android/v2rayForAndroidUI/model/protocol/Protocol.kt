@@ -3,8 +3,11 @@ package com.android.v2rayForAndroidUI.model.protocol
 enum class Protocol(
     name: String
 ) {
-    VLESS("vless"),
+    VLESS(name = "vless"),
 
-    VMESS("vmess");
+    VMESS(name = "vmess"),
 
+    SHADOW_SOCKS(name = "ss"),
+
+    TROJAN(name = "trojan");
 }

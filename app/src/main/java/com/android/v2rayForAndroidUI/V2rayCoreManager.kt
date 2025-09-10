@@ -2,7 +2,7 @@ package com.android.v2rayForAndroidUI
 
 import android.content.Context
 import android.util.Log
-import com.android.v2rayForAndroidUI.di.qualifier.Application
+import hev.htproxy.di.qualifier.Application
 import com.android.v2rayForAndroidUI.model.DnsObject
 import com.android.v2rayForAndroidUI.model.InboundObject
 import com.android.v2rayForAndroidUI.model.LogObject
@@ -13,18 +13,17 @@ import com.android.v2rayForAndroidUI.model.RuleObject
 import com.android.v2rayForAndroidUI.model.ServerObject
 import com.android.v2rayForAndroidUI.model.SniffingObject
 import com.android.v2rayForAndroidUI.model.SocksInboundConfigurationObject
-import com.android.v2rayForAndroidUI.model.StreamSettingsObject
+import com.android.v2rayForAndroidUI.model.stream.StreamSettingsObject
 import com.android.v2rayForAndroidUI.model.UserObject
-import com.android.v2rayForAndroidUI.model.VLESSInboundConfigurationObject
 import com.android.v2rayForAndroidUI.model.VLESSOutboundConfigurationObject
 import com.android.v2rayForAndroidUI.model.XrayConfiguration
 import com.android.v2rayForAndroidUI.model.stream.RealitySettings
 import com.android.v2rayForAndroidUI.utils.Config
 import com.android.v2rayForAndroidUI.utils.Device
+import com.google.gson.Gson
 import libv2ray.CoreCallbackHandler
 import libv2ray.CoreController
 import libv2ray.Libv2ray
-import java.io.File
 import javax.inject.Inject
 
 class V2rayCoreManager
@@ -55,6 +54,7 @@ class V2rayCoreManager
 
     }
     init {
+        Log.i(TAG, "${context.getExternalFilesDir("assets")?.absolutePath}: lishien++")
         Libv2ray.initCoreEnv(
             context.getExternalFilesDir("assets")?.absolutePath, Device.getDeviceIdForXUDPBaseKey()
         )
@@ -66,14 +66,22 @@ class V2rayCoreManager
 
         Thread {
             try {
-                val clientIps = context.assets.open("v2.json")
-                Log.i(TAG, "startV2rayCore: ${context.assets}")
-                val jsonConfig = Config.jsonToString(clientIps)
-                coreController?.startLoop(jsonConfig)
+//                val clientIps = context.assets.open("v2.json")
+//                Log.i(TAG, "startV2rayCore: ${context.assets}")
+//                val jsonConfig = Config.jsonToString(clientIps)
+                val v2rayConfig = getV2rayConfig()
+                coreController?.startLoop(v2rayConfig)
             }catch (e: Exception) {
                 Log.e(TAG, "startV2rayCore failed: ${e.message}")
             }
         }.start()
+    }
+    
+    fun getV2rayConfig(): String {
+        val xrayConfiguration = getXrayConfiguration()
+        val toJson = Gson().toJson(xrayConfiguration)
+        Log.i(TAG, "getV2rayConfig: $toJson")
+        return toJson
     }
 
     fun getXrayConfiguration(): XrayConfiguration {
@@ -96,7 +104,7 @@ class V2rayCoreManager
                     userLevel = 8
                 ),
                 sniffing = SniffingObject(
-                    destOverride = listOf("http","lts"),
+                    destOverride = listOf("http","tls"),
                     enabled = true
                 ),
                 tag = "socks"
@@ -156,9 +164,13 @@ class V2rayCoreManager
                 rules = listOf(
                     RuleObject(
                         //不正确
+                        outboundTag = "proxy",
+                        domain = listOf("geolocation-!cn")
                     )
                 )
             )
+        )
+        return xrayConfig
     }
 
     fun stopV2rayCore() {

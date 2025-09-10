@@ -3,9 +3,6 @@ package hev.htproxy;
 import android.content.Context;
 import android.util.Log;
 
-import com.android.v2rayForAndroidUI.di.qualifier.Application;
-import com.android.v2rayForAndroidUI.di.qualifier.Background;
-import com.android.v2rayForAndroidUI.utils.NetPreferences;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -14,6 +11,10 @@ import java.util.concurrent.Executor;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+
+import hev.htproxy.di.qualifier.Application;
+import hev.htproxy.di.qualifier.Background;
+import hev.htproxy.utils.NetPreferences;
 
 @Singleton
 public class TProxyService implements Tun2SocksService{

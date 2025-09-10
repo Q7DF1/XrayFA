@@ -19,53 +19,35 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.ViewModelProvider
 import com.android.v2rayForAndroidUI.model.protocol.Protocol
 import com.android.v2rayForAndroidUI.ui.component.V2rayFAContainer
 import com.android.v2rayForAndroidUI.ui.theme.V2rayForAndroidUITheme
-import hev.htproxy.V2rayBaseService
+import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel
+import com.android.v2rayForAndroidUI.V2rayBaseService
 import javax.inject.Inject
 
-class MainActivity : ComponentActivity() {
+class MainActivity @Inject constructor(
+) : ComponentActivity() {
 
     companion object {
         const val TAG = "MainActivity"
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.i("lishien", "onCreate: lishien++ ${applicationInfo.nativeLibraryDir}")
-        val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            activityResult ->
-                if (activityResult.resultCode == RESULT_OK) {
-                    startVpnServiceByToggle()
-                    //startV2rayCoreByToggle()
-                }
-        }
+
+        val viewmodel = ViewModelProvider(this)[XrayViewmodel::class.java]
 
         enableEdgeToEdge()
         setContent {
             V2rayForAndroidUITheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    V2rayFAContainer(modifier = Modifier.padding(innerPadding))
+                    V2rayFAContainer(modifier = Modifier.padding(innerPadding),viewmodel)
                 }
             }
         }
     }
 
-    private fun startVpnServiceByToggle() {
-        Log.i(TAG, "startVpnServiceByToggle: lishien__")
-        val intent = Intent(this, V2rayBaseService::class.java).apply {
-                action = "connect"
-            }
-        startForegroundService(intent)
-    }
-
-    private fun stopVpnServiceByToggle() {
-        Log.i(TAG, "stopVpnServiceByToggle: lishien++")
-        val intent = Intent(this, V2rayBaseService::class.java).apply {
-            action = "disconnect"
-        }
-        startService(intent)
-    }
 }

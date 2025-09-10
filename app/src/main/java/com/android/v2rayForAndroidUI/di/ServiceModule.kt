@@ -5,7 +5,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.multibindings.ClassKey
 import dagger.multibindings.IntoMap
-import hev.htproxy.V2rayBaseService
+import com.android.v2rayForAndroidUI.V2rayBaseService
 
 
 @Module

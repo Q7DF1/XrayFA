@@ -1,17 +1,14 @@
 package com.android.v2rayForAndroidUI.utils;
 
 import android.content.Context;
-import android.provider.Settings;
-import android.util.Base64;
 import android.util.Log;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import hev.htproxy.utils.NetPreferences;
 import kotlin.text.Charsets;
 
 public class Config {
