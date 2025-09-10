@@ -1,11 +1,10 @@
 package com.android.v2rayForAndroidUI.di
 
 import android.content.Context
-import androidx.activity.BackEventCompat
-import com.android.v2rayForAndroidUI.di.qualifier.Application
-import com.android.v2rayForAndroidUI.di.qualifier.Background
-import com.android.v2rayForAndroidUI.di.qualifier.Main
-import com.android.v2rayForAndroidUI.utils.NetPreferences
+import hev.htproxy.di.qualifier.Application
+import hev.htproxy.di.qualifier.Background
+import hev.htproxy.di.qualifier.Main
+import hev.htproxy.utils.NetPreferences
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -16,7 +15,10 @@ import java.util.concurrent.Executors
 import javax.inject.Singleton
 
 
-@Module(includes = [ServiceModule::class])
+@Module(includes = [
+    ServiceModule::class,
+    ActivityModule::class
+])
 abstract class GlobalModule {
 
  companion object {
@@ -48,6 +50,7 @@ abstract class GlobalModule {
      fun providePreferences(context: Context): NetPreferences {
          return NetPreferences(context)
      }
+
  }
 
     @Binds

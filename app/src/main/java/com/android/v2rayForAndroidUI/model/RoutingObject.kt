@@ -21,7 +21,8 @@ data class RuleObject(
     val attrs:       List<String>? = null,
     val outboundTag: String? = null,
     val balancerTag: String? = null,
-    val ruleTag:     String? = null
+    val ruleTag:     String? = null,
+    val type: String? = null
 )
 
 data class BalancerObject(

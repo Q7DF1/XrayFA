@@ -21,11 +21,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    sourceSets {
-        getByName("main") {
-            jniLibs.srcDir("src/main/jni")
-        }
-    }
+
 
     buildTypes {
         release {
@@ -47,10 +43,10 @@ android {
         compose = true
     }
 }
-
 dependencies {
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
+    implementation(project(":tun2socks"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -64,6 +60,8 @@ dependencies {
     kapt(libs.dagger.compiler)
     implementation (libs.dagger.android)
     kapt(libs.dagger.android.processor)
+
+    implementation("com.google.code.gson:gson:2.11.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

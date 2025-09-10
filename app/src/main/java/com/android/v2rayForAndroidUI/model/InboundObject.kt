@@ -1,6 +1,7 @@
 package com.android.v2rayForAndroidUI.model
 
 import com.android.v2rayForAndroidUI.model.stream.RealitySettings
+import com.android.v2rayForAndroidUI.model.stream.StreamSettingsObject
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -68,26 +69,7 @@ data class FallbackObject(
 
 
 
-data class StreamSettingsObject(
-    val network: String = "raw",
-    val security: String = "none",
-    val tlsSettings: TlsSettings? = null,
-    val realitySettings: RealitySettings? = null,
-    val rawSettings: RawSettings? = null,
-    val xhttpSettings: XHttpSettings? = null,
-    val kcpSettings: KcpSettings? = null,
-    val grpcSettings: GrpcSettings? = null,
-    val wsSettings: WsSettings? = null,
-    val httpUpgradeSettings: HttpUpgradeSettings? = null,
-    val sockopt: Sockopt? = null
-)
-class TlsSettings()
-class RawSettings()
-class XHttpSettings()
-class KcpSettings()
-class GrpcSettings()
-class WsSettings()
-class HttpUpgradeSettings()
+
 
 data class HappyEyeballs(
     val tryDelayMs: Int = 250,

@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "v2rayForAndroidUI"
 include(":app")
- 
+include(":tun2socks")

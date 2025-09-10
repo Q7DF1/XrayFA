@@ -1,5 +1,6 @@
 package com.android.v2rayForAndroidUI.di
 
+import android.app.Activity
 import android.app.Service
 import android.content.Context
 import dagger.BindsInstance
@@ -21,4 +22,5 @@ interface V2rayComponent {
 
 
     fun getVpnServices(): Map<Class<*>, Provider<Service>>
+    fun getActivities(): Map<Class<*>, Provider<Activity>>
 }

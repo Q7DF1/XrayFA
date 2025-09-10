@@ -1,4 +1,4 @@
-package com.android.v2rayForAndroidUI.di.qualifier;
+package hev.htproxy.di.qualifier;
 
 
 import java.lang.annotation.ElementType;

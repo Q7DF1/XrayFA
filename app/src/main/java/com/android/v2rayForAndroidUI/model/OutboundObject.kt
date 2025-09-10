@@ -1,5 +1,7 @@
 package com.android.v2rayForAndroidUI.model
 
+import com.android.v2rayForAndroidUI.model.stream.StreamSettingsObject
+
 data class OutboundObject(
     val sendThrough: String = "0.0.0.0",
     val protocol: String? = null,
@@ -11,7 +13,7 @@ data class OutboundObject(
 )
 
 abstract class AbsOutboundConfigurationObject{}
-
+class NoneOutboundConfigurationObject: AbsOutboundConfigurationObject()
 data class VLESSOutboundConfigurationObject(
     val vnext: List<ServerObject>
 ): AbsOutboundConfigurationObject()

@@ -35,7 +35,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name="hev.htproxy.V2rayBaseService"
+        <service android:name=".V2rayBaseService"
             android:foregroundServiceType="specialUse"
             android:exported="true"
             android:permission="android.permission.BIND_VPN_SERVICE">
