@@ -13,13 +13,13 @@ data class RealitySettings(
 //    val mldsa65Seed: String = "",
 //    val limitFallbackUpload: LimitFallback? = null,
 //    val limitFallbackDownload: LimitFallback? = null,
-    val fingerprint: String = "",
-    val serverName: String = "",
-    val publicKey: String = "",
+    val fingerprint: String? = null,
+    val serverName: String? = null,
+    val publicKey: String?  = null,
     val allowInsecure: Boolean = false,
     val show: Boolean = false,
-    val password: String = "",
+    val password: String? = null,
     val shortId: String = "",
-    val mldsa65Verify: String = "",
-    val spiderX: String = ""
+    val mldsa65Verify: String? = null,
+    val spiderX: String? = null
 )

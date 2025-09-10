@@ -42,7 +42,6 @@ abstract class AbstractConfigParser {
 
     fun getBaseLogObject(): LogObject {
         return LogObject(
-            access = "/storage/emulated/0/Android/data/com.android.v2rayForAndroidUI/files/assets",
             logLevel = "warning"
         )
     }
@@ -67,16 +66,16 @@ abstract class AbstractConfigParser {
                 rules = listOf(
                     RuleObject(
                         outboundTag = "proxy",
-                        domain = listOf("geolocation-!cn")
+                        domain = listOf("geosite:geolocation-!cn")
                     ),
                     RuleObject(
                         outboundTag = "direct",
-                        domain = listOf("geolocation-cn")
+                        domain = listOf("geosite:geolocation-cn")
                     )
                 )
         )
     }
 
 
-    abstract fun getJsonConfigStringFromLink(link: String):String
+    abstract fun parse(link: String):String
 }

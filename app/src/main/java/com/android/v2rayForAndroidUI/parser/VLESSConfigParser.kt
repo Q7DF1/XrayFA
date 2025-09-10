@@ -22,7 +22,7 @@ class VLESSConfigParser: AbstractConfigParser(){
         const val TAG = "VLESSConfigParser"
     }
 
-    override fun getJsonConfigStringFromLink(link: String): String {
+    override fun parse(link: String): String {
 
         // 1. 去掉协议前缀
         val withoutProtocol = link.removePrefix("vless://")

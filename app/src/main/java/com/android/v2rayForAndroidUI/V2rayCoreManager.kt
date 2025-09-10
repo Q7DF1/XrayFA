@@ -18,7 +18,7 @@ import com.android.v2rayForAndroidUI.model.UserObject
 import com.android.v2rayForAndroidUI.model.VLESSOutboundConfigurationObject
 import com.android.v2rayForAndroidUI.model.XrayConfiguration
 import com.android.v2rayForAndroidUI.model.stream.RealitySettings
-import com.android.v2rayForAndroidUI.utils.Config
+import com.android.v2rayForAndroidUI.parser.VLESSConfigParser
 import com.android.v2rayForAndroidUI.utils.Device
 import com.google.gson.Gson
 import libv2ray.CoreCallbackHandler
@@ -62,15 +62,13 @@ class V2rayCoreManager
     }
 
 
-    fun startV2rayCore() {
+    fun startV2rayCore(config: String? = null) {
 
         Thread {
             try {
-//                val clientIps = context.assets.open("v2.json")
-//                Log.i(TAG, "startV2rayCore: ${context.assets}")
-//                val jsonConfig = Config.jsonToString(clientIps)
                 val v2rayConfig = getV2rayConfig()
-                coreController?.startLoop(v2rayConfig)
+
+                coreController?.startLoop(config?: v2rayConfig)
             }catch (e: Exception) {
                 Log.e(TAG, "startV2rayCore failed: ${e.message}")
             }
@@ -78,10 +76,9 @@ class V2rayCoreManager
     }
     
     fun getV2rayConfig(): String {
-        val xrayConfiguration = getXrayConfiguration()
-        val toJson = Gson().toJson(xrayConfiguration)
-        Log.i(TAG, "getV2rayConfig: $toJson")
-        return toJson
+
+        val config = VLESSConfigParser().parse("vless://bc313a85-45dd-4904-80dc-37496b18e222@67.230.172.249:18880?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.paypal.com&fp=chrome&pbk=1CgDPWbxKfcyOa91dLnRxDZ3EuaEbU0GwFnkTIg2XWc&type=tcp&headerType=none#233boy-tcp-67.230.172.249")
+        return config
     }
 
     fun getXrayConfiguration(): XrayConfiguration {

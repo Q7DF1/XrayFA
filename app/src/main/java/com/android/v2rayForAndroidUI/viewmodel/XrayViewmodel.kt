@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import com.android.v2rayForAndroidUI.V2rayBaseService
 import com.android.v2rayForAndroidUI.V2rayCoreManager
 import com.android.v2rayForAndroidUI.model.protocol.Protocol
+import com.android.v2rayForAndroidUI.parser.ParserFactory
 import com.android.v2rayForAndroidUI.parser.VLESSConfigParser
 import java.lang.ref.WeakReference
 
@@ -18,6 +19,7 @@ class XrayViewmodel(): ViewModel(){
     companion object {
         const val TAG = "XrayViewmodel"
     }
+
 
 
     private fun getConfigFromClipboard(context: Context):String {
@@ -41,16 +43,8 @@ class XrayViewmodel(): ViewModel(){
         }
 
         val protocol = link.substringBefore("://").lowercase()
-        Log.i(TAG, "addV2rayConfigFromClipboard: $protocol")
-        return when(protocol) {
-            Protocol.VLESS.name.lowercase() -> {
-                val jsonConfigStringFromLink = VLESSConfigParser().getJsonConfigStringFromLink(link)
-                Log.i(TAG, "addV2rayConfigFromClipboar: $jsonConfigStringFromLink")
-                jsonConfigStringFromLink
-            }else -> {
-                ""
-            }
-        }
+        val parser = ParserFactory.getParser(protocol)
+        return parser.parse(link)
     }
 
 
