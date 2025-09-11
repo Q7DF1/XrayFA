@@ -65,12 +65,14 @@ abstract class AbstractConfigParser {
                 domainStrategy = "IPIfNonMatch",
                 rules = listOf(
                     RuleObject(
+                        type = "field",
                         outboundTag = "proxy",
                         domain = listOf("geosite:geolocation-!cn")
                     ),
                     RuleObject(
+                        type = "field",
                         outboundTag = "direct",
-                        domain = listOf("geosite:geolocation-cn")
+                        domain = listOf("giegeolocation-cn")
                     )
                 )
         )

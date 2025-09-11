@@ -2,6 +2,7 @@ package com.android.v2rayForAndroidUI.ui.component
 
 import android.app.Activity
 import android.content.Intent
+import android.icu.number.Scale
 import android.net.VpnService
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,9 +50,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHost
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.android.v2rayForAndroidUI.R
 import com.android.v2rayForAndroidUI.V2rayBaseService
 import com.android.v2rayForAndroidUI.V2rayCoreManager
+import com.android.v2rayForAndroidUI.ui.navigation.Config
+import com.android.v2rayForAndroidUI.ui.navigation.ConfigScreen
+import com.android.v2rayForAndroidUI.ui.navigation.Home
+import com.android.v2rayForAndroidUI.ui.navigation.HomeScreen
+import com.android.v2rayForAndroidUI.ui.navigation.list_navigation
 import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel
 
 
@@ -60,28 +72,47 @@ fun V2rayFAContainer(
     xrayViewmodel: XrayViewmodel
 ) {
 
-    val context = LocalContext.current
+    val naviController = rememberNavController()
 
-    var config  by remember { mutableStateOf("111")}
-    Column (
-        modifier = modifier.fillMaxHeight(),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ){
-        V2rayFAHeader()
+    Scaffold(
+        bottomBar = {
 
-        Button(
-            onClick = {
-                config = xrayViewmodel.addV2rayConfigFromClipboard(context)
+            Row(
+                horizontalArrangement = Arrangement.SpaceAround,
+            ){
+                list_navigation.forEach { item ->
+                    IconButton(
+                        onClick = {naviController.navigate(route = item.route)}
+                    ) {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = ""
+                        )
+                    }
+
+                }
             }
-        ) {
-            Text("input from clipboard")
         }
+    ) { inerpadding->
 
-        Text(text = config)
+        NavHost(navController = naviController, startDestination = Home().route ) {
+            composable(route = Home().route) {
+                HomeScreen(
+                    xrayViewmodel = xrayViewmodel,
+                    modifier = modifier
+                )
+            }
 
-        V2rayStarter(xrayViewmodel)
+            composable(route = Config.route) {
+                ConfigScreen(
+                    onNavigate2Home = { node->
+                        naviController.navigate(route = Home(node).route)
+                    }
+                )
+            }
+        }
     }
+
 }
 
 @Composable

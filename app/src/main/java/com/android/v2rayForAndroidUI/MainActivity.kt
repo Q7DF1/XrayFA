@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModelProvider
 import com.android.v2rayForAndroidUI.model.protocol.Protocol
 import com.android.v2rayForAndroidUI.ui.component.V2rayFAContainer
@@ -41,6 +42,7 @@ class MainActivity @Inject constructor(
         val viewmodel = ViewModelProvider(this)[XrayViewmodel::class.java]
 
         enableEdgeToEdge()
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             V2rayForAndroidUITheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
