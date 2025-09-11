@@ -22,9 +22,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
@@ -58,6 +62,8 @@ import androidx.navigation.toRoute
 import com.android.v2rayForAndroidUI.R
 import com.android.v2rayForAndroidUI.V2rayBaseService
 import com.android.v2rayForAndroidUI.V2rayCoreManager
+import com.android.v2rayForAndroidUI.ui.navigation.About
+import com.android.v2rayForAndroidUI.ui.navigation.AboutScreen
 import com.android.v2rayForAndroidUI.ui.navigation.Config
 import com.android.v2rayForAndroidUI.ui.navigation.ConfigScreen
 import com.android.v2rayForAndroidUI.ui.navigation.Home
@@ -68,34 +74,33 @@ import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel
 
 @Composable
 fun V2rayFAContainer(
-    modifier: Modifier,
-    xrayViewmodel: XrayViewmodel
+    xrayViewmodel: XrayViewmodel,
+    modifier: Modifier = Modifier
 ) {
 
     val naviController = rememberNavController()
-
+    var selected by remember { mutableStateOf("home") }
     Scaffold(
         bottomBar = {
 
-            Row(
-                horizontalArrangement = Arrangement.SpaceAround,
-            ){
-                list_navigation.forEach { item ->
-                    IconButton(
-                        onClick = {naviController.navigate(route = item.route)}
-                    ) {
-                        Icon(
-                            imageVector = item.icon,
-                            contentDescription = ""
-                        )
-                    }
+            XrayBottomNav(
+                items = list_navigation,
+                selectedRoute = selected,
+                onItemSelected = { item ->
+                    naviController.navigate(route = item.route)
+                    selected = item.route
+                },
+                labelProvider = { item -> item.route },
+            )
+        },
+        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+    ) { innerPadding->
 
-                }
-            }
-        }
-    ) { inerpadding->
-
-        NavHost(navController = naviController, startDestination = Home().route ) {
+        NavHost(
+            navController = naviController,
+            startDestination = Home().route,
+            modifier = Modifier.padding(innerPadding)
+        ) {
             composable(route = Home().route) {
                 HomeScreen(
                     xrayViewmodel = xrayViewmodel,
@@ -110,103 +115,11 @@ fun V2rayFAContainer(
                     }
                 )
             }
-        }
-    }
 
-}
-
-@Composable
-fun V2rayFAHeader() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ){
-        Text(
-            text = "app",
-        )
-        Text(
-            text = "menu"
-        )
-    }
-}
-
-@Composable
-fun V2rayStarter(
-    xrayViewmodel: XrayViewmodel
-) {
-    val context = LocalContext.current
-    var toggle by remember {mutableStateOf(false)}
-    val color by animateColorAsState(
-        targetValue = if (toggle) Color.Blue else Color.Red,
-        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
-        label = "iconColorAnim"
-    )
-    val scale by animateFloatAsState(
-        targetValue = if (toggle) 1.3f else 1f,
-        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
-        label = "iconScaleAnim"
-    )
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val intent = Intent(context, V2rayBaseService::class.java).apply {
-                action = "connect"
+            composable(route = About.route) {
+                AboutScreen()
             }
-            context.startForegroundService(intent)
         }
     }
 
-    IconButton(
-        onClick = {
-            toggle = !toggle
-            if (toggle) {
-                val prepare = VpnService.prepare(context)
-                if (prepare != null) {
-                    launcher.launch(prepare)
-                }else {
-                    xrayViewmodel.startV2rayService(context)
-                }
-            }else{
-                xrayViewmodel.stopV2rayService(context)
-            }
-        },
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(color)
-            .size(64.dp)
-            .graphicsLayer(
-                scaleX = scale,
-                scaleY = scale
-            )
-    ) {
-//        Icon(
-//            imageVector = if (!toggle)Icons.Filled.PlayArrow else Icons.Filled.Done,
-//            contentDescription = "",
-//            tint = Color.White
-//        )
-
-        AnimatedContent(
-            targetState = toggle,
-            transitionSpec = {
-                (fadeIn(tween(300)) + scaleIn(initialScale = 0.6f, animationSpec = tween(300))) togetherWith
-                        (fadeOut(tween(300)) + scaleOut(targetScale = 1.4f, animationSpec = tween(300)))
-            },
-            label = "iconSwitchAnim"
-        ) { state ->
-            Icon(
-                imageVector = if (state) Icons.Filled.Done else ImageVector.vectorResource(R.drawable.ic_power),
-                contentDescription = "",
-                tint = Color.White,
-                modifier = Modifier.size(36.dp)
-            )
-        }
-    }
-}
-
-
-@Preview
-@Composable
-fun V2rayStarterPreview() {
 }
