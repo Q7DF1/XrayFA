@@ -1,5 +1,3 @@
-import org.gradle.internal.declarativedsl.parsing.main
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -43,6 +41,29 @@ android {
         compose = true
     }
 }
+
+val xrayLibDir = rootProject.file("AndroidLibXrayLite")
+val aarOutput = xrayLibDir.resolve("libv2ray.aar")
+
+val libsDir = file("libs")
+
+tasks.register<Exec>("buildXrayLib") {
+    workingDir = xrayLibDir
+    commandLine("cmd", "/C", "go build golang.org/x/mobile/cmd/gomobile && gomobile.exe init && gomobile.exe bind -v -androidapi 21 -ldflags=\"-s -w\" ./")
+    outputs.file(aarOutput)
+}
+
+tasks.register<Copy>("copyXrayLib") {
+    dependsOn("buildXrayLib")
+    from(aarOutput)
+    into(libsDir)
+}
+
+tasks.named("preBuild") {
+    dependsOn("copyXrayLib")
+}
+
+
 dependencies {
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
