@@ -61,7 +61,10 @@ dependencies {
     implementation (libs.dagger.android)
     kapt(libs.dagger.android.processor)
 
-    implementation("com.google.code.gson:gson:2.11.0")
+    implementation(libs.gson)
+
+
+    implementation(libs.androidx.navigation.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

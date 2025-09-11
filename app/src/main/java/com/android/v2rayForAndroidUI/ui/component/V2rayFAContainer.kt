@@ -2,6 +2,7 @@ package com.android.v2rayForAndroidUI.ui.component
 
 import android.app.Activity
 import android.content.Intent
+import android.icu.number.Scale
 import android.net.VpnService
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -21,9 +22,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
@@ -31,6 +36,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,134 +54,72 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHost
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.android.v2rayForAndroidUI.R
 import com.android.v2rayForAndroidUI.V2rayBaseService
 import com.android.v2rayForAndroidUI.V2rayCoreManager
+import com.android.v2rayForAndroidUI.ui.navigation.About
+import com.android.v2rayForAndroidUI.ui.navigation.AboutScreen
+import com.android.v2rayForAndroidUI.ui.navigation.Config
+import com.android.v2rayForAndroidUI.ui.navigation.ConfigScreen
+import com.android.v2rayForAndroidUI.ui.navigation.Home
+import com.android.v2rayForAndroidUI.ui.navigation.HomeScreen
+import com.android.v2rayForAndroidUI.ui.navigation.list_navigation
 import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel
 
 
 @Composable
 fun V2rayFAContainer(
-    modifier: Modifier,
-    xrayViewmodel: XrayViewmodel
+    xrayViewmodel: XrayViewmodel,
+    modifier: Modifier = Modifier
 ) {
 
-    val context = LocalContext.current
+    val naviController = rememberNavController()
+    var selected by remember { mutableStateOf("home") }
+    Scaffold(
+        bottomBar = {
 
-    var config  by remember { mutableStateOf("111")}
-    Column (
-        modifier = modifier.fillMaxHeight(),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ){
-        V2rayFAHeader()
-
-        Button(
-            onClick = {
-                config = xrayViewmodel.addV2rayConfigFromClipboard(context)
-            }
-        ) {
-            Text("input from clipboard")
-        }
-
-        Text(text = config)
-
-        V2rayStarter(xrayViewmodel)
-    }
-}
-
-@Composable
-fun V2rayFAHeader() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ){
-        Text(
-            text = "app",
-        )
-        Text(
-            text = "menu"
-        )
-    }
-}
-
-@Composable
-fun V2rayStarter(
-    xrayViewmodel: XrayViewmodel
-) {
-    val context = LocalContext.current
-    var toggle by remember {mutableStateOf(false)}
-    val color by animateColorAsState(
-        targetValue = if (toggle) Color.Blue else Color.Red,
-        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
-        label = "iconColorAnim"
-    )
-    val scale by animateFloatAsState(
-        targetValue = if (toggle) 1.3f else 1f,
-        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
-        label = "iconScaleAnim"
-    )
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val intent = Intent(context, V2rayBaseService::class.java).apply {
-                action = "connect"
-            }
-            context.startForegroundService(intent)
-        }
-    }
-
-    IconButton(
-        onClick = {
-            toggle = !toggle
-            if (toggle) {
-                val prepare = VpnService.prepare(context)
-                if (prepare != null) {
-                    launcher.launch(prepare)
-                }else {
-                    xrayViewmodel.startV2rayService(context)
-                }
-            }else{
-                xrayViewmodel.stopV2rayService(context)
-            }
+            XrayBottomNav(
+                items = list_navigation,
+                selectedRoute = selected,
+                onItemSelected = { item ->
+                    naviController.navigate(route = item.route)
+                    selected = item.route
+                },
+                labelProvider = { item -> item.route },
+            )
         },
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(color)
-            .size(64.dp)
-            .graphicsLayer(
-                scaleX = scale,
-                scaleY = scale
-            )
-    ) {
-//        Icon(
-//            imageVector = if (!toggle)Icons.Filled.PlayArrow else Icons.Filled.Done,
-//            contentDescription = "",
-//            tint = Color.White
-//        )
+        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+    ) { innerPadding->
 
-        AnimatedContent(
-            targetState = toggle,
-            transitionSpec = {
-                (fadeIn(tween(300)) + scaleIn(initialScale = 0.6f, animationSpec = tween(300))) togetherWith
-                        (fadeOut(tween(300)) + scaleOut(targetScale = 1.4f, animationSpec = tween(300)))
-            },
-            label = "iconSwitchAnim"
-        ) { state ->
-            Icon(
-                imageVector = if (state) Icons.Filled.Done else ImageVector.vectorResource(R.drawable.ic_power),
-                contentDescription = "",
-                tint = Color.White,
-                modifier = Modifier.size(36.dp)
-            )
+        NavHost(
+            navController = naviController,
+            startDestination = Home().route,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable(route = Home().route) {
+                HomeScreen(
+                    xrayViewmodel = xrayViewmodel,
+                    modifier = modifier
+                )
+            }
+
+            composable(route = Config.route) {
+                ConfigScreen(
+                    onNavigate2Home = { node->
+                        naviController.navigate(route = Home(node).route)
+                    }
+                )
+            }
+
+            composable(route = About.route) {
+                AboutScreen()
+            }
         }
     }
-}
 
-
-@Preview
-@Composable
-fun V2rayStarterPreview() {
 }

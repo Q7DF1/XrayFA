@@ -3,6 +3,7 @@ package com.android.v2rayForAndroidUI.di
 import android.app.Activity
 import android.app.Service
 import android.content.Context
+import com.android.v2rayForAndroidUI.V2rayAppCompatFactory
 import dagger.BindsInstance
 import dagger.Component
 import javax.inject.Provider
@@ -23,4 +24,8 @@ interface V2rayComponent {
 
     fun getVpnServices(): Map<Class<*>, Provider<Service>>
     fun getActivities(): Map<Class<*>, Provider<Activity>>
+
+
+
+    fun inject(appCompatFactory: V2rayAppCompatFactory)
 }

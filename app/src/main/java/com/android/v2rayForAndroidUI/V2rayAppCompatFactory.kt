@@ -11,27 +11,25 @@ import com.android.v2rayForAndroidUI.di.DaggerV2rayComponent
 import com.android.v2rayForAndroidUI.di.V2rayComponent
 import java.io.File
 import java.io.FileOutputStream
+import javax.inject.Inject
 
 class V2rayAppCompatFactory: AppComponentFactory(),ContextAvailableCallback {
     
     companion object {
         const val TAG = "V2rayAppCompatFactory"
+
+        var rootComponent: V2rayComponent? = null
     }
-    
-    lateinit var rootComponent: V2rayComponent
+
+    @set:Inject
+    lateinit var resolver: ComponentResolver
     override fun instantiateServiceCompat(
         cl: ClassLoader,
         className: String,
         intent: Intent?
     ): Service {
-        val vpnServices = rootComponent.getVpnServices()
-        val clazz = Class.forName(className)
-        val serviceProvider = vpnServices[clazz]
-        if (serviceProvider != null) {
-            Log.i(TAG, "instantiateServiceCompat: init service")
-            return serviceProvider.get()
-        }
-        return super.instantiateServiceCompat(cl, className, intent)
+        rootComponent?.inject(this@V2rayAppCompatFactory)
+        return resolver.resolveService(className)
     }
     override fun instantiateApplicationCompat(cl: ClassLoader, className: String): Application {
         val app  =  super.instantiateApplicationCompat(cl, className) as V2rayFAApplication
@@ -45,13 +43,8 @@ class V2rayAppCompatFactory: AppComponentFactory(),ContextAvailableCallback {
         className: String,
         intent: Intent?
     ): Activity {
-        val activities = rootComponent.getActivities()
-        val clazz = Class.forName(className)
-        val activity = activities[clazz]
-        if (activity != null) {
-            return activity.get()
-        }
-        return super.instantiateActivityCompat(cl, className, intent)
+        rootComponent?.inject(this@V2rayAppCompatFactory)
+        return resolver.resolveActivity(className)
     }
 
      override fun onContextAvailable(context: Context) {
