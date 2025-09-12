@@ -47,14 +47,34 @@ val aarOutput = xrayLibDir.resolve("libv2ray.aar")
 
 val libsDir = file("libs")
 
-tasks.register<Exec>("buildXrayLib") {
+tasks.register<Exec>("buildGoMobile") {
     workingDir = xrayLibDir
-    commandLine("cmd", "/C", "go build golang.org/x/mobile/cmd/gomobile && gomobile.exe init && gomobile.exe bind -v -androidapi 21 -ldflags=\"-s -w\" ./")
+    commandLine("go","install","golang.org/x/mobile/cmd/gomobile@latest")
+}
+
+tasks.register<Exec>("initGoMobile") {
+    dependsOn("buildGoMobile")
+    workingDir = xrayLibDir
+    commandLine("gomobile","init")
+}
+
+
+tasks.register<Exec>("bindXrayLib") {
+    dependsOn("initGoMobile")
+    workingDir = xrayLibDir
+    commandLine(
+        "gomobile",
+        "bind",
+        "-v",
+        "-androidapi", "21",
+        "-ldflags=-s -w",
+        "./"
+    )
     outputs.file(aarOutput)
 }
 
 tasks.register<Copy>("copyXrayLib") {
-    dependsOn("buildXrayLib")
+    dependsOn("bindXrayLib")
     from(aarOutput)
     into(libsDir)
 }
