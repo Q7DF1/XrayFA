@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -85,7 +86,7 @@ fun NodeCard(
                 }
             }
             Button(
-                onClick = {}
+                onClick = {},
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Default.ArrowForward,
