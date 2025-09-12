@@ -50,6 +50,7 @@ fun V2rayFAContainer(
     var imageVector by remember { mutableStateOf(Icons.Default.Home) }
     var actionImageVector by remember { mutableStateOf(Icons.Default.Menu) }
     var title by remember { mutableIntStateOf(R.string.home) }
+    var onActionbarClick by remember { mutableStateOf({}) } //TODO
     Scaffold(
         topBar = {
             TopAppBar(
@@ -66,7 +67,7 @@ fun V2rayFAContainer(
                 },
                 actions = {
                     IconButton(
-                        onClick = {} //?
+                        onClick = onActionbarClick
                     ) {
                         Icon(
                             imageVector = actionImageVector,

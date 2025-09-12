@@ -64,4 +64,9 @@ class XrayViewmodel(): ViewModel(){
         context.startService(intent)
     }
 
+
+    fun isV2rayServiceRunning():Boolean {
+        return V2rayBaseService.isRunning
+    }
+
 }
