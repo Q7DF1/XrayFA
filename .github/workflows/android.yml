@@ -23,7 +23,7 @@ jobs:
     - name: Setup Golang
       uses: actions/setup-go@v5.4.0
       with:
-        go-version-file: 'go.mod'
+        go-version-file: 'AndroidLibXrayLite/go.mod'
           
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
