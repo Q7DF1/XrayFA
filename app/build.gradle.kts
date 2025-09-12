@@ -47,18 +47,18 @@ val aarOutput = xrayLibDir.resolve("libv2ray.aar")
 
 val libsDir = file("libs")
 
-tasks.register<Exec>("buildGoMobile") {
-    workingDir = xrayLibDir
-    commandLine("go","install","golang.org/x/mobile/cmd/gomobile@latest")
-}
+//tasks.register<Exec>("buildGoMobile") {
+//    workingDir = xrayLibDir
+//    commandLine("go","install","golang.org/x/mobile/cmd/gomobile@latest")
+//}
 
 tasks.register<Exec>("initGoMobile") {
-    dependsOn("buildGoMobile")
+    //dependsOn("buildGoMobile")
     workingDir = xrayLibDir
     commandLine("gomobile","init")
 }
 tasks.register<Exec>("goMod") {
-    dependsOn("buildGoMobile")
+    dependsOn("initGoMobile")
     workingDir = xrayLibDir
     commandLine("go","mod","tidy","-v")
 }
