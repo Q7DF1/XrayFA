@@ -57,10 +57,15 @@ tasks.register<Exec>("initGoMobile") {
     workingDir = xrayLibDir
     commandLine("gomobile","init")
 }
+tasks.register<Exec>("goMod") {
+    dependsOn("buildGoMobile")
+    workingDir = xrayLibDir
+    commandLine("go","mod","tidy","-v")
+}
 
 
 tasks.register<Exec>("bindXrayLib") {
-    dependsOn("initGoMobile")
+    dependsOn("goMod")
     workingDir = xrayLibDir
     commandLine(
         "gomobile",
