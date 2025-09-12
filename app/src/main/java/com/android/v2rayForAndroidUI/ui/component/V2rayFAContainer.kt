@@ -1,67 +1,33 @@
 package com.android.v2rayForAndroidUI.ui.component
 
-import android.app.Activity
-import android.content.Intent
-import android.icu.number.Scale
-import android.net.VpnService
-import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContract
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHost
+import androidx.core.content.ContextCompat.getString
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
 import com.android.v2rayForAndroidUI.R
-import com.android.v2rayForAndroidUI.V2rayBaseService
-import com.android.v2rayForAndroidUI.V2rayCoreManager
 import com.android.v2rayForAndroidUI.ui.navigation.About
 import com.android.v2rayForAndroidUI.ui.navigation.AboutScreen
 import com.android.v2rayForAndroidUI.ui.navigation.Config
@@ -72,6 +38,7 @@ import com.android.v2rayForAndroidUI.ui.navigation.list_navigation
 import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun V2rayFAContainer(
     xrayViewmodel: XrayViewmodel,
@@ -80,7 +47,35 @@ fun V2rayFAContainer(
 
     val naviController = rememberNavController()
     var selected by remember { mutableStateOf("home") }
+    var imageVector by remember { mutableStateOf(Icons.Default.Home) }
+    var actionImageVector by remember { mutableStateOf(Icons.Default.Menu) }
+    var title by remember { mutableIntStateOf(R.string.home) }
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = getString(LocalContext.current,title),
+                    )
+                },
+                navigationIcon = {
+                    Icon(
+                        imageVector = imageVector,
+                        contentDescription = ""
+                    )
+                },
+                actions = {
+                    IconButton(
+                        onClick = {} //?
+                    ) {
+                        Icon(
+                            imageVector = actionImageVector,
+                            contentDescription = ""
+                        )
+                    }
+                }
+            )
+        },
         bottomBar = {
 
             XrayBottomNav(
@@ -89,6 +84,22 @@ fun V2rayFAContainer(
                 onItemSelected = { item ->
                     naviController.navigate(route = item.route)
                     selected = item.route
+                    imageVector = item.icon
+                    when(item.route) {
+                        "home" -> {
+                            title = R.string.home
+                            actionImageVector = Icons.Default.Menu
+                        }
+                        "config" -> {
+                            title = R.string.config
+                            actionImageVector = Icons.Default.Search
+                        }
+                        "about" -> {
+                            title = R.string.about
+                            actionImageVector = Icons.Default.Star
+                        }
+                        else -> throw RuntimeException("unknown route")
+                    }
                 },
                 labelProvider = { item -> item.route },
             )
@@ -121,5 +132,4 @@ fun V2rayFAContainer(
             }
         }
     }
-
 }
