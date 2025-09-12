@@ -9,7 +9,7 @@ interface NavigateDestination {
 }
 
 
-val list_navigation = listOf(Home(), Config,About)
+val list_navigation = listOf(Config,Home(), About)
 
 
 

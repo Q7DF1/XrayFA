@@ -5,4 +5,7 @@
     <string name="stop_vpn">stop VPN</string>
     <string name="connecting">connecting</string>
     <string name="connected">connected</string>
+    <string name="home">home</string>
+    <string name="config">config</string>
+    <string name="about">about</string>
 </resources>

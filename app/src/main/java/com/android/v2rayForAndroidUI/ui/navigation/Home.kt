@@ -76,7 +76,6 @@ fun HomeScreen(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ){
-        V2rayFAHeader()
 
         Button(
             onClick = {
@@ -89,21 +88,6 @@ fun HomeScreen(
         Text(text = config)
 
         V2rayStarter(xrayViewmodel)
-    }
-}
-
-@Composable
-fun V2rayFAHeader() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ){
-        Text(
-            text = "app",
-        )
-        Text(
-            text = "menu"
-        )
     }
 }
 
