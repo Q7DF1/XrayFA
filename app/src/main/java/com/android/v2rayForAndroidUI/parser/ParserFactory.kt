@@ -8,7 +8,13 @@ object ParserFactory {
         return when(protocol) {
             Protocol.VLESS.name.lowercase() -> {
                 return VLESSConfigParser()
-            }else -> {
+
+            }
+            Protocol.VMESS.name.lowercase() -> {
+                return VMESSConfigParser()
+            }
+
+            else -> {
                 throw IllegalArgumentException("Unsupported protocol: $protocol")
             }
         }

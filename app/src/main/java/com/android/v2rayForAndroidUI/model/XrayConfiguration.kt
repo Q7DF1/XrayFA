@@ -15,5 +15,6 @@ data class XrayConfiguration(
     val fakedns: FakeDNSObject? = null,
     val metrics: MetricsObject? = null,
     val observatory: ObservatoryObject? = null,
-    val burstObservatory: BurstObservatoryObject? = null
+    val burstObservatory: BurstObservatoryObject? = null,
+    val remark: String? = null
 )

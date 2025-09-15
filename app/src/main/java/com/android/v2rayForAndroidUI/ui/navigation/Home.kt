@@ -39,6 +39,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -70,7 +71,7 @@ data class Home(
 fun HomeScreen(
     node: Node? = null,
     xrayViewmodel: XrayViewmodel,
-    modifier: Modifier
+    modifier: Modifier = Modifier
 ) {
 
     val context = LocalContext.current
@@ -85,7 +86,7 @@ fun HomeScreen(
             node = Node(Protocol.VLESS,"122.212.121.32",18880),
             modifier = Modifier.align(Alignment.Center)
         )
-        V2rayStarter(xrayViewmodel,modifier = Modifier.align(Alignment.BottomCenter))
+        V2rayStarter(xrayViewmodel,modifier = Modifier.align(BiasAlignment(0f,0.8f)))
     }
 }
 
@@ -148,7 +149,7 @@ fun V2rayStarter(
                 (fadeIn(tween(300)) + scaleIn(initialScale = 0.6f, animationSpec = tween(300))) togetherWith
                         (fadeOut(tween(300)) + scaleOut(targetScale = 1.4f, animationSpec = tween(300)))
             },
-            label = "iconSwitchAnim"
+            label = "iconSwitchAnim",
         ) { state ->
             Icon(
                 imageVector = if (state) Icons.Filled.Done else ImageVector.vectorResource(R.drawable.ic_power),

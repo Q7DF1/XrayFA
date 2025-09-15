@@ -6,5 +6,5 @@ data class Node(
     val protocol: Protocol,
     val address: String,  // IP or domain
     val port: Int,
-    val mark:String? = null
+    val remark:String? = null
 )

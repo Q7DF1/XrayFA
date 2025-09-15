@@ -8,4 +8,5 @@
     <string name="home">home</string>
     <string name="config">config</string>
     <string name="about">about</string>
+    <string name="add_config">add config</string>
 </resources>
