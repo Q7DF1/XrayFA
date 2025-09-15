@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
@@ -50,6 +51,7 @@ fun V2rayFAContainer(
     var imageVector by remember { mutableStateOf(Icons.Default.Home) }
     var actionImageVector by remember { mutableStateOf(Icons.Default.Menu) }
     var title by remember { mutableIntStateOf(R.string.home) }
+    var onActionbarClick by remember { mutableStateOf({}) } //TODO
     Scaffold(
         topBar = {
             TopAppBar(
@@ -66,7 +68,7 @@ fun V2rayFAContainer(
                 },
                 actions = {
                     IconButton(
-                        onClick = {} //?
+                        onClick = onActionbarClick
                     ) {
                         Icon(
                             imageVector = actionImageVector,

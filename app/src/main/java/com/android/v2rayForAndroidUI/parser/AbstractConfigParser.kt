@@ -3,13 +3,25 @@ package com.android.v2rayForAndroidUI.parser
 import com.android.v2rayForAndroidUI.model.DnsObject
 import com.android.v2rayForAndroidUI.model.InboundObject
 import com.android.v2rayForAndroidUI.model.LogObject
+import com.android.v2rayForAndroidUI.model.MuxObject
 import com.android.v2rayForAndroidUI.model.NoneOutboundConfigurationObject
 import com.android.v2rayForAndroidUI.model.OutboundObject
 import com.android.v2rayForAndroidUI.model.RoutingObject
 import com.android.v2rayForAndroidUI.model.RuleObject
+import com.android.v2rayForAndroidUI.model.ServerObject
 import com.android.v2rayForAndroidUI.model.SniffingObject
 import com.android.v2rayForAndroidUI.model.SocksInboundConfigurationObject
+import com.android.v2rayForAndroidUI.model.UserObject
+import com.android.v2rayForAndroidUI.model.VLESSOutboundConfigurationObject
+import com.android.v2rayForAndroidUI.model.XrayConfiguration
+import com.android.v2rayForAndroidUI.model.stream.RawSettings
+import com.android.v2rayForAndroidUI.model.stream.RealitySettings
+import com.android.v2rayForAndroidUI.model.stream.StreamSettingsObject
+import com.google.gson.Gson
 
+/**
+ * TODO configuration 从这里构造，outbound 由子类提供即可
+ */
 abstract class AbstractConfigParser {
 
 
@@ -79,5 +91,21 @@ abstract class AbstractConfigParser {
     }
 
 
-    abstract fun parse(link: String):String
+    fun parse(link: String):String {
+
+        val vlessConfig = XrayConfiguration(
+            dns = getBaseDnsConfig(),
+            log = getBaseLogObject(),
+            inbounds = listOf(getBaseInboundConfig()),
+            outbounds = listOf(
+                getBaseOutboundConfig(),
+                parseOutbound(link)
+            ),
+            routing = getBaseRoutingObject(),
+        )
+        val config = Gson().toJson(vlessConfig)
+        return config
+    }
+
+    abstract fun parseOutbound(link: String): OutboundObject
 }

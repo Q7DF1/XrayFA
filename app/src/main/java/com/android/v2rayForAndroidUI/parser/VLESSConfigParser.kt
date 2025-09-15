@@ -1,11 +1,7 @@
 package com.android.v2rayForAndroidUI.parser
 
-import android.util.Log
 import com.android.v2rayForAndroidUI.model.MuxObject
-import com.android.v2rayForAndroidUI.model.NoneOutboundConfigurationObject
 import com.android.v2rayForAndroidUI.model.OutboundObject
-import com.android.v2rayForAndroidUI.model.RoutingObject
-import com.android.v2rayForAndroidUI.model.RuleObject
 import com.android.v2rayForAndroidUI.model.ServerObject
 import com.android.v2rayForAndroidUI.model.UserObject
 import com.android.v2rayForAndroidUI.model.VLESSOutboundConfigurationObject
@@ -14,7 +10,6 @@ import com.android.v2rayForAndroidUI.model.stream.RealitySettings
 import com.android.v2rayForAndroidUI.model.stream.RawSettings
 import com.android.v2rayForAndroidUI.model.stream.StreamSettingsObject
 import com.google.gson.Gson
-import kotlin.math.exp
 
 class VLESSConfigParser: AbstractConfigParser(){
 
@@ -22,8 +17,8 @@ class VLESSConfigParser: AbstractConfigParser(){
         const val TAG = "VLESSConfigParser"
     }
 
-    override fun parse(link: String): String {
 
+    override fun parseOutbound(link: String): OutboundObject {
         // 1. 去掉协议前缀
         val withoutProtocol = link.removePrefix("vless://")
 
@@ -47,85 +42,44 @@ class VLESSConfigParser: AbstractConfigParser(){
             val kv = it.split("=")
             if (kv.size == 2) kv[0] to kv[1] else null
         }.toMap()
-
-        // 6. 给每个字段赋值
-        val protocol = "vless"
-        val encryption = queryParams["encryption"] ?: ""
-        val flow = queryParams["flow"] ?: ""
-        val security = queryParams["security"] ?: ""
-        val sni = queryParams["sni"] ?: ""
-        val fingerprint = queryParams["fp"] ?: ""
-        val publicKey = queryParams["pbk"] ?: ""
-        val type = queryParams["type"] ?: ""
-        val headerType = queryParams["headerType"] ?: ""
-
-        // ---- 测试打印（可选） ----
-        println("protocol: $protocol")
-        println("uuid: $uuid")
-        println("server: $server")
-        println("port: $port")
-        println("encryption: $encryption")
-        println("flow: $flow")
-        println("security: $security")
-        println("sni: $sni")
-        println("fingerprint: $fingerprint")
-        println("publicKey: $publicKey")
-        println("type: $type")
-        println("headerType: $headerType")
-        println("remark: $remark")
-
-        val vlessConfig = XrayConfiguration(
-            dns = getBaseDnsConfig(),
-            log = getBaseLogObject(),
-            inbounds = listOf(getBaseInboundConfig()),
-            outbounds = listOf(
-                getBaseOutboundConfig(),
-
-                OutboundObject(
-                    protocol = protocol,
-                    settings = VLESSOutboundConfigurationObject(
-                        vnext = listOf(
-                            ServerObject(
-                                address = server,
-                                port = port,
-                                users = listOf(
-                                    UserObject(
-                                        id = uuid,
-                                        encryption = encryption,
-                                        flow = flow,
-                                        level = 0,
-                                    )
-                                )
+        return OutboundObject(
+            protocol = "vless",
+            settings = VLESSOutboundConfigurationObject(
+                vnext = listOf(
+                    ServerObject(
+                        address = server,
+                        port = port,
+                        users = listOf(
+                            UserObject(
+                                id = uuid,
+                                encryption = queryParams["encryption"] ?: "",
+                                flow = queryParams["flow"]?:"",
+                                level = 0,
                             )
                         )
-                    ),
-                    streamSettings = StreamSettingsObject(
-                        security = security,
-                        realitySettings = RealitySettings(
-                            fingerprint = fingerprint,
-                            publicKey = publicKey,
-                            serverName = sni,
-                            spiderX = "",
-                            show = false,
-                        ),
-                        rawSettings = RawSettings()
-
-                    ),
-                    mux = MuxObject(
-                        concurrency = -1,
-                        enable = false,
-                        xudpConcurrency = 8,
-                        xudpProxyUDP443 = ""
-                    ),
-                    tag = "proxy"
+                    )
                 )
             ),
-            routing = getBaseRoutingObject()
-        )
-        val config = Gson().toJson(vlessConfig)
-        println(config)
+            streamSettings = StreamSettingsObject(
+                security = queryParams["security"] ?: "",
+                realitySettings = RealitySettings(
+                    fingerprint = queryParams["fp"]?:"",
+                    publicKey = queryParams["pbk"]?:"",
+                    serverName = queryParams["sni"]?:"",
+                    spiderX = "",
+                    show = false,
+                ),
+                rawSettings = RawSettings()
 
-        return config
+            ),
+            mux = MuxObject(
+                concurrency = -1,
+                enable = false,
+                xudpConcurrency = 8,
+                xudpProxyUDP443 = ""
+            ),
+            tag = "proxy"
+        )
     }
 
 

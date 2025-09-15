@@ -17,10 +17,13 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -36,6 +39,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -48,6 +52,8 @@ import androidx.compose.ui.unit.dp
 import com.android.v2rayForAndroidUI.R
 import com.android.v2rayForAndroidUI.V2rayBaseService
 import com.android.v2rayForAndroidUI.model.Node
+import com.android.v2rayForAndroidUI.model.protocol.Protocol
+import com.android.v2rayForAndroidUI.ui.component.NodeCard
 import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel
 
 data class Home(
@@ -65,38 +71,32 @@ data class Home(
 fun HomeScreen(
     node: Node? = null,
     xrayViewmodel: XrayViewmodel,
-    modifier: Modifier
+    modifier: Modifier = Modifier
 ) {
 
     val context = LocalContext.current
 
     var config  by remember { mutableStateOf("111")}
-    Column (
-        modifier = modifier.fillMaxHeight(),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ){
 
-        Button(
-            onClick = {
-                config = xrayViewmodel.addV2rayConfigFromClipboard(context)
-            }
-        ) {
-            Text("input from clipboard")
-        }
-
-        Text(text = config)
-
-        V2rayStarter(xrayViewmodel)
+    Box(
+        modifier = Modifier.fillMaxSize()
+            .padding(16.dp)
+    ) {
+        NodeCard(
+            node = Node(Protocol.VLESS,"122.212.121.32",18880),
+            modifier = Modifier.align(Alignment.Center)
+        )
+        V2rayStarter(xrayViewmodel,modifier = Modifier.align(BiasAlignment(0f,0.8f)))
     }
 }
 
 @Composable
 fun V2rayStarter(
-    xrayViewmodel: XrayViewmodel
+    xrayViewmodel: XrayViewmodel,
+    modifier: Modifier
 ) {
     val context = LocalContext.current
-    var toggle by remember {mutableStateOf(false)}
+    var toggle by remember {mutableStateOf(xrayViewmodel.isV2rayServiceRunning())}
     val color by animateColorAsState(
         targetValue = if (toggle) Color.Blue else Color.Red,
         animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
@@ -133,7 +133,7 @@ fun V2rayStarter(
                 xrayViewmodel.stopV2rayService(context)
             }
         },
-        modifier = Modifier
+        modifier = modifier
             .clip(CircleShape)
             .background(color)
             .size(64.dp)
@@ -142,11 +142,6 @@ fun V2rayStarter(
                 scaleY = scale
             )
     ) {
-//        Icon(
-//            imageVector = if (!toggle)Icons.Filled.PlayArrow else Icons.Filled.Done,
-//            contentDescription = "",
-//            tint = Color.White
-//        )
 
         AnimatedContent(
             targetState = toggle,
@@ -154,17 +149,18 @@ fun V2rayStarter(
                 (fadeIn(tween(300)) + scaleIn(initialScale = 0.6f, animationSpec = tween(300))) togetherWith
                         (fadeOut(tween(300)) + scaleOut(targetScale = 1.4f, animationSpec = tween(300)))
             },
-            label = "iconSwitchAnim"
+            label = "iconSwitchAnim",
         ) { state ->
             Icon(
                 imageVector = if (state) Icons.Filled.Done else ImageVector.vectorResource(R.drawable.ic_power),
                 contentDescription = "",
                 tint = Color.White,
-                modifier = Modifier.size(36.dp)
+                modifier = modifier.size(36.dp)
             )
         }
     }
 }
+
 
 
 @Preview

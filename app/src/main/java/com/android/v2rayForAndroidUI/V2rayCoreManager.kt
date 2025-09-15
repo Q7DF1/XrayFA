@@ -19,6 +19,7 @@ import com.android.v2rayForAndroidUI.model.VLESSOutboundConfigurationObject
 import com.android.v2rayForAndroidUI.model.XrayConfiguration
 import com.android.v2rayForAndroidUI.model.stream.RealitySettings
 import com.android.v2rayForAndroidUI.parser.VLESSConfigParser
+import com.android.v2rayForAndroidUI.parser.VMESSConfigParser
 import com.android.v2rayForAndroidUI.utils.Device
 import com.google.gson.Gson
 import libv2ray.CoreCallbackHandler

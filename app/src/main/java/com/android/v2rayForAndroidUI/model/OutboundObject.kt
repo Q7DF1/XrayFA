@@ -1,6 +1,7 @@
 package com.android.v2rayForAndroidUI.model
 
 import com.android.v2rayForAndroidUI.model.stream.StreamSettingsObject
+import java.security.Security
 
 data class OutboundObject(
     val sendThrough: String = "0.0.0.0",
@@ -18,6 +19,10 @@ data class VLESSOutboundConfigurationObject(
     val vnext: List<ServerObject>
 ): AbsOutboundConfigurationObject()
 
+data class VMESSOutboundConfigurationObject(
+    val vnext: List<ServerObject>
+): AbsOutboundConfigurationObject()
+
 
 data class ServerObject(
     val address: String,
@@ -26,10 +31,11 @@ data class ServerObject(
 )
 
 data class UserObject(
-    val id: String, //uuid
-    val encryption: String = "none",
-    val flow: String,
-    val level: Int,
+    val id: String, //uuid both
+    val encryption: String? = "none", //vless
+    val flow: String? = null, //vless
+    val level: Int? = null, //both
+    val security: String? = null //vmess
 )
 
 data class ProxySettingsObject(

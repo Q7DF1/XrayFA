@@ -25,6 +25,8 @@ class V2rayBaseService
         const val TAG = "V2rayCoreService"
         const val CHANNEL_ID = "foreground_service_v2rayFA_channel"
         const val NOTIFICATION_ID = 1
+
+        var isRunning: Boolean = false
     }
 
     var tunFd: ParcelFileDescriptor? = null
@@ -34,11 +36,13 @@ class V2rayBaseService
 
             Log.i(TAG, "onStartCommand: stop")
             stopV2rayCoreService()
+            isRunning = false
             return  START_NOT_STICKY
         }else {
 
             Log.i(TAG, "onStartCommand: start")
             startV2rayCoreService()
+            isRunning = true
             return START_STICKY
         }
     }
