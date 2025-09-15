@@ -1,6 +1,5 @@
 package com.android.v2rayForAndroidUI.parser
 
-import android.util.Log
 import com.android.v2rayForAndroidUI.model.OutboundObject
 import com.android.v2rayForAndroidUI.model.ServerObject
 import com.android.v2rayForAndroidUI.model.UserObject
@@ -11,6 +10,8 @@ import com.android.v2rayForAndroidUI.model.stream.HttpRequestObject
 import com.android.v2rayForAndroidUI.model.stream.HttpResponseObject
 import com.android.v2rayForAndroidUI.model.stream.RawSettings
 import com.android.v2rayForAndroidUI.model.stream.StreamSettingsObject
+import com.android.v2rayForAndroidUI.model.stream.TlsSettings
+import com.android.v2rayForAndroidUI.model.stream.WsSettings
 import com.google.gson.JsonParser
 import java.util.Base64
 
@@ -35,17 +36,21 @@ class VMESSConfigParser: AbstractConfigParser() {
                 //Log.i(TAG,"$key: $value")
                 println("$key: $value")
             }
-
+            val uuid = json.get("id").asString
+            val tls = json.get("tls").asString
+            val host = json.get("host").asString
+            val network = json.get("net").asString
+            val address = json.get("add").asString
             return OutboundObject(
                 protocol = "vmess",
                 settings = VMESSOutboundConfigurationObject(
                     vnext = listOf(
                         ServerObject(
-                            address = json.get("add").asString,
+                            address = address,
                             port = json.get("port").asInt,
                             users = listOf(
                                 UserObject(
-                                    id = json.get("id").asString,
+                                    id = uuid,
                                     level = 8,
                                     security = "auto"
                                 )
@@ -54,14 +59,22 @@ class VMESSConfigParser: AbstractConfigParser() {
                     )
                 ),
                 streamSettings = StreamSettingsObject(
-                    network = json.get("net").asString,
+                    network = network,
                     security = "", //check later
-                    rawSettings = RawSettings(
+                    rawSettings = if (network == "tcp") RawSettings(
                         header = HttpHeaderObject(
                             request = HttpRequestObject(),
                             type = "http"
                         )
-                    )
+                    ) else null,
+                    tlsSettings = if (tls == "tls") TlsSettings(
+                        serverName = host?:json.get("add").asString,
+                        allowInsecure = false
+                    ) else null,
+                    wsSettings = if (network == "ws") WsSettings(
+                        path = "/${uuid}",
+                        headers = mapOf(Pair("host",host?:address))
+                    ) else null
                 ),
                 tag = "proxy"
             )

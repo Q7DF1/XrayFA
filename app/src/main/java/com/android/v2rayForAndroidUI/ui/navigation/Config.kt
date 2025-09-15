@@ -61,7 +61,9 @@ fun AddConfigButton(
 ) {
     var toggle by remember { mutableStateOf(false) }
     FloatingActionButton(
-        onClick = {toggle = !toggle},
+        onClick = {
+
+        },
         modifier = modifier
     ) {
         Row(

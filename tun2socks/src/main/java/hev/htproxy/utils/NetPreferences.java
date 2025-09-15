@@ -104,7 +104,7 @@ public class NetPreferences {
     }
 
     public boolean getRemoteDns() {
-        return prefs.getBoolean(REMOTE_DNS, true);
+        return prefs.getBoolean(REMOTE_DNS, false);
     }
 
     public void setRemoteDns(boolean enable) {
