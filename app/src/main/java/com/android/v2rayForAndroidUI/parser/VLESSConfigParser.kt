@@ -9,6 +9,8 @@ import com.android.v2rayForAndroidUI.model.XrayConfiguration
 import com.android.v2rayForAndroidUI.model.stream.RealitySettings
 import com.android.v2rayForAndroidUI.model.stream.RawSettings
 import com.android.v2rayForAndroidUI.model.stream.StreamSettingsObject
+import com.android.v2rayForAndroidUI.model.stream.TlsSettings
+import com.android.v2rayForAndroidUI.model.stream.WsSettings
 import com.google.gson.Gson
 
 class VLESSConfigParser: AbstractConfigParser(){
@@ -42,6 +44,8 @@ class VLESSConfigParser: AbstractConfigParser(){
             val kv = it.split("=")
             if (kv.size == 2) kv[0] to kv[1] else null
         }.toMap()
+        val network = queryParams["type"] ?: "raw"
+        val security = queryParams["security"] ?: "none"
         return OutboundObject(
             protocol = "vless",
             settings = VLESSOutboundConfigurationObject(
@@ -55,22 +59,39 @@ class VLESSConfigParser: AbstractConfigParser(){
                                 encryption = queryParams["encryption"] ?: "",
                                 flow = queryParams["flow"]?:"",
                                 level = 0,
+                                security = "auto"
                             )
                         )
                     )
                 )
             ),
             streamSettings = StreamSettingsObject(
-                security = queryParams["security"] ?: "",
-                realitySettings = RealitySettings(
-                    fingerprint = queryParams["fp"]?:"",
-                    publicKey = queryParams["pbk"]?:"",
-                    serverName = queryParams["sni"]?:"",
-                    spiderX = "",
-                    show = false,
-                ),
-                rawSettings = RawSettings()
-
+                network = network,
+                security = security,
+                realitySettings =
+                    if (security == "reality") {
+                        RealitySettings(
+                            fingerprint = queryParams["fp"]?:"",
+                            publicKey = queryParams["pbk"]?:"",
+                            serverName = queryParams["sni"]?:"",
+                            spiderX = "",
+                            show = false,
+                        )
+                    } else {
+                        null
+                    },
+                rawSettings = if (network == "raw") { RawSettings() } else null,
+                wsSettings = if (network == "ws") {
+                    WsSettings(
+                        path = "/${uuid}",
+                        headers = mapOf(Pair("host",queryParams["host"]?:""))
+                    )
+                } else null,
+                tlsSettings = if (security == "tls") {
+                    TlsSettings(
+                        serverName = queryParams["host"]?:""
+                    )
+                } else null
             ),
             mux = MuxObject(
                 concurrency = -1,

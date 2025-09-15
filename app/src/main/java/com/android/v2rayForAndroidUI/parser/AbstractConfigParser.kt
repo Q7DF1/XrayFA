@@ -65,7 +65,8 @@ abstract class AbstractConfigParser {
                 "domain:googleapis.cn" to "googleapis.com"
             ),
             servers = listOf(
-                "8.8.8.8"
+                "8.8.8.8",
+                "1.1.1.1"
             )
         )
     }
@@ -104,6 +105,7 @@ abstract class AbstractConfigParser {
             routing = getBaseRoutingObject(),
         )
         val config = Gson().toJson(vlessConfig)
+        println(config)
         return config
     }
 

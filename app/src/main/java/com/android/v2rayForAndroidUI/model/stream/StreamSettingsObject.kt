@@ -18,9 +18,7 @@ data class StreamSettingsObject(
 
 
 
-class TlsSettings()
 class XHttpSettings()
 class KcpSettings()
 class GrpcSettings()
-class WsSettings()
 class HttpUpgradeSettings()
