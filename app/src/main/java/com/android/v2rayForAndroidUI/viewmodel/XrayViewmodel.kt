@@ -18,9 +18,22 @@ import com.android.v2rayForAndroidUI.model.protocol.protocols
 import com.android.v2rayForAndroidUI.parser.ParserFactory
 import com.android.v2rayForAndroidUI.parser.VLESSConfigParser
 import com.android.v2rayForAndroidUI.repository.LinkRepository
+import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel.Companion.TAG
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.lang.ref.WeakReference
 
 class XrayViewmodel(
@@ -31,9 +44,29 @@ class XrayViewmodel(
         const val TAG = "XrayViewmodel"
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val _nodes = MutableStateFlow<List<Node>>(emptyList())
+    val node: StateFlow<List<Node>> = _nodes
 
 
-    private fun getConfigFromClipboard(context: Context):String {
+    init {
+        viewModelScope.launch {
+            val links = linkRepository.allLinks.first() // 获取原始链接，不执行解析
+            val parsedNodes = mutableListOf<Node>()
+
+            // 后台线程逐条解析
+            links.forEach { link ->
+                val node = withContext(Dispatchers.Default) {
+                    ParserFactory.getParser(link.protocol).preParse(link.content)
+                }
+                parsedNodes.add(node)
+                _nodes.value = parsedNodes.toList() // 每条解析完就更新
+            }
+        }
+    }
+
+
+    fun getConfigFromClipboard(context: Context):String {
         val clipboard =
             context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
@@ -92,7 +125,7 @@ class XrayViewmodel(
             links.map { link ->
                 return@map ParserFactory.getParser(link.protocol).preParse(link.content)
             }
-        }
+        }.flowOn(Dispatchers.IO)
 
         return nodes
     }
