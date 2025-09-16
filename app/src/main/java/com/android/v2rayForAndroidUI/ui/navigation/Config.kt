@@ -4,9 +4,13 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -16,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.getString
 import com.android.v2rayForAndroidUI.R
 import com.android.v2rayForAndroidUI.model.Node
+import com.android.v2rayForAndroidUI.ui.component.NodeCard
+import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel
 
 data object Config: NavigateDestination {
     override val icon: ImageVector
@@ -43,13 +50,24 @@ data object Config: NavigateDestination {
 
 @Composable
 fun ConfigScreen(
-    onNavigate2Home: (Node) -> Unit
+    onNavigate2Home: (Node) -> Unit,
+    xrayViewmodel: XrayViewmodel
 ) {
+    val nodes by xrayViewmodel.getAllNodes().collectAsState(initial = emptyList())
     Box(
         modifier = Modifier.fillMaxSize()
             .padding(16.dp)
     ) {
-        AddConfigButton(modifier = Modifier.align(BiasAlignment(1f,0.8f)))
+        LazyColumn() {
+            items(nodes) {node ->
+                NodeCard(node = node, modifier = Modifier)
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
+        AddConfigButton(
+            xrayViewmodel = xrayViewmodel,
+            modifier = Modifier.align(BiasAlignment(1f,0.8f))
+        )
     }
 
 }
@@ -57,12 +75,15 @@ fun ConfigScreen(
 
 @Composable
 fun AddConfigButton(
+    xrayViewmodel: XrayViewmodel,
     modifier: Modifier = Modifier
 ) {
     var toggle by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     FloatingActionButton(
         onClick = {
-
+            //
+            xrayViewmodel.addV2rayConfigFromClipboard(context = context)
         },
         modifier = modifier
     ) {
@@ -83,12 +104,4 @@ fun AddConfigButton(
         }
     }
 
-}
-
-
-
-@Preview
-@Composable
-fun AddConfigButtonPreview() {
-    AddConfigButton()
 }

@@ -125,7 +125,8 @@ fun V2rayFAContainer(
                 ConfigScreen(
                     onNavigate2Home = { node->
                         naviController.navigate(route = Home(node).route)
-                    }
+                    },
+                    xrayViewmodel = xrayViewmodel
                 )
             }
 
