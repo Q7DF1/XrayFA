@@ -1,9 +1,11 @@
 package com.android.v2rayForAndroidUI.parser
 
+import com.android.v2rayForAndroidUI.model.Node
 import com.android.v2rayForAndroidUI.model.OutboundObject
 import com.android.v2rayForAndroidUI.model.ServerObject
 import com.android.v2rayForAndroidUI.model.UserObject
 import com.android.v2rayForAndroidUI.model.VMESSOutboundConfigurationObject
+import com.android.v2rayForAndroidUI.model.protocol.Protocol
 import com.android.v2rayForAndroidUI.model.stream.HeaderObject
 import com.android.v2rayForAndroidUI.model.stream.HttpHeaderObject
 import com.android.v2rayForAndroidUI.model.stream.HttpRequestObject
@@ -82,6 +84,21 @@ class VMESSConfigParser: AbstractConfigParser() {
         }catch (e: Exception){
             throw RuntimeException(e)
         }
+    }
+
+    override fun preParse(link: String): Node {
+        val cleanLink = link.removePrefix("vmess://").trim()
+
+        val decoded = String(Base64.getDecoder().decode(cleanLink))
+
+        val json = JsonParser.parseString(decoded).asJsonObject
+
+        return Node(
+            protocol = Protocol.VMESS,
+            address = json.get("add").asString,
+            port = json.get("port").asInt,
+            remark = "vmess-${json.get("add").asString}-${json.get("port").asString}"
+        )
     }
 
 }

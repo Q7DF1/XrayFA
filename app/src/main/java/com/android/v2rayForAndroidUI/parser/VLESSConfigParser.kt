@@ -1,11 +1,14 @@
 package com.android.v2rayForAndroidUI.parser
 
 import com.android.v2rayForAndroidUI.model.MuxObject
+import com.android.v2rayForAndroidUI.model.Node
 import com.android.v2rayForAndroidUI.model.OutboundObject
 import com.android.v2rayForAndroidUI.model.ServerObject
 import com.android.v2rayForAndroidUI.model.UserObject
 import com.android.v2rayForAndroidUI.model.VLESSOutboundConfigurationObject
 import com.android.v2rayForAndroidUI.model.XrayConfiguration
+import com.android.v2rayForAndroidUI.model.protocol.Protocol
+import com.android.v2rayForAndroidUI.model.protocol.protocols
 import com.android.v2rayForAndroidUI.model.stream.RealitySettings
 import com.android.v2rayForAndroidUI.model.stream.RawSettings
 import com.android.v2rayForAndroidUI.model.stream.StreamSettingsObject
@@ -100,6 +103,28 @@ class VLESSConfigParser: AbstractConfigParser(){
                 xudpProxyUDP443 = ""
             ),
             tag = "proxy"
+        )
+    }
+
+    override fun preParse(link: String): Node {
+        val withoutProtocol = link.removePrefix("vless://")
+
+        val (mainPart, remark) = withoutProtocol.split("#").let {
+            it[0] to if (it.size > 1) it[1] else ""
+        }
+
+        val (userAndServer, query) = mainPart.split("?").let {
+            it[0] to if (it.size > 1) it[1] else ""
+        }
+
+        val (uuid, serverAndPort) = userAndServer.split("@")
+        val (server, portStr) = serverAndPort.split(":")
+        val port = portStr.toIntOrNull() ?: 0
+        return Node(
+            protocol = Protocol.VLESS,
+            address = server,
+            port = port,
+            remark = remark
         )
     }
 

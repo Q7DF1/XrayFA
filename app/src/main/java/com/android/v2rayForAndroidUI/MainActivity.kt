@@ -31,6 +31,9 @@ import com.android.v2rayForAndroidUI.ui.component.V2rayFAContainer
 import com.android.v2rayForAndroidUI.ui.theme.V2rayForAndroidUITheme
 import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel
 import com.android.v2rayForAndroidUI.V2rayBaseService
+import com.android.v2rayForAndroidUI.dao.LinkDatabase
+import com.android.v2rayForAndroidUI.repository.LinkRepository
+import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodelFactory
 import javax.inject.Inject
 
 class MainActivity @Inject constructor(
@@ -43,8 +46,10 @@ class MainActivity @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val viewmodel = ViewModelProvider(this)[XrayViewmodel::class.java]
+        val database = LinkDatabase.getLinkDatabase(this)
+        val linkRepository = LinkRepository(database.LinkDao())
+        val viewmodel =
+            ViewModelProvider(this, XrayViewmodelFactory(linkRepository))[XrayViewmodel::class.java]
 
         enableEdgeToEdge()
         setContent {
