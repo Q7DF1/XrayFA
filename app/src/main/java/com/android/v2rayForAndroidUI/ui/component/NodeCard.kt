@@ -1,6 +1,11 @@
 package com.android.v2rayForAndroidUI.ui.component
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -123,5 +128,27 @@ fun NodeCard(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun AnimateNodeCard(
+    visible: Boolean,
+    backgroundColor: Color = MaterialTheme.colorScheme.surface,
+    node: Node,
+    modifier: Modifier,
+    delete: () -> Unit = {},
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn() + expandVertically(),
+        exit = fadeOut() + shrinkVertically()
+    ) {
+        NodeCard(
+            node = node,
+            backgroundColor = backgroundColor,
+            delete = delete,
+            modifier = modifier
+        )
     }
 }
