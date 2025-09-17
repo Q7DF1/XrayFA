@@ -1,11 +1,13 @@
 package com.android.v2rayForAndroidUI.ui.component
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -14,10 +16,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,22 +30,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.v2rayForAndroidUI.model.Node
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun NodeCard(
     backgroundColor: Color = MaterialTheme.colorScheme.surface,
     node: Node,
-    modifier: Modifier
+    modifier: Modifier,
+    delete: () -> Unit = {},
 ) {
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp
     val roundCornerShape = RoundedCornerShape(32.dp)
     Surface(
         color = backgroundColor,
         tonalElevation = 8.dp,
         modifier = modifier.fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 8.dp),
         shape = roundCornerShape
     ) {
         Row(
@@ -55,7 +64,7 @@ fun NodeCard(
             ) {
                 Box(
                     modifier = modifier
-                        .size(48.dp) // 整体大小
+                        .size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp)) // 整体大小
                         .clip(CircleShape) // 裁剪成圆形
                         .background(Color.Blue), // 背景色
                     contentAlignment = Alignment.Center
@@ -74,7 +83,7 @@ fun NodeCard(
                     Text(
                         text = node.address,
                         fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.labelMedium
+                        style = MaterialTheme.typography.bodySmall,
                     )
                     Text(
                         text = node.protocol.name,
@@ -83,12 +92,34 @@ fun NodeCard(
                     )
                 }
             }
-            Button(
+            IconButton(
                 onClick = {},
+                modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = "share"
+                )
+            }
+            IconButton(
+                onClick = {
+                    delete()
+                } ,
+                modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "delete"
+                )
+            }
+            IconButton(
+                onClick = {},
+                modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Default.ArrowForward,
-                    contentDescription = ""
+                    contentDescription = "",
+                    modifier = modifier.fillMaxSize(0.5f)
                 )
             }
         }

@@ -83,7 +83,7 @@ fun HomeScreen(
             .padding(16.dp)
     ) {
         NodeCard(
-            node = Node(Protocol.VLESS,"122.212.121.32",18880),
+            node = Node(0,Protocol.VLESS,"122.212.121.32",18880),
             modifier = Modifier.align(Alignment.Center)
         )
         V2rayStarter(xrayViewmodel,modifier = Modifier.align(BiasAlignment(0f,0.8f)))

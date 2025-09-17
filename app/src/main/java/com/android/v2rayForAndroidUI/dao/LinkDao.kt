@@ -23,4 +23,7 @@ interface LinkDao {
 
     @Delete
     suspend fun deleteLink(link: Link)
+
+    @Query("DELETE FROM link WHERE id = :id")
+    suspend fun deleteLinkById(id: Int)
 }

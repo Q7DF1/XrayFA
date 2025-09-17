@@ -112,5 +112,5 @@ abstract class AbstractConfigParser {
 
     abstract fun parseOutbound(link: String): OutboundObject
 
-    abstract fun preParse(link: String): Node
+    abstract fun preParse(link: String,id: Int): Node
 }

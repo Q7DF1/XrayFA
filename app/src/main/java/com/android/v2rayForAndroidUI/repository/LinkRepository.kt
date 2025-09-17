@@ -19,4 +19,8 @@ class LinkRepository(private val linkDao: LinkDao){
     fun loadLinksById(id: Int): Link {
         return linkDao.loadLinksById(id)
     }
+
+    suspend fun deleteLinkById(id: Int) {
+        return linkDao.deleteLinkById(id)
+    }
 }

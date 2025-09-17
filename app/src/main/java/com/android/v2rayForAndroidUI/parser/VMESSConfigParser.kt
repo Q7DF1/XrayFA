@@ -86,7 +86,7 @@ class VMESSConfigParser: AbstractConfigParser() {
         }
     }
 
-    override fun preParse(link: String): Node {
+    override fun preParse(link: String,id: Int): Node {
         val cleanLink = link.removePrefix("vmess://").trim()
 
         val decoded = String(Base64.getDecoder().decode(cleanLink))
@@ -94,6 +94,7 @@ class VMESSConfigParser: AbstractConfigParser() {
         val json = JsonParser.parseString(decoded).asJsonObject
 
         return Node(
+            id = id,
             protocol = Protocol.VMESS,
             address = json.get("add").asString,
             port = json.get("port").asInt,
