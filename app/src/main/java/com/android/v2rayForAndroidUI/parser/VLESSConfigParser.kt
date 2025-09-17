@@ -106,7 +106,7 @@ class VLESSConfigParser: AbstractConfigParser(){
         )
     }
 
-    override fun preParse(link: String): Node {
+    override fun preParse(link: String,id: Int): Node {
         val withoutProtocol = link.removePrefix("vless://")
 
         val (mainPart, remark) = withoutProtocol.split("#").let {
@@ -121,6 +121,7 @@ class VLESSConfigParser: AbstractConfigParser(){
         val (server, portStr) = serverAndPort.split(":")
         val port = portStr.toIntOrNull() ?: 0
         return Node(
+            id = id,
             protocol = Protocol.VLESS,
             address = server,
             port = port,

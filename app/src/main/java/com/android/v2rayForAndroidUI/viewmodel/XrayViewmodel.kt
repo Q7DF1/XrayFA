@@ -57,7 +57,7 @@ class XrayViewmodel(
             // 后台线程逐条解析
             links.forEach { link ->
                 val node = withContext(Dispatchers.Default) {
-                    ParserFactory.getParser(link.protocol).preParse(link.content)
+                    ParserFactory.getParser(link.protocol).preParse(link.content,link.id)
                 }
                 parsedNodes.add(node)
                 _nodes.value = parsedNodes.toList() // 每条解析完就更新
@@ -123,7 +123,7 @@ class XrayViewmodel(
         val allLinks = linkRepository.allLinks
         val nodes = allLinks.map { links ->
             links.map { link ->
-                return@map ParserFactory.getParser(link.protocol).preParse(link.content)
+                return@map ParserFactory.getParser(link.protocol).preParse(link.content,link.id)
             }
         }.flowOn(Dispatchers.IO)
 
@@ -148,6 +148,12 @@ class XrayViewmodel(
     fun deleteLink(link: Link) {
         viewModelScope.launch {
             linkRepository.deleteLink(link)
+        }
+    }
+
+    fun deleteLinkById(id: Int) {
+        viewModelScope.launch {
+            linkRepository.deleteLinkById(id)
         }
     }
 

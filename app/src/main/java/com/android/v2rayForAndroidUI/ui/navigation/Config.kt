@@ -83,20 +83,33 @@ fun ConfigScreen(
     onNavigate2Home: (Node) -> Unit,
     xrayViewmodel: XrayViewmodel
 ) {
-    val nodes by xrayViewmodel.node.collectAsState()
+    val nodes by xrayViewmodel.getAllNodes().collectAsState(emptyList())
     Box(
         modifier = Modifier.fillMaxSize()
             .padding(16.dp)
+
     ) {
-        LazyColumn() {
-            items(nodes) {node ->
-                NodeCard(node = node, modifier = Modifier)
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-        }
         if (nodes.isEmpty()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator() // 可选，占位显示
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Text(
+                    style = MaterialTheme.typography.headlineLarge,
+                    text = stringResource(R.string.no_configuration),
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+        }else {
+            LazyColumn(
+            ) {
+                items(nodes, key = {it.id}) {node ->
+                    NodeCard(
+                        node = node,
+                        modifier = Modifier,
+                        delete = {xrayViewmodel.deleteLinkById(node.id)}
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
         }
         AddConfigButton(
