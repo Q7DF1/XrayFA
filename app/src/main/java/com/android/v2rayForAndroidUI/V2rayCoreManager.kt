@@ -8,11 +8,13 @@ import com.android.v2rayForAndroidUI.model.InboundObject
 import com.android.v2rayForAndroidUI.model.LogObject
 import com.android.v2rayForAndroidUI.model.MuxObject
 import com.android.v2rayForAndroidUI.model.OutboundObject
+import com.android.v2rayForAndroidUI.model.PolicyObject
 import com.android.v2rayForAndroidUI.model.RoutingObject
 import com.android.v2rayForAndroidUI.model.RuleObject
 import com.android.v2rayForAndroidUI.model.ServerObject
 import com.android.v2rayForAndroidUI.model.SniffingObject
 import com.android.v2rayForAndroidUI.model.SocksInboundConfigurationObject
+import com.android.v2rayForAndroidUI.model.SystemPolicyObject
 import com.android.v2rayForAndroidUI.model.stream.StreamSettingsObject
 import com.android.v2rayForAndroidUI.model.UserObject
 import com.android.v2rayForAndroidUI.model.VLESSOutboundConfigurationObject
@@ -20,8 +22,13 @@ import com.android.v2rayForAndroidUI.model.XrayConfiguration
 import com.android.v2rayForAndroidUI.model.stream.RealitySettings
 import com.android.v2rayForAndroidUI.parser.VLESSConfigParser
 import com.android.v2rayForAndroidUI.parser.VMESSConfigParser
+import com.android.v2rayForAndroidUI.rpc.XrayStatsClient
 import com.android.v2rayForAndroidUI.utils.Device
 import com.google.gson.Gson
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import libv2ray.CoreCallbackHandler
 import libv2ray.CoreController
 import libv2ray.Libv2ray
@@ -40,6 +47,7 @@ class V2rayCoreManager
     val controllerHandler = object: CoreCallbackHandler {
         override fun onEmitStatus(p0: Long, p1: String?): Long {
             Log.i(TAG, "onEmitStatus: $p1")
+            startCountTest()
             return 0L
         }
 
@@ -62,6 +70,28 @@ class V2rayCoreManager
         coreController = Libv2ray.newCoreController(controllerHandler)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
+    fun startCountTest() {
+        val client = XrayStatsClient()
+        client.connect()
+
+// 每秒查询一次
+        GlobalScope.launch {
+            var lastUp = 0L
+            var lastDown = 0L
+            while (true) {
+                val (uplink, downlink) = client.getTraffic("proxy")
+                val upSpeed = uplink - lastUp
+                val downSpeed = downlink - lastDown
+                lastUp = uplink
+                lastDown = downlink
+
+                println("↑ $upSpeed B/s   ↓ $downSpeed B/s")
+                delay(1000)
+            }
+        }
+
+    }
 
     fun startV2rayCore(config: String? = null) {
 
@@ -78,10 +108,10 @@ class V2rayCoreManager
     
     fun getV2rayConfig(): String {
 
-        //val config = VLESSConfigParser().parse("vless://dc503d2f-9028-480f-9ebb-5bd46cfc969b@face.woxiangbaofu.click:443?encryption=none&security=tls&type=ws&host=face.woxiangbaofu.click&path=%2Fdc503d2f-9028-480f-9ebb-5bd46cfc969b#233boy-ws-face.woxiangbaofu.click")
-        //val config = VLESSConfigParser().parse("vless://bc313a85-45dd-4904-80dc-37496b18e222@67.230.172.249:18880?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.paypal.com&fp=chrome&pbk=1CgDPWbxKfcyOa91dLnRxDZ3EuaEbU0GwFnkTIg2XWc&type=tcp&headerType=none#233boy-tcp-67.230.172.249")
+//        val config = VLESSConfigParser().parse("vless://dc503d2f-9028-480f-9ebb-5bd46cfc969b@face.woxiangbaofu.click:443?encryption=none&security=tls&type=ws&host=face.woxiangbaofu.click&path=%2Fdc503d2f-9028-480f-9ebb-5bd46cfc969b#233boy-ws-face.woxiangbaofu.click")
+        val config = VLESSConfigParser().parse("vless://bc313a85-45dd-4904-80dc-37496b18e222@67.230.172.249:18880?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.paypal.com&fp=chrome&pbk=1CgDPWbxKfcyOa91dLnRxDZ3EuaEbU0GwFnkTIg2XWc&type=tcp&headerType=none#233boy-tcp-67.230.172.249")
         val parser = VMESSConfigParser()
-        val config = parser.parse("vmess://eyJ2IjoyLCJwcyI6IjIzM2JveS13cy1mYWNlLndveGlhbmdiYW9mdS5jbGljayIsImFkZCI6ImZhY2Uud294aWFuZ2Jhb2Z1LmNsaWNrIiwicG9ydCI6IjQ0MyIsImlkIjoiZWQ5MzQzYzUtZTg3MC00ZTFiLWE1MTYtNGQzYzAxMjhkYmMwIiwiYWlkIjoiMCIsIm5ldCI6IndzIiwiaG9zdCI6ImZhY2Uud294aWFuZ2Jhb2Z1LmNsaWNrIiwicGF0aCI6Ii9lZDkzNDNjNS1lODcwLTRlMWItYTUxNi00ZDNjMDEyOGRiYzAiLCJ0bHMiOiJ0bHMifQ==")
+//        val config = parser.parse("vmess://eyJ2IjoyLCJwcyI6IjIzM2JveS13cy1mYWNlLndveGlhbmdiYW9mdS5jbGljayIsImFkZCI6ImZhY2Uud294aWFuZ2Jhb2Z1LmNsaWNrIiwicG9ydCI6IjQ0MyIsImlkIjoiZWQ5MzQzYzUtZTg3MC00ZTFiLWE1MTYtNGQzYzAxMjhkYmMwIiwiYWlkIjoiMCIsIm5ldCI6IndzIiwiaG9zdCI6ImZhY2Uud294aWFuZ2Jhb2Z1LmNsaWNrIiwicGF0aCI6Ii9lZDkzNDNjNS1lODcwLTRlMWItYTUxNi00ZDNjMDEyOGRiYzAiLCJ0bHMiOiJ0bHMifQ==")
 
         return config
     }
@@ -169,6 +199,12 @@ class V2rayCoreManager
                         outboundTag = "proxy",
                         domain = listOf("geolocation-!cn")
                     )
+                )
+            ),
+            policy = PolicyObject(
+                system = SystemPolicyObject(
+                   statsOutboundUplink = true,
+                    statsOutboundDownlink = true
                 )
             )
         )

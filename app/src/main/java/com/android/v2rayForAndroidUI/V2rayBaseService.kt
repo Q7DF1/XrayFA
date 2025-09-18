@@ -80,12 +80,15 @@ class V2rayBaseService
         tunFd = null
     }
 
+
+
     private fun startV2rayCoreService() {
         v2rayCoreManager.startV2rayCore()
         startVpn()
         tunFd?.let {
             tun2SocksService.startTun2Socks(it.fd)
         }
+
 
         postUpdateForegroundNotification()
     }

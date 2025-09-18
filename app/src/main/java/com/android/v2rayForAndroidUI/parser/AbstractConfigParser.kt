@@ -1,23 +1,21 @@
 package com.android.v2rayForAndroidUI.parser
 
+import com.android.v2rayForAndroidUI.model.ApiObject
 import com.android.v2rayForAndroidUI.model.DnsObject
 import com.android.v2rayForAndroidUI.model.InboundObject
 import com.android.v2rayForAndroidUI.model.LogObject
-import com.android.v2rayForAndroidUI.model.MuxObject
 import com.android.v2rayForAndroidUI.model.Node
 import com.android.v2rayForAndroidUI.model.NoneOutboundConfigurationObject
 import com.android.v2rayForAndroidUI.model.OutboundObject
+import com.android.v2rayForAndroidUI.model.PolicyObject
 import com.android.v2rayForAndroidUI.model.RoutingObject
 import com.android.v2rayForAndroidUI.model.RuleObject
-import com.android.v2rayForAndroidUI.model.ServerObject
 import com.android.v2rayForAndroidUI.model.SniffingObject
 import com.android.v2rayForAndroidUI.model.SocksInboundConfigurationObject
-import com.android.v2rayForAndroidUI.model.UserObject
-import com.android.v2rayForAndroidUI.model.VLESSOutboundConfigurationObject
+import com.android.v2rayForAndroidUI.model.StatsObject
+import com.android.v2rayForAndroidUI.model.SystemPolicyObject
+import com.android.v2rayForAndroidUI.model.TunnelInboundConfigurationObject
 import com.android.v2rayForAndroidUI.model.XrayConfiguration
-import com.android.v2rayForAndroidUI.model.stream.RawSettings
-import com.android.v2rayForAndroidUI.model.stream.RealitySettings
-import com.android.v2rayForAndroidUI.model.stream.StreamSettingsObject
 import com.google.gson.Gson
 
 /**
@@ -25,7 +23,7 @@ import com.google.gson.Gson
  */
 abstract class AbstractConfigParser {
 
-
+    private var apiEnable: Boolean = false
     fun getBaseInboundConfig(): InboundObject {
         return InboundObject(
             listen = "127.0.0.1",
@@ -41,6 +39,18 @@ abstract class AbstractConfigParser {
                 enabled = true
             ),
             tag = "socks"
+        )
+    }
+
+    fun getAPIInboundConfig(): InboundObject {
+        return InboundObject(
+            listen = "127.0.0.1",
+            port = 10085,
+            protocol = "dokodemo-door",
+            settings = TunnelInboundConfigurationObject(
+                address = "127.0.0.1"
+            ),
+            tag = "api"
         )
     }
 
@@ -86,19 +96,47 @@ abstract class AbstractConfigParser {
                     RuleObject(
                         type = "field",
                         outboundTag = "direct",
-                        domain = listOf("giegeolocation-cn")
+                        domain = listOf("geosite:geolocation-cn")
+                    ),
+                    RuleObject(
+                        inboundTag = listOf("api"),
+                        outboundTag = "api",
+                        type = "field"
                     )
                 )
         )
     }
 
+    private fun getBaseAPIObject(): ApiObject {
+        apiEnable = true
+        return ApiObject(
+            tag = "api",
+            services = listOf(
+                "StatsService"
+            )
+        )
+    }
+
+    private fun getBasePolicyObject(): PolicyObject {
+        return PolicyObject(
+            system = SystemPolicyObject(
+                statsOutboundUplink = true,
+                statsOutboundDownlink = true,
+                statsInboundUplink = true,
+                statsInboundDownlink = true
+            )
+        )
+    }
 
     fun parse(link: String):String {
 
         val vlessConfig = XrayConfiguration(
+            stats = emptyMap(), // enable
+            api = getBaseAPIObject(),
             dns = getBaseDnsConfig(),
             log = getBaseLogObject(),
-            inbounds = listOf(getBaseInboundConfig()),
+            policy = getBasePolicyObject(),
+            inbounds = listOf(getBaseInboundConfig(),getAPIInboundConfig()),
             outbounds = listOf(
                 getBaseOutboundConfig(),
                 parseOutbound(link)

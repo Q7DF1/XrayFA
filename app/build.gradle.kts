@@ -1,8 +1,11 @@
+import com.google.protobuf.gradle.id
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     kotlin("kapt") version "2.2.10"
+    id("com.google.protobuf") version "0.9.4"
 }
 
 android {
@@ -42,6 +45,8 @@ android {
     }
 }
 
+
+
 val xrayLibDir = rootProject.file("AndroidLibXrayLite")
 val aarOutput = xrayLibDir.resolve("libv2ray.aar")
 
@@ -51,6 +56,27 @@ val libsDir = file("libs")
 //    workingDir = xrayLibDir
 //    commandLine("go","install","golang.org/x/mobile/cmd/gomobile@latest")
 //}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.25.1"
+    }
+    plugins {
+        id("grpc") {
+            artifact = "io.grpc:protoc-gen-grpc-java:1.63.0"
+        }
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.plugins {
+                id("grpc")
+            }
+            task.builtins {
+                id("java")
+            }
+        }
+    }
+}
 
 tasks.register<Exec>("initGoMobile") {
     //dependsOn("buildGoMobile")
@@ -112,6 +138,12 @@ dependencies {
 
 
     implementation(libs.androidx.navigation.compose)
+
+
+    implementation("io.grpc:grpc-okhttp:1.63.0")
+    implementation("io.grpc:grpc-protobuf:1.63.0")
+    implementation("io.grpc:grpc-stub:1.63.0")
+    implementation("javax.annotation:javax.annotation-api:1.3.2")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

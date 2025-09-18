@@ -52,6 +52,16 @@ data class SocksInboundConfigurationObject(
     //val accounts: AcctountObject? = null,
 ): AbsInboundConfigurationObject()
 
+data class TunnelInboundConfigurationObject( //dokodemo-door
+    val address: String? = null,
+    val port: Int? = null,
+    val portMap:Map<String,String>? = null,
+    val network: String? = null,
+    val followRedirect: Boolean? = null,
+    val userLevel: Int? = null,
+): AbsInboundConfigurationObject()
+
+
 data class ClientObject(
     val id: String,
     val level: Int? = null,
