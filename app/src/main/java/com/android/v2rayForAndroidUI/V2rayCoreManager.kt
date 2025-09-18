@@ -47,7 +47,6 @@ class V2rayCoreManager
     val controllerHandler = object: CoreCallbackHandler {
         override fun onEmitStatus(p0: Long, p1: String?): Long {
             Log.i(TAG, "onEmitStatus: $p1")
-            startCountTest()
             return 0L
         }
 

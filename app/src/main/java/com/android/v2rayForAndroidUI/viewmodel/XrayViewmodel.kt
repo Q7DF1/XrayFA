@@ -18,6 +18,7 @@ import com.android.v2rayForAndroidUI.model.protocol.protocols
 import com.android.v2rayForAndroidUI.parser.ParserFactory
 import com.android.v2rayForAndroidUI.parser.VLESSConfigParser
 import com.android.v2rayForAndroidUI.repository.LinkRepository
+import com.android.v2rayForAndroidUI.rpc.XrayStatsClient
 import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel.Companion.TAG
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -48,6 +50,10 @@ class XrayViewmodel(
     private val _nodes = MutableStateFlow<List<Node>>(emptyList())
     val node: StateFlow<List<Node>> = _nodes
 
+    val _upSpeed = MutableStateFlow(0L)
+    val upSpeed: StateFlow<Long> = _upSpeed.asStateFlow()
+    val _downSpeed = MutableStateFlow(0L)
+    val downSpeed: StateFlow<Long> = _downSpeed.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -97,9 +103,38 @@ class XrayViewmodel(
             action = "connect"
         }
         context.startForegroundService(intent)
+        startTrafficDetection()
+    }
+
+    fun startTrafficDetection() {
+        viewModelScope.launch {
+            while (!isV2rayServiceRunning()) {
+               delay(2000)
+            }
+            val client = XrayStatsClient()
+            client.connect()
+            var lastUp = 0L
+            var lastDown = 0L
+            while (XrayStatsClient.isConnect) {
+                val (uplink, downlink) = client.getTraffic("proxy")
+                _upSpeed.value = (uplink - lastUp) / 1024
+                _downSpeed.value = (downlink - lastDown) / 1024
+                lastUp = uplink
+                lastDown = downlink
+                delay(1000)
+
+            }
+        }
+    }
+
+    fun stopTrafficDetection() {
+        val client = XrayStatsClient()
+        client.shutdown()
     }
 
     fun stopV2rayService(context: Context) {
+
+        stopTrafficDetection()
 
         val intent = Intent(context, V2rayBaseService::class.java).apply {
             action = "disconnect"

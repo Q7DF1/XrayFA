@@ -1,6 +1,7 @@
 package com.android.v2rayForAndroidUI.rpc
 
 
+import android.util.Log
 import com.xray.app.stats.command.StatsServiceGrpc
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
@@ -8,10 +9,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.xray.app.stats.command.QueryStatsRequest
 
+
+
 class XrayStatsClient(
     private val host: String = "127.0.0.1",
     private val port: Int = 10085
 ) {
+
+    companion object {
+        const val TAG = "XrayStatsClient"
+
+
+        var isConnect: Boolean = false
+    }
+
+
     private var channel: ManagedChannel? = null
     private var stub: StatsServiceGrpc.StatsServiceBlockingStub? = null
 
@@ -22,6 +34,7 @@ class XrayStatsClient(
             .build()
 
         stub = StatsServiceGrpc.newBlockingStub(channel)
+        isConnect = true
     }
 
     suspend fun getTraffic(tag: String): Pair<Long, Long> = withContext(Dispatchers.IO) {
@@ -34,6 +47,7 @@ class XrayStatsClient(
         var uplink = 0L
         var downlink = 0L
         response?.statList?.forEach {
+            Log.i(TAG, "getTraffic: $it")
             when {
                 it.name.contains("uplink") -> uplink = it.value
                 it.name.contains("downlink") -> downlink = it.value
@@ -43,6 +57,8 @@ class XrayStatsClient(
     }
 
     fun shutdown() {
+        stub = null
         channel?.shutdownNow()
+        isConnect = false
     }
 }

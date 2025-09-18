@@ -84,7 +84,13 @@ fun V2rayFAContainer(
                 items = list_navigation,
                 selectedRoute = selected,
                 onItemSelected = { item ->
-                    naviController.navigate(route = item.route)
+                    naviController.navigate(route = item.route) {
+                        launchSingleTop= true
+                        restoreState = true
+                        popUpTo(naviController.graph.startDestinationId) {
+                            saveState = true
+                        }
+                    }
                     selected = item.route
                     imageVector = item.icon
                     when(item.route) {

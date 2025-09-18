@@ -11,4 +11,6 @@
     <string name="add_config">add config</string>
     <string name="clipboard_import">Clipboard import</string>
     <string name="no_configuration">No configuration file</string>
+    <string name="upload_data">upload</string>
+    <string name="download_data">download</string>
 </resources>
