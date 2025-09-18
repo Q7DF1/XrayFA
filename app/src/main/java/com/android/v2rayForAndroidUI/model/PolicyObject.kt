@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PolicyObject(
-    val levels: Map<String, LevelPolicyObject>,
+    val levels: Map<String, LevelPolicyObject>? = null,
     val system: SystemPolicyObject
 )
 

@@ -157,6 +157,11 @@ class XrayViewmodel(
         }
     }
 
+    fun deleteLinkByIdWithCallback(id: Int, callback: () -> Unit) {
+        callback()
+        deleteLinkById(id)
+    }
+
 }
 
 class XrayViewmodelFactory(private val repository: LinkRepository): ViewModelProvider.Factory {

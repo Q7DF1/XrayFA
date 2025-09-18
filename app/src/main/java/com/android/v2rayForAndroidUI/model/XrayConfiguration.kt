@@ -10,7 +10,7 @@ data class XrayConfiguration(
     val inbounds: List<InboundObject>,
     val outbounds: List<OutboundObject>,
 
-    val stats: StatsObject? = null,
+    val stats: Map<String,String>? = null,
     val reverse: ReverseObject? = null,
     val fakedns: FakeDNSObject? = null,
     val metrics: MetricsObject? = null,
