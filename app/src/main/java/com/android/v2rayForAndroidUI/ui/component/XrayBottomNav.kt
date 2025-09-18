@@ -1,7 +1,9 @@
 package com.android.v2rayForAndroidUI.ui.component
 
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -47,7 +49,6 @@ fun XrayBottomNav(
     val shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp)
     Surface(
         modifier = modifier.fillMaxWidth(),
-        tonalElevation = 8.dp,
         color = backgroundColor,
         shape = shape
     ) {
@@ -60,7 +61,13 @@ fun XrayBottomNav(
         ) {
             items.forEach { item ->
                 val selected = item.route == selectedRoute
-                val iconScale by animateFloatAsState(if (selected) 1.14f else 1f)
+                val iconScale by animateFloatAsState(
+                    targetValue = if (selected) 1.14f else 1f,
+                    animationSpec = tween(
+                        durationMillis = 300,
+                        easing = FastOutSlowInEasing
+                    )
+                )
                 val labelPadding by animateDpAsState(if (selected) 8.dp else 0.dp)
 
                 Row(

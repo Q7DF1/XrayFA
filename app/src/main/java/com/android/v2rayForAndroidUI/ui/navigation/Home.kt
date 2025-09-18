@@ -1,5 +1,6 @@
 package com.android.v2rayForAndroidUI.ui.navigation
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.net.VpnService
@@ -23,18 +24,28 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,7 +56,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -82,6 +95,9 @@ fun HomeScreen(
         modifier = Modifier.fillMaxSize()
             .padding(16.dp)
     ) {
+        
+        Dashboard(xrayViewmodel)
+
         NodeCard(
             node = Node(0,Protocol.VLESS,"122.212.121.32",18880),
             modifier = Modifier.align(Alignment.Center)
@@ -162,6 +178,96 @@ fun V2rayStarter(
 }
 
 
+@SuppressLint("ConfigurationScreenWidthHeight")
+@Composable
+fun Dashboard(
+    xrayViewmodel: XrayViewmodel
+) {
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp
+    val upSpeed by xrayViewmodel.upSpeed.collectAsState()
+    val downSpeed by xrayViewmodel.downSpeed.collectAsState()
+    Surface(
+        color = MaterialTheme.colorScheme.background,
+        tonalElevation = 8.dp,
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.padding(horizontal = 8.dp)
+            .fillMaxWidth()
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.
+            padding(horizontal = 8.dp, vertical = 8.dp)
+
+        ) {
+            //upload
+            Row(
+                modifier = Modifier.weight(1f)
+            ){
+                Box(
+                    modifier = Modifier
+                        .size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp)) // 整体大小
+                        .clip(CircleShape) // 裁剪成圆形
+                        .background(Color.Green), // 背景色
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(imageVector = Icons.Filled.KeyboardArrowUp,
+                        contentDescription = "upload icon"
+                    )
+                }
+                Column(
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.upload_data),
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                    Text(
+                        text = "$upSpeed KB/s"
+                    )
+                }
+            }
+            VerticalDivider(
+                modifier = Modifier.height((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
+            )
+            //download
+            Row(
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.weight(1f)
+                    .padding(start = 8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp)) // 整体大小
+                        .clip(CircleShape) // 裁剪成圆形
+                        .background(Color.Yellow), // 背景色
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.KeyboardArrowDown,
+                        contentDescription = "download icon"
+                    )
+                }
+                Column(
+                    modifier = Modifier.padding(start = 8.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.download_data),
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                    Text(
+                        text = "$downSpeed KB/s"
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun DashboardPreview() {
+}
 
 @Preview
 @Composable
