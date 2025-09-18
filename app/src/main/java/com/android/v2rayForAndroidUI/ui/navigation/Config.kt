@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.getString
 import com.android.v2rayForAndroidUI.R
 import com.android.v2rayForAndroidUI.model.Node
-import com.android.v2rayForAndroidUI.ui.component.AnimateNodeCard
 import com.android.v2rayForAndroidUI.ui.component.NodeCard
 import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel
 

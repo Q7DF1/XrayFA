@@ -16,7 +16,7 @@ interface LinkDao {
 
 
     @Query("SELECT * FROM link WHERE id = :id")
-    fun loadLinksById(id: Int): Link
+    fun loadLinksById(id: Int): Flow<Link>
 
     @Insert
     suspend fun addLink(vararg link: Link)

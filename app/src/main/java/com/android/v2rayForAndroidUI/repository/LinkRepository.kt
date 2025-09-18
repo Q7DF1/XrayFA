@@ -3,6 +3,7 @@ package com.android.v2rayForAndroidUI.repository
 import android.util.Log
 import com.android.v2rayForAndroidUI.dao.LinkDao
 import com.android.v2rayForAndroidUI.model.Link
+import kotlinx.coroutines.flow.Flow
 
 class LinkRepository(private val linkDao: LinkDao){
     val allLinks = linkDao.getAllLinks()
@@ -16,7 +17,7 @@ class LinkRepository(private val linkDao: LinkDao){
         linkDao.deleteLink(link)
     }
 
-    fun loadLinksById(id: Int): Link {
+    fun loadLinksById(id: Int): Flow<Link> {
         return linkDao.loadLinksById(id)
     }
 
