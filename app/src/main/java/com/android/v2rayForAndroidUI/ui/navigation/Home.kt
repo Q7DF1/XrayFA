@@ -93,15 +93,16 @@ fun HomeScreen(
 
     Box(
         modifier = Modifier.fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
-        
-        Dashboard(xrayViewmodel)
 
         NodeCard(
             node = Node(0,Protocol.VLESS,"122.212.121.32",18880),
-            modifier = Modifier.align(Alignment.Center)
+            modifier = Modifier.align(BiasAlignment(0f,-0.6f))
         )
+        Dashboard(xrayViewmodel,modifier = Modifier.align(Alignment.Center))
+
         V2rayStarter(xrayViewmodel,modifier = Modifier.align(BiasAlignment(0f,0.8f)))
     }
 }
@@ -114,7 +115,7 @@ fun V2rayStarter(
     val context = LocalContext.current
     var toggle by remember {mutableStateOf(xrayViewmodel.isV2rayServiceRunning())}
     val color by animateColorAsState(
-        targetValue = if (toggle) Color.Blue else Color.Red,
+        targetValue = if (toggle) Color.Blue else Color.Gray,
         animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
         label = "iconColorAnim"
     )
@@ -168,7 +169,8 @@ fun V2rayStarter(
             label = "iconSwitchAnim",
         ) { state ->
             Icon(
-                imageVector = if (state) Icons.Filled.Done else ImageVector.vectorResource(R.drawable.ic_power),
+                imageVector = if (state) Icons.Filled.Done
+                else ImageVector.vectorResource(R.drawable.ic_power),
                 contentDescription = "",
                 tint = Color.White,
                 modifier = modifier.size(36.dp)
@@ -181,7 +183,8 @@ fun V2rayStarter(
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun Dashboard(
-    xrayViewmodel: XrayViewmodel
+    xrayViewmodel: XrayViewmodel,
+    modifier: Modifier = Modifier
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
@@ -191,7 +194,7 @@ fun Dashboard(
         color = MaterialTheme.colorScheme.background,
         tonalElevation = 8.dp,
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.padding(horizontal = 8.dp)
+        modifier = modifier.padding(horizontal = 8.dp)
             .fillMaxWidth()
     ) {
         Row(
@@ -202,17 +205,19 @@ fun Dashboard(
         ) {
             //upload
             Row(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically
             ){
                 Box(
                     modifier = Modifier
-                        .size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp)) // 整体大小
+                        .size((screenWidth*0.08).dp.coerceIn(24.dp,48.dp)) // 整体大小
                         .clip(CircleShape) // 裁剪成圆形
-                        .background(Color.Green), // 背景色
+                        .background(Color(0xFF00BFFF)), // 背景色
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(imageVector = Icons.Filled.KeyboardArrowUp,
-                        contentDescription = "upload icon"
+                        contentDescription = "upload icon",
+                        tint = Color.White
                     )
                 }
                 Column(
@@ -233,19 +238,21 @@ fun Dashboard(
             //download
             Row(
                 horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f)
                     .padding(start = 8.dp)
             ) {
                 Box(
                     modifier = Modifier
-                        .size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp)) // 整体大小
+                        .size((screenWidth*0.08).dp.coerceIn(24.dp,48.dp)) // 整体大小
                         .clip(CircleShape) // 裁剪成圆形
-                        .background(Color.Yellow), // 背景色
+                        .background(Color(0xFF00BFFF)), // 背景色
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowDown,
-                        contentDescription = "download icon"
+                        contentDescription = "download icon",
+                        tint = Color.White
                     )
                 }
                 Column(
