@@ -64,8 +64,12 @@ class XrayViewmodel(
 
     val _upSpeed = MutableStateFlow(0L)
     val upSpeed: StateFlow<Long> = _upSpeed.asStateFlow()
+
     val _downSpeed = MutableStateFlow(0L)
     val downSpeed: StateFlow<Long> = _downSpeed.asStateFlow()
+
+
+
     val handlerThread = HandlerThread("XrayViewmodel").apply {
         start()
     }
@@ -152,26 +156,11 @@ class XrayViewmodel(
         )
     }
 
-    fun startTrafficDetection() {
-        viewModelScope.launch {
-            while (!isV2rayServiceRunning()) {
-               delay(2000)
-            }
-
-        }
-    }
-
-    fun stopTrafficDetection() {
-        val client = XrayStatsClient()
-        client.shutdown()
-    }
-
     fun stopV2rayService(context: Context) {
 
         val intent = Intent(context, V2rayBaseService::class.java).apply {
             action = "disconnect"
         }
-        Log.i(TAG, "stopV2rayService: unbind")
         context.unbindService(serviceConnection)
         context.startService(intent)
 
@@ -200,6 +189,13 @@ class XrayViewmodel(
         return nodes
     }
 
+    fun getNodeById(id: Int): Flow<Node> {
+        val link = linkRepository.loadLinksById(id)
+        return link.map {
+            ParserFactory.getParser(it.protocol).preParse(it.content,it.id)
+        }
+    }
+
     fun addLink(link: String) {
         // pre parse
         val protocolName = link.substringBefore("://").lowercase()
@@ -221,11 +217,44 @@ class XrayViewmodel(
         }
     }
 
+    fun updateLink(link: Link) {
+        viewModelScope.launch {
+            linkRepository.updateLink(link)
+        }
+    }
+
+    fun updateLinkById(id: Int, selected: Boolean) {
+        viewModelScope.launch {
+            linkRepository.updateLinkById(id,selected)
+        }
+    }
+
+    fun getSelectedNode(): Flow<Node?> {
+        return linkRepository.querySelectedLink().map {
+            it?.let {
+                ParserFactory.getParser(it.protocol).preParse(it.content,it.id)
+            }
+        }
+    }
+
+
+
+    fun setSelectedNode(id: Int) {
+        viewModelScope.launch {
+
+            linkRepository.clearSelection()
+            linkRepository.updateLinkById(id,true)
+        }
+    }
+
+
+
     fun deleteLinkById(id: Int) {
         viewModelScope.launch {
             linkRepository.deleteLinkById(id)
         }
     }
+
 
     fun deleteLinkByIdWithCallback(id: Int, callback: () -> Unit) {
         callback()

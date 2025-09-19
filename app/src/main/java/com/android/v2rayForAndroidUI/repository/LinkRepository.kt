@@ -9,7 +9,6 @@ class LinkRepository(private val linkDao: LinkDao){
     val allLinks = linkDao.getAllLinks()
 
     suspend fun addLink(link: Link) {
-        Log.i("lishien", "addLink: $link")
         linkDao.addLink(link)
     }
 
@@ -19,6 +18,21 @@ class LinkRepository(private val linkDao: LinkDao){
 
     fun loadLinksById(id: Int): Flow<Link> {
         return linkDao.loadLinksById(id)
+    }
+    suspend fun clearSelection() {
+        return linkDao.clearSelection()
+    }
+
+     fun querySelectedLink(): Flow<Link?> {
+        return linkDao.querySelectedLink()
+    }
+
+    suspend fun updateLink(link: Link) {
+        return linkDao.updateLink(link)
+    }
+
+    suspend fun updateLinkById(id: Int, selected: Boolean) {
+        return linkDao.updateLinkById(id,selected)
     }
 
     suspend fun deleteLinkById(id: Int) {
