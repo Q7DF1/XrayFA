@@ -1,5 +1,6 @@
 package com.android.v2rayForAndroidUI.parser
 
+import com.android.v2rayForAndroidUI.model.Link
 import com.android.v2rayForAndroidUI.model.MuxObject
 import com.android.v2rayForAndroidUI.model.Node
 import com.android.v2rayForAndroidUI.model.OutboundObject
@@ -106,8 +107,8 @@ class VLESSConfigParser: AbstractConfigParser(){
         )
     }
 
-    override fun preParse(link: String,id: Int): Node {
-        val withoutProtocol = link.removePrefix("vless://")
+    override fun preParse(link: Link): Node {
+        val withoutProtocol = link.content.removePrefix("vless://")
 
         val (mainPart, remark) = withoutProtocol.split("#").let {
             it[0] to if (it.size > 1) it[1] else ""
@@ -121,10 +122,11 @@ class VLESSConfigParser: AbstractConfigParser(){
         val (server, portStr) = serverAndPort.split(":")
         val port = portStr.toIntOrNull() ?: 0
         return Node(
-            id = id,
+            id = link.id,
             protocol = Protocol.VLESS,
             address = server,
             port = port,
+            selected = link.selected,
             remark = remark
         )
     }

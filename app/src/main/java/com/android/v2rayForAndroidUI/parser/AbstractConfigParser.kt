@@ -3,6 +3,7 @@ package com.android.v2rayForAndroidUI.parser
 import com.android.v2rayForAndroidUI.model.ApiObject
 import com.android.v2rayForAndroidUI.model.DnsObject
 import com.android.v2rayForAndroidUI.model.InboundObject
+import com.android.v2rayForAndroidUI.model.Link
 import com.android.v2rayForAndroidUI.model.LogObject
 import com.android.v2rayForAndroidUI.model.Node
 import com.android.v2rayForAndroidUI.model.NoneOutboundConfigurationObject
@@ -150,5 +151,5 @@ abstract class AbstractConfigParser {
 
     abstract fun parseOutbound(link: String): OutboundObject
 
-    abstract fun preParse(link: String,id: Int): Node
+    abstract fun preParse(link: Link): Node
 }
