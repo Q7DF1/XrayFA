@@ -64,43 +64,39 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.android.v2rayForAndroidUI.R
 import com.android.v2rayForAndroidUI.V2rayBaseService
-import com.android.v2rayForAndroidUI.model.Node
-import com.android.v2rayForAndroidUI.model.protocol.Protocol
 import com.android.v2rayForAndroidUI.ui.component.NodeCard
 import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel
 
 data class Home(
-    val node: Node? = null
+    val id: Int? = null
 ): NavigateDestination {
     override val icon: ImageVector
         get() = Icons.Default.Home
     override val route: String
-        get() = "home"
+        get() = if (id != null) "home?$id" else "home"
 
 }
 
 
 @Composable
 fun HomeScreen(
-    node: Node? = null,
+    id: Int? = null,
     xrayViewmodel: XrayViewmodel,
     modifier: Modifier = Modifier
 ) {
-
     val context = LocalContext.current
-
-    var config  by remember { mutableStateOf("111")}
-
+    val selectedNode by xrayViewmodel.getSelectedNode().collectAsState(null)
     Box(
         modifier = Modifier.fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
-
-        NodeCard(
-            node = Node(0,Protocol.VLESS,"122.212.121.32",18880),
-            modifier = Modifier.align(BiasAlignment(0f,-0.6f))
-        )
+        selectedNode?.let {
+            NodeCard(
+                node = it,
+                modifier = Modifier
+            )
+        }
         Dashboard(xrayViewmodel,modifier = Modifier.align(Alignment.Center))
 
         V2rayStarter(xrayViewmodel,modifier = Modifier.align(BiasAlignment(0f,0.8f)))

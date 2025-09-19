@@ -47,7 +47,6 @@ class XrayStatsClient(
         var uplink = 0L
         var downlink = 0L
         response?.statList?.forEach {
-            Log.i(TAG, "getTraffic: $it")
             when {
                 it.name.contains("uplink") -> uplink = it.value
                 it.name.contains("downlink") -> downlink = it.value

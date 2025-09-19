@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.android.v2rayForAndroidUI.model.Link
 import kotlinx.coroutines.flow.Flow
 
@@ -26,4 +27,17 @@ interface LinkDao {
 
     @Query("DELETE FROM link WHERE id = :id")
     suspend fun deleteLinkById(id: Int)
+
+    @Update()
+    suspend fun updateLink(link: Link)
+
+    @Query("SELECT * FROM link WHERE selected = 1 LIMIT 1")
+    fun querySelectedLink(): Flow<Link?>
+
+    @Query("UPDATE link SET selected = :selected WHERE id = :id")
+    suspend fun updateLinkById(id: Int,selected: Boolean)
+
+
+    @Query("UPDATE link SET selected = 0 WHERE selected = 1")
+    suspend fun clearSelection()
 }

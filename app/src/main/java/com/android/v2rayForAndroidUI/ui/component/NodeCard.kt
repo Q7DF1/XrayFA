@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,8 +46,9 @@ import com.android.v2rayForAndroidUI.model.Node
 fun NodeCard(
     backgroundColor: Color = MaterialTheme.colorScheme.surface,
     node: Node,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     delete: () -> Unit = {},
+    onChoose: () -> Unit = {}
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
@@ -56,7 +58,8 @@ fun NodeCard(
         tonalElevation = 8.dp,
         modifier = modifier.fillMaxWidth()
             .padding(horizontal = 8.dp),
-        shape = roundCornerShape
+        shape = roundCornerShape,
+        onClick = {onChoose()}
     ) {
         Row(
             modifier = modifier.fillMaxWidth()

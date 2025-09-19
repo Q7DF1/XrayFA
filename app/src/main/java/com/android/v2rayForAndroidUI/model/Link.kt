@@ -7,5 +7,6 @@ import androidx.room.PrimaryKey
 data class Link(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val protocol: String,
-    val content: String
+    val content: String,
+    val selected: Boolean = false
 )

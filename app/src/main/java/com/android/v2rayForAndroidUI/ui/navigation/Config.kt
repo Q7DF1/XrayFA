@@ -63,7 +63,7 @@ data object Config: NavigateDestination {
 
 @Composable
 fun ConfigScreen(
-    onNavigate2Home: (Node) -> Unit,
+    onNavigate2Home: (Int) -> Unit,
     xrayViewmodel: XrayViewmodel
 ) {
     val nodes by xrayViewmodel.getAllNodes().collectAsState(emptyList())
@@ -93,6 +93,10 @@ fun ConfigScreen(
                         modifier = Modifier,
                         delete = {
                             xrayViewmodel.deleteLinkById(node.id)
+                        },
+                        onChoose = {
+                            xrayViewmodel.setSelectedNode(node.id)
+                            onNavigate2Home(node.id)
                         }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
