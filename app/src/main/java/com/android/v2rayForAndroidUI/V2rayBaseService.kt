@@ -6,19 +6,36 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.net.VpnService
+import android.os.Binder
 import android.os.Build
+import android.os.Handler
+import android.os.IBinder
+import android.os.Message
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.android.v2rayForAndroidUI.rpc.XrayStatsClient
+import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel.Companion.MSG_TRAFFIC_DETECTION
 import hev.htproxy.utils.NetPreferences
 import hev.htproxy.Tun2SocksService
+import hev.htproxy.di.qualifier.Background
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.lang.Thread.sleep
+import java.util.concurrent.Executor
 import javax.inject.Inject
 
 class V2rayBaseService
 @Inject constructor(
     private val tun2SocksService: Tun2SocksService,
-    private val v2rayCoreManager: V2rayCoreManager
-): VpnService() {
+    private val v2rayCoreManager: V2rayCoreManager,
+    @Background val bgExecutor: Executor
+): VpnService(), TrafficDetector {
 
     companion object {
 
@@ -29,7 +46,24 @@ class V2rayBaseService
         var isRunning: Boolean = false
     }
 
+    private val serviceJob = SupervisorJob()
+    private val serviceScope = CoroutineScope(Dispatchers.Default + serviceJob)
+
     var tunFd: ParcelFileDescriptor? = null
+
+    var H: Handler? = null
+    private val binder = LocalBinder()
+
+    inner class LocalBinder : Binder() {
+        fun getService(): V2rayBaseService = this@V2rayBaseService
+    }
+
+    override fun onBind(intent: Intent?): IBinder? {
+        Log.i(TAG, "onBind: lishien++")
+        return binder
+    }
+
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
         if (intent?.action == "disconnect") {
@@ -58,6 +92,7 @@ class V2rayBaseService
         super.onDestroy()
         tunFd?.close()
         tunFd = null
+        serviceScope.cancel()
     }
 
 
@@ -83,14 +118,15 @@ class V2rayBaseService
 
 
     private fun startV2rayCoreService() {
+        v2rayCoreManager.trafficDetector = this
         v2rayCoreManager.startV2rayCore()
         startVpn()
         tunFd?.let {
             tun2SocksService.startTun2Socks(it.fd)
         }
-
-
-        postUpdateForegroundNotification()
+        
+        
+        //postUpdateForegroundNotification()
     }
 
     private fun stopV2rayCoreService() {
@@ -120,7 +156,7 @@ class V2rayBaseService
         return notification
     }
     private fun startForegroundNotification() {
-        val notification = makeForegroundNotification(false)
+        val notification = makeForegroundNotification(true) // todo 直接
         startForeground(NOTIFICATION_ID, notification)
     }
 
@@ -140,5 +176,33 @@ class V2rayBaseService
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(serviceChannel)
         }
+    }
+
+    override fun startTrafficDetection() {
+        serviceScope.launch {
+            var upSpeed: Long
+            var downSpeed: Long
+            val client = XrayStatsClient()
+            client.connect()
+            var lastUp = 0L
+            var lastDown = 0L
+            while (XrayStatsClient.isConnect) {
+                val (uplink, downlink) = client.getTraffic("proxy")
+                upSpeed = (uplink - lastUp) / 1024
+                downSpeed= (downlink - lastDown) / 1024
+                lastUp = uplink
+                lastDown = downlink
+                val message = Message()
+                message.arg1 = upSpeed.toInt()
+                message.arg2 = downSpeed.toInt()
+                message.what = MSG_TRAFFIC_DETECTION
+                H?.sendMessage(message)
+                sleep(1000)
+            }
+        }
+    }
+
+    override fun stopTrafficDetection() {
+        serviceScope.cancel()
     }
 }

@@ -1,9 +1,18 @@
 package com.android.v2rayForAndroidUI.viewmodel
 
+import android.annotation.SuppressLint
 import android.content.ClipboardManager
+import android.content.ComponentName
 import android.content.Context
+import android.content.Context.BIND_AUTO_CREATE
 import android.content.Intent
+import android.content.ServiceConnection
 import android.net.VpnService
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.IBinder
+import android.os.Looper
+import android.os.Message
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.ViewModel
@@ -37,6 +46,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.lang.ref.WeakReference
+import java.util.concurrent.Executor
 
 class XrayViewmodel(
     private val linkRepository: LinkRepository
@@ -44,6 +54,8 @@ class XrayViewmodel(
 
     companion object {
         const val TAG = "XrayViewmodel"
+
+        const val MSG_TRAFFIC_DETECTION = 1
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -54,7 +66,21 @@ class XrayViewmodel(
     val upSpeed: StateFlow<Long> = _upSpeed.asStateFlow()
     val _downSpeed = MutableStateFlow(0L)
     val downSpeed: StateFlow<Long> = _downSpeed.asStateFlow()
-
+    val handlerThread = HandlerThread("XrayViewmodel").apply {
+        start()
+    }
+    val H =object: Handler(handlerThread.looper) {
+        override fun handleMessage(msg: Message) {
+            when(msg.what) {
+                MSG_TRAFFIC_DETECTION -> {
+                    _upSpeed.value = msg.arg1.toLong()
+                    _downSpeed.value = msg.arg2.toLong()
+                }
+                else -> throw RuntimeException("Unknown message type: ${msg.what}")
+            }
+            super.handleMessage(msg)
+        }
+    }
     init {
         viewModelScope.launch {
             val links = linkRepository.allLinks.first() // 获取原始链接，不执行解析
@@ -69,6 +95,21 @@ class XrayViewmodel(
                 _nodes.value = parsedNodes.toList() // 每条解析完就更新
             }
         }
+    }
+
+
+    val serviceConnection = object: ServiceConnection {
+        override fun onServiceConnected(
+            name: ComponentName?,
+            service: IBinder?
+        ) {
+            val binder = (service as V2rayBaseService.LocalBinder).getService()
+            binder.H = H
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+        }
+
     }
 
 
@@ -103,7 +144,12 @@ class XrayViewmodel(
             action = "connect"
         }
         context.startForegroundService(intent)
-        startTrafficDetection()
+        Log.i(TAG, "startV2rayService: bind")
+        context.bindService(
+            Intent(context, V2rayBaseService::class.java),
+            serviceConnection,
+            BIND_AUTO_CREATE
+        )
     }
 
     fun startTrafficDetection() {
@@ -111,19 +157,7 @@ class XrayViewmodel(
             while (!isV2rayServiceRunning()) {
                delay(2000)
             }
-            val client = XrayStatsClient()
-            client.connect()
-            var lastUp = 0L
-            var lastDown = 0L
-            while (XrayStatsClient.isConnect) {
-                val (uplink, downlink) = client.getTraffic("proxy")
-                _upSpeed.value = (uplink - lastUp) / 1024
-                _downSpeed.value = (downlink - lastDown) / 1024
-                lastUp = uplink
-                lastDown = downlink
-                delay(1000)
 
-            }
         }
     }
 
@@ -134,12 +168,13 @@ class XrayViewmodel(
 
     fun stopV2rayService(context: Context) {
 
-        stopTrafficDetection()
-
         val intent = Intent(context, V2rayBaseService::class.java).apply {
             action = "disconnect"
         }
+        Log.i(TAG, "stopV2rayService: unbind")
+        context.unbindService(serviceConnection)
         context.startService(intent)
+
     }
 
 

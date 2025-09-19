@@ -25,6 +25,7 @@ import com.android.v2rayForAndroidUI.parser.VMESSConfigParser
 import com.android.v2rayForAndroidUI.rpc.XrayStatsClient
 import com.android.v2rayForAndroidUI.utils.Device
 import com.google.gson.Gson
+import hev.htproxy.di.qualifier.Background
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -32,21 +33,28 @@ import kotlinx.coroutines.launch
 import libv2ray.CoreCallbackHandler
 import libv2ray.CoreController
 import libv2ray.Libv2ray
+import java.util.concurrent.Executor
 import javax.inject.Inject
 
 class V2rayCoreManager
 @Inject constructor(
-    @Application private val context: Context
+    @Application private val context: Context,
+    @Background private val bgExecutor: Executor
 ) {
 
     companion object {
         const val TAG = "V2rayCoreManager"
     }
     private var coreController: CoreController? = null
-
+    private var startOrClose = false
+    var trafficDetector: TrafficDetector? = null
     val controllerHandler = object: CoreCallbackHandler {
         override fun onEmitStatus(p0: Long, p1: String?): Long {
-            Log.i(TAG, "onEmitStatus: $p1")
+            Log.i(TAG, "onEmitStatus: $p0 $p1")
+            if (startOrClose)
+                trafficDetector?.startTrafficDetection()
+            else
+                trafficDetector?.stopTrafficDetection()
             return 0L
         }
 
@@ -93,8 +101,8 @@ class V2rayCoreManager
     }
 
     fun startV2rayCore(config: String? = null) {
-
-        Thread {
+        startOrClose = true
+        bgExecutor.execute {
             try {
                 val v2rayConfig = getV2rayConfig()
 
@@ -102,7 +110,7 @@ class V2rayCoreManager
             }catch (e: Exception) {
                 Log.e(TAG, "startV2rayCore failed: ${e.message}")
             }
-        }.start()
+        }
     }
     
     fun getV2rayConfig(): String {
@@ -115,102 +123,8 @@ class V2rayCoreManager
         return config
     }
 
-    fun getXrayConfiguration(): XrayConfiguration {
-        val dns = DnsObject(
-            hosts = mapOf(
-                "domain:googleapis.cn" to "googleapis.com"
-            ),
-            servers = listOf(
-                "8.8.8.8"
-            )
-        )
-        val inbounds = listOf(
-            InboundObject(
-                listen = "127.0.0.1",
-                port = 10808,
-                protocol = "socks",
-                settings = SocksInboundConfigurationObject(
-                    auth = "noauth",
-                    udp = true,
-                    userLevel = 8
-                ),
-                sniffing = SniffingObject(
-                    destOverride = listOf("http","tls"),
-                    enabled = true
-                ),
-                tag = "socks"
-            )
-        )
-        val xrayConfig = XrayConfiguration(
-            dns = dns,
-            inbounds = inbounds,
-            log = LogObject(logLevel = "warning"),
-            outbounds = listOf(
-                OutboundObject(
-                    mux = MuxObject(
-                        concurrency =  -1,
-                        enable = false,
-                        xudpConcurrency = 8,
-                        xudpProxyUDP443 = ""
-                    ),
-                    protocol = "vless",
-                    settings = VLESSOutboundConfigurationObject(
-                        vnext = listOf(
-                            ServerObject(
-                                address = "67.230.172.249",
-                                port = 18880,
-                                users = listOf(
-                                    UserObject(
-                                        encryption = "none",
-                                        flow = "xtls-rprx-vision",
-                                        id = "bc313a85-45dd-4904-80dc-37496b18e222",
-                                        level = 8
-                                    )
-                            )
-                        )
-                    )
-                ),
-                    streamSettings = StreamSettingsObject(
-                        network = "tcp",
-                        realitySettings = RealitySettings(
-                            fingerprint = "chrome",
-                            serverName = "www.paypal.com",
-                            shortId = "",
-                            spiderX = "",
-                            publicKey = "1CgDPWbxKfcyOa91dLnRxDZ3EuaEbU0GwFnkTIg2XWc",
-                            show = false
-                        ),
-                        security = "reality"
-                    ),
-                    tag = "proxy"
-            ),
-                OutboundObject(
-                    protocol = "freedom",
-                    settings = null,
-                    tag = "direct"
-                ),
-        ),
-            routing = RoutingObject(
-                domainStrategy = "IPIfNonMatch",
-                rules = listOf(
-                    RuleObject(
-                        //不正确
-                        outboundTag = "proxy",
-                        domain = listOf("geolocation-!cn")
-                    )
-                )
-            ),
-            policy = PolicyObject(
-                system = SystemPolicyObject(
-                   statsOutboundUplink = true,
-                    statsOutboundDownlink = true
-                )
-            )
-        )
-        return xrayConfig
-    }
-
     fun stopV2rayCore() {
+        startOrClose = false
         coreController?.stopLoop()
     }
 

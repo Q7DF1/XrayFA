@@ -1,6 +1,9 @@
 package com.android.v2rayForAndroidUI.di
 
 import android.content.Context
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.Message
 import hev.htproxy.di.qualifier.Application
 import hev.htproxy.di.qualifier.Background
 import hev.htproxy.di.qualifier.Main
@@ -50,7 +53,6 @@ abstract class GlobalModule {
      fun providePreferences(context: Context): NetPreferences {
          return NetPreferences(context)
      }
-
  }
 
     @Binds
