@@ -97,7 +97,8 @@ fun ConfigScreen(
                         onChoose = {
                             xrayViewmodel.setSelectedNode(node.id)
                             onNavigate2Home(node.id)
-                        }
+                        },
+                        selected =node.selected
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }

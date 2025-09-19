@@ -20,6 +20,7 @@ import com.android.v2rayForAndroidUI.model.UserObject
 import com.android.v2rayForAndroidUI.model.VLESSOutboundConfigurationObject
 import com.android.v2rayForAndroidUI.model.XrayConfiguration
 import com.android.v2rayForAndroidUI.model.stream.RealitySettings
+import com.android.v2rayForAndroidUI.parser.ParserFactory
 import com.android.v2rayForAndroidUI.parser.VLESSConfigParser
 import com.android.v2rayForAndroidUI.parser.VMESSConfigParser
 import com.android.v2rayForAndroidUI.rpc.XrayStatsClient
@@ -100,13 +101,11 @@ class V2rayCoreManager
 
     }
 
-    fun startV2rayCore(config: String? = null) {
+    fun startV2rayCore(link: String,protocol: String) {
         startOrClose = true
         bgExecutor.execute {
             try {
-                val v2rayConfig = getV2rayConfig()
-
-                coreController?.startLoop(config?: v2rayConfig)
+                coreController?.startLoop(ParserFactory.getParser(protocol).parse(link))
             }catch (e: Exception) {
                 Log.e(TAG, "startV2rayCore failed: ${e.message}")
             }

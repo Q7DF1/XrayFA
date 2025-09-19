@@ -94,7 +94,7 @@ fun HomeScreen(
         selectedNode?.let {
             NodeCard(
                 node = it,
-                modifier = Modifier
+                modifier = Modifier.align(BiasAlignment(0f,-0.5f)),
             )
         }
         Dashboard(xrayViewmodel,modifier = Modifier.align(Alignment.Center))

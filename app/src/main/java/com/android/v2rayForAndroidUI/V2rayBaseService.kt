@@ -15,6 +15,8 @@ import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.android.v2rayForAndroidUI.rpc.XrayStatsClient
+import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel.Companion.EXTRA_LINK
+import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel.Companion.EXTRA_PROTOCOL
 import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel.Companion.MSG_TRAFFIC_DETECTION
 import hev.htproxy.utils.NetPreferences
 import hev.htproxy.Tun2SocksService
@@ -68,14 +70,16 @@ class V2rayBaseService
 
         if (intent?.action == "disconnect") {
 
-            Log.i(TAG, "onStartCommand: stop")
+            Log.i(TAG, "onStartCommand: stop...")
             stopV2rayCoreService()
             isRunning = false
             return  START_NOT_STICKY
         }else {
 
-            Log.i(TAG, "onStartCommand: start")
-            startV2rayCoreService()
+            Log.i(TAG, "onStartCommand: start...")
+            val link = intent?.getStringExtra(EXTRA_LINK)
+            val protocol = intent?.getStringExtra(EXTRA_PROTOCOL)
+            startV2rayCoreService(link!!,protocol!!)
             isRunning = true
             return START_STICKY
         }
@@ -117,9 +121,9 @@ class V2rayBaseService
 
 
 
-    private fun startV2rayCoreService() {
+    private fun startV2rayCoreService(link: String,protocol: String) {
         v2rayCoreManager.trafficDetector = this
-        v2rayCoreManager.startV2rayCore()
+        v2rayCoreManager.startV2rayCore(link,protocol)
         startVpn()
         tunFd?.let {
             tun2SocksService.startTun2Socks(it.fd)

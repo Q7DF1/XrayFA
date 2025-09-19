@@ -6,6 +6,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -48,7 +49,8 @@ fun NodeCard(
     node: Node,
     modifier: Modifier = Modifier,
     delete: () -> Unit = {},
-    onChoose: () -> Unit = {}
+    onChoose: () -> Unit = {},
+    selected: Boolean = false
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
@@ -59,7 +61,8 @@ fun NodeCard(
         modifier = modifier.fillMaxWidth()
             .padding(horizontal = 8.dp),
         shape = roundCornerShape,
-        onClick = {onChoose()}
+        onClick = {onChoose()},
+        border = if (selected) BorderStroke(width = 2.dp, color = Color(0xFF00BFFF)) else null
     ) {
         Row(
             modifier = modifier.fillMaxWidth()
@@ -102,7 +105,7 @@ fun NodeCard(
             }
             IconButton(
                 onClick = {},
-                modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
+                modifier = Modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
             ) {
                 Icon(
                     imageVector = Icons.Default.Share,
@@ -127,7 +130,7 @@ fun NodeCard(
                 Icon(
                     imageVector = Icons.AutoMirrored.Default.ArrowForward,
                     contentDescription = "",
-                    modifier = modifier.fillMaxSize(0.5f)
+                    modifier = Modifier.fillMaxSize(0.5f)
                 )
             }
         }
