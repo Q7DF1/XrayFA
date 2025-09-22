@@ -1,4 +1,6 @@
 import com.google.protobuf.gradle.id
+import com.android.build.api.variant.FilterConfiguration.FilterType.*
+import com.android.build.gradle.internal.cxx.configure.abiOf
 
 plugins {
     alias(libs.plugins.android.application)
@@ -20,6 +22,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+
     }
 
 
@@ -42,6 +46,34 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+
+
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("armeabi-v7a","arm64-v8a","x86","x86_64")
+            isUniversalApk = false
+        }
+    }
+
+    flavorDimensions += "abi"
+    val abiCodes = mapOf("armeabi-v7a" to 1, "arm64-v8a" to 2, "x86" to 3, "x86_64" to 4)
+
+    androidComponents  {
+        onVariants { variant ->
+            variant.outputs.forEach { output->
+                val name = output.filters.find { it.filterType == ABI } ?.identifier
+
+
+                val baseAbiCode = abiCodes[name] ?: 0
+
+                if(baseAbiCode != null) {
+                    output.versionCode.set((baseAbiCode * 1000 + output.versionCode.get()))
+                }
+            }
+        }
     }
 }
 

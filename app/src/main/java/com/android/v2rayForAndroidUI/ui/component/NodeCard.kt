@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -95,6 +96,7 @@ fun NodeCard(
                         text = node.address,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.basicMarquee()
                     )
                     Text(
                         text = node.protocol.name,
