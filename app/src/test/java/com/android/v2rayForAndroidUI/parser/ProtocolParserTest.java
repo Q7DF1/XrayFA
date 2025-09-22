@@ -23,4 +23,11 @@ public class ProtocolParserTest {
         parser.parse("vmess://ew0KICAidiI6ICIyIiwNCiAgInBzIjogIjIzM2JveS10Y3AtNjcuMjMwLjE3Mi4yNDkiLA0KICAiYWRkIjogIjY3LjIzMC4xNzIuMjQ5IiwNCiAgInBvcnQiOiAiMTg4ODMiLA0KICAiaWQiOiAiN2U3Y2Q0OTktNjE0MS00ZGFlLWEzOTEtNWI1N2E5MjgzMThkIiwNCiAgImFpZCI6ICIwIiwNCiAgInNjeSI6ICJhdXRvIiwNCiAgIm5ldCI6ICJ0Y3AiLA0KICAidHlwZSI6ICJodHRwIiwNCiAgImhvc3QiOiAiIiwNCiAgInBhdGgiOiAiIiwNCiAgInRscyI6ICIiLA0KICAic25pIjogIiIsDQogICJhbHBuIjogIiIsDQogICJmcCI6ICIiDQp9");
         //parser.parse("vmess://eyJ2IjoyLCJwcyI6IjIzM2JveS13cy1mYWNlLndveGlhbmdiYW9mdS5jbGljayIsImFkZCI6ImZhY2Uud294aWFuZ2Jhb2Z1LmNsaWNrIiwicG9ydCI6IjQ0MyIsImlkIjoiZWQ5MzQzYzUtZTg3MC00ZTFiLWE1MTYtNGQzYzAxMjhkYmMwIiwiYWlkIjoiMCIsIm5ldCI6IndzIiwiaG9zdCI6ImZhY2Uud294aWFuZ2Jhb2Z1LmNsaWNrIiwicGF0aCI6Ii9lZDkzNDNjNS1lODcwLTRlMWItYTUxNi00ZDNjMDEyOGRiYzAiLCJ0bHMiOiJ0bHMifQ==");
     }
+
+
+    @Test
+    public void testTrojan() {
+        TrojanConfigParser parser = new TrojanConfigParser();
+        parser.parseOutbound("trojan://55411e44-8f8a-43ce-8f79-2eb9e188bdb9@tr0jan.woxiangbaofu.click:443?encryption=none&security=tls&type=ws&host=tr0jan.woxiangbaofu.click&path=%2F55411e44-8f8a-43ce-8f79-2eb9e188bdb9#233boy-ws-tr0jan.woxiangbaofu.click");
+    }
 }
