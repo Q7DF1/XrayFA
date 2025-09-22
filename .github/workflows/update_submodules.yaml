@@ -1,0 +1,19 @@
+name: Update Submodules
+on:
+  schedule:
+    - cron: "* * * * *"
+  workflow_dispatch:
+jobs:
+  update_sdk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Update submodules
+        run: |
+          git submodule update --init --remote
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -am "Update SDK" || exit 0
+          git push || exit 0          
