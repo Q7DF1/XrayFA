@@ -13,6 +13,9 @@ object ParserFactory {
             Protocol.VMESS.name.lowercase() -> {
                 return VMESSConfigParser()
             }
+            Protocol.TROJAN.name.lowercase() -> {
+                return TrojanConfigParser()
+            }
 
             else -> {
                 throw IllegalArgumentException("Unsupported protocol: $protocol")

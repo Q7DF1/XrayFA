@@ -149,8 +149,10 @@ fun V2rayFAContainer(
             composable(route = Config.route) {
                 ConfigScreen(
                     onNavigate2Home = { id->
-                        naviController.navigate(route = Home(id).route)
-                        selected = Home().route
+                        if (!xrayViewmodel.isV2rayServiceRunning()) {
+                            naviController.navigate(route = Home(id).route)
+                            selected = Home().route
+                        }
                     },
                     xrayViewmodel = xrayViewmodel
                 )

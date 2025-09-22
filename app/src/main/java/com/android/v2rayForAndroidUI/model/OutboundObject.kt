@@ -23,11 +23,23 @@ data class VMESSOutboundConfigurationObject(
     val vnext: List<ServerObject>
 ): AbsOutboundConfigurationObject()
 
+data class TrojanOutboundConfigurationObject(
+    val servers: List<TrojanServerObject>
+): AbsOutboundConfigurationObject()
+
 
 data class ServerObject(
     val address: String,
     val port: Int,
     val users: List<UserObject>
+)
+
+data class TrojanServerObject(
+    val address: String?,
+    val port: Int?,
+    val password: String?,
+    val email: String? = null,
+    val level: Int? = null
 )
 
 data class UserObject(

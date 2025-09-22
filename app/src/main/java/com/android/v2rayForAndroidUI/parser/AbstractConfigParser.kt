@@ -149,7 +149,8 @@ abstract class AbstractConfigParser {
         return config
     }
 
+    @Throws(Exception::class)
     abstract fun parseOutbound(link: String): OutboundObject
-
+    @Throws(Exception::class)
     abstract fun preParse(link: Link): Node
 }

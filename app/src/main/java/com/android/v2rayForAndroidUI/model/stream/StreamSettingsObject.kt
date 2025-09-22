@@ -20,5 +20,5 @@ data class StreamSettingsObject(
 
 class XHttpSettings()
 class KcpSettings()
-class GrpcSettings()
+
 class HttpUpgradeSettings()
