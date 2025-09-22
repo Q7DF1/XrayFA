@@ -1,3 +1,4 @@
+
 name: Update Submodules
 on:
   schedule:
@@ -8,6 +9,11 @@ jobs:
   update_sdk:
     runs-on: ubuntu-latest
     steps:
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.1
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
       - name: Checkout repository with submodules
         uses: actions/checkout@v5
         with:
