@@ -64,6 +64,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.android.v2rayForAndroidUI.R
 import com.android.v2rayForAndroidUI.V2rayBaseService
+import com.android.v2rayForAndroidUI.model.Node
+import com.android.v2rayForAndroidUI.ui.ArcBottomShape
 import com.android.v2rayForAndroidUI.ui.component.NodeCard
 import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel
 
@@ -74,6 +76,8 @@ data class Home(
         get() = Icons.Default.Home
     override val route: String
         get() = if (id != null) "home?$id" else "home"
+    override val containerColor: Color
+        get() = Color(0xFF00BFFF)
 
 }
 
@@ -89,15 +93,9 @@ fun HomeScreen(
     Box(
         modifier = Modifier.fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp)
     ) {
-        selectedNode?.let {
-            NodeCard(
-                node = it,
-                modifier = Modifier.align(BiasAlignment(0f,-0.5f)),
-            )
-        }
-        Dashboard(xrayViewmodel,modifier = Modifier.align(Alignment.Center))
+        Dashboard0(xrayViewmodel = xrayViewmodel,node = selectedNode)
+        //Dashboard(xrayViewmodel,modifier = Modifier.align(Alignment.TopCenter))
 
         V2rayStarter(xrayViewmodel,modifier = Modifier.align(BiasAlignment(0f,0.8f)))
     }
@@ -108,8 +106,8 @@ fun V2rayStarter(
     xrayViewmodel: XrayViewmodel,
     modifier: Modifier
 ) {
+    val toggle by xrayViewmodel.isServiceRunning.collectAsState()
     val context = LocalContext.current
-    var toggle by remember {mutableStateOf(xrayViewmodel.isV2rayServiceRunning())}
     val color by animateColorAsState(
         targetValue = if (toggle) Color.Blue else Color.Gray,
         animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
@@ -134,8 +132,7 @@ fun V2rayStarter(
 
     IconButton(
         onClick = {
-            toggle = !toggle
-            if (toggle) {
+            if (!toggle) {
                 val prepare = VpnService.prepare(context)
                 if (prepare != null) {
                     launcher.launch(prepare)
@@ -176,6 +173,41 @@ fun V2rayStarter(
 }
 
 
+@Composable
+fun Dashboard0(
+    xrayViewmodel: XrayViewmodel,
+    node: Node?,
+) {
+    Surface(
+        color = Color(0xFF00BFFF),
+        tonalElevation = 8.dp,
+        shape = ArcBottomShape(arcHeight = 80f),
+        modifier = Modifier.fillMaxWidth()
+            .fillMaxHeight(0.5f)
+    ) {
+        Box(
+            modifier = Modifier.padding(8.dp)
+        ) {
+            node?.let {
+                NodeCard(
+                    node = node,
+                    modifier = Modifier.align(BiasAlignment(0f,-0.5f))
+                )
+            }
+            Dashboard(
+                xrayViewmodel = xrayViewmodel,
+                modifier = Modifier.align(BiasAlignment(0f,0.7f))
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+fun DashboardPreview0() {
+}
+
+
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun Dashboard(
@@ -187,8 +219,7 @@ fun Dashboard(
     val upSpeed by xrayViewmodel.upSpeed.collectAsState()
     val downSpeed by xrayViewmodel.downSpeed.collectAsState()
     Surface(
-        color = MaterialTheme.colorScheme.background,
-        tonalElevation = 8.dp,
+        color = Color.Transparent,
         shape = RoundedCornerShape(16.dp),
         modifier = modifier.padding(horizontal = 8.dp)
             .fillMaxWidth()
@@ -208,12 +239,12 @@ fun Dashboard(
                     modifier = Modifier
                         .size((screenWidth*0.08).dp.coerceIn(24.dp,48.dp)) // 整体大小
                         .clip(CircleShape) // 裁剪成圆形
-                        .background(Color(0xFF00BFFF)), // 背景色
+                        .background(MaterialTheme.colorScheme.surface), // 背景色
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(imageVector = Icons.Filled.KeyboardArrowUp,
                         contentDescription = "upload icon",
-                        tint = Color.White
+                        tint = Color.Black
                     )
                 }
                 Column(
@@ -242,13 +273,13 @@ fun Dashboard(
                     modifier = Modifier
                         .size((screenWidth*0.08).dp.coerceIn(24.dp,48.dp)) // 整体大小
                         .clip(CircleShape) // 裁剪成圆形
-                        .background(Color(0xFF00BFFF)), // 背景色
+                        .background(MaterialTheme.colorScheme.surface), // 背景色
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowDown,
                         contentDescription = "download icon",
-                        tint = Color.White
+                        tint = Color.Black
                     )
                 }
                 Column(

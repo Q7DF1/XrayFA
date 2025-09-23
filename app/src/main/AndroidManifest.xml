@@ -14,6 +14,7 @@
         android:name=".V2rayFAApplication"
         android:appComponentFactory="com.android.v2rayForAndroidUI.V2rayAppCompatFactory"
         android:allowBackup="true"
+        android:extractNativeLibs="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"

@@ -57,7 +57,8 @@ data object Config: NavigateDestination {
         get() = Icons.Default.Build
     override val route: String
         get() = "config"
-
+    override val containerColor: Color
+        get() = Color.White
 }
 
 
