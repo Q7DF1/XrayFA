@@ -27,6 +27,9 @@ data class TrojanOutboundConfigurationObject(
     val servers: List<TrojanServerObject>
 ): AbsOutboundConfigurationObject()
 
+data class ShadowSocksOutboundConfigurationObject(
+    val services: List<ShadowSocksServerObject>
+): AbsOutboundConfigurationObject()
 
 data class ServerObject(
     val address: String,
@@ -39,6 +42,17 @@ data class TrojanServerObject(
     val port: Int?,
     val password: String?,
     val email: String? = null,
+    val level: Int? = null
+)
+
+data class ShadowSocksServerObject(
+    val email: String? = null,
+    val address: String,
+    val port:Int,
+    val method: String,
+    val password: String,
+    val uot: Boolean = false,
+    val UotVersion:Int? = null,
     val level: Int? = null
 )
 

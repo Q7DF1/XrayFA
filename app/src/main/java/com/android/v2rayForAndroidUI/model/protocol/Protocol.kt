@@ -6,21 +6,21 @@ import com.android.v2rayForAndroidUI.model.protocol.Protocol.VLESS
 import com.android.v2rayForAndroidUI.model.protocol.Protocol.VMESS
 
 enum class Protocol(
-    name: String
+    val protocolName: String
 ) {
-    VLESS(name = "vless"),
+    VLESS("vless"),
 
-    VMESS(name = "vmess"),
+    VMESS("vmess"),
 
-    SHADOW_SOCKS(name = "ss"),
+    SHADOW_SOCKS("ss"),
 
-    TROJAN(name = "trojan");
+    TROJAN("trojan");
 
 
 }
 val protocols = listOf(
-    VLESS.name.lowercase(),
-    VMESS.name.lowercase(),
-    SHADOW_SOCKS.name.lowercase(),
-    TROJAN.name.lowercase()
+    VLESS.protocolName,
+    VMESS.protocolName,
+    SHADOW_SOCKS.protocolName,
+    TROJAN.protocolName
 )

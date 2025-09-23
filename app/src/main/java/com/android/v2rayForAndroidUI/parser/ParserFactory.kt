@@ -6,15 +6,18 @@ object ParserFactory {
 
     fun getParser(protocol: String): AbstractConfigParser {
         return when(protocol) {
-            Protocol.VLESS.name.lowercase() -> {
+            Protocol.VLESS.protocolName -> {
                 return VLESSConfigParser()
 
             }
-            Protocol.VMESS.name.lowercase() -> {
+            Protocol.VMESS.protocolName -> {
                 return VMESSConfigParser()
             }
-            Protocol.TROJAN.name.lowercase() -> {
+            Protocol.TROJAN.protocolName -> {
                 return TrojanConfigParser()
+            }
+            Protocol.SHADOW_SOCKS.protocolName -> {
+                return ShadowSocksConfigParser()
             }
 
             else -> {
