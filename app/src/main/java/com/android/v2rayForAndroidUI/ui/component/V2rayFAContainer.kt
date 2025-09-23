@@ -26,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat.getString
 import androidx.navigation.NavType
@@ -56,6 +57,7 @@ fun V2rayFAContainer(
     var imageVector by remember { mutableStateOf(Icons.Default.Home) }
     var actionImageVector by remember { mutableStateOf(Icons.Default.Menu) }
     var title by remember { mutableIntStateOf(R.string.home) }
+    var containerColor by remember { mutableStateOf(Color(0xFF00BFFF))}
     var onActionbarClick by remember { mutableStateOf({}) } //TODO
     Scaffold(
         topBar = {
@@ -82,7 +84,7 @@ fun V2rayFAContainer(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = containerColor
                 )
             )
         },
@@ -101,6 +103,7 @@ fun V2rayFAContainer(
                     }
                     selected = item.route
                     imageVector = item.icon
+                    containerColor = item.containerColor
                     when(item.route) {
                         "home" -> {
                             title = R.string.home
@@ -149,9 +152,10 @@ fun V2rayFAContainer(
             composable(route = Config.route) {
                 ConfigScreen(
                     onNavigate2Home = { id->
-                        if (!xrayViewmodel.isV2rayServiceRunning()) {
+                        if (!xrayViewmodel.isServiceRunning.value) {
                             naviController.navigate(route = Home(id).route)
                             selected = Home().route
+                            containerColor = Home().containerColor
                         }
                     },
                     xrayViewmodel = xrayViewmodel

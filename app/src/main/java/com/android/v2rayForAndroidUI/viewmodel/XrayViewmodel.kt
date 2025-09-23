@@ -14,10 +14,12 @@ import android.os.IBinder
 import android.os.Looper
 import android.os.Message
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.android.v2rayForAndroidUI.R
 import com.android.v2rayForAndroidUI.V2rayBaseService
 import com.android.v2rayForAndroidUI.V2rayCoreManager
 import com.android.v2rayForAndroidUI.model.Link
@@ -56,6 +58,7 @@ class XrayViewmodel(
         const val TAG = "XrayViewmodel"
 
         const val MSG_TRAFFIC_DETECTION = 1
+        const val MSG_RUNNING_STATE_NOTIFY = 2
         const val EXTRA_LINK = "com.android.xrayFA.EXTRA_LINK"
         const val EXTRA_PROTOCOL = "com.android.xrayFA.EXTRA_PROTOCOL"
     }
@@ -70,7 +73,8 @@ class XrayViewmodel(
     val _downSpeed = MutableStateFlow(0L)
     val downSpeed: StateFlow<Long> = _downSpeed.asStateFlow()
 
-
+    val _isServiceRunning = MutableStateFlow(false)
+    val isServiceRunning: StateFlow<Boolean> = _isServiceRunning.asStateFlow()
 
     val handlerThread = HandlerThread("XrayViewmodel").apply {
         start()
@@ -82,6 +86,7 @@ class XrayViewmodel(
                     _upSpeed.value = msg.arg1.toLong()
                     _downSpeed.value = msg.arg2.toLong()
                 }
+
                 else -> throw RuntimeException("Unknown message type: ${msg.what}")
             }
             super.handleMessage(msg)
@@ -148,9 +153,14 @@ class XrayViewmodel(
         viewModelScope.launch {
             val first = linkRepository.querySelectedLink().first()
             withContext(Dispatchers.Main) {
+                if (first == null) {
+                    //
+                    Toast.makeText(context, R.string.config_not_ready, Toast.LENGTH_SHORT).show()
+                    return@withContext
+                }
                 val intent = Intent(context, V2rayBaseService::class.java).apply {
                     action = "connect"
-                    putExtra(EXTRA_LINK,first!!.content)
+                    putExtra(EXTRA_LINK,first.content)
                     putExtra(EXTRA_PROTOCOL, first.protocol)
                 }
                 context.startForegroundService(intent)
@@ -160,6 +170,7 @@ class XrayViewmodel(
                     serviceConnection,
                     BIND_AUTO_CREATE
                 )
+                _isServiceRunning.value = true
             }
         }
     }
@@ -171,13 +182,14 @@ class XrayViewmodel(
         }
         context.unbindService(serviceConnection)
         context.startService(intent)
-
+        _isServiceRunning.value = false
     }
 
 
-    fun isV2rayServiceRunning():Boolean {
+    fun isServiceRunning(): Boolean {
         return V2rayBaseService.isRunning
     }
+
 
 
     //link

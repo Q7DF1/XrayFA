@@ -49,8 +49,9 @@ fun NodeCard(
     backgroundColor: Color = MaterialTheme.colorScheme.surface,
     node: Node,
     modifier: Modifier = Modifier,
-    delete: () -> Unit = {},
+    delete: (() -> Unit)? = null,
     onChoose: () -> Unit = {},
+    onShare: (() -> Unit)? = null,
     selected: Boolean = false
 ) {
     val configuration = LocalConfiguration.current
@@ -105,25 +106,29 @@ fun NodeCard(
                     )
                 }
             }
-            IconButton(
-                onClick = {},
-                modifier = Modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Share,
-                    contentDescription = "share"
-                )
+            if (onShare != null) {
+                IconButton(
+                    onClick = {},
+                    modifier = Modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Share,
+                        contentDescription = "share"
+                    )
+                }
             }
-            IconButton(
-                onClick = {
-                    delete()
-                } ,
-                modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "delete"
-                )
+            if (delete != null) {
+                IconButton(
+                    onClick = {
+                        delete()
+                    } ,
+                    modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "delete"
+                    )
+                }
             }
             IconButton(
                 onClick = {},

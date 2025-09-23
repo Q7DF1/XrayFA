@@ -13,4 +13,5 @@
     <string name="no_configuration">No configuration file</string>
     <string name="upload_data">upload</string>
     <string name="download_data">download</string>
+    <string name="config_not_ready">config not ready</string>
 </resources>
