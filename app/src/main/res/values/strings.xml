@@ -14,4 +14,5 @@
     <string name="upload_data">upload</string>
     <string name="download_data">download</string>
     <string name="config_not_ready">config not ready</string>
+    <string name="qrcode_import">qrcode import</string>
 </resources>

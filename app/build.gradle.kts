@@ -165,7 +165,7 @@ dependencies {
     kapt(libs.dagger.compiler)
     implementation (libs.dagger.android)
     kapt(libs.dagger.android.processor)
-
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation(libs.gson)
 
 

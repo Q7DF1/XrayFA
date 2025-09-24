@@ -304,12 +304,3 @@ fun DashboardContent(
     }
 }
 
-@Preview
-@Composable
-fun DashboardPreview() {
-}
-
-@Preview
-@Composable
-fun V2rayStarterPreview() {
-}
