@@ -108,7 +108,7 @@ fun NodeCard(
             }
             if (onShare != null) {
                 IconButton(
-                    onClick = {},
+                    onClick = onShare,
                     modifier = Modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
                 ) {
                     Icon(

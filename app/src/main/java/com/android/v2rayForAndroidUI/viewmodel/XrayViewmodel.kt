@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Context.BIND_AUTO_CREATE
 import android.content.Intent
 import android.content.ServiceConnection
+import android.graphics.Bitmap
 import android.net.VpnService
 import android.os.Handler
 import android.os.HandlerThread
@@ -31,6 +32,8 @@ import com.android.v2rayForAndroidUI.parser.VLESSConfigParser
 import com.android.v2rayForAndroidUI.repository.LinkRepository
 import com.android.v2rayForAndroidUI.rpc.XrayStatsClient
 import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel.Companion.TAG
+import com.google.zxing.BarcodeFormat
+import com.journeyapps.barcodescanner.BarcodeEncoder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -76,6 +79,8 @@ class XrayViewmodel(
     val _isServiceRunning = MutableStateFlow(false)
     val isServiceRunning: StateFlow<Boolean> = _isServiceRunning.asStateFlow()
 
+    val _qrcodebitmap = MutableStateFlow<Bitmap?>(null)
+    val qrBitmap: StateFlow<Bitmap?> = _qrcodebitmap.asStateFlow()
     val handlerThread = HandlerThread("XrayViewmodel").apply {
         start()
     }
@@ -281,6 +286,21 @@ class XrayViewmodel(
     fun deleteLinkByIdWithCallback(id: Int, callback: () -> Unit) {
         callback()
         deleteLinkById(id)
+    }
+
+
+    //barcode
+    fun generateQRCode(id: Int) {
+        viewModelScope.launch {
+            val link = linkRepository.loadLinksById(id).first()
+            val barcodeEncoder = BarcodeEncoder()
+            val bitmap = barcodeEncoder.encodeBitmap(link.content, BarcodeFormat.QR_CODE,400,400)
+            _qrcodebitmap.value = bitmap
+        }
+    }
+
+    fun dismissDialog() {
+        _qrcodebitmap.value = null
     }
 
 }
