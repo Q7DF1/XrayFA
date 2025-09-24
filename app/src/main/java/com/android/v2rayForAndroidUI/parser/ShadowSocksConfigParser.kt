@@ -51,7 +51,7 @@ class ShadowSocksConfigParser: AbstractConfigParser() {
             tag = "proxy",
             protocol = "shadowsocks",
             settings = ShadowSocksOutboundConfigurationObject(
-                services = listOf(
+                servers = listOf(
                     ShadowSocksServerObject(
                         address = shadowSocksConfig.server,
                         method = shadowSocksConfig.method,
