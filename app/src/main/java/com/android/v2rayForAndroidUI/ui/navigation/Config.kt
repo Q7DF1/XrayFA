@@ -1,6 +1,8 @@
 package com.android.v2rayForAndroidUI.ui.navigation
 
 import android.annotation.SuppressLint
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -25,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -49,8 +52,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.getString
 import com.android.v2rayForAndroidUI.R
 import com.android.v2rayForAndroidUI.model.Node
+import com.android.v2rayForAndroidUI.ui.QRCodeActivity
 import com.android.v2rayForAndroidUI.ui.component.NodeCard
 import com.android.v2rayForAndroidUI.viewmodel.XrayViewmodel
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanIntentResult
+import com.journeyapps.barcodescanner.ScanOptions
 
 data object Config: NavigateDestination {
     override val icon: ImageVector
@@ -122,6 +129,17 @@ fun AddConfigButton(
     var expanded by remember { mutableStateOf(false) }
     var toggle by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val scanOptions = ScanOptions()
+    scanOptions.captureActivity = QRCodeActivity::class.java
+    val barcodeLauncher = rememberLauncherForActivityResult(ScanContract()) {
+        result->
+        if (result.contents == null) {
+            Toast.makeText(context, "Cancelled", Toast.LENGTH_LONG).show();
+        }else {
+            xrayViewmodel.addLink(result.contents)
+        }
+    }
+
     Box(
         contentAlignment = Alignment.BottomEnd,
         modifier = modifier.fillMaxSize()
@@ -171,7 +189,8 @@ fun AddConfigButton(
                         )
                         PopUpButton(
                             icon = Icons.Default.Build,
-                            text = "还没想好"
+                            text = stringResource(R.string.qrcode_import),
+                            onClick = {barcodeLauncher.launch(scanOptions)}
                         )
                     }
                 }
@@ -186,7 +205,7 @@ fun AddConfigButton(
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Add,
+                        imageVector = if (expanded) Icons.Default.Done else Icons.Default.Add,
                         contentDescription = ""
                     )
 
