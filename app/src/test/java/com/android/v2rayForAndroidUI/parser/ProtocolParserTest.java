@@ -30,4 +30,11 @@ public class ProtocolParserTest {
         TrojanConfigParser parser = new TrojanConfigParser();
         parser.parseOutbound("trojan://55411e44-8f8a-43ce-8f79-2eb9e188bdb9@tr0jan.woxiangbaofu.click:443?encryption=none&security=tls&type=ws&host=tr0jan.woxiangbaofu.click&path=%2F55411e44-8f8a-43ce-8f79-2eb9e188bdb9#233boy-ws-tr0jan.woxiangbaofu.click");
     }
+
+    @Test
+    public void testSS() {
+        ShadowSocksConfigParser parser = new ShadowSocksConfigParser();
+        ShadowSocksConfigParser.ShadowSocksConfig shadowSocksConfig = parser.parseLink("ss://YWVzLTI1Ni1nY206MTIzNDU2@67.230.172.249:18886#233boy-ss-67.230.172.249");
+        System.out.println(shadowSocksConfig);
+    }
 }

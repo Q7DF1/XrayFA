@@ -94,7 +94,7 @@ fun HomeScreen(
         modifier = Modifier.fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        Dashboard0(xrayViewmodel = xrayViewmodel,node = selectedNode)
+        Dashboard(xrayViewmodel = xrayViewmodel,node = selectedNode)
         //Dashboard(xrayViewmodel,modifier = Modifier.align(Alignment.TopCenter))
 
         V2rayStarter(xrayViewmodel,modifier = Modifier.align(BiasAlignment(0f,0.8f)))
@@ -109,7 +109,7 @@ fun V2rayStarter(
     val toggle by xrayViewmodel.isServiceRunning.collectAsState()
     val context = LocalContext.current
     val color by animateColorAsState(
-        targetValue = if (toggle) Color.Blue else Color.Gray,
+        targetValue = if (toggle) Home().containerColor else Color.Gray,
         animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
         label = "iconColorAnim"
     )
@@ -174,7 +174,7 @@ fun V2rayStarter(
 
 
 @Composable
-fun Dashboard0(
+fun Dashboard(
     xrayViewmodel: XrayViewmodel,
     node: Node?,
 ) {
@@ -194,7 +194,7 @@ fun Dashboard0(
                     modifier = Modifier.align(BiasAlignment(0f,-0.5f))
                 )
             }
-            Dashboard(
+            DashboardContent(
                 xrayViewmodel = xrayViewmodel,
                 modifier = Modifier.align(BiasAlignment(0f,0.7f))
             )
@@ -210,7 +210,7 @@ fun DashboardPreview0() {
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
-fun Dashboard(
+fun DashboardContent(
     xrayViewmodel: XrayViewmodel,
     modifier: Modifier = Modifier
 ) {
@@ -233,13 +233,14 @@ fun Dashboard(
             //upload
             Row(
                 modifier = Modifier.weight(1f),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
             ){
                 Box(
                     modifier = Modifier
                         .size((screenWidth*0.08).dp.coerceIn(24.dp,48.dp)) // 整体大小
                         .clip(CircleShape) // 裁剪成圆形
-                        .background(MaterialTheme.colorScheme.surface), // 背景色
+                        .background(MaterialTheme.colorScheme.surface),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(imageVector = Icons.Filled.KeyboardArrowUp,
@@ -248,14 +249,16 @@ fun Dashboard(
                     )
                 }
                 Column(
-                    modifier = Modifier.padding(start = 8.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = stringResource(R.string.upload_data),
-                        style = MaterialTheme.typography.labelMedium
+                        style = MaterialTheme.typography.labelMedium,
                     )
                     Text(
-                        text = "$upSpeed KB/s"
+                        text = "$upSpeed KB/s",
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
@@ -283,14 +286,17 @@ fun Dashboard(
                     )
                 }
                 Column(
-                    modifier = Modifier.padding(start = 8.dp),
+                    modifier = Modifier.padding(start = 8.dp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = stringResource(R.string.download_data),
                         style = MaterialTheme.typography.labelMedium,
                     )
                     Text(
-                        text = "$downSpeed KB/s"
+                        text = "$downSpeed KB/s",
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }

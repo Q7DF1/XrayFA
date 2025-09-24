@@ -219,6 +219,8 @@ class XrayViewmodel(
     fun addLink(link: String) {
         // pre parse
         val protocolName = link.substringBefore("://").lowercase()
+        Log.i(TAG, "addLink: $protocolName")
+        Log.i(TAG, "addLink: $protocols")
         if (protocols.contains(protocolName)) {
             val link0 =  Link(protocol = protocolName, content = link)
             viewModelScope.launch {
