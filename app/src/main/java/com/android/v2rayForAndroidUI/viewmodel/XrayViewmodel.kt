@@ -157,26 +157,24 @@ class XrayViewmodel(
     fun startV2rayService(context: Context) {
         viewModelScope.launch {
             val first = linkRepository.querySelectedLink().first()
-            withContext(Dispatchers.Main) {
-                if (first == null) {
-                    //
-                    Toast.makeText(context, R.string.config_not_ready, Toast.LENGTH_SHORT).show()
-                    return@withContext
-                }
-                val intent = Intent(context, V2rayBaseService::class.java).apply {
-                    action = "connect"
-                    putExtra(EXTRA_LINK,first.content)
-                    putExtra(EXTRA_PROTOCOL, first.protocol)
-                }
-                context.startForegroundService(intent)
-                Log.i(TAG, "startV2rayService: bind")
-                context.bindService(
-                    Intent(context, V2rayBaseService::class.java),
-                    serviceConnection,
-                    BIND_AUTO_CREATE
-                )
-                _isServiceRunning.value = true
+            if (first == null) {
+                //
+                Toast.makeText(context, R.string.config_not_ready, Toast.LENGTH_SHORT).show()
+                return@launch
             }
+            val intent = Intent(context, V2rayBaseService::class.java).apply {
+                action = "connect"
+                putExtra(EXTRA_LINK, first.content)
+                putExtra(EXTRA_PROTOCOL, first.protocol)
+            }
+            context.startForegroundService(intent)
+            Log.i(TAG, "startV2rayService: bind")
+            context.bindService(
+                Intent(context, V2rayBaseService::class.java),
+                serviceConnection,
+                BIND_AUTO_CREATE
+            )
+            _isServiceRunning.value = true
         }
     }
 
