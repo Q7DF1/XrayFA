@@ -1,6 +1,8 @@
 package com.android.v2rayForAndroidUI
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.net.VpnService
 import android.os.Build
 import android.os.Bundle
@@ -43,6 +45,7 @@ class MainActivity @Inject constructor(
         const val TAG = "MainActivity"
     }
 
+    @SuppressLint("SourceLockedOrientationActivity")
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,7 +53,7 @@ class MainActivity @Inject constructor(
         val linkRepository = LinkRepository(database.LinkDao())
         val viewmodel =
             ViewModelProvider(this, XrayViewmodelFactory(linkRepository))[XrayViewmodel::class.java]
-
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         enableEdgeToEdge()
         setContent {
             V2rayForAndroidUITheme {

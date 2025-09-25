@@ -123,10 +123,7 @@ fun V2rayStarter(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            val intent = Intent(context, V2rayBaseService::class.java).apply {
-                action = "connect"
-            }
-            context.startForegroundService(intent)
+            xrayViewmodel.startV2rayService(context)
         }
     }
 

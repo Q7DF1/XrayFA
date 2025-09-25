@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -29,6 +31,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.Button
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -45,10 +48,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat.getString
 import com.android.v2rayForAndroidUI.R
 import com.android.v2rayForAndroidUI.model.Node
@@ -75,6 +80,7 @@ fun ConfigScreen(
     xrayViewmodel: XrayViewmodel
 ) {
     val nodes by xrayViewmodel.getAllNodes().collectAsState(emptyList())
+    val qrBitMap by xrayViewmodel.qrBitmap.collectAsState()
     Box(
         modifier = Modifier.fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
@@ -106,6 +112,9 @@ fun ConfigScreen(
                             xrayViewmodel.setSelectedNode(node.id)
                             onNavigate2Home(node.id)
                         },
+                        onShare = {
+                            xrayViewmodel.generateQRCode(node.id)
+                        },
                         selected =node.selected
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -116,6 +125,30 @@ fun ConfigScreen(
             xrayViewmodel = xrayViewmodel,
             modifier = Modifier.align(BiasAlignment(1f,0.8f))
         )
+
+
+        qrBitMap?.let {
+            Dialog(onDismissRequest = { xrayViewmodel.dismissDialog() }) {
+                Surface(
+                    shape = MaterialTheme.shapes.medium,
+                    tonalElevation = 8.dp,
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Image(bitmap = qrBitMap!!.asImageBitmap(), contentDescription = "qrcode", modifier = Modifier.size(200.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(onClick = { xrayViewmodel.dismissDialog() }) {
+                            Text(
+                                text = stringResource(R.string.close_window)
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }
@@ -130,6 +163,7 @@ fun AddConfigButton(
     var toggle by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val scanOptions = ScanOptions()
+    scanOptions.setOrientationLocked(true)
     scanOptions.captureActivity = QRCodeActivity::class.java
     val barcodeLauncher = rememberLauncherForActivityResult(ScanContract()) {
         result->
