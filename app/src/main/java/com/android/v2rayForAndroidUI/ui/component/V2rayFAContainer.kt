@@ -1,6 +1,8 @@
 package com.android.v2rayForAndroidUI.ui.component
 
+import android.app.Activity
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
@@ -29,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat.getString
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -51,7 +54,6 @@ fun V2rayFAContainer(
     xrayViewmodel: XrayViewmodel,
     modifier: Modifier = Modifier
 ) {
-
     val naviController = rememberNavController()
     var selected by remember { mutableStateOf("home") }
     var imageVector by remember { mutableStateOf(Icons.Default.Home) }
@@ -59,6 +61,16 @@ fun V2rayFAContainer(
     var title by remember { mutableIntStateOf(R.string.home) }
     var containerColor by remember { mutableStateOf(Color(0xFF00BFFF))}
     var onActionbarClick by remember { mutableStateOf({}) } //TODO
+
+    val context = LocalContext.current
+//    BackHandler {
+//        if (naviController.currentDestination?.route == naviController.graph.startDestinationRoute) {
+//            (context as Activity).finish()
+//        }else {
+//            naviController.popBackStack()
+//        }
+//    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -97,7 +109,7 @@ fun V2rayFAContainer(
                     naviController.navigate(route = item.route) {
                         launchSingleTop= true
                         restoreState = true
-                        popUpTo(naviController.graph.startDestinationId) {
+                        popUpTo(naviController.graph.findStartDestination().id) {
                             saveState = true
                         }
                     }
@@ -153,7 +165,13 @@ fun V2rayFAContainer(
                 ConfigScreen(
                     onNavigate2Home = { id->
                         if (!xrayViewmodel.isServiceRunning.value) {
-                            naviController.navigate(route = Home(id).route)
+                            naviController.navigate(route = Home().route) {
+                                launchSingleTop= true
+                                restoreState = true
+                                popUpTo(naviController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                            }
                             selected = Home().route
                             containerColor = Home().containerColor
                         }

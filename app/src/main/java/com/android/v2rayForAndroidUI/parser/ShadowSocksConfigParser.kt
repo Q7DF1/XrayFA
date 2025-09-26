@@ -73,6 +73,7 @@ class ShadowSocksConfigParser: AbstractConfigParser() {
             protocol = Protocol.SHADOW_SOCKS,
             port = shadowSocksConfig.port,
             address = shadowSocksConfig.server,
+            selected = link.selected,
             remark = shadowSocksConfig.tag
         )
     }
