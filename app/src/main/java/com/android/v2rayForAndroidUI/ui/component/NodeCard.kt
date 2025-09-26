@@ -94,7 +94,7 @@ fun NodeCard(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Text(
-                        text = node.address,
+                        text = node.remark?:node.address,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.basicMarquee()
@@ -102,7 +102,8 @@ fun NodeCard(
                     Text(
                         text = node.protocol.name,
                         fontWeight = FontWeight.Medium,
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
+
                     )
                 }
             }

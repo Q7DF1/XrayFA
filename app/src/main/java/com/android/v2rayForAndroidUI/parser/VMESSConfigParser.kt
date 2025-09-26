@@ -113,7 +113,8 @@ class VMESSConfigParser: AbstractConfigParser() {
             address = json.get("add").asString,
             port = json.get("port").asInt,
             selected = link.selected,
-            remark = "vmess-${json.get("add").asString}-${json.get("port").asString}"
+            remark = json.get("ps").asString
+                ?:"vmess-${json.get("add").asString}-${json.get("port").asString}"
         )
     }
 
