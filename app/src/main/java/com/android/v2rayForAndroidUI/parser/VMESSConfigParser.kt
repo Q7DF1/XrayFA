@@ -7,10 +7,13 @@ import com.android.v2rayForAndroidUI.model.ServerObject
 import com.android.v2rayForAndroidUI.model.UserObject
 import com.android.v2rayForAndroidUI.model.VMESSOutboundConfigurationObject
 import com.android.v2rayForAndroidUI.model.protocol.Protocol
+import com.android.v2rayForAndroidUI.model.stream.GrpcSettings
 import com.android.v2rayForAndroidUI.model.stream.HeaderObject
 import com.android.v2rayForAndroidUI.model.stream.HttpHeaderObject
 import com.android.v2rayForAndroidUI.model.stream.HttpRequestObject
 import com.android.v2rayForAndroidUI.model.stream.HttpResponseObject
+import com.android.v2rayForAndroidUI.model.stream.KcpHeaderObject
+import com.android.v2rayForAndroidUI.model.stream.KcpSettings
 import com.android.v2rayForAndroidUI.model.stream.RawSettings
 import com.android.v2rayForAndroidUI.model.stream.StreamSettingsObject
 import com.android.v2rayForAndroidUI.model.stream.TlsSettings
@@ -55,7 +58,7 @@ class VMESSConfigParser: AbstractConfigParser() {
                                 UserObject(
                                     id = uuid,
                                     level = 8,
-                                    security = "auto"
+                                    security = json.get("scy").asString?:"auto"
                                 )
                             )
                         )
@@ -68,11 +71,21 @@ class VMESSConfigParser: AbstractConfigParser() {
                         header = HttpHeaderObject(
                             request = HttpRequestObject(),
                             type = "http"
-                        )
+                        ),
+                    ) else null,
+                    kcpSettings = if (network == "kcp") KcpSettings(
+                        header = KcpHeaderObject(
+                            type = json.get("type").asString
+                                ?:throw IllegalArgumentException("no type"),
+                        ),
+                        seed = json.get("path").asString
                     ) else null,
                     tlsSettings = if (tls == "tls") TlsSettings(
                         serverName = host?:json.get("add").asString,
                         allowInsecure = false
+                    ) else null,
+                    grpcSettings = if (network == "grpc") GrpcSettings(
+                        serviceName = json.get("path").asString
                     ) else null,
                     wsSettings = if (network == "ws") WsSettings(
                         path = "/${uuid}",
@@ -100,7 +113,8 @@ class VMESSConfigParser: AbstractConfigParser() {
             address = json.get("add").asString,
             port = json.get("port").asInt,
             selected = link.selected,
-            remark = "vmess-${json.get("add").asString}-${json.get("port").asString}"
+            remark = json.get("ps").asString
+                ?:"vmess-${json.get("add").asString}-${json.get("port").asString}"
         )
     }
 

@@ -102,7 +102,8 @@ class TrojanConfigParser: AbstractConfigParser() {
             id = link.id,
             protocol = Protocol.TROJAN,
             address = trojanConfig.host?:"unknown",
-            port = trojanConfig.port?:0
+            port = trojanConfig.port?:0,
+            remark = trojanConfig.remark
         )
     }
 }

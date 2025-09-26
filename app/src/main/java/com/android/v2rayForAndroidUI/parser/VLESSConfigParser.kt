@@ -10,11 +10,13 @@ import com.android.v2rayForAndroidUI.model.VLESSOutboundConfigurationObject
 import com.android.v2rayForAndroidUI.model.XrayConfiguration
 import com.android.v2rayForAndroidUI.model.protocol.Protocol
 import com.android.v2rayForAndroidUI.model.protocol.protocols
+import com.android.v2rayForAndroidUI.model.stream.GrpcSettings
 import com.android.v2rayForAndroidUI.model.stream.RealitySettings
 import com.android.v2rayForAndroidUI.model.stream.RawSettings
 import com.android.v2rayForAndroidUI.model.stream.StreamSettingsObject
 import com.android.v2rayForAndroidUI.model.stream.TlsSettings
 import com.android.v2rayForAndroidUI.model.stream.WsSettings
+import com.android.v2rayForAndroidUI.model.stream.XHttpSettings
 import com.google.gson.Gson
 
 class VLESSConfigParser: AbstractConfigParser(){
@@ -81,9 +83,7 @@ class VLESSConfigParser: AbstractConfigParser(){
                             spiderX = "",
                             show = false,
                         )
-                    } else {
-                        null
-                    },
+                    } else null,
                 rawSettings = if (network == "raw") { RawSettings() } else null,
                 wsSettings = if (network == "ws") {
                     WsSettings(
@@ -91,6 +91,10 @@ class VLESSConfigParser: AbstractConfigParser(){
                         headers = mapOf(Pair("host",queryParams["host"]?:""))
                     )
                 } else null,
+                grpcSettings = if (network == "grpc")GrpcSettings(
+                    serviceName = queryParams["serviceName"]?:"",
+                    multiMode = false
+                ) else null,
                 tlsSettings = if (security == "tls") {
                     TlsSettings(
                         serverName = queryParams["host"]?:""
