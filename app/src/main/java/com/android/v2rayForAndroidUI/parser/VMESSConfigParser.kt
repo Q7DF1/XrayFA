@@ -58,7 +58,7 @@ class VMESSConfigParser: AbstractConfigParser() {
                                 UserObject(
                                     id = uuid,
                                     level = 8,
-                                    security = json.get("scy").asString?:"auto"
+                                    security = json.get("scy")?.asString?:"auto"
                                 )
                             )
                         )
