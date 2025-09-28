@@ -10,8 +10,8 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <application
-        android:name=".V2rayFAApplication"
-        android:appComponentFactory="com.android.xrayfa.V2rayAppCompatFactory"
+        android:name=".XrayFAApplication"
+        android:appComponentFactory="com.android.xrayfa.XrayAppCompatFactory"
         android:allowBackup="true"
         android:extractNativeLibs="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -38,7 +38,7 @@
         <activity android:name=".ui.QRCodeActivity"
             android:exported="true"/>
 
-        <service android:name=".V2rayBaseService"
+        <service android:name=".XrayBaseService"
             android:foregroundServiceType="specialUse"
             android:exported="true"
             android:permission="android.permission.BIND_VPN_SERVICE">

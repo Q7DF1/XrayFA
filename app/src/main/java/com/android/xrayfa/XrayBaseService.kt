@@ -30,10 +30,10 @@ import java.lang.Thread.sleep
 import java.util.concurrent.Executor
 import javax.inject.Inject
 
-class V2rayBaseService
+class XrayBaseService
 @Inject constructor(
     private val tun2SocksService: Tun2SocksService,
-    private val v2rayCoreManager: V2rayCoreManager,
+    private val v2rayCoreManager: XrayCoreManager,
     @Background val bgExecutor: Executor
 ): VpnService(), TrafficDetector {
 
@@ -55,7 +55,7 @@ class V2rayBaseService
     private val binder = LocalBinder()
 
     inner class LocalBinder : Binder() {
-        fun getService(): V2rayBaseService = this@V2rayBaseService
+        fun getService(): XrayBaseService = this@XrayBaseService
     }
 
     override fun onBind(intent: Intent?): IBinder? {

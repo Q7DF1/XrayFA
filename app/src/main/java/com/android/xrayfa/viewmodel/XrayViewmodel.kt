@@ -16,7 +16,7 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.android.xrayfa.V2rayBaseService
+import com.android.xrayfa.XrayBaseService
 import com.android.xrayfa.model.Link
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.protocol.protocols
@@ -103,7 +103,7 @@ class XrayViewmodel(
             name: ComponentName?,
             service: IBinder?
         ) {
-            val binder = (service as V2rayBaseService.LocalBinder).getService()
+            val binder = (service as XrayBaseService.LocalBinder).getService()
             binder.H = H
         }
 
@@ -146,7 +146,7 @@ class XrayViewmodel(
                 Toast.makeText(context, R.string.config_not_ready, Toast.LENGTH_SHORT).show()
                 return@launch
             }
-            val intent = Intent(context, V2rayBaseService::class.java).apply {
+            val intent = Intent(context, XrayBaseService::class.java).apply {
                 action = "connect"
                 putExtra(EXTRA_LINK, first.content)
                 putExtra(EXTRA_PROTOCOL, first.protocol)
@@ -154,7 +154,7 @@ class XrayViewmodel(
             context.startForegroundService(intent)
             Log.i(TAG, "startV2rayService: bind")
             context.bindService(
-                Intent(context, V2rayBaseService::class.java),
+                Intent(context, XrayBaseService::class.java),
                 serviceConnection,
                 BIND_AUTO_CREATE
             )
@@ -164,7 +164,7 @@ class XrayViewmodel(
 
     fun stopV2rayService(context: Context) {
 
-        val intent = Intent(context, V2rayBaseService::class.java).apply {
+        val intent = Intent(context, XrayBaseService::class.java).apply {
             action = "disconnect"
         }
         context.unbindService(serviceConnection)
@@ -174,7 +174,7 @@ class XrayViewmodel(
 
 
     fun isServiceRunning(): Boolean {
-        return V2rayBaseService.isRunning
+        return XrayBaseService.isRunning
     }
 
 

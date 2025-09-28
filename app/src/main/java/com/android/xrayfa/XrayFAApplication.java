@@ -1,14 +1,14 @@
 package com.android.xrayfa;
 
 import android.app.Application;
-import com.android.xrayfa.di.V2rayComponent;
+import com.android.xrayfa.di.XrayFAComponent;
 
 
-public class V2rayFAApplication extends Application {
+public class XrayFAApplication extends Application {
 
     private static final String TAG = "V2rayFAApplication";
 
-    private V2rayComponent rootComponent;
+    private XrayFAComponent rootComponent;
 
     private ContextAvailableCallback contextAvailableCallback;
 
@@ -17,7 +17,7 @@ public class V2rayFAApplication extends Application {
         this.contextAvailableCallback = contextAvailableCallback;
     }
 
-    public V2rayComponent getRootComponent() {
+    public XrayFAComponent getRootComponent() {
         return rootComponent;
     }
 

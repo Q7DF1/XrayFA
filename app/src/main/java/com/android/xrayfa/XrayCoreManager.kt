@@ -19,7 +19,7 @@ import libv2ray.Libv2ray
 import java.util.concurrent.Executor
 import javax.inject.Inject
 
-class V2rayCoreManager
+class XrayCoreManager
 @Inject constructor(
     @Application private val context: Context,
     @Background private val bgExecutor: Executor

@@ -6,18 +6,18 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.AppComponentFactory
-import com.android.xrayfa.di.DaggerV2rayComponent
-import com.android.xrayfa.di.V2rayComponent
+import com.android.xrayfa.di.DaggerXrayFAComponent
+import com.android.xrayfa.di.XrayFAComponent
 import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
 
-class V2rayAppCompatFactory: AppComponentFactory(),ContextAvailableCallback {
+class XrayAppCompatFactory: AppComponentFactory(),ContextAvailableCallback {
     
     companion object {
         const val TAG = "V2rayAppCompatFactory"
 
-        var rootComponent: V2rayComponent? = null
+        var rootComponent: XrayFAComponent? = null
     }
 
     @set:Inject
@@ -27,11 +27,11 @@ class V2rayAppCompatFactory: AppComponentFactory(),ContextAvailableCallback {
         className: String,
         intent: Intent?
     ): Service {
-        rootComponent?.inject(this@V2rayAppCompatFactory)
+        rootComponent?.inject(this@XrayAppCompatFactory)
         return resolver.resolveService(className)
     }
     override fun instantiateApplicationCompat(cl: ClassLoader, className: String): Application {
-        val app  =  super.instantiateApplicationCompat(cl, className) as V2rayFAApplication
+        val app  =  super.instantiateApplicationCompat(cl, className) as XrayFAApplication
         app.setContextAvailableCallback(this)
         return app
     }
@@ -42,13 +42,13 @@ class V2rayAppCompatFactory: AppComponentFactory(),ContextAvailableCallback {
         className: String,
         intent: Intent?
     ): Activity {
-        rootComponent?.inject(this@V2rayAppCompatFactory)
+        rootComponent?.inject(this@XrayAppCompatFactory)
         return resolver.resolveActivity(className)
     }
 
      override fun onContextAvailable(context: Context) {
 
-         rootComponent = DaggerV2rayComponent.builder()
+         rootComponent = DaggerXrayFAComponent.builder()
              .bindContext(context)
              .build()
 

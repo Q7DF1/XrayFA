@@ -5,7 +5,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.multibindings.ClassKey
 import dagger.multibindings.IntoMap
-import com.android.xrayfa.V2rayBaseService
+import com.android.xrayfa.XrayBaseService
 
 
 @Module
@@ -13,6 +13,6 @@ abstract class ServiceModule {
 
     @Binds
     @IntoMap
-    @ClassKey(V2rayBaseService::class)
-    abstract fun bindVpnService(service: V2rayBaseService): Service
+    @ClassKey(XrayBaseService::class)
+    abstract fun bindVpnService(service: XrayBaseService): Service
 }
