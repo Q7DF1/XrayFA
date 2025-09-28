@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
@@ -12,7 +11,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <application
         android:name=".V2rayFAApplication"
-        android:appComponentFactory="com.android.v2rayForAndroidUI.V2rayAppCompatFactory"
+        android:appComponentFactory="com.android.xrayfa.V2rayAppCompatFactory"
         android:allowBackup="true"
         android:extractNativeLibs="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
