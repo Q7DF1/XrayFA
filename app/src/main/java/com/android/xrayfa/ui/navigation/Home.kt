@@ -182,7 +182,12 @@ fun Dashboard(
                     node = node,
                     modifier = Modifier.align(BiasAlignment(0f,-0.5f))
                 )
-            }
+            }?: Text(
+                //TODO more beautiful
+                text = stringResource(R.string.select_configuration_notify),
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.align(BiasAlignment(0f,-0.5f))
+            )
             DashboardContent(
                 xrayViewmodel = xrayViewmodel,
                 modifier = Modifier.align(BiasAlignment(0f,0.7f))
@@ -190,12 +195,6 @@ fun Dashboard(
         }
     }
 }
-
-@Composable
-@Preview
-fun DashboardPreview0() {
-}
-
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
