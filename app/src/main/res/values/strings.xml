@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">v2rayForAndroidUI</string>
+    <string name="app_name">V2rayFA</string>
     <string name="app_label">v2rayFA</string>
     <string name="start_vpn">start VPN</string>
     <string name="stop_vpn">stop VPN</string>

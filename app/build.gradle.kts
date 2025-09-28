@@ -1,6 +1,5 @@
 import com.google.protobuf.gradle.id
 import com.android.build.api.variant.FilterConfiguration.FilterType.*
-import com.android.build.gradle.internal.cxx.configure.abiOf
 
 plugins {
     alias(libs.plugins.android.application)
@@ -11,11 +10,11 @@ plugins {
 }
 
 android {
-    namespace = "com.android.v2rayForAndroidUI"
+    namespace = "com.android.xrayfa"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.android.v2rayForAndroidUI"
+        applicationId = "com.android.xrayfa"
         minSdk = 28
         targetSdk = 35
         versionCode = 1
