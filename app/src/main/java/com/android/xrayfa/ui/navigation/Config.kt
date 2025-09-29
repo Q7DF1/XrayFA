@@ -78,6 +78,7 @@ fun ConfigScreen(
 ) {
     val nodes by xrayViewmodel.getAllNodes().collectAsState(emptyList())
     val qrBitMap by xrayViewmodel.qrBitmap.collectAsState()
+    val context = LocalContext.current
     Box(
         modifier = Modifier.fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
@@ -111,6 +112,9 @@ fun ConfigScreen(
                         },
                         onShare = {
                             xrayViewmodel.generateQRCode(node.id)
+                        },
+                        onEdit = {
+                            xrayViewmodel.startDetailActivity(context = context,id = node.id)
                         },
                         selected =node.selected
                     )

@@ -3,8 +3,11 @@ package com.android.xrayfa.repository
 import com.android.xrayfa.dao.LinkDao
 import com.android.xrayfa.model.Link
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-class LinkRepository(private val linkDao: LinkDao){
+class LinkRepository @Inject constructor(
+    private val linkDao: LinkDao
+){
     val allLinks = linkDao.getAllLinks()
 
     suspend fun addLink(link: Link) {

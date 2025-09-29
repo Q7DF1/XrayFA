@@ -2,6 +2,7 @@ package com.android.xrayfa.di
 
 import android.app.Activity
 import com.android.xrayfa.MainActivity
+import com.android.xrayfa.ui.DetailActivity
 import com.android.xrayfa.ui.QRCodeActivity
 import dagger.Binds
 import dagger.Module
@@ -22,4 +23,9 @@ abstract class ActivityModule {
     @IntoMap
     @ClassKey(QRCodeActivity::class)
     abstract fun bindQRCodeActivity(activity: QRCodeActivity): Activity
+
+    @Binds
+    @IntoMap
+    @ClassKey(DetailActivity::class)
+    abstract fun bindDetailActivity(activity: DetailActivity): Activity
 }

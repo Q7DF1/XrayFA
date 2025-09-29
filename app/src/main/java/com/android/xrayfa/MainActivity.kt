@@ -18,6 +18,7 @@ import com.android.xrayfa.viewmodel.XrayViewmodelFactory
 import javax.inject.Inject
 
 class MainActivity @Inject constructor(
+    val xrayViewmodelFactory: XrayViewmodelFactory
 ) : ComponentActivity() {
 
     companion object {
@@ -28,10 +29,8 @@ class MainActivity @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val database = LinkDatabase.getLinkDatabase(this)
-        val linkRepository = LinkRepository(database.LinkDao())
         val viewmodel =
-            ViewModelProvider(this, XrayViewmodelFactory(linkRepository))[XrayViewmodel::class.java]
+            ViewModelProvider(this, xrayViewmodelFactory)[XrayViewmodel::class.java]
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         enableEdgeToEdge()
         setContent {

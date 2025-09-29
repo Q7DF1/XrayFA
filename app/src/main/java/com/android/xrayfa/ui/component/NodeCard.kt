@@ -53,6 +53,7 @@ fun NodeCard(
     delete: (() -> Unit)? = null,
     onChoose: () -> Unit = {},
     onShare: (() -> Unit)? = null,
+    onEdit: (() -> Unit)? = null,
     selected: Boolean = false
 ) {
     val configuration = LocalConfiguration.current
@@ -135,7 +136,7 @@ fun NodeCard(
             }
             IconButton(
                 onClick = {
-                    context.startActivity(Intent(context,DetailActivity::class.java))
+                    onEdit?.invoke()
                 },
                 modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
             ) {

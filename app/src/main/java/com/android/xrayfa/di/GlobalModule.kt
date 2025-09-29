@@ -1,6 +1,8 @@
 package com.android.xrayfa.di
 
 import android.content.Context
+import com.android.xrayfa.dao.LinkDao
+import com.android.xrayfa.dao.LinkDatabase
 import hev.htproxy.di.qualifier.Application
 import hev.htproxy.di.qualifier.Background
 import hev.htproxy.di.qualifier.Main
@@ -49,6 +51,18 @@ abstract class GlobalModule {
      @Singleton
      fun providePreferences(context: Context): NetPreferences {
          return NetPreferences(context)
+     }
+
+     @Provides
+     @Singleton
+     fun provideLinkDatabase(context: Context): LinkDatabase {
+         return LinkDatabase.getLinkDatabase(context)
+     }
+
+     @Provides
+     @Singleton
+     fun provideLinkDao(linkDatabase: LinkDatabase): LinkDao {
+         return linkDatabase.LinkDao()
      }
  }
 

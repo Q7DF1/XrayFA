@@ -23,6 +23,7 @@ import com.android.xrayfa.model.protocol.protocols
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.repository.LinkRepository
 import com.android.xrayfa.R
+import com.android.xrayfa.ui.DetailActivity
 import com.google.zxing.BarcodeFormat
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +37,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
+import kotlin.jvm.java
 
 class XrayViewmodel(
     private val linkRepository: LinkRepository
@@ -177,6 +180,18 @@ class XrayViewmodel(
         return XrayBaseService.isRunning
     }
 
+    fun startDetailActivity(context: Context,id: Int) {
+        viewModelScope.launch {
+            val link = linkRepository.loadLinksById(id).first()
+            val intent = Intent(context, DetailActivity::class.java).apply {
+                putExtra(EXTRA_LINK, link.content)
+                putExtra(EXTRA_PROTOCOL,link.protocol)
+            }
+
+            context.startActivity(intent)
+        }
+    }
+
 
 
     //link
@@ -287,7 +302,8 @@ class XrayViewmodel(
 
 }
 
-class XrayViewmodelFactory(private val repository: LinkRepository): ViewModelProvider.Factory {
+class XrayViewmodelFactory
+@Inject constructor(private val repository: LinkRepository): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(XrayViewmodel::class.java)) {
             @Suppress("UNCHECKED_CAST")
