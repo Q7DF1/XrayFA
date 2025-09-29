@@ -37,6 +37,8 @@
         </activity>
         <activity android:name=".ui.QRCodeActivity"
             android:exported="true"/>
+        <activity android:name=".ui.DetailActivity"
+            android:exported="true"/>
 
         <service android:name=".XrayBaseService"
             android:foregroundServiceType="specialUse"

@@ -1,6 +1,7 @@
 package com.android.xrayfa.ui.component
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -37,9 +38,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.model.Node
+import com.android.xrayfa.ui.DetailActivity
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
@@ -55,6 +58,7 @@ fun NodeCard(
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
     val roundCornerShape = RoundedCornerShape(32.dp)
+    val context = LocalContext.current
     Surface(
         color = backgroundColor,
         tonalElevation = 8.dp,
@@ -130,7 +134,9 @@ fun NodeCard(
                 }
             }
             IconButton(
-                onClick = {},
+                onClick = {
+                    context.startActivity(Intent(context,DetailActivity::class.java))
+                },
                 modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
             ) {
                 Icon(

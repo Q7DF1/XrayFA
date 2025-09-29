@@ -36,9 +36,9 @@ class TrojanConfigParser: AbstractConfigParser() {
         }
     }
 
-    private fun parseTrojan(link: String): TrojanConfig {
+    private fun parseTrojan(url: String): TrojanConfig {
 
-        val uri = URI(link)
+        val uri = URI(url)
 
         val scheme = uri.scheme ?: "trojan"
         val password = percentDecode(uri.userInfo ?: "")
@@ -63,12 +63,12 @@ class TrojanConfigParser: AbstractConfigParser() {
             port = port,
             params = params,
             remark = remark,
-            original = link
+            original = url
         )
     }
 
-    override fun parseOutbound(link: String): OutboundObject {
-        val trojanConfig = parseTrojan(link)
+    override fun parseOutbound(url: String): OutboundObject {
+        val trojanConfig = parseTrojan(url)
         val network = trojanConfig.params.getOrDefault("type", "tcp")
         return OutboundObject(
             tag = "proxy",

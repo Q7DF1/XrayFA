@@ -29,6 +29,7 @@ class XrayAppCompatFactory: AppComponentFactory(),ContextAvailableCallback {
     ): Service {
         rootComponent?.inject(this@XrayAppCompatFactory)
         return resolver.resolveService(className)
+            ?:super.instantiateServiceCompat(cl, className, intent)
     }
     override fun instantiateApplicationCompat(cl: ClassLoader, className: String): Application {
         val app  =  super.instantiateApplicationCompat(cl, className) as XrayFAApplication
@@ -44,6 +45,7 @@ class XrayAppCompatFactory: AppComponentFactory(),ContextAvailableCallback {
     ): Activity {
         rootComponent?.inject(this@XrayAppCompatFactory)
         return resolver.resolveActivity(className)
+            ?:super.instantiateActivityCompat(cl, className, intent)
     }
 
      override fun onContextAvailable(context: Context) {
