@@ -52,9 +52,8 @@ fun DetailContainer(
             Protocol.VMESS.protocolName -> VMESSConfigScreen()
             Protocol.TROJAN.protocolName -> TROJANConfigScreen()
             Protocol.SHADOW_SOCKS.protocolName -> SHADOWSOCKSConfigScreen()
+            else -> Text("Unknown protocol")
         }
-        VLESSConfigScreen(innerPadding, content, detailViewmodel)
-
     }
 }
 
@@ -128,6 +127,15 @@ fun VLESSConfigScreen(
     var port by
     rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(outbound.settings?.vnext?.get(0)?.port?.toString()?:"unknown"))
+    }
+
+    var id by
+    rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(outbound.settings?.vnext?.get(0)?.users?.get(0)?.id?:"unknown"))
+    }
+    var flow by
+    rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(outbound.settings?.vnext?.get(0)?.users?.get(0)?.flow?:"unknown"))
     }
 
     Box(

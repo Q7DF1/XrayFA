@@ -15,6 +15,7 @@ import com.android.xrayfa.model.stream.RawSettings
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
+import java.net.URLDecoder
 
 class VLESSConfigParser: AbstractConfigParser<VLESSOutboundConfigurationObject>(){
 
@@ -22,31 +23,53 @@ class VLESSConfigParser: AbstractConfigParser<VLESSOutboundConfigurationObject>(
         const val TAG = "VLESSConfigParser"
     }
 
+    data class VLESSConfig(
+        val protocol: Protocol = Protocol.VLESS,
+        val remark: String? = null,
+        val uuid: String,
+        val server: String,
+        val port: Int,
+        val param: Map<String,String>
+    )
 
-    override fun parseOutbound(link: String): OutboundObject<VLESSOutboundConfigurationObject> {
-        // 1. 去掉协议前缀
-        val withoutProtocol = link.removePrefix("vless://")
 
-        // 2. 分离 remark（# 后面的内容）
+    private fun parseVLESS(url: String): VLESSConfig {
+        val decode = URLDecoder.decode(url, "UTF-8")
+        val withoutProtocol = decode.removePrefix("vless://")
+
         val (mainPart, remark) = withoutProtocol.split("#").let {
             it[0] to if (it.size > 1) it[1] else ""
         }
 
-        // 3. 分离 query 参数（? 后面的内容）
         val (userAndServer, query) = mainPart.split("?").let {
             it[0] to if (it.size > 1) it[1] else ""
         }
 
-        // 4. 分离 UUID、服务器、端口
         val (uuid, serverAndPort) = userAndServer.split("@")
         val (server, portStr) = serverAndPort.split(":")
         val port = portStr.toIntOrNull() ?: 0
 
-        // 5. 解析 query 参数为 map
         val queryParams = query.split("&").mapNotNull {
             val kv = it.split("=")
             if (kv.size == 2) kv[0] to kv[1] else null
         }.toMap()
+
+
+
+        return VLESSConfig(
+            remark = remark,
+            uuid = uuid,
+            server = server,
+            port = port,
+            param = queryParams
+        )
+
+    }
+    override fun parseOutbound(url: String): OutboundObject<VLESSOutboundConfigurationObject> {
+
+
+        val parseVLESS = parseVLESS(url)
+        val queryParams = parseVLESS.param
         val network = queryParams["type"] ?: "raw"
         val security = queryParams["security"] ?: "none"
         return OutboundObject(
@@ -54,11 +77,11 @@ class VLESSConfigParser: AbstractConfigParser<VLESSOutboundConfigurationObject>(
             settings = VLESSOutboundConfigurationObject(
                 vnext = listOf(
                     ServerObject(
-                        address = server,
-                        port = port,
+                        address = parseVLESS.server,
+                        port = parseVLESS.port,
                         users = listOf(
                             UserObject(
-                                id = uuid,
+                                id = parseVLESS.uuid,
                                 encryption = queryParams["encryption"] ?: "",
                                 flow = queryParams["flow"]?:"",
                                 level = 0,
@@ -84,7 +107,7 @@ class VLESSConfigParser: AbstractConfigParser<VLESSOutboundConfigurationObject>(
                 rawSettings = if (network == "raw") { RawSettings() } else null,
                 wsSettings = if (network == "ws") {
                     WsSettings(
-                        path = "/${uuid}",
+                        path = "${queryParams["path"]}",
                         headers = mapOf(Pair("host",queryParams["host"]?:""))
                     )
                 } else null,
@@ -109,26 +132,14 @@ class VLESSConfigParser: AbstractConfigParser<VLESSOutboundConfigurationObject>(
     }
 
     override fun preParse(link: Link): Node {
-        val withoutProtocol = link.content.removePrefix("vless://")
-
-        val (mainPart, remark) = withoutProtocol.split("#").let {
-            it[0] to if (it.size > 1) it[1] else ""
-        }
-
-        val (userAndServer, query) = mainPart.split("?").let {
-            it[0] to if (it.size > 1) it[1] else ""
-        }
-
-        val (uuid, serverAndPort) = userAndServer.split("@")
-        val (server, portStr) = serverAndPort.split(":")
-        val port = portStr.toIntOrNull() ?: 0
+        val vlessConfig = parseVLESS(link.content)
         return Node(
             id = link.id,
             protocol = Protocol.VLESS,
-            address = server,
-            port = port,
+            address = vlessConfig.server,
+            port = vlessConfig.port,
             selected = link.selected,
-            remark = remark
+            remark = vlessConfig.remark
         )
     }
 

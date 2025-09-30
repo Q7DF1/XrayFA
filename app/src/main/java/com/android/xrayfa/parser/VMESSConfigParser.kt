@@ -16,6 +16,7 @@ import com.android.xrayfa.model.stream.RawSettings
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
+import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import java.util.Base64
 
@@ -24,6 +25,15 @@ class VMESSConfigParser: AbstractConfigParser<VMESSOutboundConfigurationObject>(
     companion object {
         const val TAG = "VMESSConfigParser"
     }
+
+    data class VMESSConfig(
+        val protocol: Protocol = Protocol.VMESS,
+        val uuid:String,
+        val tls:String,
+        val host:String,
+        val network:String,
+        val address:String,
+    )
 
     override fun parseOutbound(link: String): OutboundObject<VMESSOutboundConfigurationObject> {
 
