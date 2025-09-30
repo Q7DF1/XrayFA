@@ -1,5 +1,6 @@
 package com.android.xrayfa.parser
 
+import com.android.xrayfa.model.AbsOutboundConfigurationObject
 import com.android.xrayfa.model.Link
 import com.android.xrayfa.model.MuxObject
 import com.android.xrayfa.model.Node
@@ -15,14 +16,14 @@ import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
 
-class VLESSConfigParser: AbstractConfigParser(){
+class VLESSConfigParser: AbstractConfigParser<VLESSOutboundConfigurationObject>(){
 
     companion object{
         const val TAG = "VLESSConfigParser"
     }
 
 
-    override fun parseOutbound(link: String): OutboundObject {
+    override fun parseOutbound(link: String): OutboundObject<VLESSOutboundConfigurationObject> {
         // 1. 去掉协议前缀
         val withoutProtocol = link.removePrefix("vless://")
 

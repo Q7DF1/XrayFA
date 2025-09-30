@@ -1,18 +1,19 @@
 package com.android.xrayfa.model
 
+import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.model.stream.StreamSettingsObject
 
-data class OutboundObject(
+data class OutboundObject<T: AbsOutboundConfigurationObject>(
     val sendThrough: String = "0.0.0.0",
     val protocol: String? = null,
-    val settings: AbsOutboundConfigurationObject?,
+    var settings: T? = null,
     val tag: String,
     val streamSettings: StreamSettingsObject? = null,
     val proxySettings: ProxySettingsObject? = null,
     val mux: MuxObject? = null
 )
 
-abstract class AbsOutboundConfigurationObject{}
+abstract class AbsOutboundConfigurationObject
 class NoneOutboundConfigurationObject: AbsOutboundConfigurationObject()
 data class VLESSOutboundConfigurationObject(
     val vnext: List<ServerObject>

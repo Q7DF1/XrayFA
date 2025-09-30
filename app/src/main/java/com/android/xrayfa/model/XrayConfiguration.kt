@@ -8,7 +8,7 @@ data class XrayConfiguration(
     val routing: RoutingObject? = null,
     val policy: PolicyObject?= null,
     val inbounds: List<InboundObject>,
-    val outbounds: List<OutboundObject>,
+    val outbounds: List<OutboundObject<*>>,
 
     val stats: Map<String,String>? = null,
     val reverse: ReverseObject? = null,

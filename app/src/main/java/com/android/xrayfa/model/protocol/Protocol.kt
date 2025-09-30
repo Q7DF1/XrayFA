@@ -18,7 +18,7 @@ enum class Protocol(
 
 
 }
-val protocols = listOf(
+val protocolsPrefix = listOf(
     VLESS.protocolName,
     VMESS.protocolName,
     SHADOW_SOCKS.protocolName,

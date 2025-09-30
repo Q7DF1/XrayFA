@@ -3,6 +3,7 @@ package com.android.xrayfa.ui.component
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -30,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.viewmodel.DetailViewmodel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,48 +41,20 @@ fun DetailContainer(
     content: String,
     detailViewmodel: DetailViewmodel
 ) {
-
     Scaffold(
         topBar = {
             TopAppBar(
             title = { Text("Detail") },
         )}
     ) { innerPadding ->
-
-        var text by
-        rememberSaveable(stateSaver = TextFieldValue.Saver) {
-            mutableStateOf(TextFieldValue("example", TextRange(0, 7)))
+        when(protocol) {
+            Protocol.VLESS.protocolName -> VLESSConfigScreen(innerPadding, content, detailViewmodel)
+            Protocol.VMESS.protocolName -> VMESSConfigScreen()
+            Protocol.TROJAN.protocolName -> TROJANConfigScreen()
+            Protocol.SHADOW_SOCKS.protocolName -> SHADOWSOCKSConfigScreen()
         }
+        VLESSConfigScreen(innerPadding, content, detailViewmodel)
 
-        Box(
-            modifier = Modifier.padding(innerPadding)
-                .fillMaxSize()
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = {text = it},
-                    label = { Text("label") }
-                )
-
-                SelectField(
-                    title = "protocol",
-                    field = "vless",
-                    fieldList = listOf("vless", "vmess","trojan","shadowsocks")
-                )
-
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = {text = it},
-                    label = { Text("label") }
-                )
-            }
-
-        }
     }
 }
 
@@ -138,3 +112,60 @@ fun SelectField(
         }
     }
 }
+
+
+@Composable
+fun VLESSConfigScreen(
+    innerPadding: PaddingValues,
+    content:String,
+    detailViewmodel: DetailViewmodel,
+) {
+    val outbound by remember { mutableStateOf(detailViewmodel.parseVLESSProtocol(content))}
+    var address by
+    rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(outbound.settings?.vnext?.get(0)?.address?:"unknown"))
+    }
+    var port by
+    rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(outbound.settings?.vnext?.get(0)?.port?.toString()?:"unknown"))
+    }
+
+    Box(
+        modifier = Modifier.padding(innerPadding)
+            .fillMaxSize()
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            OutlinedTextField(
+                value = address,
+                onValueChange = {address = it},
+                label = { Text("ip") }
+            )
+
+            SelectField(
+                title = "protocol",
+                field = outbound.protocol?:"unknown",
+                fieldList = listOf("vless", "vmess","trojan","shadowsocks")
+            )
+
+            OutlinedTextField(
+                value = port,
+                onValueChange = {port = it},
+                label = { Text("port") }
+            )
+        }
+    }
+}
+
+//TODO: add more protocols
+@Composable
+fun VMESSConfigScreen() {}
+
+@Composable
+fun TROJANConfigScreen() {}
+
+@Composable
+fun SHADOWSOCKSConfigScreen() {}

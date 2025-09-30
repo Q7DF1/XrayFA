@@ -14,7 +14,7 @@ import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 
-class TrojanConfigParser: AbstractConfigParser() {
+class TrojanConfigParser: AbstractConfigParser<TrojanOutboundConfigurationObject>() {
 
 
     data class TrojanConfig(
@@ -67,7 +67,7 @@ class TrojanConfigParser: AbstractConfigParser() {
         )
     }
 
-    override fun parseOutbound(url: String): OutboundObject {
+    override fun parseOutbound(url: String): OutboundObject<TrojanOutboundConfigurationObject> {
         val trojanConfig = parseTrojan(url)
         val network = trojanConfig.params.getOrDefault("type", "tcp")
         return OutboundObject(

@@ -19,13 +19,13 @@ import com.android.xrayfa.model.stream.WsSettings
 import com.google.gson.JsonParser
 import java.util.Base64
 
-class VMESSConfigParser: AbstractConfigParser() {
+class VMESSConfigParser: AbstractConfigParser<VMESSOutboundConfigurationObject>() {
 
     companion object {
         const val TAG = "VMESSConfigParser"
     }
 
-    override fun parseOutbound(link: String): OutboundObject {
+    override fun parseOutbound(link: String): OutboundObject<VMESSOutboundConfigurationObject> {
 
         try {
             // 1. 去掉前缀

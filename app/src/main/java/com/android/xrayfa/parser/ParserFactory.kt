@@ -4,7 +4,7 @@ import com.android.xrayfa.model.protocol.Protocol
 
 object ParserFactory {
 
-    fun getParser(protocol: String): AbstractConfigParser {
+    fun getParser(protocol: String): AbstractConfigParser<*> {
         return when(protocol) {
             Protocol.VLESS.protocolName -> {
                 return VLESSConfigParser()

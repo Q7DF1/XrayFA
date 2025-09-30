@@ -1,5 +1,6 @@
 package com.android.xrayfa.parser
 
+import com.android.xrayfa.model.AbsOutboundConfigurationObject
 import com.android.xrayfa.model.ApiObject
 import com.android.xrayfa.model.DnsObject
 import com.android.xrayfa.model.InboundObject
@@ -21,7 +22,7 @@ import com.google.gson.Gson
 /**
  * TODO configuration 从这里构造，outbound 由子类提供即可
  */
-abstract class AbstractConfigParser {
+abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject> {
 
     private var apiEnable: Boolean = false
     fun getBaseInboundConfig(): InboundObject {
@@ -54,7 +55,7 @@ abstract class AbstractConfigParser {
         )
     }
 
-    fun getBaseOutboundConfig(): OutboundObject {
+    fun getBaseOutboundConfig(): OutboundObject<NoneOutboundConfigurationObject> {
 
         return OutboundObject(
             protocol = "freedom",
@@ -149,7 +150,7 @@ abstract class AbstractConfigParser {
     }
 
     @Throws(Exception::class)
-    abstract fun parseOutbound(link: String): OutboundObject
+    abstract fun parseOutbound(link: String): OutboundObject<T>
     @Throws(Exception::class)
     abstract fun preParse(link: Link): Node
 }

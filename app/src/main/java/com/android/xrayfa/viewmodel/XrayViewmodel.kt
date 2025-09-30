@@ -19,7 +19,7 @@ import androidx.lifecycle.viewModelScope
 import com.android.xrayfa.XrayBaseService
 import com.android.xrayfa.model.Link
 import com.android.xrayfa.model.Node
-import com.android.xrayfa.model.protocol.protocols
+import com.android.xrayfa.model.protocol.protocolsPrefix
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.repository.LinkRepository
 import com.android.xrayfa.R
@@ -92,7 +92,7 @@ class XrayViewmodel(
             // 后台线程逐条解析
             links.forEach { link ->
                 val node = withContext(Dispatchers.Default) {
-                    ParserFactory.getParser(link.protocol).preParse(link)
+                    ParserFactory.getParser(link.protocolPrefix).preParse(link)
                 }
                 parsedNodes.add(node)
                 _nodes.value = parsedNodes.toList() // 每条解析完就更新
@@ -152,7 +152,7 @@ class XrayViewmodel(
             val intent = Intent(context, XrayBaseService::class.java).apply {
                 action = "connect"
                 putExtra(EXTRA_LINK, first.content)
-                putExtra(EXTRA_PROTOCOL, first.protocol)
+                putExtra(EXTRA_PROTOCOL, first.protocolPrefix)
             }
             context.startForegroundService(intent)
             Log.i(TAG, "startV2rayService: bind")
@@ -185,7 +185,7 @@ class XrayViewmodel(
             val link = linkRepository.loadLinksById(id).first()
             val intent = Intent(context, DetailActivity::class.java).apply {
                 putExtra(EXTRA_LINK, link.content)
-                putExtra(EXTRA_PROTOCOL,link.protocol)
+                putExtra(EXTRA_PROTOCOL,link.protocolPrefix)
             }
 
             context.startActivity(intent)
@@ -204,7 +204,7 @@ class XrayViewmodel(
         val allLinks = linkRepository.allLinks
         val nodes = allLinks.map { links ->
             links.map { link ->
-                return@map ParserFactory.getParser(link.protocol).preParse(link)
+                return@map ParserFactory.getParser(link.protocolPrefix).preParse(link)
             }
         }.flowOn(Dispatchers.IO)
 
@@ -214,17 +214,16 @@ class XrayViewmodel(
     fun getNodeById(id: Int): Flow<Node> {
         val link = linkRepository.loadLinksById(id)
         return link.map {
-            ParserFactory.getParser(it.protocol).preParse(it)
+            ParserFactory.getParser(it.protocolPrefix).preParse(it)
         }
     }
 
     fun addLink(link: String) {
         // pre parse
-        val protocolName = link.substringBefore("://").lowercase()
-        Log.i(TAG, "addLink: $protocolName")
-        Log.i(TAG, "addLink: $protocols")
-        if (protocols.contains(protocolName)) {
-            val link0 =  Link(protocol = protocolName, content = link)
+        val protocolPrefix = link.substringBefore("://").lowercase()
+        Log.i(TAG, "addLink: $protocolPrefix")
+        if (protocolsPrefix.contains(protocolPrefix)) {
+            val link0 =  Link(protocolPrefix = protocolPrefix, content = link)
             viewModelScope.launch {
                 Log.i(TAG, "addLink: $link0")
                 linkRepository.addLink(link0)
@@ -256,7 +255,7 @@ class XrayViewmodel(
     fun getSelectedNode(): Flow<Node?> {
         return linkRepository.querySelectedLink().map {
             it?.let {
-                ParserFactory.getParser(it.protocol).preParse(it)
+                ParserFactory.getParser(it.protocolPrefix).preParse(it)
             }
         }
     }

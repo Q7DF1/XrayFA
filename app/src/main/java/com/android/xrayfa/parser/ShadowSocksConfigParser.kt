@@ -9,7 +9,7 @@ import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import java.util.Base64
 
-class ShadowSocksConfigParser: AbstractConfigParser() {
+class ShadowSocksConfigParser: AbstractConfigParser<ShadowSocksOutboundConfigurationObject>() {
 
     data class ShadowSocksConfig(
         val method: String,
@@ -45,7 +45,7 @@ class ShadowSocksConfigParser: AbstractConfigParser() {
         )
     }
 
-    override fun parseOutbound(url: String): OutboundObject {
+    override fun parseOutbound(url: String): OutboundObject<ShadowSocksOutboundConfigurationObject> {
         val shadowSocksConfig = parseLink(url)
         return OutboundObject(
             tag = "proxy",
