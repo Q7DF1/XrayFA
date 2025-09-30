@@ -43,12 +43,6 @@ fun XrayBottomNav(
     selectedColor: Color = MaterialTheme.colorScheme.primary,
     unselectedColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
 ) {
-    val shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp)
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = backgroundColor,
-        shape = shape
-    ) {
         Row(
             modifier = Modifier
                 .padding(horizontal = 8.dp, vertical = 8.dp)
@@ -96,5 +90,4 @@ fun XrayBottomNav(
                 }
             }
         }
-    }
 }
