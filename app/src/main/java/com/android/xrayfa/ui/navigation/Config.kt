@@ -226,6 +226,17 @@ fun AddConfigButton(
                             text = stringResource(R.string.qrcode_import),
                             onClick = {barcodeLauncher.launch(scanOptions)}
                         )
+                        HorizontalDivider(
+                            color = Color.Gray,
+                            thickness = 1.dp,
+                            modifier = Modifier.width(200.dp)
+                                .padding(horizontal = 16.dp)
+                        )
+                        PopUpButton(
+                            icon = Icons.Default.Build,
+                            text = stringResource(R.string.qrcode_import),
+                            onClick = {barcodeLauncher.launch(scanOptions)}
+                        )
                     }
                 }
             }

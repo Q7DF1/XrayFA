@@ -1,5 +1,6 @@
 package com.android.xrayfa.ui.component
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -16,6 +18,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -70,7 +73,7 @@ fun SelectField(
     var fieldValue by remember { mutableStateOf(field) }
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = {}
+        onExpandedChange = {expanded = !expanded}
     ) {
         OutlinedTextField(
             value = fieldValue,
@@ -78,20 +81,18 @@ fun SelectField(
             readOnly = true,
             label = {Text(text = title)},
             trailingIcon = {
-                Box(
-                    modifier = Modifier.clip(CircleShape)
-                ) {
-                    Icon(
-                        imageVector =
-                            if (expanded)
-                                Icons.Default.KeyboardArrowUp
-                            else
-                                Icons.Default.KeyboardArrowDown,
-                        contentDescription = "",
-                    )
-                }
+                Icon(
+                    imageVector =
+                        if (expanded)
+                            Icons.Default.KeyboardArrowUp
+                        else
+                            Icons.Default.KeyboardArrowDown,
+                    contentDescription = "",
+                )
             },
+            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable,true)
         )
+
         ExposedDropdownMenu(
             expanded = expanded,
             containerColor = MaterialTheme.colorScheme.background,
@@ -158,11 +159,20 @@ fun VLESSConfigScreen(
                 field = outbound.protocol?:"unknown",
                 fieldList = listOf("vless", "vmess","trojan","shadowsocks")
             )
-
             OutlinedTextField(
                 value = port,
                 onValueChange = {port = it},
                 label = { Text("port") }
+            )
+            OutlinedTextField( //todo length limit
+                value = id,
+                onValueChange = {id = it},
+                label = {Text("id")}
+            )
+            SelectField(
+                title = "flow",
+                field = flow.text,
+                fieldList = listOf("vless", "vmess","trojan","shadowsocks")
             )
         }
     }
