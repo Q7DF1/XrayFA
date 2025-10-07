@@ -168,7 +168,7 @@ fun Dashboard(
     node: Node?,
 ) {
     Surface(
-        color = Color(0xFF00BFFF),
+        color = MaterialTheme.colorScheme.primary,
         tonalElevation = 8.dp,
         shape = ArcBottomShape(arcHeight = 80f),
         modifier = Modifier.fillMaxWidth()
@@ -233,7 +233,7 @@ fun DashboardContent(
                 ) {
                     Icon(imageVector = Icons.Filled.KeyboardArrowUp,
                         contentDescription = "upload icon",
-                        tint = Color.Black
+                        tint = MaterialTheme.colorScheme.onBackground
                     )
                 }
                 Column(
@@ -270,7 +270,7 @@ fun DashboardContent(
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowDown,
                         contentDescription = "download icon",
-                        tint = Color.Black
+                        tint = MaterialTheme.colorScheme.onBackground
                     )
                 }
                 Column(

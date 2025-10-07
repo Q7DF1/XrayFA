@@ -1,5 +1,6 @@
 package com.android.xrayfa.ui.navigation
 
+import android.content.res.Configuration
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
@@ -235,7 +236,7 @@ fun AddConfigButton(
                         PopUpButton(
                             icon = Icons.Default.Build,
                             text = stringResource(R.string.qrcode_import),
-                            onClick = {barcodeLauncher.launch(scanOptions)}
+                            onClick = {}
                         )
                     }
                 }

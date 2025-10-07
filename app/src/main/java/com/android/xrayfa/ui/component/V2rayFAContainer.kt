@@ -55,7 +55,7 @@ fun V2rayFAContainer(
     var imageVector by remember { mutableStateOf(Icons.Default.Home) }
     var actionImageVector by remember { mutableStateOf(Icons.Default.Menu) }
     var title by remember { mutableIntStateOf(R.string.home) }
-    var containerColor by remember { mutableStateOf(Color(0xFF00BFFF))}
+    var isHome by remember { mutableStateOf(true)}
     var onActionbarClick by remember { mutableStateOf({}) } //TODO
 
     val context = LocalContext.current
@@ -92,7 +92,11 @@ fun V2rayFAContainer(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = containerColor
+                    containerColor = if (isHome) {
+                        MaterialTheme.colorScheme.primary
+                    }else {
+                        MaterialTheme.colorScheme.background
+                    }
                 )
             )
         },
@@ -111,7 +115,7 @@ fun V2rayFAContainer(
                     }
                     selected = item.route
                     imageVector = item.icon
-                    containerColor = item.containerColor
+                    isHome = item.route == "home"
                     when(item.route) {
                         "home" -> {
                             title = R.string.home
@@ -169,7 +173,7 @@ fun V2rayFAContainer(
                                 }
                             }
                             selected = Home().route
-                            containerColor = Home().containerColor
+                            isHome = true
                         }
                     },
                     xrayViewmodel = xrayViewmodel
