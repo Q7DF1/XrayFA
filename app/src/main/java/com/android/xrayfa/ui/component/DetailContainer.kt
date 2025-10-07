@@ -1,10 +1,12 @@
 package com.android.xrayfa.ui.component
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -30,10 +33,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
 import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.viewmodel.DetailViewmodel
 
@@ -66,14 +72,16 @@ fun DetailContainer(
 fun SelectField(
     title:String,
     field: String,
-    fieldList: List<String>
+    fieldList: List<String>,
+    modifier: Modifier = Modifier
 ) {
 
     var expanded by remember { mutableStateOf(false) }
     var fieldValue by remember { mutableStateOf(field) }
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = {expanded = !expanded}
+        onExpandedChange = {expanded = !expanded},
+        modifier = modifier
     ) {
         OutlinedTextField(
             value = fieldValue,
@@ -90,7 +98,7 @@ fun SelectField(
                     contentDescription = "",
                 )
             },
-            modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable,true)
+            modifier = modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable,true)
         )
 
         ExposedDropdownMenu(
@@ -146,34 +154,73 @@ fun VLESSConfigScreen(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(0.7f)
+                .align(BiasAlignment(0f,-1f))
         ) {
             OutlinedTextField(
                 value = address,
                 onValueChange = {address = it},
-                label = { Text("ip") }
+                label = { Text("ip") },
+                modifier = Modifier.fillMaxWidth()
             )
 
             SelectField(
                 title = "protocol",
                 field = outbound.protocol?:"unknown",
-                fieldList = listOf("vless", "vmess","trojan","shadowsocks")
+                fieldList = listOf("vless", "vmess","trojan","shadowsocks"),
+                modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
                 value = port,
                 onValueChange = {port = it},
-                label = { Text("port") }
+                label = { Text("port") },
+                modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField( //todo length limit
                 value = id,
                 onValueChange = {id = it},
-                label = {Text("id")}
+                label = {Text("id")},
+                maxLines = 1,
+                modifier = Modifier.fillMaxWidth()
             )
             SelectField(
                 title = "flow",
                 field = flow.text,
-                fieldList = listOf("vless", "vmess","trojan","shadowsocks")
+                fieldList = listOf("vless", "vmess","trojan","shadowsocks"),
+                modifier = Modifier.fillMaxWidth()
             )
+        }
+        ActionButton(
+            modifier = Modifier.align(BiasAlignment(0f,0.8f))
+        )
+    }
+}
+
+@SuppressLint("ConfigurationScreenWidthHeight")
+@Composable
+fun ActionButton(
+    modifier: Modifier
+) {
+    val configuration = LocalConfiguration.current
+    val screenWidth = configuration.screenWidthDp
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        modifier = modifier
+            .fillMaxWidth()
+    ) {
+        Button(
+            onClick = {},
+            modifier = Modifier.weight(1f)
+                .padding(horizontal = (screenWidth * 0.08).dp)
+        ) {
+            Text("cancel") // todo use string
+        }
+        Button(
+            onClick = {},
+            modifier = Modifier.weight(1f)
+                .padding(horizontal = (screenWidth * 0.08).dp)
+        ) {
+            Text("save")
         }
     }
 }
