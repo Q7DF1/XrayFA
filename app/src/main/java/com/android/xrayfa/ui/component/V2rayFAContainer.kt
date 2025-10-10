@@ -36,9 +36,7 @@ import androidx.navigation.navArgument
 import com.android.xrayfa.ui.navigation.About
 import com.android.xrayfa.ui.navigation.AboutScreen
 import com.android.xrayfa.ui.navigation.Config
-import com.android.xrayfa.ui.navigation.ConfigScreen
 import com.android.xrayfa.ui.navigation.Home
-import com.android.xrayfa.ui.navigation.HomeScreen
 import com.android.xrayfa.ui.navigation.list_navigation
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.android.xrayfa.R

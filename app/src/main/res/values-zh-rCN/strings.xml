@@ -15,4 +15,9 @@
     <string name="config_not_ready">还没有配置</string>
     <string name="qrcode_import">二维码导入</string>
     <string name="close_window">关闭</string>
+    <string name="confirm_delete">确认删除</string>
+    <string name="cancel">取消</string>
+    <string name="delete">删除</string>
+
+    <string name="delete_notify">此操作无法撤销，确定要删除吗？</string>"
 </resources>

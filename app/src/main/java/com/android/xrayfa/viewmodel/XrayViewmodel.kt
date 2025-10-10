@@ -68,6 +68,11 @@ class XrayViewmodel(
 
     val _qrcodebitmap = MutableStateFlow<Bitmap?>(null)
     val qrBitmap: StateFlow<Bitmap?> = _qrcodebitmap.asStateFlow()
+
+    val _deleteDialog = MutableStateFlow(false)
+    val deleteDialog: StateFlow<Boolean> = _deleteDialog.asStateFlow()
+    var deleteLinkId = -1
+
     val handlerThread = HandlerThread("XrayViewmodel").apply {
         start()
     }
@@ -293,6 +298,22 @@ class XrayViewmodel(
             val bitmap = barcodeEncoder.encodeBitmap(link.content, BarcodeFormat.QR_CODE,400,400)
             _qrcodebitmap.value = bitmap
         }
+    }
+
+    //delete dialog
+    fun showDeleteDialog(id: Int) {
+        _deleteDialog.value = true
+        deleteLinkId = id
+    }
+
+    fun hideDeleteDialog() {
+        _deleteDialog.value = false
+        deleteLinkId = -1
+    }
+
+    fun deleteLinkByIdWithDialog() {
+        deleteLinkById(deleteLinkId)
+        hideDeleteDialog()
     }
 
     fun dismissDialog() {
