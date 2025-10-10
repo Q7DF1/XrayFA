@@ -19,5 +19,6 @@
     <string name="cancel">取消</string>
     <string name="delete">删除</string>
 
-    <string name="delete_notify">此操作无法撤销，确定要删除吗？</string>"
+    <string name="delete_notify">此操作无法撤销，确定要删除吗？</string>
+    <string name="save">保存</string>"
 </resources>

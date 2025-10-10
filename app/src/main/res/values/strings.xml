@@ -21,4 +21,5 @@
     <string name="cancel" tools:ignore="ButtonCase">cancel</string>
     <string name="delete">delete</string>
     <string name="delete_notify">"This operation cannot be undone. Are you sure you want to delete?"</string>
+    <string name="save">save</string>
 </resources>

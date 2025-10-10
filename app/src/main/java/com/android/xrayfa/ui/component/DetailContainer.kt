@@ -39,9 +39,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import com.android.xrayfa.R
 import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.viewmodel.DetailViewmodel
 
@@ -130,25 +132,20 @@ fun VLESSConfigScreen(
     content:String,
     detailViewmodel: DetailViewmodel,
 ) {
-    val outbound by remember { mutableStateOf(detailViewmodel.parseVLESSProtocol(content))}
+    val vlessConfig by remember { mutableStateOf(detailViewmodel.parseVLESSProtocol(content))}
     var address by
     rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(outbound.settings?.vnext?.get(0)?.address?:"unknown"))
+        mutableStateOf(TextFieldValue(vlessConfig.server))
     }
     var port by
     rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(outbound.settings?.vnext?.get(0)?.port?.toString()?:"unknown"))
+        mutableStateOf(TextFieldValue(vlessConfig.port.toString()))
     }
 
     var id by
     rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(outbound.settings?.vnext?.get(0)?.users?.get(0)?.id?:"unknown"))
+        mutableStateOf(TextFieldValue(vlessConfig.uuid))
     }
-    var flow by
-    rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(outbound.settings?.vnext?.get(0)?.users?.get(0)?.flow?:"unknown"))
-    }
-
     Box(
         modifier = Modifier.padding(innerPadding)
             .fillMaxSize()
@@ -168,7 +165,7 @@ fun VLESSConfigScreen(
 
             SelectField(
                 title = "protocol",
-                field = outbound.protocol?:"unknown",
+                field = vlessConfig.protocol.name,
                 fieldList = listOf("vless", "vmess","trojan","shadowsocks"),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -183,12 +180,6 @@ fun VLESSConfigScreen(
                 onValueChange = {id = it},
                 label = {Text("id")},
                 maxLines = 1,
-                modifier = Modifier.fillMaxWidth()
-            )
-            SelectField(
-                title = "flow",
-                field = flow.text,
-                fieldList = listOf("vless", "vmess","trojan","shadowsocks"),
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -221,7 +212,7 @@ fun ActionButton(
                 disabledContainerColor = Color.White
             )
         ) {
-            Text("cancel") // todo use string
+            Text(stringResource(R.string.cancel))
         }
         Button(
             onClick = {},
@@ -234,7 +225,7 @@ fun ActionButton(
                 disabledContainerColor = Color.White
             )
         ) {
-            Text("save")
+            Text(stringResource(R.string.save))
         }
     }
 }

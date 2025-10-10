@@ -152,7 +152,6 @@ fun ConfigScreen(
         }
         if (deleteDialog) {
             Dialog(onDismissRequest = {xrayViewmodel.hideDeleteDialog()}) {
-                // 外层卡片，让对话框有圆角和阴影
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
@@ -166,7 +165,6 @@ fun ConfigScreen(
                             .padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // 标题
                         Text(
                             text = stringResource(R.string.confirm_delete),
                             style = MaterialTheme.typography.titleLarge,
@@ -174,7 +172,6 @@ fun ConfigScreen(
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
 
-                        // 提示内容（可选）
                         Text(
                             text = stringResource(R.string.delete_notify),
                             style = MaterialTheme.typography.bodyMedium,
@@ -207,44 +204,6 @@ fun ConfigScreen(
                     }
                 }
             }
-//            Dialog(
-//                onDismissRequest = {xrayViewmodel.hideDeleteDialog()}
-//            ) {
-//                Surface(
-//                    shape = MaterialTheme.shapes.medium,
-//                    tonalElevation = 8.dp,
-//                    modifier = Modifier.padding(16.dp)
-//                ) {
-//                    Column(
-//                        modifier = Modifier.padding(8.dp)
-//                    ) {
-//                        Text(
-//                            text = stringResource(R.string.confirm_delete),
-//                            style = MaterialTheme.typography.headlineSmall
-//                        )
-//                        Row(
-//                            modifier = Modifier.padding(top = 16.dp)
-//                        ) {
-//                            Button(
-//                                onClick = {xrayViewmodel.hideDeleteDialog()}
-//                            ) {
-//                                Text(
-//                                    text = stringResource(R.string.cancel)
-//                                )
-//                            }
-//                            Button(
-//                                onClick = {
-//                                    xrayViewmodel.deleteLinkByIdWithDialog()
-//                                }
-//                            ) {
-//                                Text(
-//                                    text = stringResource(R.string.delete)
-//                                )
-//                            }
-//                        }
-//                    }
-//                }
-//            }
         }
     }
 

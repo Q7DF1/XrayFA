@@ -9,6 +9,7 @@ import com.android.xrayfa.model.TrojanOutboundConfigurationObject
 import com.android.xrayfa.model.VLESSOutboundConfigurationObject
 import com.android.xrayfa.model.VMESSOutboundConfigurationObject
 import com.android.xrayfa.parser.ParserFactory
+import com.android.xrayfa.parser.VLESSConfigParser
 import com.android.xrayfa.repository.LinkRepository
 import javax.inject.Inject
 
@@ -27,8 +28,8 @@ class DetailViewmodel(
         return ParserFactory.getParser(protocol).parseOutbound(content) as OutboundObject<T>
     }
 
-    fun parseVLESSProtocol(content: String): OutboundObject<VLESSOutboundConfigurationObject> {
-        return parseProtocol("vless",content)
+    fun parseVLESSProtocol(content: String): VLESSConfigParser.VLESSConfig {
+        return (ParserFactory.getParser("vless") as VLESSConfigParser).parseVLESS(content)
     }
     
     fun parseVMESSProtocol(content: String): OutboundObject<VMESSOutboundConfigurationObject> {

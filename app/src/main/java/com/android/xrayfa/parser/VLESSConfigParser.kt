@@ -19,7 +19,7 @@ import java.net.URLDecoder
 
 class VLESSConfigParser: AbstractConfigParser<VLESSOutboundConfigurationObject>(){
 
-    companion object{
+    companion object {
         const val TAG = "VLESSConfigParser"
     }
 
@@ -33,7 +33,7 @@ class VLESSConfigParser: AbstractConfigParser<VLESSOutboundConfigurationObject>(
     )
 
 
-    private fun parseVLESS(url: String): VLESSConfig {
+    fun parseVLESS(url: String): VLESSConfig {
         val decode = URLDecoder.decode(url, "UTF-8")
         val withoutProtocol = decode.removePrefix("vless://")
 
