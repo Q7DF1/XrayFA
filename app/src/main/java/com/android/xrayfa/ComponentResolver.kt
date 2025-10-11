@@ -6,6 +6,10 @@ import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 
+/**
+ * This class is used to replace the system construction Activity Service and other components
+ * to facilitate dependency injection on the construction method
+ */
 
 @Singleton
 class ComponentResolver

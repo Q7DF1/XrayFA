@@ -9,7 +9,11 @@ import dagger.Module
 import dagger.multibindings.ClassKey
 import dagger.multibindings.IntoMap
 
-
+/**
+ *
+ * Define a collection of Activities and add all Activities that require dependency injection here
+ * to complete dependency injection
+ */
 @Module
 abstract class ActivityModule {
 

@@ -6,7 +6,6 @@ import com.android.xrayfa.model.AbsOutboundConfigurationObject
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.ShadowSocksOutboundConfigurationObject
 import com.android.xrayfa.model.TrojanOutboundConfigurationObject
-import com.android.xrayfa.model.VLESSOutboundConfigurationObject
 import com.android.xrayfa.model.VMESSOutboundConfigurationObject
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.parser.VLESSConfigParser

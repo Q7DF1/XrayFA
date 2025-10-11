@@ -20,7 +20,11 @@ import com.android.xrayfa.model.XrayConfiguration
 import com.google.gson.Gson
 
 /**
- * TODO configuration 从这里构造，outbound 由子类提供即可
+ *
+ * An abstract parser that provides parsing of common structures.
+ * The specific content of each protocol is implemented by its subclass parser.
+ * This parser defines the parsing standard for JSON configuration files.
+ *
  */
 abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject> {
 

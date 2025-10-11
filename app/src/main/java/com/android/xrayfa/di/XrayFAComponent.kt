@@ -9,6 +9,11 @@ import dagger.Component
 import javax.inject.Provider
 import javax.inject.Singleton
 
+/**
+ *
+ * As the root component for Dagger dependency injection
+ */
+
 @Singleton
 @Component(modules = [GlobalModule::class])
 interface XrayFAComponent {

@@ -2,6 +2,9 @@ package com.android.xrayfa.parser
 
 import com.android.xrayfa.model.protocol.Protocol
 
+/**
+ * A simple factory for parsers that provides different parsers for different protocols
+ */
 object ParserFactory {
 
     fun getParser(protocol: String): AbstractConfigParser<*> {

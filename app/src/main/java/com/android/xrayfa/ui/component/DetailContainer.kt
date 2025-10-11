@@ -175,7 +175,7 @@ fun VLESSConfigScreen(
                 label = { Text("port") },
                 modifier = Modifier.fillMaxWidth()
             )
-            OutlinedTextField( //todo length limit
+            OutlinedTextField(
                 value = id,
                 onValueChange = {id = it},
                 label = {Text("id")},

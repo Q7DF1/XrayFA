@@ -56,15 +56,6 @@ fun V2rayFAContainer(
     var isHome by remember { mutableStateOf(true)}
     var onActionbarClick by remember { mutableStateOf({}) } //TODO
 
-    val context = LocalContext.current
-//    BackHandler {
-//        if (naviController.currentDestination?.route == naviController.graph.startDestinationRoute) {
-//            (context as Activity).finish()
-//        }else {
-//            naviController.popBackStack()
-//        }
-//    }
-
     Scaffold(
         topBar = {
             TopAppBar(
