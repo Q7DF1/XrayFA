@@ -53,4 +53,10 @@ class QuickStartTileService
         super.onTileAdded()
     }
 
+    override fun onDestroy() {
+        qsTile.state = Tile.STATE_INACTIVE
+        qsTile.updateTile()
+        super.onDestroy()
+    }
+
 }

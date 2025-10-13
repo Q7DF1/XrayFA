@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.android.xrayfa.TrafficDetector
 import com.android.xrayfa.XrayBaseService
 import com.android.xrayfa.model.Link
 import com.android.xrayfa.model.Node
@@ -34,7 +35,8 @@ import kotlin.jvm.java
 
 class XrayViewmodel(
     private val linkRepository: LinkRepository,
-    private val xrayBaseServiceManager: XrayBaseServiceManager
+    private val xrayBaseServiceManager: XrayBaseServiceManager,
+    private val trafficDetector: TrafficDetector
 ): ViewModel(){
 
     companion object {
@@ -55,7 +57,7 @@ class XrayViewmodel(
     val _downSpeed = MutableStateFlow(0L)
     val downSpeed: StateFlow<Long> = _downSpeed.asStateFlow()
 
-    val _isServiceRunning = MutableStateFlow(false)
+    val _isServiceRunning = MutableStateFlow(XrayBaseService.isRunning)
     val isServiceRunning: StateFlow<Boolean> = _isServiceRunning.asStateFlow()
 
     val _qrcodebitmap = MutableStateFlow<Bitmap?>(null)
@@ -68,15 +70,9 @@ class XrayViewmodel(
 
     init {
 
-        xrayBaseServiceManager.messageHandler = { msg ->
-            when(msg.what) {
-                MSG_TRAFFIC_DETECTION -> {
-                    _upSpeed.value = msg.arg1.toLong()
-                    _downSpeed.value = msg.arg2.toLong()
-                }
-
-                else -> throw RuntimeException("Unknown message type: ${msg.what}")
-            }
+        xrayBaseServiceManager.viewmodelTrafficCallback  = { pair ->
+            _upSpeed.value = pair.first
+            _downSpeed.value = pair.second
         }
         xrayBaseServiceManager.viewmodelStateCallback = { running ->
             _isServiceRunning.value = running
@@ -177,6 +173,7 @@ class XrayViewmodel(
             ParserFactory.getParser(it.protocolPrefix).preParse(it)
         }
     }
+
 
     fun addLink(link: String) {
         // pre parse
@@ -280,12 +277,13 @@ class XrayViewmodel(
 class XrayViewmodelFactory
 @Inject constructor(
     private val repository: LinkRepository,
-    private val xrayBaseServiceManager: XrayBaseServiceManager
+    private val xrayBaseServiceManager: XrayBaseServiceManager,
+    private val trafficDetector: TrafficDetector
 ): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(XrayViewmodel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return XrayViewmodel(repository,xrayBaseServiceManager) as T
+            return XrayViewmodel(repository,xrayBaseServiceManager,trafficDetector) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

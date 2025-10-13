@@ -10,14 +10,11 @@ import android.os.Binder
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
-import android.os.Message
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.android.xrayfa.rpc.XrayStatsClient
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_LINK
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_PROTOCOL
-import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.MSG_TRAFFIC_DETECTION
 import hev.htproxy.utils.NetPreferences
 import hev.htproxy.Tun2SocksService
 import hev.htproxy.di.qualifier.Background
@@ -25,8 +22,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import java.lang.Thread.sleep
 import java.util.concurrent.Executor
 import javax.inject.Inject
 
@@ -34,8 +29,9 @@ class XrayBaseService
 @Inject constructor(
     private val tun2SocksService: Tun2SocksService,
     private val v2rayCoreManager: XrayCoreManager,
-    @Background val bgExecutor: Executor
-): VpnService(), TrafficDetector {
+    @Background val bgExecutor: Executor,
+    private val trafficDetector: TrafficDetector
+): VpnService(){
 
     companion object {
 
@@ -120,7 +116,7 @@ class XrayBaseService
 
 
     private fun startV2rayCoreService(link: String,protocol: String) {
-        v2rayCoreManager.trafficDetector = this
+        v2rayCoreManager.trafficDetector = trafficDetector
         v2rayCoreManager.startV2rayCore(link,protocol)
         startVpn()
         tunFd?.let {
@@ -178,33 +174,5 @@ class XrayBaseService
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(serviceChannel)
         }
-    }
-
-    override fun startTrafficDetection() {
-        serviceScope.launch {
-            var upSpeed: Long
-            var downSpeed: Long
-            val client = XrayStatsClient()
-            client.connect()
-            var lastUp = 0L
-            var lastDown = 0L
-            while (XrayStatsClient.isConnect) {
-                val (uplink, downlink) = client.getTraffic("proxy")
-                upSpeed = (uplink - lastUp) / 1024
-                downSpeed= (downlink - lastDown) / 1024
-                lastUp = uplink
-                lastDown = downlink
-                val message = Message()
-                message.arg1 = upSpeed.toInt()
-                message.arg2 = downSpeed.toInt()
-                message.what = MSG_TRAFFIC_DETECTION
-                H?.sendMessage(message)
-                sleep(1000)
-            }
-        }
-    }
-
-    override fun stopTrafficDetection() {
-        serviceScope.cancel()
     }
 }

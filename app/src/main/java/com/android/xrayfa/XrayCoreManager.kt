@@ -53,6 +53,7 @@ class XrayCoreManager
 
     }
     init {
+
         Log.i(TAG, "${context.getExternalFilesDir("assets")?.absolutePath}: lishien++")
         Libv2ray.initCoreEnv(
             context.getExternalFilesDir("assets")?.absolutePath, Device.getDeviceIdForXUDPBaseKey()

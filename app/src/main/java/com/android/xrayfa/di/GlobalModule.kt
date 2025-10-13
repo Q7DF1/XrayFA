@@ -1,6 +1,8 @@
 package com.android.xrayfa.di
 
 import android.content.Context
+import com.android.xrayfa.TrafficDetector
+import com.android.xrayfa.TrafficDetectorImpl
 import com.android.xrayfa.dao.LinkDao
 import com.android.xrayfa.dao.LinkDatabase
 import hev.htproxy.di.qualifier.Application
@@ -63,6 +65,12 @@ abstract class GlobalModule {
      @Singleton
      fun provideLinkDao(linkDatabase: LinkDatabase): LinkDao {
          return linkDatabase.LinkDao()
+     }
+
+     @Provides
+     @Singleton
+     fun provideTrafficDetector(): TrafficDetector {
+         return TrafficDetectorImpl()
      }
  }
 
