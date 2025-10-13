@@ -1,18 +1,10 @@
 package com.android.xrayfa.viewmodel
 
 import android.content.ClipboardManager
-import android.content.ComponentName
 import android.content.Context
-import android.content.Context.BIND_AUTO_CREATE
 import android.content.Intent
-import android.content.ServiceConnection
 import android.graphics.Bitmap
-import android.os.Handler
-import android.os.HandlerThread
-import android.os.IBinder
-import android.os.Message
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -22,7 +14,7 @@ import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.protocol.protocolsPrefix
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.repository.LinkRepository
-import com.android.xrayfa.R
+import com.android.xrayfa.XrayBaseServiceManager
 import com.android.xrayfa.ui.DetailActivity
 import com.google.zxing.BarcodeFormat
 import com.journeyapps.barcodescanner.BarcodeEncoder
@@ -41,12 +33,12 @@ import javax.inject.Inject
 import kotlin.jvm.java
 
 class XrayViewmodel(
-    private val linkRepository: LinkRepository
+    private val linkRepository: LinkRepository,
+    private val xrayBaseServiceManager: XrayBaseServiceManager
 ): ViewModel(){
 
     companion object {
         const val TAG = "XrayViewmodel"
-
         const val MSG_TRAFFIC_DETECTION = 1
         const val MSG_RUNNING_STATE_NOTIFY = 2
         const val EXTRA_LINK = "com.android.xrayFA.EXTRA_LINK"
@@ -73,11 +65,10 @@ class XrayViewmodel(
     val deleteDialog: StateFlow<Boolean> = _deleteDialog.asStateFlow()
     var deleteLinkId = -1
 
-    val handlerThread = HandlerThread("XrayViewmodel").apply {
-        start()
-    }
-    val H =object: Handler(handlerThread.looper) {
-        override fun handleMessage(msg: Message) {
+
+    init {
+
+        xrayBaseServiceManager.messageHandler = { msg ->
             when(msg.what) {
                 MSG_TRAFFIC_DETECTION -> {
                     _upSpeed.value = msg.arg1.toLong()
@@ -86,10 +77,10 @@ class XrayViewmodel(
 
                 else -> throw RuntimeException("Unknown message type: ${msg.what}")
             }
-            super.handleMessage(msg)
         }
-    }
-    init {
+        xrayBaseServiceManager.viewmodelStateCallback = { running ->
+            _isServiceRunning.value = running
+        }
         viewModelScope.launch {
             val links = linkRepository.allLinks.first() // 获取原始链接，不执行解析
             val parsedNodes = mutableListOf<Node>()
@@ -106,19 +97,6 @@ class XrayViewmodel(
     }
 
 
-    val serviceConnection = object: ServiceConnection {
-        override fun onServiceConnected(
-            name: ComponentName?,
-            service: IBinder?
-        ) {
-            val binder = (service as XrayBaseService.LocalBinder).getService()
-            binder.H = H
-        }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-        }
-
-    }
 
 
     fun getConfigFromClipboard(context: Context):String {
@@ -148,36 +126,13 @@ class XrayViewmodel(
 
     fun startV2rayService(context: Context) {
         viewModelScope.launch {
-            val first = linkRepository.querySelectedLink().first()
-            if (first == null) {
-                //
-                Toast.makeText(context, R.string.config_not_ready, Toast.LENGTH_SHORT).show()
-                return@launch
-            }
-            val intent = Intent(context, XrayBaseService::class.java).apply {
-                action = "connect"
-                putExtra(EXTRA_LINK, first.content)
-                putExtra(EXTRA_PROTOCOL, first.protocolPrefix)
-            }
-            context.startForegroundService(intent)
-            Log.i(TAG, "startV2rayService: bind")
-            context.bindService(
-                Intent(context, XrayBaseService::class.java),
-                serviceConnection,
-                BIND_AUTO_CREATE
-            )
-            _isServiceRunning.value = true
+            xrayBaseServiceManager.startXrayBaseService(context)
         }
     }
 
     fun stopV2rayService(context: Context) {
 
-        val intent = Intent(context, XrayBaseService::class.java).apply {
-            action = "disconnect"
-        }
-        context.unbindService(serviceConnection)
-        context.startService(intent)
-        _isServiceRunning.value = false
+        xrayBaseServiceManager.stopXrayBaseService(context)
     }
 
 
@@ -323,11 +278,14 @@ class XrayViewmodel(
 }
 
 class XrayViewmodelFactory
-@Inject constructor(private val repository: LinkRepository): ViewModelProvider.Factory {
+@Inject constructor(
+    private val repository: LinkRepository,
+    private val xrayBaseServiceManager: XrayBaseServiceManager
+): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(XrayViewmodel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return XrayViewmodel(repository) as T
+            return XrayViewmodel(repository,xrayBaseServiceManager) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

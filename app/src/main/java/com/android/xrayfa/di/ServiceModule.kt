@@ -1,6 +1,7 @@
 package com.android.xrayfa.di
 
 import android.app.Service
+import com.android.xrayfa.QuickStartTileService
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.ClassKey
@@ -19,4 +20,10 @@ abstract class ServiceModule {
     @IntoMap
     @ClassKey(XrayBaseService::class)
     abstract fun bindVpnService(service: XrayBaseService): Service
+
+
+    @Binds
+    @IntoMap
+    @ClassKey(QuickStartTileService::class)
+    abstract fun bindTileService(service: QuickStartTileService): Service
 }
