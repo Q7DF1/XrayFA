@@ -4,6 +4,7 @@ import android.app.Activity
 import com.android.xrayfa.MainActivity
 import com.android.xrayfa.ui.DetailActivity
 import com.android.xrayfa.ui.QRCodeActivity
+import com.android.xrayfa.ui.SettingsActivity
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.ClassKey
@@ -32,4 +33,9 @@ abstract class ActivityModule {
     @IntoMap
     @ClassKey(DetailActivity::class)
     abstract fun bindDetailActivity(activity: DetailActivity): Activity
+
+    @Binds
+    @IntoMap
+    @ClassKey(SettingsActivity::class)
+    abstract fun bindSettingsActivity(activity: SettingsActivity): Activity
 }

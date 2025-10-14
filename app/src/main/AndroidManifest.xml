@@ -39,6 +39,7 @@
             android:exported="true"/>
         <activity android:name=".ui.DetailActivity"
             android:exported="true"/>
+        <activity android:name=".ui.SettingsActivity"/>
 
         <service android:name=".XrayBaseService"
             android:foregroundServiceType="specialUse"

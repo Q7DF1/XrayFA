@@ -1,13 +1,15 @@
 package com.android.xrayfa.ui.component
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -40,6 +42,7 @@ import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.ui.navigation.list_navigation
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.android.xrayfa.R
+import com.android.xrayfa.ui.SettingsActivity
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,10 +54,11 @@ fun V2rayFAContainer(
     val naviController = rememberNavController()
     var selected by remember { mutableStateOf("home") }
     var imageVector by remember { mutableStateOf(Icons.Default.Home) }
-    var actionImageVector by remember { mutableStateOf(Icons.Default.Menu) }
+    var actionImageVector by remember { mutableStateOf(Icons.Default.Settings) }
     var title by remember { mutableIntStateOf(R.string.home) }
     var isHome by remember { mutableStateOf(true)}
-    var onActionbarClick by remember { mutableStateOf({}) } //TODO
+    val context = LocalContext.current
+    var onActionbarClick by remember { mutableStateOf({onSettingsClick(context)}) } //TODO
 
     Scaffold(
         topBar = {
@@ -108,7 +112,8 @@ fun V2rayFAContainer(
                     when(item.route) {
                         "home" -> {
                             title = R.string.home
-                            actionImageVector = Icons.Default.Menu
+                            actionImageVector = Icons.Default.Settings
+                            onActionbarClick = {onSettingsClick(context)}
                         }
                         "config" -> {
                             title = R.string.config
@@ -174,4 +179,8 @@ fun V2rayFAContainer(
             }
         }
     }
+}
+
+fun onSettingsClick(context: Context) {
+    context.startActivity(Intent(context, SettingsActivity::class.java))
 }

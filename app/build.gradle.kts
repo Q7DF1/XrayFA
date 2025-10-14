@@ -175,6 +175,7 @@ dependencies {
     implementation("io.grpc:grpc-protobuf:1.63.0")
     implementation("io.grpc:grpc-stub:1.63.0")
     implementation("javax.annotation:javax.annotation-api:1.3.2")
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
