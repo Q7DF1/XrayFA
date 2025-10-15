@@ -20,5 +20,10 @@
     <string name="delete">删除</string>
 
     <string name="delete_notify">此操作无法撤销，确定要删除吗？</string>
-    <string name="save">保存</string>"
+    <string name="save">保存</string>
+    <string name="enable_ipv6">启用IPv6</string>
+    <string name="enable_ipv6_description">勾选后开启IPv6代理</string>
+    <string name="dark_mode">暗黑模式</string>
+    <string name="light_mode">正常模式</string>
+    <string name="auto_mode">跟随系统</string>"
 </resources>
