@@ -26,7 +26,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat.getString
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -47,7 +46,7 @@ import com.android.xrayfa.ui.SettingsActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun V2rayFAContainer(
+fun XrayFAContainer(
     xrayViewmodel: XrayViewmodel,
     modifier: Modifier = Modifier
 ) {
