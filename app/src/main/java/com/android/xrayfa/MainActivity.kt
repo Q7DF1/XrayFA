@@ -12,6 +12,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.Composable
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import com.android.xrayfa.ui.component.V2rayFAContainer
@@ -19,33 +20,29 @@ import com.android.xrayfa.ui.theme.V2rayForAndroidUITheme
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.android.xrayfa.dao.LinkDatabase
 import com.android.xrayfa.repository.LinkRepository
+import com.android.xrayfa.ui.XrayBaseActivity
 import com.android.xrayfa.viewmodel.XrayViewmodelFactory
 import javax.inject.Inject
 
 class MainActivity @Inject constructor(
     val xrayViewmodelFactory: XrayViewmodelFactory
-) : ComponentActivity() {
+) : XrayBaseActivity() {
+    @SuppressLint("SourceLockedOrientationActivity")
+    @Composable
+    override fun Content() {
+        val viewmodel =
+            ViewModelProvider(this, xrayViewmodelFactory)[XrayViewmodel::class.java]
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        checkNotificationPermission()
+        V2rayFAContainer(viewmodel)
+    }
 
     companion object {
         const val TAG = "MainActivity"
     }
 
 
-    @SuppressLint("SourceLockedOrientationActivity")
-    @RequiresApi(Build.VERSION_CODES.Q)
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val viewmodel =
-            ViewModelProvider(this, xrayViewmodelFactory)[XrayViewmodel::class.java]
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        checkNotificationPermission()
-        enableEdgeToEdge()
-        setContent {
-            V2rayForAndroidUITheme {
-                V2rayFAContainer(viewmodel)
-            }
-        }
-    }
+
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {

@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModelProvider
 import com.android.xrayfa.ui.component.DetailContainer
 import com.android.xrayfa.ui.component.SettingsContainer
@@ -15,18 +16,11 @@ import javax.inject.Inject
 class SettingsActivity
 @Inject constructor(
     val factory: SettingsViewmodelFactory
-): ComponentActivity() {
+): XrayBaseActivity() {
 
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
+    @Composable
+    override fun Content() {
         val viewmodel = ViewModelProvider.create(this, factory)[SettingsViewmodel::class.java]
-        enableEdgeToEdge()
-        setContent {
-            V2rayForAndroidUITheme {
-                SettingsContainer(viewmodel)
-            }
-        }
+        SettingsContainer(viewmodel)
     }
 }

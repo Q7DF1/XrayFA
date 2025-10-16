@@ -33,7 +33,7 @@ class XrayAppCompatFactory: AppComponentFactory(),ContextAvailableCallback {
     }
     override fun instantiateApplicationCompat(cl: ClassLoader, className: String): Application {
         val app  =  super.instantiateApplicationCompat(cl, className) as XrayFAApplication
-        app.setContextAvailableCallback(this)
+        app.contextAvailableCallback = this
         return app
     }
 

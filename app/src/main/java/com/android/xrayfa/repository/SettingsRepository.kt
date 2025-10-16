@@ -11,8 +11,9 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.android.xrayfa.viewmodel.SettingsState
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import javax.inject.Singleton
 
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 object SettingsKeys {
     val DARK_MODE = intPreferencesKey("dark_mode")
@@ -27,6 +28,8 @@ const val AUTO_MODE = 2
 @Retention(AnnotationRetention.SOURCE)
 annotation class Mode
 
+
+@Singleton
 class SettingsRepository
 @Inject constructor(private val context: Context) {
 

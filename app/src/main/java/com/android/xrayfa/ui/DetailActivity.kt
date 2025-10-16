@@ -5,6 +5,7 @@ import android.os.PersistableBundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModelProvider
 import com.android.xrayfa.ui.component.DetailContainer
 import com.android.xrayfa.ui.theme.V2rayForAndroidUITheme
@@ -16,24 +17,17 @@ import javax.inject.Inject
 class DetailActivity
 @Inject constructor(
     val detailViewmodelFactory: DetailViewmodelFactory
-): ComponentActivity() {
-
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+): XrayBaseActivity() {
+    @Composable
+    override fun Content() {
         val protocol = intent.getStringExtra(XrayViewmodel.EXTRA_PROTOCOL)
         val content = intent.getStringExtra(XrayViewmodel.EXTRA_LINK)
         val viewmodel =
             ViewModelProvider.create(this,detailViewmodelFactory)[DetailViewmodel::class.java]
-        enableEdgeToEdge()
-        setContent {
-            V2rayForAndroidUITheme {
-                DetailContainer(
-                    protocol = protocol!!,
-                    content = content!!,
-                    detailViewmodel = viewmodel
-                )
-            }
-        }
+        DetailContainer(
+            protocol = protocol!!,
+            content = content!!,
+            detailViewmodel = viewmodel
+        )
     }
 }
