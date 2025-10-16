@@ -1,4 +1,4 @@
-package hev.htproxy;
+package xrayfa.tun2socks;
 
 import android.content.Context;
 import android.util.Log;
@@ -12,9 +12,9 @@ import java.util.concurrent.Executor;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import hev.htproxy.di.qualifier.Application;
-import hev.htproxy.di.qualifier.Background;
-import hev.htproxy.utils.NetPreferences;
+import xrayfa.tun2socks.qualifier.Application;
+import xrayfa.tun2socks.qualifier.Background;
+import xrayfa.tun2socks.utils.NetPreferences;
 
 @Singleton
 public class TProxyService implements Tun2SocksService{

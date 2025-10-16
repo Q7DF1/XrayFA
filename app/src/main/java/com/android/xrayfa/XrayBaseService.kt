@@ -15,9 +15,9 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_LINK
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_PROTOCOL
-import hev.htproxy.utils.NetPreferences
-import hev.htproxy.Tun2SocksService
-import hev.htproxy.di.qualifier.Background
+import xrayfa.tun2socks.utils.NetPreferences
+import xrayfa.tun2socks.Tun2SocksService
+import xrayfa.tun2socks.qualifier.Background
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

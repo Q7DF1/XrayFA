@@ -19,6 +19,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "v2rayForAndroidUI"
+rootProject.name = "xrayfa"
 include(":app")
 include(":tun2socks")
+include(":common")

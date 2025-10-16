@@ -1,4 +1,4 @@
-package hev.htproxy.di.qualifier;
+package xrayfa.tun2socks.qualifier;
 
 
 import java.lang.annotation.ElementType;
@@ -8,7 +8,8 @@ import java.lang.annotation.Target;
 
 import javax.inject.Qualifier;
 
+
 @Qualifier
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Background {
+public @interface Main {
 }

@@ -1,4 +1,4 @@
-package hev.htproxy
+package xrayfa.tun2socks
 
 interface Tun2SocksService {
 

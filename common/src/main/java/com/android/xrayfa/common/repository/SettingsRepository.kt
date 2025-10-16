@@ -1,4 +1,4 @@
-package com.android.xrayfa.repository
+package com.android.xrayfa.common.repository
 
 import android.content.Context
 import androidx.annotation.IntDef
@@ -8,13 +8,16 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.android.xrayfa.viewmodel.SettingsState
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
+data class SettingsState(
+    val darkMode: Int = 0,
+    val ipV6Enable: Boolean = false
+)
 object SettingsKeys {
     val DARK_MODE = intPreferencesKey("dark_mode")
     val IPV6_ENABLE = booleanPreferencesKey("ipv6_enable")

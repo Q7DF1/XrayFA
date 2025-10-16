@@ -3,18 +3,15 @@ package com.android.xrayfa.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.android.xrayfa.repository.Mode
-import com.android.xrayfa.repository.SettingsRepository
+import com.android.xrayfa.common.repository.Mode
+import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.common.repository.SettingsState
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
-data class SettingsState(
-    val darkMode: Int = 0,
-    val ipV6Enable: Boolean = false
-)
 class SettingsViewmodel(
     val repository: SettingsRepository
 ): ViewModel() {

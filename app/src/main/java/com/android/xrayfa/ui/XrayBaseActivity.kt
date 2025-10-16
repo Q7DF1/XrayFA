@@ -8,8 +8,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import com.android.xrayfa.XrayFAApplication
-import com.android.xrayfa.repository.DARK_MODE
-import com.android.xrayfa.repository.LIGHT_MODE
+import com.android.xrayfa.common.repository.DARK_MODE
+import com.android.xrayfa.common.repository.LIGHT_MODE
 import com.android.xrayfa.ui.theme.V2rayForAndroidUITheme
 
 abstract class XrayBaseActivity(

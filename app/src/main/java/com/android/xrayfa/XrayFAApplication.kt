@@ -1,16 +1,13 @@
 package com.android.xrayfa
 
 import android.app.Application
-import android.provider.Settings
-import androidx.datastore.preferences.core.edit
-import com.android.xrayfa.repository.AUTO_MODE
-import com.android.xrayfa.repository.SettingsKeys
-import com.android.xrayfa.repository.dataStore
+import com.android.xrayfa.common.repository.AUTO_MODE
+import com.android.xrayfa.common.repository.SettingsKeys
+import com.android.xrayfa.common.repository.dataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 

@@ -2,13 +2,13 @@ package com.android.xrayfa
 
 import android.content.Context
 import android.util.Log
-import hev.htproxy.di.qualifier.Application
+import xrayfa.tun2socks.qualifier.Application
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.parser.VLESSConfigParser
 import com.android.xrayfa.parser.VMESSConfigParser
 import com.android.xrayfa.rpc.XrayStatsClient
 import com.android.xrayfa.utils.Device
-import hev.htproxy.di.qualifier.Background
+import xrayfa.tun2socks.qualifier.Background
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
