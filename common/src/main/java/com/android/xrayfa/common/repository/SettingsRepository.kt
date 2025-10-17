@@ -49,8 +49,8 @@ class SettingsRepository
             darkMode = prefs[SettingsKeys.DARK_MODE] ?: 0,
             ipV6Enable = prefs[SettingsKeys.IPV6_ENABLE] == true,
             socksPort = prefs[SettingsKeys.SOCKS_PORT] ?: 10808,
-            dnsIPv4 = prefs[SettingsKeys.DNS_IPV4] ?: "",
-            dnsIPv6 = prefs[SettingsKeys.DNS_IPV6] ?: "",
+            dnsIPv4 = prefs[SettingsKeys.DNS_IPV4] ?: "8.8.8.8",
+            dnsIPv6 = prefs[SettingsKeys.DNS_IPV6] ?: "2001:4860:4860::8888",
             version = prefs[SettingsKeys.VERSION] ?: "1.0.0"
         )
 

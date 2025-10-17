@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -48,32 +49,59 @@ fun SettingsScreen(
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            SettingsCheckBox(
-                title = R.string.enable_ipv6,
-                description = R.string.enable_ipv6_description,
-                checked = settingsState.ipV6Enable,
-                onCheckedChange = { checked->
-                    viewmodel.setIpV6Enable(checked)
-                }
-            )
-            SettingsSelectBox(
-                title = R.string.dark_mode,
-                description = R.string.dark_mode_description,
-                onSelected = { mode ->
-                    viewmodel.setDarkMode(mode)
-                },
-                selected = when(settingsState.darkMode) {
-                    0 -> stringResource(R.string.light_mode)
-                    1 -> stringResource(R.string.dark_mode)
-                    2 -> stringResource(R.string.auto_mode)
-                    else -> stringResource(R.string.auto_mode)
-                },
-                options = mapOf(
-                    0 to stringResource(R.string.light_mode),
-                    1 to stringResource(R.string.dark_mode),
-                    2 to stringResource(R.string.auto_mode)
+            SettingsGroup(
+                groupName = "general"
+            ) {
+                SettingsSelectBox(
+                    title = R.string.dark_mode,
+                    description = R.string.dark_mode_description,
+                    onSelected = { mode ->
+                        viewmodel.setDarkMode(mode)
+                    },
+                    selected = when(settingsState.darkMode) {
+                        0 -> stringResource(R.string.light_mode)
+                        1 -> stringResource(R.string.dark_mode)
+                        2 -> stringResource(R.string.auto_mode)
+                        else -> stringResource(R.string.auto_mode)
+                    },
+                    options = mapOf(
+                        0 to stringResource(R.string.light_mode),
+                        1 to stringResource(R.string.dark_mode),
+                        2 to stringResource(R.string.auto_mode)
                     )
-            )
+                )
+            }
+
+            SettingsGroup(
+                groupName = "network"
+            ) {
+
+                SettingsFieldBox(
+                    title = R.string.socks_port,
+                    content = settingsState.socksPort.toString()
+                ) { }
+                SettingsFieldBox(
+                    title = R.string.dns_ipv4,
+                    content = settingsState.dnsIPv4
+                ) { }
+                SettingsCheckBox(
+                    title = R.string.enable_ipv6,
+                    description = R.string.enable_ipv6_description,
+                    checked = settingsState.ipV6Enable,
+                    onCheckedChange = { checked->
+                        viewmodel.setIpV6Enable(checked)
+                    }
+                )
+                SettingsFieldBox(
+                    title = R.string.dns_ipv6,
+                    content = settingsState.dnsIPv6,
+                    onClick = {
+                        if (settingsState.ipV6Enable) {
+                            //todo
+                        }
+                    }
+                )
+            }
         }
     }
 }
@@ -194,6 +222,64 @@ fun SettingsSelectBox(
     }
 }
 
+
+@Composable
+fun SettingsFieldBox(
+    @StringRes title: Int,
+    content: String,
+    onClick: () ->Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth()
+            .clickable{onClick()},
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            modifier = Modifier.weight(0.8f)
+                .padding(horizontal = 8.dp, vertical = 8.dp)
+        ) {
+            Text(
+                text = stringResource(title),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Text(
+                text = content,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }
+}
+
+
+@Composable
+fun SettingsGroup(
+    groupName: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+            .padding(start = 8.dp)
+    ) {
+        Text(
+            text = groupName,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+        content()
+    }
+}
+
+@Composable
+@Preview
+fun SettingsFieldBoxPreview() {
+    SettingsFieldBox(
+        R.string.enable_ipv6,
+        "192.168.0.1",
+    ) {
+        //empty
+    }
+}
 
 @Composable
 @Preview

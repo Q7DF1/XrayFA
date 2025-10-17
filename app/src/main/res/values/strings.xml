@@ -28,4 +28,7 @@
     <string name="light_mode">Light</string>
     <string name="auto_mode">Auto</string>
     <string name="dark_mode_description">Select to turn on dark mode</string>
+    <string name="dns_ipv4" translatable="false">DNS IPv4</string>
+    <string name="dns_ipv6" translatable="false">DNS IPv6</string>
+    <string name="socks_port" translatable="false">socks port</string>
 </resources>
