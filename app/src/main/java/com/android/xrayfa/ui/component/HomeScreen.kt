@@ -32,6 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -152,9 +153,13 @@ fun Dashboard(
     xrayViewmodel: XrayViewmodel,
     node: Node?,
 ) {
+    val context = LocalContext.current
+    val delay by xrayViewmodel.delay.collectAsState()
+    val test by xrayViewmodel.testing.collectAsState()
     Surface(
         color = Color(0xFF00BFFF),
         tonalElevation = 8.dp,
+        shadowElevation = 8.dp,
         shape = ArcBottomShape(arcHeight = 80f),
         modifier = Modifier.fillMaxWidth()
             .fillMaxHeight(0.5f)
@@ -165,7 +170,10 @@ fun Dashboard(
             node?.let {
                 NodeCard(
                     node = node,
-                    modifier = Modifier.align(BiasAlignment(0f,-0.5f))
+                    modifier = Modifier.align(BiasAlignment(0f,-0.5f)),
+                    onTest = {xrayViewmodel.measureDelay(context = context)},
+                    delayMs = delay,
+                    testing = test
                 )
             }?: Text(
                 //TODO more beautiful

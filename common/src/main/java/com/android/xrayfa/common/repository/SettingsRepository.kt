@@ -21,6 +21,7 @@ data class SettingsState(
     val socksPort: Int = 10808,
     val dnsIPv4: String = "",
     val dnsIPv6: String = "",
+    val delayTestUrl: String = DEFAULT_DELAY_TEST_URL,
     val version: String = "1.0.0"
 )
 object SettingsKeys {
@@ -30,10 +31,13 @@ object SettingsKeys {
     val DNS_IPV4 = stringPreferencesKey("dns_ipv4")
     val DNS_IPV6 = stringPreferencesKey("dns_ipv6")
     val VERSION = stringPreferencesKey("version")
+    val DELAY_TEST_URL = stringPreferencesKey("delay_test_site")
 }
 const val LIGHT_MODE = 0
 const val DARK_MODE = 1
 const val AUTO_MODE = 2
+
+const val DEFAULT_DELAY_TEST_URL = "https://www.google.com"
 
 @IntDef(LIGHT_MODE, DARK_MODE, AUTO_MODE)
 @Retention(AnnotationRetention.SOURCE)
@@ -51,6 +55,7 @@ class SettingsRepository
             socksPort = prefs[SettingsKeys.SOCKS_PORT] ?: 10808,
             dnsIPv4 = prefs[SettingsKeys.DNS_IPV4] ?: "8.8.8.8",
             dnsIPv6 = prefs[SettingsKeys.DNS_IPV6] ?: "2001:4860:4860::8888",
+            delayTestUrl = prefs[SettingsKeys.DELAY_TEST_URL] ?: DEFAULT_DELAY_TEST_URL,
             version = prefs[SettingsKeys.VERSION] ?: "1.0.0"
         )
 
@@ -83,6 +88,12 @@ class SettingsRepository
     suspend fun setDnsIPv6(dns: String) {
         context.dataStore.edit {
             it[SettingsKeys.DNS_IPV6] = dns
+        }
+    }
+
+    suspend fun setDelayTestUrl(url:String) {
+        context.dataStore.edit {
+            it[SettingsKeys.DELAY_TEST_URL] = url
         }
     }
 }

@@ -8,7 +8,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.android.xrayfa.TrafficDetector
 import com.android.xrayfa.XrayBaseService
 import com.android.xrayfa.model.Link
 import com.android.xrayfa.model.Node
@@ -16,6 +15,10 @@ import com.android.xrayfa.model.protocol.protocolsPrefix
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.repository.LinkRepository
 import com.android.xrayfa.XrayBaseServiceManager
+import com.android.xrayfa.XrayCoreManager
+import com.android.xrayfa.common.repository.DEFAULT_DELAY_TEST_URL
+import com.android.xrayfa.common.repository.SettingsKeys
+import com.android.xrayfa.common.repository.dataStore
 import com.android.xrayfa.ui.DetailActivity
 import com.google.zxing.BarcodeFormat
 import com.journeyapps.barcodescanner.BarcodeEncoder
@@ -36,13 +39,11 @@ import kotlin.jvm.java
 class XrayViewmodel(
     private val linkRepository: LinkRepository,
     private val xrayBaseServiceManager: XrayBaseServiceManager,
-    private val trafficDetector: TrafficDetector
+    private val xrayCoreManager: XrayCoreManager
 ): ViewModel(){
 
     companion object {
         const val TAG = "XrayViewmodel"
-        const val MSG_TRAFFIC_DETECTION = 1
-        const val MSG_RUNNING_STATE_NOTIFY = 2
         const val EXTRA_LINK = "com.android.xrayFA.EXTRA_LINK"
         const val EXTRA_PROTOCOL = "com.android.xrayFA.EXTRA_PROTOCOL"
     }
@@ -53,6 +54,12 @@ class XrayViewmodel(
 
     val _upSpeed = MutableStateFlow(0L)
     val upSpeed: StateFlow<Long> = _upSpeed.asStateFlow()
+
+    val _delay = MutableStateFlow("")
+    val delay = _delay.asStateFlow()
+
+    val _testing = MutableStateFlow(false)
+    val testing = _testing.asStateFlow()
 
     val _downSpeed = MutableStateFlow(0L)
     val downSpeed: StateFlow<Long> = _downSpeed.asStateFlow()
@@ -272,18 +279,30 @@ class XrayViewmodel(
         _qrcodebitmap.value = null
     }
 
+    fun measureDelay(context: Context) {
+        if (isServiceRunning()) {
+            _testing.value = true
+            viewModelScope.launch(Dispatchers.IO) {
+            val url =
+                context.dataStore.data.first()[SettingsKeys.DELAY_TEST_URL]?: DEFAULT_DELAY_TEST_URL
+                _delay.value = xrayCoreManager.measureDelaySync(url)
+                _testing.value = false
+                Log.i(TAG, "measureDelay: ${_delay.value}")
+            }
+        }
+    }
 }
 
 class XrayViewmodelFactory
 @Inject constructor(
     private val repository: LinkRepository,
     private val xrayBaseServiceManager: XrayBaseServiceManager,
-    private val trafficDetector: TrafficDetector
+    private val xrayCoreManager: XrayCoreManager
 ): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(XrayViewmodel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return XrayViewmodel(repository,xrayBaseServiceManager,trafficDetector) as T
+            return XrayViewmodel(repository,xrayBaseServiceManager,xrayCoreManager) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

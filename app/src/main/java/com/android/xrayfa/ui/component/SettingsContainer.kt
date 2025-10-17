@@ -29,7 +29,7 @@ fun SettingsContainer(
                 navigationIcon = { Icon(
                     imageVector = Icons.Default.Settings,
                     contentDescription = "settings"
-                ) }
+                ) },
             )
         }
     ) { innerPadding ->

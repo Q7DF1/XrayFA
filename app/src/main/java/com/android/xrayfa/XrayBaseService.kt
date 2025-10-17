@@ -47,18 +47,6 @@ class XrayBaseService
 
     var tunFd: ParcelFileDescriptor? = null
 
-    var H: Handler? = null
-    private val binder = LocalBinder()
-
-    inner class LocalBinder : Binder() {
-        fun getService(): XrayBaseService = this@XrayBaseService
-    }
-
-    override fun onBind(intent: Intent?): IBinder? {
-        Log.i(TAG, "onBind: lishien++")
-        return binder
-    }
-
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
