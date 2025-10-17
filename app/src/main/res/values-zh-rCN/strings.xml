@@ -25,5 +25,6 @@
     <string name="enable_ipv6_description">勾选后开启IPv6代理</string>
     <string name="dark_mode">暗黑模式</string>
     <string name="light_mode">正常模式</string>
-    <string name="auto_mode">跟随系统</string>"
+    <string name="auto_mode">跟随系统</string>
+    <string name="dark_mode_description">选择是否开启深色模式</string>"
 </resources>
