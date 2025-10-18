@@ -14,6 +14,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.unit.dp
 import com.android.xrayfa.viewmodel.SettingsViewmodel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,6 +32,7 @@ fun SettingsContainer(
                     imageVector = Icons.Default.Settings,
                     contentDescription = "settings"
                 ) },
+                modifier = Modifier.shadow(4.dp)
             )
         }
     ) { innerPadding ->
