@@ -1,11 +1,14 @@
 package com.android.xrayfa.viewmodel
 
+import android.content.Context
+import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.xrayfa.common.repository.Mode
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.common.repository.SettingsState
+import com.android.xrayfa.ui.AppsActivity
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -33,6 +36,11 @@ class SettingsViewmodel(
         viewModelScope.launch {
             repository.setIpV6Enable(enable)
         }
+    }
+
+    fun startAppsActivity(context: Context) {
+        val intent = Intent(context, AppsActivity::class.java)
+        context.startActivity(intent)
     }
 }
 

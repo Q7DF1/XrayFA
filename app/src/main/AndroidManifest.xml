@@ -9,6 +9,8 @@
         tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
     <application
         android:name=".XrayFAApplication"
         android:appComponentFactory="com.android.xrayfa.XrayAppCompatFactory"
@@ -40,6 +42,7 @@
         <activity android:name=".ui.DetailActivity"
             android:exported="true"/>
         <activity android:name=".ui.SettingsActivity"/>
+        <activity android:name=".ui.AppsActivity" />
 
         <service android:name=".XrayBaseService"
             android:foregroundServiceType="specialUse"

@@ -26,5 +26,7 @@
     <string name="dark_mode">暗黑模式</string>
     <string name="light_mode">正常模式</string>
     <string name="auto_mode">跟随系统</string>
-    <string name="dark_mode_description">选择是否开启深色模式</string>"
+    <string name="dark_mode_description">选择是否开启深色模式</string>
+    <string name="allow_app_settings">选择针对app代理</string>
+    <string name="select_app_settings">选择app开启代理</string>"
 </resources>

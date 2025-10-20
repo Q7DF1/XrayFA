@@ -31,4 +31,6 @@
     <string name="dns_ipv4" translatable="false">DNS IPv4</string>
     <string name="dns_ipv6" translatable="false">DNS IPv6</string>
     <string name="socks_port" translatable="false">socks port</string>
+    <string name="allow_app_settings">open app proxy settings</string>
+    <string name="select_app_settings">select special app  to config proxy</string>
 </resources>

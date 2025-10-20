@@ -1,5 +1,6 @@
 package com.android.xrayfa.ui.component
 
+import android.content.Intent
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,7 +35,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.android.xrayfa.ui.AppsActivity
 
 @Composable
 fun SettingsScreen(
@@ -42,7 +45,7 @@ fun SettingsScreen(
     modifier: Modifier
 ) {
     val settingsState by viewmodel.settingsState.collectAsState()
-
+    val context = LocalContext.current
     Box(
         modifier = modifier.fillMaxSize()
     ) {
@@ -70,6 +73,12 @@ fun SettingsScreen(
                         2 to stringResource(R.string.auto_mode)
                     )
                 )
+                SettingsFieldBox(
+                    title = R.string.allow_app_settings,
+                    content = stringResource(R.string.select_app_settings)
+                ) {
+                    viewmodel.startAppsActivity(context)
+                }
             }
 
             SettingsGroup(

@@ -6,14 +6,19 @@ import android.net.VpnService
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +47,10 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
@@ -59,6 +68,10 @@ import com.android.xrayfa.model.Node
 import com.android.xrayfa.ui.ArcBottomShape
 import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.viewmodel.XrayViewmodel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.coroutines.coroutineContext
 
 @Composable
 fun HomeScreen(
@@ -68,6 +81,8 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val selectedNode by xrayViewmodel.getSelectedNode().collectAsState(null)
+    var notConfig by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
     Box(
         modifier = Modifier.fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
@@ -75,14 +90,27 @@ fun HomeScreen(
         Dashboard(xrayViewmodel = xrayViewmodel,node = selectedNode)
         //Dashboard(xrayViewmodel,modifier = Modifier.align(Alignment.TopCenter))
 
-        V2rayStarter(xrayViewmodel,modifier = Modifier.align(BiasAlignment(0f,0.8f)))
+        V2rayStarter(xrayViewmodel,modifier = Modifier.align(BiasAlignment(0f,0.8f))) {
+            if (selectedNode == null) {
+                coroutineScope.launch {
+                    notConfig = true
+                    delay(2000L)
+                    notConfig = false
+                }
+                false
+            }else {
+                true
+            }
+        }
+        NoConfigMessage(notConfig)
     }
 }
 
 @Composable
 fun V2rayStarter(
     xrayViewmodel: XrayViewmodel,
-    modifier: Modifier
+    modifier: Modifier,
+    onCheck: () -> Boolean
 ) {
     val toggle by xrayViewmodel.isServiceRunning.collectAsState()
     val context = LocalContext.current
@@ -107,6 +135,9 @@ fun V2rayStarter(
 
     IconButton(
         onClick = {
+            if (!onCheck()) {
+                return@IconButton
+            }
             if (!toggle) {
                 val prepare = VpnService.prepare(context)
                 if (prepare != null) {
@@ -281,6 +312,35 @@ fun DashboardContent(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun NoConfigMessage(shown: Boolean) {
+    AnimatedVisibility(
+        visible = shown,
+        enter = slideInVertically(
+            // Enters by sliding in from offset -fullHeight to 0.
+            initialOffsetY = { fullHeight -> -fullHeight },
+            animationSpec = tween(durationMillis = 150, easing = LinearOutSlowInEasing)
+        ),
+        exit = slideOutVertically(
+            // Exits by sliding out from offset 0 to -fullHeight.
+            targetOffsetY = { fullHeight -> -fullHeight },
+            animationSpec = tween(durationMillis = 250, easing = FastOutLinearInEasing)
+        )
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.secondary,
+            shadowElevation = 4.dp
+        ) {
+            Text(
+                text = stringResource(R.string.config_not_ready),
+                color = MaterialTheme.colorScheme.onSecondary,
+                modifier = Modifier.padding(16.dp)
+            )
         }
     }
 }

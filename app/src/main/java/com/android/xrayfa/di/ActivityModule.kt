@@ -2,6 +2,7 @@ package com.android.xrayfa.di
 
 import android.app.Activity
 import com.android.xrayfa.MainActivity
+import com.android.xrayfa.ui.AppsActivity
 import com.android.xrayfa.ui.DetailActivity
 import com.android.xrayfa.ui.QRCodeActivity
 import com.android.xrayfa.ui.SettingsActivity
@@ -38,4 +39,9 @@ abstract class ActivityModule {
     @IntoMap
     @ClassKey(SettingsActivity::class)
     abstract fun bindSettingsActivity(activity: SettingsActivity): Activity
+
+    @Binds
+    @IntoMap
+    @ClassKey(AppsActivity::class)
+    abstract fun bindAppsActivity(activity: AppsActivity): Activity
 }

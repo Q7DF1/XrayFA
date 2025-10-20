@@ -9,6 +9,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,12 +34,16 @@ object SettingsKeys {
     val DNS_IPV6 = stringPreferencesKey("dns_ipv6")
     val VERSION = stringPreferencesKey("version")
     val DELAY_TEST_URL = stringPreferencesKey("delay_test_site")
+    //to json
+    val ALLOW_PACKAGES = stringPreferencesKey("allow_packages")
 }
 const val LIGHT_MODE = 0
 const val DARK_MODE = 1
 const val AUTO_MODE = 2
 
 const val DEFAULT_DELAY_TEST_URL = "https://www.google.com"
+
+val listType = object : TypeToken<List<String>>() {}.type
 
 @IntDef(LIGHT_MODE, DARK_MODE, AUTO_MODE)
 @Retention(AnnotationRetention.SOURCE)
@@ -59,6 +65,10 @@ class SettingsRepository
             version = prefs[SettingsKeys.VERSION] ?: "1.0.0"
         )
 
+    }
+
+    val packagesFlow = context.dataStore.data.map { prefs ->
+        Gson().fromJson<List<String>>(prefs[SettingsKeys.ALLOW_PACKAGES], listType) ?: emptyList()
     }
 
     suspend fun setDarkMode(@Mode darkMode: Int) {
@@ -94,6 +104,13 @@ class SettingsRepository
     suspend fun setDelayTestUrl(url:String) {
         context.dataStore.edit {
             it[SettingsKeys.DELAY_TEST_URL] = url
+        }
+    }
+
+    suspend fun setAllowedPackages(packages: List<String>) {
+        val listJson = Gson().toJson(packages, listType)
+        context.dataStore.edit {
+            it[SettingsKeys.ALLOW_PACKAGES] = listJson
         }
     }
 }

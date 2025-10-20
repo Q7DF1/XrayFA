@@ -52,26 +52,29 @@ class XrayViewmodel(
     private val _nodes = MutableStateFlow<List<Node>>(emptyList())
     val node: StateFlow<List<Node>> = _nodes
 
-    val _upSpeed = MutableStateFlow(0L)
+    private val _upSpeed = MutableStateFlow(0L)
     val upSpeed: StateFlow<Long> = _upSpeed.asStateFlow()
 
-    val _delay = MutableStateFlow("")
+    private val _delay = MutableStateFlow("")
     val delay = _delay.asStateFlow()
 
-    val _testing = MutableStateFlow(false)
+    private val _testing = MutableStateFlow(false)
     val testing = _testing.asStateFlow()
 
-    val _downSpeed = MutableStateFlow(0L)
+    private val _downSpeed = MutableStateFlow(0L)
     val downSpeed: StateFlow<Long> = _downSpeed.asStateFlow()
 
-    val _isServiceRunning = MutableStateFlow(XrayBaseService.isRunning)
+    private val _isServiceRunning = MutableStateFlow(XrayBaseService.isRunning)
     val isServiceRunning: StateFlow<Boolean> = _isServiceRunning.asStateFlow()
 
-    val _qrcodebitmap = MutableStateFlow<Bitmap?>(null)
+    private val _qrcodebitmap = MutableStateFlow<Bitmap?>(null)
     val qrBitmap: StateFlow<Bitmap?> = _qrcodebitmap.asStateFlow()
 
-    val _deleteDialog = MutableStateFlow(false)
+    private val _deleteDialog = MutableStateFlow(false)
     val deleteDialog: StateFlow<Boolean> = _deleteDialog.asStateFlow()
+
+    private val _notConfig = MutableStateFlow(false)
+    val notConfig = _notConfig.asStateFlow()
     var deleteLinkId = -1
 
 

@@ -13,6 +13,7 @@ import android.os.IBinder
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_LINK
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_PROTOCOL
 import xrayfa.tun2socks.utils.NetPreferences
@@ -30,7 +31,8 @@ class XrayBaseService
     private val tun2SocksService: Tun2SocksService,
     private val v2rayCoreManager: XrayCoreManager,
     @Background val bgExecutor: Executor,
-    private val trafficDetector: TrafficDetector
+    private val trafficDetector: TrafficDetector,
+    private val settingsRepo: SettingsRepository
 ): VpnService(){
 
     companion object {
