@@ -1,5 +1,7 @@
 package com.android.xrayfa.ui.component
 
+import android.annotation.SuppressLint
+import android.util.Log
 import android.view.Surface
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -25,7 +27,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -75,6 +79,7 @@ fun ConfigScreen(
     val qrBitMap by xrayViewmodel.qrBitmap.collectAsState()
     val deleteDialog by xrayViewmodel.deleteDialog.collectAsState()
     val context = LocalContext.current
+    val listState = rememberLazyListState()
     Box(
         modifier = Modifier.fillMaxSize()
             .padding(16.dp)
@@ -92,9 +97,8 @@ fun ConfigScreen(
             }
         }else {
             LazyColumn(
-
+                state = listState
             ) {
-
                 items(nodes, key = {it.id}) {node ->
                     NodeCard(
                         node = node,
@@ -118,10 +122,16 @@ fun ConfigScreen(
                 }
             }
         }
-        AddConfigButton(
-            xrayViewmodel = xrayViewmodel,
-            modifier = Modifier.align(BiasAlignment(1f,0.8f))
-        )
+        AnimatedVisibility(
+            visible = !listState.isAtBottom,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            AddConfigButton(
+                xrayViewmodel = xrayViewmodel,
+                modifier = Modifier.align(BiasAlignment(1f,0.8f))
+            )
+        }
 
 
         qrBitMap?.let {
@@ -334,3 +344,23 @@ fun PopUpButton(
         )
     }
 }
+
+val LazyListState.isAtBottom: Boolean
+    get() {
+        val layoutInfo = layoutInfo
+        val visibleItems = layoutInfo.visibleItemsInfo
+        val totalItems = layoutInfo.totalItemsCount
+
+        if (visibleItems.isEmpty() || totalItems == 0) return false
+
+        val contentHeight = layoutInfo.totalItemsCount.takeIf { it > 0 }?.let {
+            layoutInfo.visibleItemsInfo.sumOf { it.size }
+        } ?: 0
+        val viewportHeight = layoutInfo.viewportEndOffset
+
+        if (contentHeight <= viewportHeight) return false
+
+        val lastVisible = visibleItems.last()
+        return lastVisible.index == totalItems - 1 &&
+                lastVisible.offset + lastVisible.size <= viewportHeight
+    }
