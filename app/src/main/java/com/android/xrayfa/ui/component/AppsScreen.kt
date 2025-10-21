@@ -3,6 +3,8 @@ package com.android.xrayfa.ui.component
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,16 +24,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import com.android.xrayfa.viewmodel.AppsViewmodel
-import androidx.core.graphics.createBitmap
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.dp
-import com.android.xrayfa.viewmodel.AppInfo
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,7 +40,6 @@ import com.android.xrayfa.viewmodel.AppInfo
 fun AppsScreen(
     viewmodel: AppsViewmodel
 ) {
-
 
     val context = LocalContext.current
     Scaffold(
@@ -65,12 +65,18 @@ fun AppsScreen(
             }else {
                 val appInfos = viewmodel.appInfoList
                 LazyColumn(
-                    contentPadding = paddingValue,
                     state = listState
                 ) {
                     items(appInfos) { appInfo ->
                         ApkInfoItem(
                             appName = appInfo.appName,
+                            painter = appInfo.icon,
+                            initChecked = appInfo.allow,
+                            onCheck = { checked ->
+                                if (checked) viewmodel.addAllowPackage(appInfo.packageName)
+                                else viewmodel.removeAllowPackage(appInfo.packageName)
+                            }
+
                         )
                     }
                 }
@@ -81,48 +87,39 @@ fun AppsScreen(
 
 @Composable
 fun ApkInfoItem(
-    appName: String? = "null",
+    appName: String,
+    painter: Painter,
+    onCheck: (Boolean) -> Unit,
+    initChecked: Boolean
 ) {
+    var checked by remember { mutableStateOf(initChecked) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
             .padding(horizontal = 8.dp)
+            .clickable {
+                checked = !checked
+                onCheck(checked)
+            }
     ) {
+        Image(
+            painter = painter,
+            contentDescription = "app_icon",
+            modifier = Modifier.weight(2f)
+        )
         Text(
-            text = appName?:"null",
+            text = appName,
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.weight(8f)
+            modifier = Modifier.weight(6f)
+                .padding(vertical = 16.dp)
         )
         Checkbox(
-            checked = false,
-            onCheckedChange = { checked ->
+            checked = checked,
+            onCheckedChange = {
+                checked = it
+                onCheck(checked)
             },
             modifier = Modifier.weight(2f)
         )
     }
-}
-
-
-@Composable
-@Preview
-fun ApkInfoItemPreview() {
-    ApkInfoItem(
-        "chrome",
-    )
-}
-
-fun drawableToImageBitmap(drawable: Drawable): androidx.compose.ui.graphics.ImageBitmap {
-    if (drawable is BitmapDrawable && drawable.bitmap != null) {
-        return drawable.bitmap.asImageBitmap()
-    }
-
-    val width = drawable.intrinsicWidth.takeIf { it > 0 } ?: 48
-    val height = drawable.intrinsicHeight.takeIf { it > 0 } ?: 48
-
-    val bitmap = createBitmap(width, height)
-    val canvas = Canvas(bitmap)
-    drawable.setBounds(0, 0, canvas.width, canvas.height)
-    drawable.draw(canvas)
-
-    return bitmap.asImageBitmap()
 }

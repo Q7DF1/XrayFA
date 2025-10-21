@@ -49,14 +49,12 @@ public class TProxyService implements Tun2SocksService{
 
     @Override
     public void startTun2Socks(int fd) {
-        bgExecutor.execute(()-> {
-            String file_config = configure();
-            try {
-                TProxyStartService(file_config,fd);
-            }catch (Exception e){
-                Log.e(TAG, "startTun2Socks: "+ e.getMessage());
-            }
-        });
+        String file_config = configure();
+        try {
+            TProxyStartService(file_config,fd);
+        }catch (Exception e){
+            Log.e(TAG, "startTun2Socks: "+ e.getMessage());
+        }
     }
 
     @Override

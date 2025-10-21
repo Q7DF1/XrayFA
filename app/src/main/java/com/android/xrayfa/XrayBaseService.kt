@@ -23,6 +23,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.util.concurrent.Executor
 import javax.inject.Inject
 
@@ -80,22 +81,26 @@ class XrayBaseService
         super.onDestroy()
         tunFd?.close()
         tunFd = null
-        serviceScope.cancel()
     }
 
 
 
-    private fun startVpn() {
+    private suspend fun startVpn() {
         startForegroundNotification()
         val prefs  = NetPreferences(this)
-        val builder = Builder()
-        tunFd = builder.setSession(resources.getString(R.string.app_label))
-            .addAddress(prefs.tunnelIpv4Address, prefs.tunnelIpv4Prefix)
-            .addDisallowedApplication(applicationContext.packageName)
-            .addRoute("0.0.0.0",0)
-            .setMtu(prefs.tunnelMtu)
-            .setBlocking(false)
-            .establish()
+            val builder = Builder()
+            val allowedPackages = settingsRepo.getAllowedPackages()
+            if (!allowedPackages.isEmpty()) {
+                allowedPackages.forEach {
+                    builder.addAllowedApplication(it)
+                }
+            }
+            tunFd = builder.setSession(resources.getString(R.string.app_label))
+                .addAddress(prefs.tunnelIpv4Address, prefs.tunnelIpv4Prefix)
+                .addRoute("0.0.0.0",0)
+                .setMtu(prefs.tunnelMtu)
+                .setBlocking(false)
+                .establish()
     }
 
     private fun stopVPN() {
@@ -108,11 +113,13 @@ class XrayBaseService
     private fun startV2rayCoreService(link: String,protocol: String) {
         v2rayCoreManager.trafficDetector = trafficDetector
         v2rayCoreManager.startV2rayCore(link,protocol)
-        startVpn()
-        tunFd?.let {
-            tun2SocksService.startTun2Socks(it.fd)
+        serviceScope.launch {
+            startVpn()
+            tunFd?.let {
+                tun2SocksService.startTun2Socks(it.fd)
+            }
         }
-        
+
         
         //postUpdateForegroundNotification()
     }
