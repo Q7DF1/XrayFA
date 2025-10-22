@@ -37,7 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.android.xrayfa.ui.AppsActivity
+import com.android.xrayfa.common.repository.SettingsKeys
 
 @Composable
 fun SettingsScreen(
@@ -46,6 +46,9 @@ fun SettingsScreen(
 ) {
     val settingsState by viewmodel.settingsState.collectAsState()
     val context = LocalContext.current
+    var isShowEditDialog by remember { mutableStateOf(false) }
+    var editInitValue by remember { mutableStateOf("") }
+    var editType by remember { mutableStateOf(SettingsKeys.SOCKS_PORT) }
     Box(
         modifier = modifier.fillMaxSize()
     ) {
@@ -88,7 +91,10 @@ fun SettingsScreen(
                 SettingsFieldBox(
                     title = R.string.socks_port,
                     content = settingsState.socksPort.toString()
-                ) { }
+                ) {
+                    isShowEditDialog = true
+                    editType = SettingsKeys.SOCKS_PORT
+                }
                 SettingsFieldBox(
                     title = R.string.dns_ipv4,
                     content = settingsState.dnsIPv4
@@ -109,6 +115,20 @@ fun SettingsScreen(
                             //todo
                         }
                     }
+                )
+            }
+            if (isShowEditDialog) {
+                EditTextDialog(
+                    initialText = editInitValue,
+                    isNumeric = true,
+                    onConfirm = {
+                        when(editType) {
+                            SettingsKeys.SOCKS_PORT ->
+                                viewmodel.setSocksPort(it.toIntOrNull()?:10808)
+                        }
+                        isShowEditDialog = false
+                    },
+                    onDismiss = {isShowEditDialog = false}
                 )
             }
         }

@@ -3,7 +3,8 @@ package xrayfa.tun2socks
 interface Tun2SocksService {
 
 
-    fun startTun2Socks(fd: Int)
+    suspend fun startTun2Socks(fd: Int)
 
-    fun stopTun2Socks()
+    suspend fun stopTun2Socks()
+
 }

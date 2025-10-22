@@ -21,7 +21,8 @@ import javax.inject.Singleton
 
 @Module(includes = [
     ServiceModule::class,
-    ActivityModule::class
+    ActivityModule::class,
+    CoroutinesModule::class
 ])
 abstract class GlobalModule {
 

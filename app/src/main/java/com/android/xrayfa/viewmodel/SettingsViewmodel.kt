@@ -38,6 +38,12 @@ class SettingsViewmodel(
         }
     }
 
+    fun setSocksPort(port: Int) {
+        viewModelScope.launch {
+            repository.setSocksPort(port)
+        }
+    }
+
     fun startAppsActivity(context: Context) {
         val intent = Intent(context, AppsActivity::class.java)
         context.startActivity(intent)
