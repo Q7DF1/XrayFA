@@ -89,6 +89,8 @@ class XrayBaseService
                 allowedPackages.forEach {
                     builder.addAllowedApplication(it)
                 }
+            }else {
+                builder.addDisallowedApplication(applicationContext.packageName)
             }
             tunFd = builder.setSession(resources.getString(R.string.app_label))
                 .addAddress(prefs.tunnelIpv4Address, prefs.tunnelIpv4Prefix)

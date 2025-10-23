@@ -3,6 +3,7 @@ package com.android.xrayfa.ui.component
 import android.content.Intent
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +36,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.common.repository.SettingsKeys
@@ -92,6 +94,7 @@ fun SettingsScreen(
                     title = R.string.socks_port,
                     content = settingsState.socksPort.toString()
                 ) {
+                    editInitValue = settingsState.socksPort.toString()
                     isShowEditDialog = true
                     editType = SettingsKeys.SOCKS_PORT
                 }
@@ -110,6 +113,7 @@ fun SettingsScreen(
                 SettingsFieldBox(
                     title = R.string.dns_ipv6,
                     content = settingsState.dnsIPv6,
+                    enable = settingsState.ipV6Enable,
                     onClick = {
                         if (settingsState.ipV6Enable) {
                             //todo
@@ -128,7 +132,9 @@ fun SettingsScreen(
                         }
                         isShowEditDialog = false
                     },
-                    onDismiss = {isShowEditDialog = false}
+                    onDismiss = {
+                        isShowEditDialog = false
+                    }
                 )
             }
         }
@@ -256,11 +262,14 @@ fun SettingsSelectBox(
 fun SettingsFieldBox(
     @StringRes title: Int,
     content: String,
+    enable: Boolean = true,
     onClick: () ->Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth()
-            .clickable{onClick()},
+            .clickable(
+                enabled = enable
+            ){onClick()},
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
@@ -270,10 +279,12 @@ fun SettingsFieldBox(
             Text(
                 text = stringResource(title),
                 style = MaterialTheme.typography.titleMedium,
+                color = if (enable) MaterialTheme.colorScheme.onBackground else Color.Gray
             )
             Text(
                 text = content,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (enable) MaterialTheme.colorScheme.onBackground else Color.Gray
             )
         }
     }

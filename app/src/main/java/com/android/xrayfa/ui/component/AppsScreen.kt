@@ -13,15 +13,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
@@ -32,7 +38,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.android.xrayfa.R
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,8 +51,29 @@ fun AppsScreen(
 
     val context = LocalContext.current
     Scaffold(
-        topBar = {TopAppBar(
-            title = {Text("all app")}
+        topBar = {
+            TopAppBar(
+                title = {Text(stringResource(R.string.all_app_settings))},
+                navigationIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "all_app_settings_lab"
+                    )
+                                 },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            viewmodel.setAllowedPackages(emptyList()) {
+                                viewmodel.getInstalledPackages(context)
+                            }
+                        }
+                    ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "unselect all app"
+                    )
+                }
+            }
         )}
     ) { paddingValue ->
 
@@ -63,7 +92,7 @@ fun AppsScreen(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }else {
-                val appInfos = viewmodel.appInfoList
+                val appInfos by viewmodel.appInfos.collectAsState()
                 LazyColumn(
                     state = listState
                 ) {

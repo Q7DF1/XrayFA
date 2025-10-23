@@ -5,7 +5,9 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
+import android.util.Log
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -28,15 +30,17 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import kotlinx.coroutines.delay
 import androidx.core.graphics.createBitmap
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 
 
 data class AppInfo(
     val appName: String,
     val packageName: String,
     val icon: Painter,
-    val allow: Boolean = false
+    var allow: Boolean = false
 )
 
 class AppsViewmodel(
@@ -46,6 +50,8 @@ class AppsViewmodel(
 
     var searchAppCompleted by mutableStateOf(false)
 
+    private val _appInfos = MutableStateFlow<List<AppInfo>>(emptyList())
+    var appInfos: StateFlow<List<AppInfo>> = _appInfos
     val appInfoList = mutableStateListOf<AppInfo>()
     val allowedPackagesState = settingsRepo.packagesFlow.stateIn(
         scope = viewModelScope,
@@ -53,9 +59,10 @@ class AppsViewmodel(
         initialValue = emptyList()
     )
 
-    fun setAllowedPackages(packages: List<String>) {
+    fun setAllowedPackages(packages: List<String>,callback: suspend ()-> Unit) {
         viewModelScope.launch {
             settingsRepo.setAllowedPackages(packages)
+            callback()
         }
     }
 
@@ -71,40 +78,47 @@ class AppsViewmodel(
         }
     }
 
-    fun getInstalledPackages(context: Context){
-        if (searchAppCompleted) return
-        val pm = context.packageManager
-        viewModelScope.launch(Dispatchers.IO) {
-            val installedPackages = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS)
-            val list = installedPackages.mapNotNull { pkgInfo ->
-                val appInfo = pkgInfo.applicationInfo ?: return@mapNotNull null
 
-                val label = runCatching {
-                    pm.getApplicationLabel(appInfo).toString().trim()
-                }.getOrNull() ?: return@mapNotNull null
-                val hasInternet = pkgInfo.requestedPermissions
-                    ?.contains(android.Manifest.permission.INTERNET) == true
-                if (!hasInternet || label.isEmpty()) {
-                    return@mapNotNull null
-                }
-
-                val drawable = runCatching { pm.getApplicationIcon(appInfo) }.getOrNull()
-                    ?: return@mapNotNull null
-
-                val allow = settingsRepo.getAllowedPackages().contains(pkgInfo.packageName)
-                AppInfo(
-                    appName = label,
-                    packageName = pkgInfo.packageName,
-                    icon = drawable.toPainter(),
-                    allow = allow
-                )
-            }.sortedBy { it.appName.lowercase() }
-            withContext(Dispatchers.Main) {
-                appInfoList.clear()
-                appInfoList.addAll(list)
-                searchAppCompleted = true
+    suspend fun refreshAppInfoList() {
+        Log.i("===", "refreshAppInfoList:  ${_appInfos.value.hashCode()}")
+        if (settingsRepo.getAllowedPackages().isEmpty()) {
+            val list = _appInfos.value.map {
+                it.copy(allow = false)
             }
+            _appInfos.value = list
         }
+        Log.i("==2", "refreshAppInfoList:  ${_appInfos.value.hashCode()}")
+    }
+
+    suspend fun getInstalledPackages(context: Context){
+        val pm = context.packageManager
+        searchAppCompleted = false
+        val installedPackages = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS)
+        val list = installedPackages.mapNotNull { pkgInfo ->
+            val appInfo = pkgInfo.applicationInfo ?: return@mapNotNull null
+
+            val label = runCatching {
+                pm.getApplicationLabel(appInfo).toString().trim()
+            }.getOrNull() ?: return@mapNotNull null
+            val hasInternet = pkgInfo.requestedPermissions
+                ?.contains(android.Manifest.permission.INTERNET) == true
+            if (!hasInternet || label.isEmpty()) {
+                return@mapNotNull null
+            }
+
+            val drawable = runCatching { pm.getApplicationIcon(appInfo) }.getOrNull()
+                ?: return@mapNotNull null
+
+            val allow = settingsRepo.getAllowedPackages().contains(pkgInfo.packageName)
+            AppInfo(
+                appName = label,
+                packageName = pkgInfo.packageName,
+                icon = drawable.toPainter(),
+                allow = allow
+            )
+        }.sortedBy { it.appName.lowercase() }
+        _appInfos.value = list
+        searchAppCompleted = true
     }
 }
 
