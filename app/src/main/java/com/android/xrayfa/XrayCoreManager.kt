@@ -26,7 +26,8 @@ import javax.inject.Singleton
 class XrayCoreManager
 @Inject constructor(
     @Application private val context: Context,
-    @Application private val coroutineScope: CoroutineScope
+    @Application private val coroutineScope: CoroutineScope,
+    private val parserFactory: ParserFactory
 ) {
 
     companion object {
@@ -83,7 +84,7 @@ class XrayCoreManager
         startOrClose = true
         coroutineScope.launch {
             try {
-                coreController?.startLoop(ParserFactory.getParser(protocol).parse(link))
+                coreController?.startLoop(parserFactory.getParser(protocol).parse(link))
             }catch (e: Exception) {
                 Log.e(TAG, "startV2rayCore failed: ${e.message}")
             }

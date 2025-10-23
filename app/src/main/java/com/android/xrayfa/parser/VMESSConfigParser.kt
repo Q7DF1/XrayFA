@@ -1,5 +1,6 @@
 package com.android.xrayfa.parser
 
+import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.model.Link
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.OutboundObject
@@ -19,8 +20,14 @@ import com.android.xrayfa.model.stream.WsSettings
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import java.util.Base64
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class VMESSConfigParser: AbstractConfigParser<VMESSOutboundConfigurationObject>() {
+@Singleton
+class VMESSConfigParser
+@Inject constructor(
+    override val settingsRepo: SettingsRepository
+): AbstractConfigParser<VMESSOutboundConfigurationObject>() {
 
     companion object {
         const val TAG = "VMESSConfigParser"

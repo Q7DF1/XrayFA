@@ -39,7 +39,8 @@ import kotlin.jvm.java
 class XrayViewmodel(
     private val linkRepository: LinkRepository,
     private val xrayBaseServiceManager: XrayBaseServiceManager,
-    private val xrayCoreManager: XrayCoreManager
+    private val xrayCoreManager: XrayCoreManager,
+    private val parserFactory: ParserFactory
 ): ViewModel(){
 
     companion object {
@@ -94,7 +95,7 @@ class XrayViewmodel(
             // 后台线程逐条解析
             links.forEach { link ->
                 val node = withContext(Dispatchers.Default) {
-                    ParserFactory.getParser(link.protocolPrefix).preParse(link)
+                    parserFactory.getParser(link.protocolPrefix).preParse(link)
                 }
                 parsedNodes.add(node)
                 _nodes.value = parsedNodes.toList() // 每条解析完就更新
@@ -170,7 +171,7 @@ class XrayViewmodel(
         val allLinks = linkRepository.allLinks
         val nodes = allLinks.map { links ->
             links.map { link ->
-                return@map ParserFactory.getParser(link.protocolPrefix).preParse(link)
+                return@map parserFactory.getParser(link.protocolPrefix).preParse(link)
             }
         }.flowOn(Dispatchers.IO)
 
@@ -180,7 +181,7 @@ class XrayViewmodel(
     fun getNodeById(id: Int): Flow<Node> {
         val link = linkRepository.loadLinksById(id)
         return link.map {
-            ParserFactory.getParser(it.protocolPrefix).preParse(it)
+            parserFactory.getParser(it.protocolPrefix).preParse(it)
         }
     }
 
@@ -222,7 +223,7 @@ class XrayViewmodel(
     fun getSelectedNode(): Flow<Node?> {
         return linkRepository.querySelectedLink().map {
             it?.let {
-                ParserFactory.getParser(it.protocolPrefix).preParse(it)
+                parserFactory.getParser(it.protocolPrefix).preParse(it)
             }
         }
     }
@@ -300,12 +301,18 @@ class XrayViewmodelFactory
 @Inject constructor(
     private val repository: LinkRepository,
     private val xrayBaseServiceManager: XrayBaseServiceManager,
-    private val xrayCoreManager: XrayCoreManager
+    private val xrayCoreManager: XrayCoreManager,
+    private val parserFactory: ParserFactory
 ): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(XrayViewmodel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return XrayViewmodel(repository,xrayBaseServiceManager,xrayCoreManager) as T
+            return XrayViewmodel(
+                repository,
+                xrayBaseServiceManager,
+                xrayCoreManager,
+                parserFactory
+            ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -13,7 +13,8 @@ import com.android.xrayfa.repository.LinkRepository
 import javax.inject.Inject
 
 class DetailViewmodel(
-    val repository: LinkRepository
+    val repository: LinkRepository,
+    val parserFactory: ParserFactory
 ): ViewModel() {
 
 
@@ -24,11 +25,11 @@ class DetailViewmodel(
         content: String
     ): OutboundObject<T> {
         @Suppress("UNCHECKED_CAST")
-        return ParserFactory.getParser(protocol).parseOutbound(content) as OutboundObject<T>
+        return parserFactory.getParser(protocol).parseOutbound(content) as OutboundObject<T>
     }
 
     fun parseVLESSProtocol(content: String): VLESSConfigParser.VLESSConfig {
-        return (ParserFactory.getParser("vless") as VLESSConfigParser).parseVLESS(content)
+        return (parserFactory.getParser("vless") as VLESSConfigParser).parseVLESS(content)
     }
     
     fun parseVMESSProtocol(content: String): OutboundObject<VMESSOutboundConfigurationObject> {
@@ -51,12 +52,13 @@ class DetailViewmodel(
 
 class DetailViewmodelFactory
 @Inject constructor(
-    val repository: LinkRepository
+    val repository: LinkRepository,
+    val parserFactory: ParserFactory
 ): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DetailViewmodel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return DetailViewmodel(repository) as T
+            return DetailViewmodel(repository,parserFactory) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

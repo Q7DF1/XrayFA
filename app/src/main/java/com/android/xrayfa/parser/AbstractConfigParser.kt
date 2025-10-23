@@ -34,7 +34,7 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject> {
 
     private var apiEnable: Boolean = false
 
-    protected lateinit var settingsRepo: SettingsRepository
+    abstract val settingsRepo: SettingsRepository
 
     suspend fun getBaseInboundConfig(): InboundObject {
         val settingsState = settingsRepo.settingsFlow.first()

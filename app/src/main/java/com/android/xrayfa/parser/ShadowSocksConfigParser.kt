@@ -1,5 +1,6 @@
 package com.android.xrayfa.parser
 
+import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.model.Link
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.OutboundObject
@@ -8,8 +9,14 @@ import com.android.xrayfa.model.ShadowSocksServerObject
 import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import java.util.Base64
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class ShadowSocksConfigParser: AbstractConfigParser<ShadowSocksOutboundConfigurationObject>() {
+@Singleton
+class ShadowSocksConfigParser
+@Inject constructor(
+    override val settingsRepo: SettingsRepository
+): AbstractConfigParser<ShadowSocksOutboundConfigurationObject>() {
 
     data class ShadowSocksConfig(
         val method: String,

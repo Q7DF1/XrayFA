@@ -1,5 +1,6 @@
 package com.android.xrayfa.parser
 
+import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.model.Link
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.OutboundObject
@@ -13,8 +14,14 @@ import com.android.xrayfa.model.stream.WsSettings
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class TrojanConfigParser: AbstractConfigParser<TrojanOutboundConfigurationObject>() {
+@Singleton
+class TrojanConfigParser
+@Inject constructor(
+    override val settingsRepo: SettingsRepository
+): AbstractConfigParser<TrojanOutboundConfigurationObject>() {
 
 
     data class TrojanConfig(
@@ -66,6 +73,7 @@ class TrojanConfigParser: AbstractConfigParser<TrojanOutboundConfigurationObject
             original = url
         )
     }
+
 
     override fun parseOutbound(url: String): OutboundObject<TrojanOutboundConfigurationObject> {
         val trojanConfig = parseTrojan(url)
