@@ -187,6 +187,7 @@ fun Dashboard(
     val context = LocalContext.current
     val delay by xrayViewmodel.delay.collectAsState()
     val test by xrayViewmodel.testing.collectAsState()
+    val isRunning by xrayViewmodel.isServiceRunning.collectAsState()
     Surface(
         color = Color(0xFF00BFFF),
         tonalElevation = 8.dp,
@@ -204,7 +205,8 @@ fun Dashboard(
                     modifier = Modifier.align(BiasAlignment(0f,-0.5f)),
                     onTest = {xrayViewmodel.measureDelay(context = context)},
                     delayMs = delay,
-                    testing = test
+                    testing = test,
+                    enableTest = isRunning
                 )
             }?: Text(
                 //TODO more beautiful

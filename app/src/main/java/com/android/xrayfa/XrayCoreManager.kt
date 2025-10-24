@@ -67,17 +67,18 @@ class XrayCoreManager
     }
 
 
-    fun measureDelaySync(url: String): String {
+    fun measureDelaySync(url: String): Long {
         if (coreController?.isRunning == false) {
-            return "service not start"
+            return -1
         }
         var delay = 0L
         try {
             delay = coreController?.measureDelay(url) ?:0L
         }catch (e: Exception) {
-            return e.message.toString()
+            Log.e(TAG, "measureDelaySync: ${e.message}", )
+            return -1
         }
-        return delay.toString()
+        return delay
     }
 
     fun startV2rayCore(link: String,protocol: String) {

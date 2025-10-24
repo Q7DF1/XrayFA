@@ -56,7 +56,7 @@ class XrayViewmodel(
     private val _upSpeed = MutableStateFlow(0L)
     val upSpeed: StateFlow<Long> = _upSpeed.asStateFlow()
 
-    private val _delay = MutableStateFlow("")
+    private val _delay = MutableStateFlow(-1L)
     val delay = _delay.asStateFlow()
 
     private val _testing = MutableStateFlow(false)

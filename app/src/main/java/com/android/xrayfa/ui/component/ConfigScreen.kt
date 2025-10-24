@@ -17,6 +17,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,23 +31,28 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -56,6 +62,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -70,6 +77,7 @@ import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfigScreen(
     onNavigate2Home: (Int) -> Unit,
@@ -80,6 +88,21 @@ fun ConfigScreen(
     val deleteDialog by xrayViewmodel.deleteDialog.collectAsState()
     val context = LocalContext.current
     val listState = rememberLazyListState()
+    var showSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
+
+    val scanOptions = ScanOptions()
+    scanOptions.setOrientationLocked(true)
+    scanOptions.captureActivity = QRCodeActivity::class.java
+    val barcodeLauncher = rememberLauncherForActivityResult(ScanContract()) {
+            result->
+        if (result.contents == null) {
+            Toast.makeText(context, "Cancelled", Toast.LENGTH_LONG).show();
+        }else {
+            xrayViewmodel.addLink(result.contents)
+        }
+    }
+
     Box(
         modifier = Modifier.fillMaxSize()
             .padding(16.dp)
@@ -125,14 +148,68 @@ fun ConfigScreen(
         AnimatedVisibility(
             visible = !listState.isAtBottom,
             enter = fadeIn(),
-            exit = fadeOut()
+            exit = fadeOut(),
+            modifier = Modifier.align (BiasAlignment(1f,0.9f))
         ) {
-            AddConfigButton(
-                xrayViewmodel = xrayViewmodel,
-                modifier = Modifier.align(BiasAlignment(1f,0.8f))
-            )
+//            AddConfigButton(
+//                xrayViewmodel = xrayViewmodel,
+//                modifier = Modifier.align(BiasAlignment(1f,0.8f))
+//            )
+            FloatingActionButton(
+                onClick = {showSheet = true},
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "add config"
+                )
+            }
         }
 
+        if (showSheet) {
+            ModalBottomSheet(
+                onDismissRequest = {showSheet = false},
+                sheetState = sheetState
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.weight(1f)
+                            .clickable {
+                                xrayViewmodel.addV2rayConfigFromClipboard(context)
+                            }
+                            .clip(CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = ""
+                        )
+                        Text(
+                            text = stringResource(R.string.clipboard_import),
+                        )
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.weight(1f)
+                            .clickable {
+                                barcodeLauncher.launch(scanOptions)
+                                showSheet = false
+                            }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = ""
+                        )
+                        Text(
+                            text = stringResource(R.string.qrcode_import)
+                        )
+                    }
+                }
+            }
+        }
 
         qrBitMap?.let {
             Dialog(onDismissRequest = { xrayViewmodel.dismissDialog() }) {
@@ -219,131 +296,6 @@ fun ConfigScreen(
 
 }
 
-
-@Composable
-fun AddConfigButton(
-    xrayViewmodel: XrayViewmodel,
-    modifier: Modifier = Modifier
-) {
-    var expanded by remember { mutableStateOf(false) }
-    var toggle by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-    val scanOptions = ScanOptions()
-    scanOptions.setOrientationLocked(true)
-    scanOptions.captureActivity = QRCodeActivity::class.java
-    val barcodeLauncher = rememberLauncherForActivityResult(ScanContract()) {
-            result->
-        if (result.contents == null) {
-            Toast.makeText(context, "Cancelled", Toast.LENGTH_LONG).show();
-        }else {
-            xrayViewmodel.addLink(result.contents)
-        }
-    }
-
-    Box(
-        contentAlignment = Alignment.BottomEnd,
-        modifier = modifier.fillMaxSize()
-    ) {
-        Row(
-            verticalAlignment = Alignment.Bottom,
-            horizontalArrangement = Arrangement.End,
-        ) {
-            AnimatedVisibility(
-                visible = expanded,
-                enter = scaleIn(
-                    initialScale = 0.8f,
-                    animationSpec = tween(250)
-                ) + fadeIn(),
-                exit = scaleOut(
-                    targetScale = 0.8f,
-                    animationSpec = tween(250)
-                ) + fadeOut()
-            ) {
-                Surface(
-                    color = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 8.dp,
-                    modifier = Modifier.border(
-                        width = 2.dp,
-                        color = Color.Gray,
-                        shape = RoundedCornerShape(8.dp)
-                    ),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Column(
-                        verticalArrangement = Arrangement.Bottom,
-                        horizontalAlignment = Alignment.Start,
-                        modifier = Modifier.padding(horizontal = 8.dp)
-                    ) {
-                        PopUpButton(
-                            icon = Icons.Default.Edit,
-                            text = stringResource(R.string.clipboard_import),
-                            onClick = {
-                                xrayViewmodel.addV2rayConfigFromClipboard(context)
-                            }
-                        )
-                        HorizontalDivider(
-                            color = Color.Gray,
-                            thickness = 1.dp,
-                            modifier = Modifier.width(200.dp)
-                                .padding(horizontal = 16.dp)
-                        )
-                        PopUpButton(
-                            icon = Icons.Default.Build,
-                            text = stringResource(R.string.qrcode_import),
-                            onClick = {barcodeLauncher.launch(scanOptions)}
-                        )
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            FloatingActionButton(
-                onClick = {
-                    expanded = !expanded
-                }
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                ) {
-                    Icon(
-                        imageVector = if (expanded) Icons.Default.Done else Icons.Default.Add,
-                        contentDescription = ""
-                    )
-
-                    AnimatedVisibility(visible = toggle) {
-                        Text(
-                            text = getString(LocalContext.current,R.string.add_config),
-                            modifier = Modifier.padding(start = 8.dp, end = 3.dp)
-                        )
-                    }
-                }
-            }
-        } //end of Row
-
-    }
-}
-
-
-@Composable
-fun PopUpButton(
-    icon: ImageVector,
-    text: String,
-    onClick: () -> Unit = {},
-) {
-    Row(
-        modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
-            .clickable(
-                onClick = onClick
-            ),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(icon, contentDescription = "Edit")
-        Text(
-            text = text,
-            modifier = Modifier.padding(start = 8.dp, end = 3.dp),
-            style = MaterialTheme.typography.bodyMedium
-        )
-    }
-}
 
 val LazyListState.isAtBottom: Boolean
     get() {
