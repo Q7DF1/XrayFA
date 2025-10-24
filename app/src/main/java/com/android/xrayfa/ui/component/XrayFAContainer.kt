@@ -34,8 +34,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.android.xrayfa.ui.navigation.About
-import com.android.xrayfa.ui.navigation.AboutScreen
+import com.android.xrayfa.ui.navigation.Logcat
 import com.android.xrayfa.ui.navigation.Config
 import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.ui.navigation.list_navigation
@@ -118,8 +117,8 @@ fun XrayFAContainer(
                             title = R.string.config
                             actionImageVector = Icons.Default.Search
                         }
-                        "about" -> {
-                            title = R.string.about
+                        "logcat" -> {
+                            title = R.string.logcat
                             actionImageVector = Icons.Default.Star
                         }
                         else -> throw RuntimeException("unknown route")
@@ -173,8 +172,8 @@ fun XrayFAContainer(
                 )
             }
 
-            composable(route = About.route) {
-                AboutScreen()
+            composable(route = Logcat.route) {
+                LogcatScreen(xrayViewmodel)
             }
         }
     }

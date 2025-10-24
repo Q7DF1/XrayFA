@@ -7,16 +7,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 
 
-data object About : NavigateDestination {
+data object Logcat : NavigateDestination {
     override val icon: ImageVector
         get() = Icons.Default.Person
     override val route: String
-        get() = "about"
+        get() = "logcat"
     override val containerColor: Color
         get() = Color.White
 }
-
-
-
-@Composable
-fun AboutScreen() {}

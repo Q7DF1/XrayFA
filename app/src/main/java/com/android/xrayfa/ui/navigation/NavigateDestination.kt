@@ -11,7 +11,7 @@ interface NavigateDestination {
 }
 
 
-val list_navigation = listOf(Config,Home(), About)
+val list_navigation = listOf(Config,Home(), Logcat)
 
 
 

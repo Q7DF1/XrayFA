@@ -7,7 +7,7 @@
     <string name="connected">connected</string>
     <string name="home">home</string>
     <string name="config">config</string>
-    <string name="about">about</string>
+    <string name="logcat">logcat</string>
     <string name="add_config">add config</string>
     <string name="clipboard_import">Clipboard import</string>
     <string name="no_configuration">No configuration file</string>

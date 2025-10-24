@@ -35,6 +35,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlin.jvm.java
+import kotlin.math.log
 
 class XrayViewmodel(
     private val linkRepository: LinkRepository,
@@ -77,6 +78,9 @@ class XrayViewmodel(
     private val _notConfig = MutableStateFlow(false)
     val notConfig = _notConfig.asStateFlow()
     var deleteLinkId = -1
+
+    private val _logList = MutableStateFlow<List<String>>(emptyList())
+    val logList = _logList.asStateFlow()
 
 
     init {
@@ -294,6 +298,38 @@ class XrayViewmodel(
                 Log.i(TAG, "measureDelay: ${_delay.value}")
             }
         }
+    }
+
+    /**
+     * Logcat
+     */
+    fun getLogcatContent() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+
+                val lst = LinkedHashSet<String>()
+                lst.add("logcat")
+                lst.add("-d")
+                lst.add("-v")
+                lst.add("time")
+                lst.add("-s")
+                lst.add("GoLog,tun2socks,AndroidRuntime,System.err")
+                Log.i(TAG, "getLogcatContent: 1")
+                val process = Runtime.getRuntime().exec(lst.toTypedArray())
+                Log.i(TAG, "getLogcatContent: 2")
+                val log = process.inputStream.bufferedReader().readText().lines()
+                Log.i(TAG, "getLogcatContent: 3")
+                val error = process.errorStream.bufferedReader().readText()
+                if (error.isNotEmpty()) {
+                    Log.e(TAG, "Logcat error: $error")
+                }
+                Log.i(TAG, "getLogcatContent: ${log.size}")
+                _logList.value = log
+            }catch (e: Exception) {
+                Log.i(TAG, "getLogcatContent: ${e.message}")
+            }
+        }
+
     }
 }
 
