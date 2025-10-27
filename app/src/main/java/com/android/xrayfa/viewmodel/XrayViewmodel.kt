@@ -314,11 +314,8 @@ class XrayViewmodel(
                 lst.add("time")
                 lst.add("-s")
                 lst.add("GoLog,tun2socks,AndroidRuntime,System.err")
-                Log.i(TAG, "getLogcatContent: 1")
                 val process = Runtime.getRuntime().exec(lst.toTypedArray())
-                Log.i(TAG, "getLogcatContent: 2")
                 val log = process.inputStream.bufferedReader().readText().lines()
-                Log.i(TAG, "getLogcatContent: 3")
                 val error = process.errorStream.bufferedReader().readText()
                 if (error.isNotEmpty()) {
                     Log.e(TAG, "Logcat error: $error")
