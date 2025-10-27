@@ -28,5 +28,6 @@
     <string name="auto_mode">跟随系统</string>
     <string name="dark_mode_description">选择是否开启深色模式</string>
     <string name="allow_app_settings">选择针对app代理</string>
-    <string name="select_app_settings">选择app开启代理</string>"
+    <string name="select_app_settings">选择app开启代理</string>
+    <string name="repo_site">仓库</string>"
 </resources>

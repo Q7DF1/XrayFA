@@ -121,6 +121,16 @@ fun SettingsScreen(
                     }
                 )
             }
+            SettingsGroup(
+                groupName = "other"
+            ) {
+                SettingsFieldBox(
+                    title = R.string.repo_site,
+                    ""
+                ) {
+                    viewmodel.openRepo(context)
+                }
+            }
             if (isShowEditDialog) {
                 EditTextDialog(
                     initialText = editInitValue,
