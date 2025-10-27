@@ -163,7 +163,6 @@ fun ConfigScreen(
                     contentDescription = "add config"
                 )
             }
-            Surface {  }
         }
 
         if (showSheet) {

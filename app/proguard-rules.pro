@@ -19,3 +19,11 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-keep class xrayfa.tun2socks.TProxyService {
+    native <methods>;
+}
+
+-keepattributes SourceFile,LineNumberTable
+
+-keep class com.android.xrayfa.model.** { *; }
