@@ -35,7 +35,7 @@ import kotlin.collections.forEach
 @Composable
 fun XrayBottomNav(
     items: List<NavigateDestination>,
-    selectedRoute: String,
+    currentScreen: NavigateDestination,
     onItemSelected: (NavigateDestination) -> Unit,
     labelProvider: (NavigateDestination) -> String,
     modifier: Modifier = Modifier,
@@ -51,7 +51,7 @@ fun XrayBottomNav(
             verticalAlignment = Alignment.CenterVertically
         ) {
             items.forEach { item ->
-                val selected = item.route == selectedRoute
+                val selected = item.route == currentScreen.route
                 val iconScale by animateFloatAsState(
                     targetValue = if (selected) 1.14f else 1f,
                     animationSpec = tween(

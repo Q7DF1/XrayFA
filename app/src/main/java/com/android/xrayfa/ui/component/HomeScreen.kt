@@ -75,7 +75,6 @@ import kotlin.coroutines.coroutineContext
 
 @Composable
 fun HomeScreen(
-    id: Int? = null,
     xrayViewmodel: XrayViewmodel,
     modifier: Modifier = Modifier
 ) {
@@ -115,7 +114,7 @@ fun V2rayStarter(
     val toggle by xrayViewmodel.isServiceRunning.collectAsState()
     val context = LocalContext.current
     val color by animateColorAsState(
-        targetValue = if (toggle) Home().containerColor else Color.Gray,
+        targetValue = if (toggle) Home.containerColor else Color.Gray,
         animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
         label = "iconColorAnim"
     )

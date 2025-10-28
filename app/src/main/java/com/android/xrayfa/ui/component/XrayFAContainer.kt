@@ -1,7 +1,12 @@
 package com.android.xrayfa.ui.component
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
@@ -29,11 +34,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat.getString
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavType
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.android.xrayfa.ui.navigation.Logcat
 import com.android.xrayfa.ui.navigation.Config
 import com.android.xrayfa.ui.navigation.Home
@@ -47,14 +52,14 @@ import com.android.xrayfa.ui.SettingsActivity
 @Composable
 fun XrayFAContainer(
     xrayViewmodel: XrayViewmodel,
+    activity: Activity,
     modifier: Modifier = Modifier
 ) {
     val naviController = rememberNavController()
-    var selected by remember { mutableStateOf("home") }
-    var imageVector by remember { mutableStateOf(Icons.Default.Home) }
+    val currentBackStack by naviController.currentBackStackEntryAsState()
+    val currentDestination = currentBackStack?.destination
+    val currentScreen = list_navigation.find { it.route == currentDestination?.route } ?: Home
     var actionImageVector by remember { mutableStateOf(Icons.Default.Settings) }
-    var title by remember { mutableIntStateOf(R.string.home) }
-    var isHome by remember { mutableStateOf(true)}
     val context = LocalContext.current
     var onActionbarClick by remember { mutableStateOf({onSettingsClick(context)}) } //TODO
 
@@ -63,12 +68,12 @@ fun XrayFAContainer(
             TopAppBar(
                 title = {
                     Text(
-                        text = getString(LocalContext.current,title),
+                        text = getString(LocalContext.current,currentScreen.title),
                     )
                 },
                 navigationIcon = {
                     Icon(
-                        imageVector = imageVector,
+                        imageVector = currentScreen.icon,
                         contentDescription = ""
                     )
                 },
@@ -83,7 +88,7 @@ fun XrayFAContainer(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = if (isHome) {
+                    containerColor = if (currentScreen.route == "home") {
                         MaterialTheme.colorScheme.primary
                     }else {
                         MaterialTheme.colorScheme.background
@@ -95,30 +100,18 @@ fun XrayFAContainer(
 
             XrayBottomNav(
                 items = list_navigation,
-                selectedRoute = selected,
+                currentScreen = currentScreen,
                 onItemSelected = { item ->
-                    naviController.navigate(route = item.route) {
-                        launchSingleTop= true
-                        restoreState = true
-                        popUpTo(naviController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                    }
-                    selected = item.route
-                    imageVector = item.icon
-                    isHome = item.route == "home"
+                    naviController.navigateSingleTopTo(item.route)
                     when(item.route) {
                         "home" -> {
-                            title = R.string.home
                             actionImageVector = Icons.Default.Settings
                             onActionbarClick = {onSettingsClick(context)}
                         }
                         "config" -> {
-                            title = R.string.config
                             actionImageVector = Icons.Default.Search
                         }
                         "logcat" -> {
-                            title = R.string.logcat
                             actionImageVector = Icons.Default.Star
                         }
                         else -> throw RuntimeException("unknown route")
@@ -133,46 +126,56 @@ fun XrayFAContainer(
 
         NavHost(
             navController = naviController,
-            startDestination = Home().route,
+            startDestination = Home.route,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(
-                route = "home?{id}",
-                arguments = listOf(
-                    navArgument("id") {
-                        type = NavType.IntType
-                        defaultValue = -1
-                    }
-                )
+                route = Home.route,
+                enterTransition = {
+                    slideInHorizontally(initialOffsetX = { x->
+                        if (initialState.destination.route == Config.route) x else -x
+                    }, animationSpec = tween(400))
+                },
+                exitTransition = {
+                    slideOutHorizontally(targetOffsetX = { x ->
+                        if (targetState.destination.route == Config.route) x else -x
+                    }, animationSpec = tween(400))
+                }
             ) { backStackEntry ->
-                val id = backStackEntry.arguments?.getInt("id")
                 HomeScreen(
-                    id = if (id == -1) null else id,
                     xrayViewmodel = xrayViewmodel,
                     modifier = modifier,
                 )
             }
 
-            composable(route = Config.route) {
+            composable(
+                route = Config.route,
+                enterTransition = {
+                    slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(400))
+                },
+                exitTransition = {
+                    slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(400))
+                }
+            ) {
                 ConfigScreen(
                     onNavigate2Home = { id->
                         if (!xrayViewmodel.isServiceRunning.value) {
-                            naviController.navigate(route = Home().route) {
-                                launchSingleTop= true
-                                restoreState = true
-                                popUpTo(naviController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                            }
-                            selected = Home().route
-                            isHome = true
+                            naviController.navigateSingleTopTo(Home.route)
                         }
                     },
                     xrayViewmodel = xrayViewmodel
                 )
             }
 
-            composable(route = Logcat.route) {
+            composable(
+                route = Logcat.route,
+                enterTransition = {
+                    slideInHorizontally(initialOffsetX = {it}, animationSpec = tween(400))
+                },
+                exitTransition = {
+                    slideOutHorizontally(targetOffsetX = {-it}, animationSpec = tween(400))
+                }
+            ) {
                 LogcatScreen(xrayViewmodel)
             }
         }
@@ -181,4 +184,17 @@ fun XrayFAContainer(
 
 fun onSettingsClick(context: Context) {
     context.startActivity(Intent(context, SettingsActivity::class.java))
+}
+
+
+fun NavHostController.navigateSingleTopTo(route: String) {
+    this.navigate(route) {
+        popUpTo(
+            this@navigateSingleTopTo.graph.findStartDestination().id
+        ) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
+    }
 }

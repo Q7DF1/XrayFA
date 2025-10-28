@@ -61,15 +61,15 @@ import com.android.xrayfa.ui.component.NodeCard
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.android.xrayfa.R
 
-data class Home(
-    val id: Int? = null
-): NavigateDestination {
+data object Home: NavigateDestination {
     override val icon: ImageVector
         get() = Icons.Default.Home
     override val route: String
-        get() = if (id != null) "home?$id" else "home"
+        get() = "home"
     override val containerColor: Color
         get() = Color(0xFF00BFFF)
+    override val title: Int
+        get() = R.string.home
 }
 
 
