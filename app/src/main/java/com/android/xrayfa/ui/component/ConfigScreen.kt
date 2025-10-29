@@ -228,9 +228,15 @@ fun ConfigScreen(
                             modifier = Modifier.size(200.dp)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = { xrayViewmodel.dismissDialog() }) {
+
+                        Button(
+                            onClick = {
+                                xrayViewmodel.exportConfigToClipboard(context)
+                                xrayViewmodel.dismissDialog()
+                            }
+                        ) {
                             Text(
-                                text = stringResource(R.string.close_window)
+                                text = stringResource(R.string.clipboard_export)
                             )
                         }
                     }

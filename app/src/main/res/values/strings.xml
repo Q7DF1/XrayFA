@@ -35,4 +35,6 @@
     <string name="select_app_settings">select special app  to config proxy</string>
     <string name="all_app_settings" translatable="false">Apps</string>
     <string name="repo_site">repository</string>
+    <string name="no_log_text">No log printing</string>
+    <string name="clipboard_export">clipboard export</string>
 </resources>

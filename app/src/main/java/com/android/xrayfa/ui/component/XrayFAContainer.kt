@@ -10,6 +10,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -31,7 +32,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.getString
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -52,16 +56,13 @@ import com.android.xrayfa.ui.SettingsActivity
 @Composable
 fun XrayFAContainer(
     xrayViewmodel: XrayViewmodel,
-    activity: Activity,
     modifier: Modifier = Modifier
 ) {
     val naviController = rememberNavController()
     val currentBackStack by naviController.currentBackStackEntryAsState()
     val currentDestination = currentBackStack?.destination
     val currentScreen = list_navigation.find { it.route == currentDestination?.route } ?: Home
-    var actionImageVector by remember { mutableStateOf(Icons.Default.Settings) }
     val context = LocalContext.current
-    var onActionbarClick by remember { mutableStateOf({onSettingsClick(context)}) } //TODO
 
     Scaffold(
         topBar = {
@@ -79,11 +80,24 @@ fun XrayFAContainer(
                 },
                 actions = {
                     IconButton(
-                        onClick = onActionbarClick
+                        onClick = {
+                            when(currentScreen) {
+                                Home -> onSettingsClick(context)
+                                Config -> {}
+                                Logcat -> {xrayViewmodel.exportLogcatToClipboard(context)}
+                            else -> throw RuntimeException("unknown route")
+                            }
+                        }
                     ) {
                         Icon(
-                            imageVector = actionImageVector,
-                            contentDescription = ""
+                            imageVector = when(currentScreen) {
+                                Home -> Icons.Default.Settings
+                                Config -> Icons.Default.Star
+                                Logcat -> ImageVector.vectorResource(R.drawable.copu)
+                                else -> throw RuntimeException("unknown route")
+                            },
+                            contentDescription = "",
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 },
@@ -103,19 +117,6 @@ fun XrayFAContainer(
                 currentScreen = currentScreen,
                 onItemSelected = { item ->
                     naviController.navigateSingleTopTo(item.route)
-                    when(item.route) {
-                        "home" -> {
-                            actionImageVector = Icons.Default.Settings
-                            onActionbarClick = {onSettingsClick(context)}
-                        }
-                        "config" -> {
-                            actionImageVector = Icons.Default.Search
-                        }
-                        "logcat" -> {
-                            actionImageVector = Icons.Default.Star
-                        }
-                        else -> throw RuntimeException("unknown route")
-                    }
                 },
                 labelProvider = { item -> item.route },
             )

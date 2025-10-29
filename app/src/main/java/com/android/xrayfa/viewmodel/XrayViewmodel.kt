@@ -1,5 +1,6 @@
 package com.android.xrayfa.viewmodel
 
+import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -81,6 +82,8 @@ class XrayViewmodel(
 
     private val _logList = MutableStateFlow<List<String>>(emptyList())
     val logList = _logList.asStateFlow()
+
+    var shareUrl = ""
 
 
     init {
@@ -262,9 +265,21 @@ class XrayViewmodel(
         viewModelScope.launch {
             val link = linkRepository.loadLinksById(id).first()
             val barcodeEncoder = BarcodeEncoder()
-            val bitmap = barcodeEncoder.encodeBitmap(link.content, BarcodeFormat.QR_CODE,400,400)
+            shareUrl = link.content
+            val bitmap = barcodeEncoder.encodeBitmap(shareUrl, BarcodeFormat.QR_CODE,400,400)
             _qrcodebitmap.value = bitmap
         }
+    }
+    //export clipboard
+    fun exportConfigToClipboard(context: Context) {
+        if (shareUrl == "") {
+            return
+        }
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+
+        val clip = ClipData.newPlainText("label", shareUrl)
+        clipboard.setPrimaryClip(clip)
+        shareUrl == ""
     }
 
     //delete dialog
@@ -320,13 +335,19 @@ class XrayViewmodel(
                 if (error.isNotEmpty()) {
                     Log.e(TAG, "Logcat error: $error")
                 }
-                Log.i(TAG, "getLogcatContent: ${log.size}")
+                Log.i(TAG, "getLogcatContent: ${log.size} ${log[0]}")
                 _logList.value = log
             }catch (e: Exception) {
                 Log.i(TAG, "getLogcatContent: ${e.message}")
             }
         }
+    }
 
+    fun exportLogcatToClipboard(context: Context) {
+        val log = _logList.value.joinToString(separator = "\n")
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("log",log)
+        clipboard.setPrimaryClip(clip)
     }
 }
 
