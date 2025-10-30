@@ -2,7 +2,7 @@ package com.android.xrayfa.parser
 
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.model.AbsOutboundConfigurationObject
-import com.android.xrayfa.model.Link
+import com.android.xrayfa.dto.Link
 import com.android.xrayfa.model.MuxObject
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.OutboundObject

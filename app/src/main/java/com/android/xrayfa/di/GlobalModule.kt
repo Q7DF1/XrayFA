@@ -4,7 +4,9 @@ import android.content.Context
 import com.android.xrayfa.TrafficDetector
 import com.android.xrayfa.TrafficDetectorImpl
 import com.android.xrayfa.dao.LinkDao
-import com.android.xrayfa.dao.LinkDatabase
+import com.android.xrayfa.dao.SubscriptionDao
+import com.android.xrayfa.dao.XrayFADatabase
+import com.android.xrayfa.parser.SubscriptionParser
 import xrayfa.tun2socks.qualifier.Application
 import xrayfa.tun2socks.qualifier.Background
 import xrayfa.tun2socks.qualifier.Main
@@ -22,7 +24,8 @@ import javax.inject.Singleton
 @Module(includes = [
     ServiceModule::class,
     ActivityModule::class,
-    CoroutinesModule::class
+    CoroutinesModule::class,
+    NetworkModule::class
 ])
 abstract class GlobalModule {
 
@@ -58,20 +61,32 @@ abstract class GlobalModule {
 
      @Provides
      @Singleton
-     fun provideLinkDatabase(context: Context): LinkDatabase {
-         return LinkDatabase.getLinkDatabase(context)
+     fun provideLinkDatabase(context: Context): XrayFADatabase {
+         return XrayFADatabase.getLinkDatabase(context)
      }
 
      @Provides
      @Singleton
-     fun provideLinkDao(linkDatabase: LinkDatabase): LinkDao {
+     fun provideLinkDao(linkDatabase: XrayFADatabase): LinkDao {
          return linkDatabase.LinkDao()
+     }
+
+     @Provides
+     @Singleton
+     fun provideSubscriptionDao(xrayFADatabase: XrayFADatabase): SubscriptionDao {
+         return xrayFADatabase.SubscriptionDao()
      }
 
      @Provides
      @Singleton
      fun provideTrafficDetector(): TrafficDetector {
          return TrafficDetectorImpl()
+     }
+
+     @Provides
+     @Singleton
+     fun provideBase64Parser(): SubscriptionParser {
+         return SubscriptionParser()
      }
  }
 

@@ -5,7 +5,7 @@ import com.android.xrayfa.model.AbsOutboundConfigurationObject
 import com.android.xrayfa.model.ApiObject
 import com.android.xrayfa.model.DnsObject
 import com.android.xrayfa.model.InboundObject
-import com.android.xrayfa.model.Link
+import com.android.xrayfa.dto.Link
 import com.android.xrayfa.model.LogObject
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.NoneOutboundConfigurationObject

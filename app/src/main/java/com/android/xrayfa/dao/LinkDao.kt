@@ -5,7 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import com.android.xrayfa.model.Link
+import com.android.xrayfa.dto.Link
 import kotlinx.coroutines.flow.Flow
 
 

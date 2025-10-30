@@ -10,7 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.xrayfa.XrayBaseService
-import com.android.xrayfa.model.Link
+import com.android.xrayfa.dto.Link
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.protocol.protocolsPrefix
 import com.android.xrayfa.parser.ParserFactory
@@ -20,7 +20,9 @@ import com.android.xrayfa.XrayCoreManager
 import com.android.xrayfa.common.repository.DEFAULT_DELAY_TEST_URL
 import com.android.xrayfa.common.repository.SettingsKeys
 import com.android.xrayfa.common.repository.dataStore
+import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.ui.DetailActivity
+import com.android.xrayfa.ui.SubscriptionActivity
 import com.google.zxing.BarcodeFormat
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import kotlinx.coroutines.Dispatchers
@@ -34,15 +36,18 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import javax.inject.Inject
 import kotlin.jvm.java
-import kotlin.math.log
 
 class XrayViewmodel(
     private val linkRepository: LinkRepository,
     private val xrayBaseServiceManager: XrayBaseServiceManager,
     private val xrayCoreManager: XrayCoreManager,
-    private val parserFactory: ParserFactory
+    private val parserFactory: ParserFactory,
+    private val okHttp: OkHttpClient,
+    private val subscriptionParser: SubscriptionParser
 ): ViewModel(){
 
     companion object {
@@ -53,7 +58,7 @@ class XrayViewmodel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _nodes = MutableStateFlow<List<Node>>(emptyList())
-    val node: StateFlow<List<Node>> = _nodes
+    val nodes: StateFlow<List<Node>> = _nodes
 
     private val _upSpeed = MutableStateFlow(0L)
     val upSpeed: StateFlow<Long> = _upSpeed.asStateFlow()
@@ -95,18 +100,18 @@ class XrayViewmodel(
         xrayBaseServiceManager.viewmodelStateCallback = { running ->
             _isServiceRunning.value = running
         }
-        viewModelScope.launch {
-            val links = linkRepository.allLinks.first() // 获取原始链接，不执行解析
-            val parsedNodes = mutableListOf<Node>()
 
-            // 后台线程逐条解析
-            links.forEach { link ->
-                val node = withContext(Dispatchers.Default) {
-                    parserFactory.getParser(link.protocolPrefix).preParse(link)
+        viewModelScope.launch {
+            linkRepository.allLinks
+                .map { links ->
+                    links.map { link ->
+                        parserFactory.getParser(link.protocolPrefix).preParse(link)
+                    }
                 }
-                parsedNodes.add(node)
-                _nodes.value = parsedNodes.toList() // 每条解析完就更新
-            }
+                .flowOn(Dispatchers.IO)
+                .collect { newNodes ->
+                    _nodes.value = newNodes
+                }
         }
     }
 
@@ -164,6 +169,11 @@ class XrayViewmodel(
 
             context.startActivity(intent)
         }
+    }
+
+    fun startSubscriptionActivity(context: Context) {
+        val intent = Intent(context, SubscriptionActivity::class.java)
+        context.startActivity(intent)
     }
 
 
@@ -349,6 +359,42 @@ class XrayViewmodel(
         val clip = ClipData.newPlainText("log",log)
         clipboard.setPrimaryClip(clip)
     }
+
+    fun getSubscription(url: String) {
+        val request = Request.Builder()
+            .get()
+            .url(url)
+            .build()
+        viewModelScope.launch(Dispatchers.IO) {
+            val response = okHttp.newCall(request)
+                .execute()
+
+            if (response.isSuccessful) {
+                val content = response.body?.string()?: ""
+                if (content != "") {
+                    val urls = subscriptionParser.parseUrl(content)
+                    urls.forEach {
+                        Log.i(TAG, "getSubscription: ${it.substringBefore("://")}")
+                        Log.i(TAG, "getSubscription: $it")
+                        linkRepository.addLink(
+                            Link(
+                                protocolPrefix = it.substringBefore("://"),
+                                content = it,
+                                selected = false
+                            )
+                        )
+                    }
+                    val links = linkRepository.allLinks.first()
+                    val nodes = links.map {
+                        parserFactory.getParser(it.protocolPrefix).preParse(it)
+                    }
+                    withContext(Dispatchers.Main) {
+                        _nodes.value = nodes
+                    }
+                }
+            }
+        }
+    }
 }
 
 class XrayViewmodelFactory
@@ -356,7 +402,9 @@ class XrayViewmodelFactory
     private val repository: LinkRepository,
     private val xrayBaseServiceManager: XrayBaseServiceManager,
     private val xrayCoreManager: XrayCoreManager,
-    private val parserFactory: ParserFactory
+    private val parserFactory: ParserFactory,
+    private val okHttp: OkHttpClient,
+    private val subscriptionParser: SubscriptionParser
 ): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(XrayViewmodel::class.java)) {
@@ -365,7 +413,9 @@ class XrayViewmodelFactory
                 repository,
                 xrayBaseServiceManager,
                 xrayCoreManager,
-                parserFactory
+                parserFactory,
+                okHttp,
+                subscriptionParser
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

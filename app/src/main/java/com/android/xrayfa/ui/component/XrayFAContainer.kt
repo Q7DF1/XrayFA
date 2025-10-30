@@ -14,9 +14,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -79,26 +82,10 @@ fun XrayFAContainer(
                     )
                 },
                 actions = {
-                    IconButton(
-                        onClick = {
-                            when(currentScreen) {
-                                Home -> onSettingsClick(context)
-                                Config -> {}
-                                Logcat -> {xrayViewmodel.exportLogcatToClipboard(context)}
-                            else -> throw RuntimeException("unknown route")
-                            }
-                        }
-                    ) {
-                        Icon(
-                            imageVector = when(currentScreen) {
-                                Home -> Icons.Default.Settings
-                                Config -> Icons.Default.Star
-                                Logcat -> ImageVector.vectorResource(R.drawable.copu)
-                                else -> throw RuntimeException("unknown route")
-                            },
-                            contentDescription = "",
-                            modifier = Modifier.size(24.dp)
-                        )
+                    when(currentScreen) {
+                        Home -> HomeActionButton()
+                        Logcat -> LogcatActionButton(xrayViewmodel)
+                        Config -> ConfigActionButton(xrayViewmodel)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -180,6 +167,69 @@ fun XrayFAContainer(
                 LogcatScreen(xrayViewmodel)
             }
         }
+    }
+}
+
+@Composable
+fun HomeActionButton() {
+    val context = LocalContext.current
+    IconButton(
+        onClick = {onSettingsClick(context)}
+    ) {
+        Icon(
+            imageVector = Icons.Default.Settings,
+            contentDescription = ""
+        )
+    }
+}
+
+@Composable
+fun LogcatActionButton(
+    xrayViewmodel: XrayViewmodel
+) {
+    val context = LocalContext.current
+    IconButton(
+        onClick = {xrayViewmodel.exportLogcatToClipboard(context)}
+    ) {
+        Icon(
+            imageVector = ImageVector.vectorResource(R.drawable.copu),
+            contentDescription = "",
+            modifier = Modifier.size(24.dp)
+        )
+    }
+}
+
+@Composable
+fun ConfigActionButton(
+    xrayViewmodel: XrayViewmodel
+) {
+    var expend by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    IconButton(
+        onClick = {expend = !expend}
+    ) {
+        Icon(
+            imageVector = Icons.Default.Menu,
+            contentDescription = ""
+        )
+    }
+    DropdownMenu(
+        expanded = expend,
+        onDismissRequest = {expend = false}
+    ) {
+        DropdownMenuItem(
+            text = {Text("subscription")},
+            onClick = {
+                expend = false
+                xrayViewmodel.startSubscriptionActivity(context)
+            }
+        )
+        DropdownMenuItem(
+            text = {Text("update")},
+            onClick = {
+                expend = false
+            }
+        )
     }
 }
 

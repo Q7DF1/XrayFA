@@ -1,7 +1,7 @@
 package com.android.xrayfa.repository
 
 import com.android.xrayfa.dao.LinkDao
-import com.android.xrayfa.model.Link
+import com.android.xrayfa.dto.Link
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton

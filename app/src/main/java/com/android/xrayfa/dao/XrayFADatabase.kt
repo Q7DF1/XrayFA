@@ -4,26 +4,28 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.android.xrayfa.model.Link
+import com.android.xrayfa.dto.Link
+import com.android.xrayfa.dto.Subscription
 
 
-@Database(entities = [Link::class], version = 1)
-abstract class LinkDatabase: RoomDatabase() {
+@Database(entities = [Link::class, Subscription::class], version = 1)
+abstract class XrayFADatabase: RoomDatabase() {
 
     abstract fun LinkDao(): LinkDao
 
+    abstract fun SubscriptionDao(): SubscriptionDao
 
     companion object {
 
         @Volatile
-        var INSTANCE: LinkDatabase? = null
+        var INSTANCE: XrayFADatabase? = null
 
-        fun getLinkDatabase(context: Context): LinkDatabase {
+        fun getLinkDatabase(context: Context): XrayFADatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
-                    LinkDatabase::class.java,
-                    "link_database"
+                    XrayFADatabase::class.java,
+                    "xrayfa_database"
                 ).build()
                 INSTANCE = instance
                 instance

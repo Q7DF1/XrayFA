@@ -181,6 +181,9 @@ dependencies {
     implementation("javax.annotation:javax.annotation-api:1.3.2")
     implementation("androidx.datastore:datastore-preferences:1.1.7")
 
+    implementation ("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
