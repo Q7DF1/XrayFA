@@ -2,6 +2,7 @@ package com.android.xrayfa.repository
 
 import com.android.xrayfa.dao.SubscriptionDao
 import com.android.xrayfa.dto.Subscription
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,5 +25,9 @@ class SubscriptionRepository
 
     suspend fun updateSubscription(subscription: Subscription) {
         subscriptionDao.updateSubscription(subscription)
+    }
+
+    fun getSubscriptionById(id: Int): Flow<Subscription> {
+        return subscriptionDao.selectSubscriptionById(id)
     }
 }

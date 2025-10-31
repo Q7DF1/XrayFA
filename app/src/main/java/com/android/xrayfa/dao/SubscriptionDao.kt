@@ -27,4 +27,6 @@ interface SubscriptionDao {
     suspend fun updateSubscription(subscription: Subscription)
 
 
+    @Query("SELECT * FROM subscription WHERE id = :id")
+    fun selectSubscriptionById(id: Int): Flow<Subscription>
 }
