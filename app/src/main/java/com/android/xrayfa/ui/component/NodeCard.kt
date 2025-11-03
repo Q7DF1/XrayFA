@@ -94,9 +94,9 @@ fun NodeCard(
             ) {
                 Box(
                     modifier = modifier
-                        .size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp)) // 整体大小
-                        .clip(CircleShape) // 裁剪成圆形
-                        .background(Color.Blue), // 背景色
+                        .size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
+                        .clip(CircleShape)
+                        .background(node.color),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(

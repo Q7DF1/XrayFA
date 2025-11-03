@@ -12,8 +12,8 @@ class LinkRepository @Inject constructor(
 ){
     val allLinks = linkDao.getAllLinks()
 
-    suspend fun addLink(link: Link) {
-        linkDao.addLink(link)
+    suspend fun addLink(vararg links: Link) {
+        linkDao.addLink(*links)
     }
 
     suspend fun deleteLink(link: Link) {
@@ -41,5 +41,9 @@ class LinkRepository @Inject constructor(
 
     suspend fun deleteLinkById(id: Int) {
         return linkDao.deleteLinkById(id)
+    }
+
+    suspend fun deleteLinkBySubscriptionId(subscriptionId: Int) {
+        return linkDao.deleteBySubscriptionId(subscriptionId)
     }
 }

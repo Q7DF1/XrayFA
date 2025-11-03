@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import com.android.xrayfa.dto.Link
+import com.android.xrayfa.dto.Subscription
 import kotlinx.coroutines.flow.Flow
 
 
@@ -40,4 +41,13 @@ interface LinkDao {
 
     @Query("UPDATE link SET selected = 0 WHERE selected = 1")
     suspend fun clearSelection()
+
+    @Query("SELECT * FROM link WHERE subscriptionId = :subscriptionId")
+    suspend fun queryLinkBySubscriptionId(subscriptionId: Int): List<Link>
+
+    @Query("SELECT * FROM link ORDER BY :subscriptionId ASC")
+    suspend fun getAllLinksSortBySubscriptionId(subscriptionId: Int): List<Link>
+
+    @Query("DELETE FROM link WHERE subscriptionId = :subscriptionId")
+    suspend fun deleteBySubscriptionId(subscriptionId: Int)
 }

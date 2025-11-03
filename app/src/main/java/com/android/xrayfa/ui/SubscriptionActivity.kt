@@ -14,7 +14,7 @@ class SubscriptionActivity
     @Composable
     override fun Content() {
         val viewmodel = ViewModelProvider.create(this, factory)[SubscriptionViewmodel::class.java]
-        SubscriptionScreen(viewmodel)
+        SubscriptionScreen(viewmodel) { finish() }
     }
 
 

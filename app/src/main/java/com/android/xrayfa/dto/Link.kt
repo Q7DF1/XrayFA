@@ -8,5 +8,6 @@ data class Link(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val protocolPrefix: String,
     val content: String,
+    val subscriptionId: Int,
     val selected: Boolean = false
 )

@@ -224,12 +224,6 @@ fun ConfigActionButton(
                 xrayViewmodel.startSubscriptionActivity(context)
             }
         )
-        DropdownMenuItem(
-            text = {Text("update")},
-            onClick = {
-                expend = false
-            }
-        )
     }
 }
 

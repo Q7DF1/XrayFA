@@ -208,7 +208,7 @@ class XrayViewmodel(
         val protocolPrefix = link.substringBefore("://").lowercase()
         Log.i(TAG, "addLink: $protocolPrefix")
         if (protocolsPrefix.contains(protocolPrefix)) {
-            val link0 =  Link(protocolPrefix = protocolPrefix, content = link)
+            val link0 =  Link(protocolPrefix = protocolPrefix, content = link, subscriptionId = 0)
             viewModelScope.launch {
                 Log.i(TAG, "addLink: $link0")
                 linkRepository.addLink(link0)
@@ -360,7 +360,7 @@ class XrayViewmodel(
         clipboard.setPrimaryClip(clip)
     }
 
-    fun getSubscription(url: String) {
+    fun getSubscription(url: String,subscriptionId: Int) {
         val request = Request.Builder()
             .get()
             .url(url)
@@ -373,24 +373,25 @@ class XrayViewmodel(
                 val content = response.body?.string()?: ""
                 if (content != "") {
                     val urls = subscriptionParser.parseUrl(content)
-                    urls.forEach {
+                    linkRepository.deleteLinkBySubscriptionId(subscriptionId)
+                    val newLinks = urls.map {
                         Log.i(TAG, "getSubscription: ${it.substringBefore("://")}")
                         Log.i(TAG, "getSubscription: $it")
-                        linkRepository.addLink(
-                            Link(
-                                protocolPrefix = it.substringBefore("://"),
-                                content = it,
-                                selected = false
-                            )
+                        Link(
+                            protocolPrefix = it.substringBefore("://"),
+                            content = it,
+                            selected = false,
+                            subscriptionId = subscriptionId
                         )
                     }
-                    val links = linkRepository.allLinks.first()
-                    val nodes = links.map {
-                        parserFactory.getParser(it.protocolPrefix).preParse(it)
-                    }
-                    withContext(Dispatchers.Main) {
-                        _nodes.value = nodes
-                    }
+                    linkRepository.addLink(*newLinks.toTypedArray())
+//                    val links = linkRepository.allLinks.first()
+//                    val nodes = links.map {
+//                        parserFactory.getParser(it.protocolPrefix).preParse(it)
+//                    }
+//                    withContext(Dispatchers.Main) {
+//                        _nodes.value = nodes
+//                    }
                 }
             }
         }

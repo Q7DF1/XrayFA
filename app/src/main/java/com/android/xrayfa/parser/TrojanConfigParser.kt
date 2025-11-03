@@ -11,6 +11,7 @@ import com.android.xrayfa.model.stream.GrpcSettings
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
+import com.android.xrayfa.utils.ColorMap
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
@@ -111,7 +112,8 @@ class TrojanConfigParser
             protocol = Protocol.TROJAN,
             address = trojanConfig.host?:"unknown",
             port = trojanConfig.port?:0,
-            remark = trojanConfig.remark
+            remark = trojanConfig.remark,
+            color = ColorMap.getValue(link.subscriptionId)
         )
     }
 }

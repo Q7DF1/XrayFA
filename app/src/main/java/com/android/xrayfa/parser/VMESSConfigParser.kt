@@ -17,7 +17,7 @@ import com.android.xrayfa.model.stream.RawSettings
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
-import com.google.gson.JsonObject
+import com.android.xrayfa.utils.ColorMap
 import com.google.gson.JsonParser
 import java.util.Base64
 import javax.inject.Inject
@@ -129,7 +129,8 @@ class VMESSConfigParser
             port = json.get("port").asInt,
             selected = link.selected,
             remark = json.get("ps").asString
-                ?:"vmess-${json.get("add").asString}-${json.get("port").asString}"
+                ?:"vmess-${json.get("add").asString}-${json.get("port").asString}",
+            color = ColorMap.getValue(link.subscriptionId)
         )
     }
 

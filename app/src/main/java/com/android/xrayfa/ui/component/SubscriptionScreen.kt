@@ -15,7 +15,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -36,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -51,7 +54,8 @@ import java.net.URI
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubscriptionScreen(
-    viewmodel: SubscriptionViewmodel
+    viewmodel: SubscriptionViewmodel,
+    onBack: ()->Unit
 ) {
     val subscriptions by viewmodel.subscriptions.collectAsState()
     var isBottomSheetShow by remember { mutableStateOf(false) }
@@ -64,17 +68,20 @@ fun SubscriptionScreen(
 
     val deleteDialog by viewmodel.deleteDialog.collectAsState()
 
+    val requesting by viewmodel.requesting.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar(
-            title = {Text("subscription")},
-            navigationIcon = {
-                Icon(
+                title = {Text("subscription")},
+                navigationIcon = {
+                    Icon(
                     imageVector = ImageVector.vectorResource(R.drawable.subscription_icon),
                     contentDescription = "subscription icon",
                     modifier = Modifier.size(24.dp)
-                )
-            }
+                    )
+                },
+                modifier = Modifier.shadow(4.dp)
             )
         }
     ) { paddingValues ->
@@ -83,77 +90,100 @@ fun SubscriptionScreen(
                 .padding(paddingValues)
                 .fillMaxSize()
         ) {
-            LazyColumn(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                items(items = subscriptions, key = {it.id}) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                            .clickable {
-                                viewmodel.getSubscriptionByIdWithCallback(it.id){
-                                    isBottomSheetShow = true
+            if (requesting) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }else {
+                LazyColumn(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    items(items = subscriptions, key = {it.id}) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                                .clickable {
+                                    viewmodel.getSubscriptionWithCallback(it.url,it.id) {
+                                        onBack()
+                                    }
                                 }
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.Start,
+                                modifier = Modifier.weight(0.7f)
+                                    .padding(start = 8.dp)
+                                    .padding(vertical = 16.dp)
+                            ) {
+                                Text(
+                                    text = it.mark,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    maxLines = 1
+                                )
+                                Text(
+                                    text = it.url,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
                             }
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.Start,
-                            modifier = Modifier.weight(0.8f)
-                                .padding(start = 8.dp)
-                                .padding(vertical = 16.dp)
-                        ) {
-                            Text(
-                                text = it.mark,
-                                style = MaterialTheme.typography.titleSmall,
-                                maxLines = 1
-                            )
-                            Text(
-                                text = it.url,
-                                style = MaterialTheme.typography.bodySmall,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
 
-                        IconButton(
-                            onClick = {
-                                //todo share
-                            },
-                            modifier = Modifier.weight(0.1f)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Share,
-                                contentDescription = "share subscription"
-                            )
-                        }
-                        IconButton(
-                            onClick = {
-                                viewmodel.showDeleteDialog(it)
-                            },
-                            modifier = Modifier.weight(0.1f)
-                                .padding(end = 8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "delete subscription"
-                            )
+                            IconButton(
+                                onClick = {
+                                    viewmodel.getSubscriptionByIdWithCallback(it.id){
+                                        isBottomSheetShow = true
+                                    }
+                                },
+                                modifier = Modifier.weight(0.1f)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = ""
+                                )
+                            }
+
+                            IconButton(
+                                onClick = {
+                                    //todo share
+                                },
+                                modifier = Modifier.weight(0.1f)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = "share subscription"
+                                )
+                            }
+                            IconButton(
+                                onClick = {
+                                    viewmodel.showDeleteDialog(it)
+                                },
+                                modifier = Modifier.weight(0.1f)
+                                    .padding(end = 8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "delete subscription"
+                                )
+                            }
                         }
                     }
                 }
+
+                FloatingActionButton(
+                    onClick = {
+                        viewmodel.setSelectSubscriptionEmpty()
+                        isBottomSheetShow = true
+                    },
+                    modifier = Modifier.align(BiasAlignment(1f,0.9f))
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = ""
+                    )
+                }
             }
-            FloatingActionButton(
-                onClick = {
-                    viewmodel.setSelectSubscriptionEmpty()
-                    isBottomSheetShow = true
-                          },
-                modifier = Modifier.align(BiasAlignment(1f,0.9f))
-                    .padding(horizontal = 16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = ""
-                )
-            }
+
+
             if (isBottomSheetShow) {
                 ModalBottomSheet(
                     onDismissRequest = { isBottomSheetShow = false },

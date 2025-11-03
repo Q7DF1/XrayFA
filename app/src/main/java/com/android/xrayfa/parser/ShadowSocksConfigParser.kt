@@ -8,6 +8,7 @@ import com.android.xrayfa.model.ShadowSocksOutboundConfigurationObject
 import com.android.xrayfa.model.ShadowSocksServerObject
 import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.model.stream.StreamSettingsObject
+import com.android.xrayfa.utils.ColorMap
 import java.util.Base64
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -81,7 +82,8 @@ class ShadowSocksConfigParser
             port = shadowSocksConfig.port,
             address = shadowSocksConfig.server,
             selected = link.selected,
-            remark = shadowSocksConfig.tag
+            remark = shadowSocksConfig.tag,
+            color = ColorMap.getValue(link.subscriptionId)
         )
     }
 
