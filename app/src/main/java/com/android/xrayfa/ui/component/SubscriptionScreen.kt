@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -35,7 +36,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -59,11 +62,19 @@ fun SubscriptionScreen(
     var nickNameIsNull by remember { mutableStateOf(false) }
     var urlIsNullOrInvalid by remember { mutableStateOf(false) }
 
+    val deleteDialog by viewmodel.deleteDialog.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar(
             title = {Text("subscription")},
-            navigationIcon = {}
+            navigationIcon = {
+                Icon(
+                    imageVector = ImageVector.vectorResource(R.drawable.subscription_icon),
+                    contentDescription = "subscription icon",
+                    modifier = Modifier.size(24.dp)
+                )
+            }
             )
         }
     ) { paddingValues ->
@@ -117,7 +128,7 @@ fun SubscriptionScreen(
                         }
                         IconButton(
                             onClick = {
-                                //todo delete
+                                viewmodel.showDeleteDialog(it)
                             },
                             modifier = Modifier.weight(0.1f)
                                 .padding(end = 8.dp)
@@ -194,15 +205,17 @@ fun SubscriptionScreen(
                         }
                         TextButton(
                             onClick = {
-//                                validateThenConfirm(nickName,url) {
-//                                    viewmodel.addSubscription(subscription = Subscription(
-//                                        mark = nickName,
-//                                        url = url
-//                                    ))
-//                                }.also {
-//                                    nickNameIsNull = it.first
-//                                    urlIsNullOrInvalid = it.second
-//                                }
+                                validateThenConfirm(nickName,url) {
+                                    viewmodel.addOrUpdateSubscription(subscription = Subscription(
+                                        id = subscription.id,
+                                        mark = nickName,
+                                        url = url,
+                                        isAutoUpdate = subscription.isAutoUpdate
+                                    ))
+                                }.also {
+                                    nickNameIsNull = it.first
+                                    urlIsNullOrInvalid = it.second
+                                }
                                 isBottomSheetShow = false
                             },
                             enabled = !urlIsNullOrInvalid && !nickNameIsNull,
@@ -213,6 +226,13 @@ fun SubscriptionScreen(
                             )
                         }
                     }
+                }
+            }
+            if (deleteDialog) {
+                DeleteDialog(
+                    onDismissRequest = { viewmodel.dismissDeleteDialog() },
+                ) {
+                    viewmodel.deleteSubscriptionWithDialog()
                 }
             }
         }

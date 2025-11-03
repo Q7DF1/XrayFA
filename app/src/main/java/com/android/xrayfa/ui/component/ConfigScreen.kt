@@ -231,58 +231,10 @@ fun ConfigScreen(
             }
         }
         if (deleteDialog) {
-            Dialog(onDismissRequest = {xrayViewmodel.hideDeleteDialog()}) {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .background(MaterialTheme.colorScheme.surface)
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = stringResource(R.string.confirm_delete),
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
-
-                        Text(
-                            text = stringResource(R.string.delete_notify),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(bottom = 24.dp)
-                        )
-
-                        // 按钮行
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
-                        ) {
-                            TextButton(onClick = {xrayViewmodel.hideDeleteDialog()}) {
-                                Text(stringResource(R.string.cancel))
-                            }
-
-                            Spacer(modifier = Modifier.width(8.dp))
-
-                            Button(
-                                onClick = {
-                                    xrayViewmodel.deleteLinkByIdWithDialog()
-                                },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.error
-                                )
-                            ) {
-                                Text(stringResource(R.string.delete), color = Color.White)
-                            }
-                        }
-                    }
-                }
+            DeleteDialog(
+                onDismissRequest = {xrayViewmodel.hideDeleteDialog()},
+            ) {
+                xrayViewmodel.deleteLinkByIdWithDialog()
             }
         }
     }

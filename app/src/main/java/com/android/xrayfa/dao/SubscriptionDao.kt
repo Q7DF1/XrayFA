@@ -23,7 +23,7 @@ interface SubscriptionDao {
     @Delete
     suspend fun deleteSubscription(subscription: Subscription)
 
-    @Update()
+    @Update
     suspend fun updateSubscription(subscription: Subscription)
 
 
