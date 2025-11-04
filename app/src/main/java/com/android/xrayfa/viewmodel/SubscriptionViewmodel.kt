@@ -1,6 +1,7 @@
 package com.android.xrayfa.viewmodel
 
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -11,6 +12,7 @@ import com.android.xrayfa.repository.LinkRepository
 import com.android.xrayfa.repository.SubscriptionRepository
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.TAG
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,6 +42,9 @@ class SubscriptionViewmodel(
 
     private val _deleteDialog = MutableStateFlow(false)
     val deleteDialog: StateFlow<Boolean> = _deleteDialog.asStateFlow()
+
+    private val _subscribeError = MutableStateFlow(false)
+    val subscribeError: StateFlow<Boolean> = _subscribeError.asStateFlow()
 
     var deleteSubscription = emptySubscription
 
@@ -148,7 +153,12 @@ class SubscriptionViewmodel(
                     callback()
                 }
             }catch (e: Exception) {
-                //todo show error
+                launch {
+                    _subscribeError.value = true
+                    delay(2000L)
+                    _subscribeError.value = false
+                }
+
                 Log.e(TAG, "getSubscription: ${e.message}", )
             }finally {
                 _requestingSubscription.value = false

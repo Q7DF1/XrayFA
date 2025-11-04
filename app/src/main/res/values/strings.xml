@@ -40,4 +40,5 @@
     <string name="nick_name">nick name</string>
     <string name="subscription_url">subscription url</string>
     <string name="confirm">confirm</string>
+    <string name="subscribe_failed">subscribe failed</string>
 </resources>

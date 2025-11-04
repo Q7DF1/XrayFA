@@ -126,7 +126,7 @@ fun XrayFAContainer(
                 },
                 exitTransition = {
                     slideOutHorizontally(targetOffsetX = { x ->
-                        if (targetState.destination.route == Config.route) x else -x
+                        if (targetState.destination.route == Config.route) -x else x
                     }, animationSpec = tween(400))
                 }
             ) { backStackEntry ->

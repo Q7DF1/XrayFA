@@ -1,5 +1,6 @@
 import com.google.protobuf.gradle.id
 import com.android.build.api.variant.FilterConfiguration.FilterType.*
+import com.android.build.gradle.internal.api.ApkVariantOutputImpl
 
 plugins {
     alias(libs.plugins.android.application)
@@ -18,7 +19,7 @@ android {
         minSdk = 28
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0-alph"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -63,17 +64,17 @@ android {
     flavorDimensions += "abi"
     val abiCodes = mapOf("armeabi-v7a" to 1, "arm64-v8a" to 2, "x86" to 3, "x86_64" to 4)
 
+
     androidComponents  {
         onVariants { variant ->
             variant.outputs.forEach { output->
-                val name = output.filters.find { it.filterType == ABI } ?.identifier
-
+                val name = output.filters.find { it.filterType == ABI } ?.identifier?: "universal"
 
                 val baseAbiCode = abiCodes[name] ?: 0
 
-                if(baseAbiCode != null) {
-                    output.versionCode.set((baseAbiCode * 1000 + output.versionCode.get()))
-                }
+                output.versionCode.set((baseAbiCode * 1000 + output.versionCode.get()))
+                val apkName = "xrayFA-$name-${variant.buildType}-${output.versionName}"
+
             }
         }
     }

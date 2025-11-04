@@ -1,6 +1,12 @@
 package com.android.xrayfa.ui.component
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,6 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -69,7 +76,7 @@ fun SubscriptionScreen(
     val deleteDialog by viewmodel.deleteDialog.collectAsState()
 
     val requesting by viewmodel.requesting.collectAsState()
-
+    val subscribeError by viewmodel.subscribeError.collectAsState()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -265,6 +272,7 @@ fun SubscriptionScreen(
                     viewmodel.deleteSubscriptionWithDialog()
                 }
             }
+            SubscribeError(subscribeError)
         }
     }
 }
@@ -344,6 +352,36 @@ fun EditModalBottomSheet(
         }
     }
 }
+
+@Composable
+private fun SubscribeError(shown: Boolean) {
+    AnimatedVisibility(
+        visible = shown,
+        enter = slideInVertically(
+            // Enters by sliding in from offset -fullHeight to 0.
+            initialOffsetY = { fullHeight -> -fullHeight },
+            animationSpec = tween(durationMillis = 150, easing = LinearOutSlowInEasing)
+        ),
+        exit = slideOutVertically(
+            // Exits by sliding out from offset 0 to -fullHeight.
+            targetOffsetY = { fullHeight -> -fullHeight },
+            animationSpec = tween(durationMillis = 250, easing = FastOutLinearInEasing)
+        )
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.secondary,
+            shadowElevation = 4.dp
+        ) {
+            Text(
+                text = stringResource(R.string.subscribe_failed),
+                color = MaterialTheme.colorScheme.onSecondary,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 fun ItemDemo() {

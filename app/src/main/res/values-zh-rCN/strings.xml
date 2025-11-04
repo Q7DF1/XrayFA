@@ -34,5 +34,6 @@
     <string name="clipboard_export">剪切板导出</string>
     <string name="nick_name">别名</string>
     <string name="subscription_url">订阅链接</string>
-    <string name="confirm">确认</string>"
+    <string name="confirm">确认</string>
+    <string name="subscribe_failed">订阅失败</string>"
 </resources>
