@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.getString
@@ -66,6 +67,8 @@ fun XrayFAContainer(
     val currentDestination = currentBackStack?.destination
     val currentScreen = list_navigation.find { it.route == currentDestination?.route } ?: Home
     val context = LocalContext.current
+
+    var checked by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -99,7 +102,7 @@ fun XrayFAContainer(
         },
         bottomBar = {
 
-            XrayBottomNav(
+            XrayBottomNavOpt(
                 items = list_navigation,
                 currentScreen = currentScreen,
                 onItemSelected = { item ->
