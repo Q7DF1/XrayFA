@@ -153,6 +153,7 @@ fun XrayBottomNavOpt(
             .fillMaxWidth()
             .height(heightDp)
             .background(backgroundColor)
+            .padding(horizontal = 8.dp)
     ) {
         val itemWidthPx = constraints.maxWidth / itemCount
         val itemWidthDp = with(density) { itemWidthPx.toDp() }

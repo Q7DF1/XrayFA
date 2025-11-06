@@ -129,7 +129,7 @@ fun XrayFAContainer(
                 },
                 exitTransition = {
                     slideOutHorizontally(targetOffsetX = { x ->
-                        if (targetState.destination.route == Config.route) -x else x
+                        if (targetState.destination.route == Config.route) x else -x
                     }, animationSpec = tween(400))
                 }
             ) { backStackEntry ->
@@ -145,7 +145,7 @@ fun XrayFAContainer(
                     slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(400))
                 },
                 exitTransition = {
-                    slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(400))
+                    slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(400))
                 }
             ) {
                 ConfigScreen(
@@ -164,7 +164,7 @@ fun XrayFAContainer(
                     slideInHorizontally(initialOffsetX = {it}, animationSpec = tween(400))
                 },
                 exitTransition = {
-                    slideOutHorizontally(targetOffsetX = {-it}, animationSpec = tween(400))
+                    slideOutHorizontally(targetOffsetX = {it}, animationSpec = tween(400))
                 }
             ) {
                 LogcatScreen(xrayViewmodel)
