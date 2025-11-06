@@ -1,0 +1,34 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name" translatable="false">xrayFA</string>
+    <string name="app_label" translatable="false">xrayFA</string>
+    <string name="start_vpn">start VPN</string>
+    <string name="stop_vpn">stop VPN</string>
+    <string name="connecting">connecting</string>
+    <string name="connected">connected</string>
+    <string name="home">home</string>
+    <string name="config">config</string>
+    <string name="about">about</string>
+    <string name="add_config">add config</string>
+    <string name="clipboard_import">Clipboard import</string>
+    <string name="no_configuration">No configuration file</string>
+    <string name="select_configuration_notify">select configuration first</string>
+    <string name="upload_data">upload</string>
+    <string name="download_data">download</string>
+    <string name="config_not_ready">config not ready</string>
+    <string name="qrcode_import">qrcode import</string>
+    <string name="close_window">close</string>
+    <string name="confirm_delete">Confirm deletion</string>
+    <string name="cancel" tools:ignore="ButtonCase">cancel</string>
+    <string name="delete">delete</string>
+    <string name="delete_notify">"This operation cannot be undone. Are you sure you want to delete?"</string>
+    <string name="save">save</string>
+    <string name="enable_ipv6">enable IPv6</string>
+    <string name="enable_ipv6_description">Click to enable IPv6 proxy</string>
+    <string name="dark_mode">Dark</string>
+    <string name="light_mode">Light</string>
+    <string name="auto_mode">Auto</string>
+    <string name="dark_mode_description">Select to turn on dark mode</string>
+    <string name="dns_ipv4" translatable="false">DNS IPv4</string>
+    <string name="dns_ipv6" translatable="false">DNS IPv6</string>
+    <string name="socks_port" translatable="false">socks port</string>
+</resources>

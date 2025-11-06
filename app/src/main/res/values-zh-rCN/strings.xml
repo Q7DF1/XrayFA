@@ -1,0 +1,30 @@
+<resources>
+    <string name="start_vpn">开启VPN</string>
+    <string name="stop_vpn">停止VPN</string>
+    <string name="connecting">连接中</string>
+    <string name="connected">已连接</string>
+    <string name="home">主页</string>
+    <string name="config">配置</string>
+    <string name="about">关于</string>
+    <string name="add_config">添加配置</string>
+    <string name="clipboard_import">剪切板倒入</string>
+    <string name="no_configuration">没有配置信息</string>
+    <string name="select_configuration_notify">先选择配置信息</string>
+    <string name="upload_data">上传</string>
+    <string name="download_data">下载</string>
+    <string name="config_not_ready">还没有配置</string>
+    <string name="qrcode_import">二维码导入</string>
+    <string name="close_window">关闭</string>
+    <string name="confirm_delete">确认删除</string>
+    <string name="cancel">取消</string>
+    <string name="delete">删除</string>
+
+    <string name="delete_notify">此操作无法撤销，确定要删除吗？</string>
+    <string name="save">保存</string>
+    <string name="enable_ipv6">启用IPv6</string>
+    <string name="enable_ipv6_description">勾选后开启IPv6代理</string>
+    <string name="dark_mode">暗黑模式</string>
+    <string name="light_mode">正常模式</string>
+    <string name="auto_mode">跟随系统</string>
+    <string name="dark_mode_description">选择是否开启深色模式</string>"
+</resources>

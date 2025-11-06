@@ -1,0 +1,97 @@
+package com.android.xrayfa
+
+import android.content.Context
+import android.util.Log
+import xrayfa.tun2socks.qualifier.Application
+import com.android.xrayfa.parser.ParserFactory
+import com.android.xrayfa.parser.VLESSConfigParser
+import com.android.xrayfa.parser.VMESSConfigParser
+import com.android.xrayfa.rpc.XrayStatsClient
+import com.android.xrayfa.utils.Device
+import xrayfa.tun2socks.qualifier.Background
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import libv2ray.CoreCallbackHandler
+import libv2ray.CoreController
+import libv2ray.Libv2ray
+import java.util.concurrent.Executor
+import javax.inject.Inject
+import javax.inject.Singleton
+
+
+@Singleton
+class XrayCoreManager
+@Inject constructor(
+    @Application private val context: Context,
+    @Background private val bgExecutor: Executor
+) {
+
+    companion object {
+        const val TAG = "V2rayCoreManager"
+    }
+    private var coreController: CoreController? = null
+    private var startOrClose = false
+    var trafficDetector: TrafficDetector? = null
+    val controllerHandler = object: CoreCallbackHandler {
+        override fun onEmitStatus(p0: Long, p1: String?): Long {
+            Log.i(TAG, "onEmitStatus: $p0 $p1")
+            if (startOrClose)
+                trafficDetector?.startTrafficDetection()
+            else
+                trafficDetector?.stopTrafficDetection()
+            return 0L
+        }
+
+        override fun shutdown(): Long {
+            Log.i(TAG, "shutdown: end")
+            return 0L
+        }
+
+        override fun startup(): Long {
+            Log.i(TAG, "startup: start")
+            return 0L
+        }
+
+    }
+    init {
+
+        Log.i(TAG, "${context.getExternalFilesDir("assets")?.absolutePath}")
+        Libv2ray.initCoreEnv(
+            context.getExternalFilesDir("assets")?.absolutePath, Device.getDeviceIdForXUDPBaseKey()
+        )
+        coreController = Libv2ray.newCoreController(controllerHandler)
+    }
+
+
+    fun measureDelaySync(url: String): String {
+        if (coreController?.isRunning == false) {
+            return "service not start"
+        }
+        var delay = 0L
+        try {
+            delay = coreController?.measureDelay(url) ?:0L
+        }catch (e: Exception) {
+            return e.message.toString()
+        }
+        return delay.toString()
+    }
+
+    fun startV2rayCore(link: String,protocol: String) {
+        startOrClose = true
+        bgExecutor.execute {
+            try {
+                coreController?.startLoop(ParserFactory.getParser(protocol).parse(link))
+            }catch (e: Exception) {
+                Log.e(TAG, "startV2rayCore failed: ${e.message}")
+            }
+        }
+    }
+
+    fun stopV2rayCore() {
+        startOrClose = false
+        coreController?.stopLoop()
+    }
+
+}

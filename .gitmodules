@@ -1,0 +1,6 @@
+[submodule "tun2socks/src/main/jni/hev-socks5-tunnel"]
+	path = tun2socks/src/main/jni/hev-socks5-tunnel
+	url = git@github.com:heiher/hev-socks5-tunnel.git
+[submodule "AndroidLibXrayLite"]
+	path = AndroidLibXrayLite
+	url = git@github.com:2dust/AndroidLibXrayLite.git

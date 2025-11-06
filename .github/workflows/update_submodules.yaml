@@ -1,0 +1,32 @@
+
+name: Update Submodules
+on:
+  schedule:
+    - cron: "0 17 * * *"
+  workflow_dispatch:
+
+jobs:
+  update_sdk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update submodules
+        run: |
+          git submodule update --remote
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin git@github.com:Q7DF1/v2rayFA.git
+          git submodule set-url AndroidLibXrayLite git@github.com:2dust/AndroidLibXrayLite.git
+          git submodule set-url tun2socks/src/main/jni/hev-socks5-tunnel git@github.com:heiher/hev-socks5-tunnel.git
+          git commit -am "Update SDK" || exit 0
+          git push
