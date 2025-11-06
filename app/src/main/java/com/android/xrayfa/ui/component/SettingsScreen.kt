@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -21,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -202,7 +204,7 @@ fun SettingsSelectBox(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
-            modifier = Modifier.weight(0.8f)
+            modifier = Modifier.weight(0.7f)
                 .padding(horizontal = 8.dp, vertical = 8.dp)
         ) {
             Text(
@@ -214,21 +216,22 @@ fun SettingsSelectBox(
                 style = MaterialTheme.typography.bodyMedium
             )
         }
-        ExposedDropdownMenuBox(
-            expanded = expand,
-            onExpandedChange = {
-                expand = it
-            },
-            modifier = Modifier.weight(0.2f)
+        Row(
+            modifier = Modifier.weight(0.3f)
                 .padding(end = 8.dp)
         ) {
+
+            TextButton(
+                onClick = {
+                    expand = !expand
+                },
+                modifier = Modifier.clip(RoundedCornerShape(32.dp))
+                    .weight(0.3f)
+                    .padding(end = 8.dp)
+            ) {
                 Row(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable {
-                        expand = !expand
-                    }
-                        .clip(RoundedCornerShape(50))
                 ) {
                     Text(
                         text = selected,
@@ -244,7 +247,8 @@ fun SettingsSelectBox(
                         contentDescription = "dark mode"
                     )
                 }
-            ExposedDropdownMenu(
+            }
+            DropdownMenu(
                 expanded = expand,
                 onDismissRequest = {expand = false}
             ) {
