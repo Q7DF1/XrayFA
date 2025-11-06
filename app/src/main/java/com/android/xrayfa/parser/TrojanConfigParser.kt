@@ -1,6 +1,7 @@
 package com.android.xrayfa.parser
 
-import com.android.xrayfa.model.Link
+import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.dto.Link
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.TrojanOutboundConfigurationObject
@@ -10,11 +11,18 @@ import com.android.xrayfa.model.stream.GrpcSettings
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
+import com.android.xrayfa.utils.ColorMap
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class TrojanConfigParser: AbstractConfigParser<TrojanOutboundConfigurationObject>() {
+@Singleton
+class TrojanConfigParser
+@Inject constructor(
+    override val settingsRepo: SettingsRepository
+): AbstractConfigParser<TrojanOutboundConfigurationObject>() {
 
 
     data class TrojanConfig(
@@ -67,6 +75,7 @@ class TrojanConfigParser: AbstractConfigParser<TrojanOutboundConfigurationObject
         )
     }
 
+
     override fun parseOutbound(url: String): OutboundObject<TrojanOutboundConfigurationObject> {
         val trojanConfig = parseTrojan(url)
         val network = trojanConfig.params.getOrDefault("type", "tcp")
@@ -103,7 +112,8 @@ class TrojanConfigParser: AbstractConfigParser<TrojanOutboundConfigurationObject
             protocol = Protocol.TROJAN,
             address = trojanConfig.host?:"unknown",
             port = trojanConfig.port?:0,
-            remark = trojanConfig.remark
+            remark = trojanConfig.remark,
+            color = ColorMap.getValue(link.subscriptionId)
         )
     }
 }

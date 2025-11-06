@@ -7,7 +7,7 @@
     <string name="connected">connected</string>
     <string name="home">home</string>
     <string name="config">config</string>
-    <string name="about">about</string>
+    <string name="logcat">logcat</string>
     <string name="add_config">add config</string>
     <string name="clipboard_import">Clipboard import</string>
     <string name="no_configuration">No configuration file</string>
@@ -31,4 +31,14 @@
     <string name="dns_ipv4" translatable="false">DNS IPv4</string>
     <string name="dns_ipv6" translatable="false">DNS IPv6</string>
     <string name="socks_port" translatable="false">socks port</string>
+    <string name="allow_app_settings">open app proxy settings</string>
+    <string name="select_app_settings">select special app  to config proxy</string>
+    <string name="all_app_settings" translatable="false">Apps</string>
+    <string name="repo_site">repository</string>
+    <string name="no_log_text">No log printing</string>
+    <string name="clipboard_export">clipboard export</string>
+    <string name="nick_name">nick name</string>
+    <string name="subscription_url">subscription url</string>
+    <string name="confirm">confirm</string>
+    <string name="subscribe_failed">subscribe failed</string>
 </resources>

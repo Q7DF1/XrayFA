@@ -4,6 +4,8 @@ import android.app.Activity
 import android.app.Service
 import android.content.Context
 import com.android.xrayfa.XrayAppCompatFactory
+import com.android.xrayfa.model.AbsOutboundConfigurationObject
+import com.android.xrayfa.parser.AbstractConfigParser
 import dagger.BindsInstance
 import dagger.Component
 import javax.inject.Provider
@@ -33,4 +35,5 @@ interface XrayFAComponent {
 
 
     fun inject(appCompatFactory: XrayAppCompatFactory)
+
 }

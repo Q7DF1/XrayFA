@@ -17,7 +17,7 @@ class TrafficDetectorImpl: TrafficDetector  {
     private val trafficChannel = Channel<Pair<Long, Long>>(capacity = 0)
 
     override fun startTrafficDetection() {
-        serviceScope.launch {
+        serviceScope.launch(Dispatchers.IO) {
             var upSpeed: Long
             var downSpeed: Long
             val client = XrayStatsClient()

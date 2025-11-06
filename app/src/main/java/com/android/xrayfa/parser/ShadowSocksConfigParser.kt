@@ -1,15 +1,23 @@
 package com.android.xrayfa.parser
 
-import com.android.xrayfa.model.Link
+import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.dto.Link
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.ShadowSocksOutboundConfigurationObject
 import com.android.xrayfa.model.ShadowSocksServerObject
 import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.model.stream.StreamSettingsObject
+import com.android.xrayfa.utils.ColorMap
 import java.util.Base64
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class ShadowSocksConfigParser: AbstractConfigParser<ShadowSocksOutboundConfigurationObject>() {
+@Singleton
+class ShadowSocksConfigParser
+@Inject constructor(
+    override val settingsRepo: SettingsRepository
+): AbstractConfigParser<ShadowSocksOutboundConfigurationObject>() {
 
     data class ShadowSocksConfig(
         val method: String,
@@ -74,7 +82,8 @@ class ShadowSocksConfigParser: AbstractConfigParser<ShadowSocksOutboundConfigura
             port = shadowSocksConfig.port,
             address = shadowSocksConfig.server,
             selected = link.selected,
-            remark = shadowSocksConfig.tag
+            remark = shadowSocksConfig.tag,
+            color = ColorMap.getValue(link.subscriptionId)
         )
     }
 

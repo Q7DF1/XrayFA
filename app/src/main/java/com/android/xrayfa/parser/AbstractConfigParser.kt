@@ -1,10 +1,11 @@
 package com.android.xrayfa.parser
 
+import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.model.AbsOutboundConfigurationObject
 import com.android.xrayfa.model.ApiObject
 import com.android.xrayfa.model.DnsObject
 import com.android.xrayfa.model.InboundObject
-import com.android.xrayfa.model.Link
+import com.android.xrayfa.dto.Link
 import com.android.xrayfa.model.LogObject
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.NoneOutboundConfigurationObject
@@ -18,6 +19,8 @@ import com.android.xrayfa.model.SystemPolicyObject
 import com.android.xrayfa.model.TunnelInboundConfigurationObject
 import com.android.xrayfa.model.XrayConfiguration
 import com.google.gson.Gson
+import kotlinx.coroutines.flow.first
+import javax.inject.Inject
 
 /**
  *
@@ -26,13 +29,18 @@ import com.google.gson.Gson
  * This parser defines the parsing standard for JSON configuration files.
  *
  */
+
 abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject> {
 
     private var apiEnable: Boolean = false
-    fun getBaseInboundConfig(): InboundObject {
+
+    abstract val settingsRepo: SettingsRepository
+
+    suspend fun getBaseInboundConfig(): InboundObject {
+        val settingsState = settingsRepo.settingsFlow.first()
         return InboundObject(
             listen = "127.0.0.1",
-            port = 10808,
+            port = settingsState.socksPort,
             protocol = "socks",
             settings = SocksInboundConfigurationObject(
                 auth = "noauth",
@@ -133,7 +141,7 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject> {
         )
     }
 
-    fun parse(link: String):String {
+    suspend fun parse(link: String):String {
 
         val vlessConfig = XrayConfiguration(
             stats = emptyMap(), // enable

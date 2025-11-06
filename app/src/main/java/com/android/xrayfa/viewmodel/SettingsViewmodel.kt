@@ -1,21 +1,29 @@
 package com.android.xrayfa.viewmodel
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.xrayfa.common.repository.Mode
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.common.repository.SettingsState
+import com.android.xrayfa.ui.AppsActivity
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.core.net.toUri
 
 
 class SettingsViewmodel(
     val repository: SettingsRepository
 ): ViewModel() {
 
+    companion object {
+        const val REPO = "https://github.com/Q7DF1/XrayFA"
+    }
     val settingsState = repository.settingsFlow.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -33,6 +41,22 @@ class SettingsViewmodel(
         viewModelScope.launch {
             repository.setIpV6Enable(enable)
         }
+    }
+
+    fun setSocksPort(port: Int) {
+        viewModelScope.launch {
+            repository.setSocksPort(port)
+        }
+    }
+
+    fun startAppsActivity(context: Context) {
+        val intent = Intent(context, AppsActivity::class.java)
+        context.startActivity(intent)
+    }
+
+    fun openRepo(context: Context) {
+        val intent = Intent(Intent.ACTION_VIEW, REPO.toUri())
+        context.startActivity(intent)
     }
 }
 

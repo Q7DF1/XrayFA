@@ -1,7 +1,7 @@
 package com.android.xrayfa.parser
 
-import com.android.xrayfa.model.AbsOutboundConfigurationObject
-import com.android.xrayfa.model.Link
+import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.dto.Link
 import com.android.xrayfa.model.MuxObject
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.OutboundObject
@@ -15,9 +15,17 @@ import com.android.xrayfa.model.stream.RawSettings
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
+import com.android.xrayfa.utils.ColorMap
 import java.net.URLDecoder
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class VLESSConfigParser: AbstractConfigParser<VLESSOutboundConfigurationObject>(){
+
+@Singleton
+class VLESSConfigParser
+@Inject constructor(
+    override val settingsRepo: SettingsRepository
+): AbstractConfigParser<VLESSOutboundConfigurationObject>(){
 
     companion object {
         const val TAG = "VLESSConfigParser"
@@ -139,7 +147,8 @@ class VLESSConfigParser: AbstractConfigParser<VLESSOutboundConfigurationObject>(
             address = vlessConfig.server,
             port = vlessConfig.port,
             selected = link.selected,
-            remark = vlessConfig.remark
+            remark = vlessConfig.remark,
+            color = ColorMap.getValue(link.subscriptionId)
         )
     }
 

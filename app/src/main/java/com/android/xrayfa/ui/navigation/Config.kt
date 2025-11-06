@@ -68,5 +68,7 @@ data object Config: NavigateDestination {
         get() = "config"
     override val containerColor: Color
         get() = Color.White
+    override val title: Int
+        get() = R.string.config
 }
 

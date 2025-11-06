@@ -1,6 +1,7 @@
 package com.android.xrayfa.parser
 
-import com.android.xrayfa.model.Link
+import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.dto.Link
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.ServerObject
@@ -16,11 +17,17 @@ import com.android.xrayfa.model.stream.RawSettings
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
-import com.google.gson.JsonObject
+import com.android.xrayfa.utils.ColorMap
 import com.google.gson.JsonParser
 import java.util.Base64
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class VMESSConfigParser: AbstractConfigParser<VMESSOutboundConfigurationObject>() {
+@Singleton
+class VMESSConfigParser
+@Inject constructor(
+    override val settingsRepo: SettingsRepository
+): AbstractConfigParser<VMESSOutboundConfigurationObject>() {
 
     companion object {
         const val TAG = "VMESSConfigParser"
@@ -122,7 +129,8 @@ class VMESSConfigParser: AbstractConfigParser<VMESSOutboundConfigurationObject>(
             port = json.get("port").asInt,
             selected = link.selected,
             remark = json.get("ps").asString
-                ?:"vmess-${json.get("add").asString}-${json.get("port").asString}"
+                ?:"vmess-${json.get("add").asString}-${json.get("port").asString}",
+            color = ColorMap.getValue(link.subscriptionId)
         )
     }
 

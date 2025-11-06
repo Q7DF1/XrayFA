@@ -1,7 +1,7 @@
 package com.android.xrayfa.repository
 
 import com.android.xrayfa.dao.LinkDao
-import com.android.xrayfa.model.Link
+import com.android.xrayfa.dto.Link
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -12,8 +12,8 @@ class LinkRepository @Inject constructor(
 ){
     val allLinks = linkDao.getAllLinks()
 
-    suspend fun addLink(link: Link) {
-        linkDao.addLink(link)
+    suspend fun addLink(vararg links: Link) {
+        linkDao.addLink(*links)
     }
 
     suspend fun deleteLink(link: Link) {
@@ -41,5 +41,9 @@ class LinkRepository @Inject constructor(
 
     suspend fun deleteLinkById(id: Int) {
         return linkDao.deleteLinkById(id)
+    }
+
+    suspend fun deleteLinkBySubscriptionId(subscriptionId: Int) {
+        return linkDao.deleteBySubscriptionId(subscriptionId)
     }
 }

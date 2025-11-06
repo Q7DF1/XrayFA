@@ -6,13 +6,11 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.net.VpnService
-import android.os.Binder
 import android.os.Build
-import android.os.Handler
-import android.os.IBinder
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_LINK
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_PROTOCOL
 import xrayfa.tun2socks.utils.NetPreferences
@@ -21,7 +19,7 @@ import xrayfa.tun2socks.qualifier.Background
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.util.concurrent.Executor
 import javax.inject.Inject
 
@@ -29,8 +27,8 @@ class XrayBaseService
 @Inject constructor(
     private val tun2SocksService: Tun2SocksService,
     private val v2rayCoreManager: XrayCoreManager,
-    @Background val bgExecutor: Executor,
-    private val trafficDetector: TrafficDetector
+    private val trafficDetector: TrafficDetector,
+    private val settingsRepo: SettingsRepository
 ): VpnService(){
 
     companion object {
@@ -78,22 +76,28 @@ class XrayBaseService
         super.onDestroy()
         tunFd?.close()
         tunFd = null
-        serviceScope.cancel()
     }
 
 
 
-    private fun startVpn() {
+    private suspend fun startVpn() {
         startForegroundNotification()
         val prefs  = NetPreferences(this)
-        val builder = Builder()
-        tunFd = builder.setSession(resources.getString(R.string.app_label))
-            .addAddress(prefs.tunnelIpv4Address, prefs.tunnelIpv4Prefix)
-            .addDisallowedApplication(applicationContext.packageName)
-            .addRoute("0.0.0.0",0)
-            .setMtu(prefs.tunnelMtu)
-            .setBlocking(false)
-            .establish()
+            val builder = Builder()
+            val allowedPackages = settingsRepo.getAllowedPackages()
+            if (!allowedPackages.isEmpty()) {
+                allowedPackages.forEach {
+                    builder.addAllowedApplication(it)
+                }
+            }else {
+                builder.addDisallowedApplication(applicationContext.packageName)
+            }
+            tunFd = builder.setSession(resources.getString(R.string.app_label))
+                .addAddress(prefs.tunnelIpv4Address, prefs.tunnelIpv4Prefix)
+                .addRoute("0.0.0.0",0)
+                .setMtu(prefs.tunnelMtu)
+                .setBlocking(false)
+                .establish()
     }
 
     private fun stopVPN() {
@@ -106,18 +110,21 @@ class XrayBaseService
     private fun startV2rayCoreService(link: String,protocol: String) {
         v2rayCoreManager.trafficDetector = trafficDetector
         v2rayCoreManager.startV2rayCore(link,protocol)
-        startVpn()
-        tunFd?.let {
-            tun2SocksService.startTun2Socks(it.fd)
+        serviceScope.launch {
+            startVpn()
+            tunFd?.let {
+                tun2SocksService.startTun2Socks(it.fd)
+            }
         }
-        
+
         
         //postUpdateForegroundNotification()
     }
 
     private fun stopV2rayCoreService() {
-
-        tun2SocksService.stopTun2Socks()
+        serviceScope.launch {
+            tun2SocksService.stopTun2Socks()
+        }
         stopVPN()
         v2rayCoreManager.stopV2rayCore()
         stopSelf()

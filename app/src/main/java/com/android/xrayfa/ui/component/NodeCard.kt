@@ -59,14 +59,21 @@ fun NodeCard(
     onShare: (() -> Unit)? = null,
     onEdit: (() -> Unit)? = null,
     onTest: (() -> Unit)? = null,
-    delayMs: String? = null,
+    delayMs: Long = -1,
     testing: Boolean = false,
-    selected: Boolean = false
+    selected: Boolean = false,
+    enableTest: Boolean = false
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
     val roundCornerShape = RoundedCornerShape(32.dp)
     val context = LocalContext.current
+    val delayColor = when {
+        delayMs < 0 -> Color.Transparent
+        delayMs < 300 -> Color.Green
+        delayMs < 900 -> Color(0xFFFFAA00)
+        else -> Color.Red
+    }
     Surface(
         color = backgroundColor,
         tonalElevation = 8.dp,
@@ -87,9 +94,9 @@ fun NodeCard(
             ) {
                 Box(
                     modifier = modifier
-                        .size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp)) // 整体大小
-                        .clip(CircleShape) // 裁剪成圆形
-                        .background(Color.Blue), // 背景色
+                        .size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
+                        .clip(CircleShape)
+                        .background(node.color),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -115,12 +122,13 @@ fun NodeCard(
                             fontWeight = FontWeight.Medium,
                             style = MaterialTheme.typography.bodyMedium
                         )
-                        if (delayMs != null) {
+                        if (delayMs > 0 ) {
                             Text(
-                                text = delayMs,
+                                text = delayMs.toString(),
                                 fontWeight = FontWeight.Normal,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = Color.Gray
+                                color = delayColor,
+                                modifier = Modifier.padding(horizontal = 8.dp)
                             )
                         }
                     }
@@ -178,11 +186,14 @@ fun NodeCard(
                     onClick = {
                         onTest.invoke()
                     },
-                    modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
+                    enabled = enableTest,
+                    modifier = modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
                 ) {
                     Icon(
                         imageVector = Icons.Default.Refresh,
                         contentDescription = "",
+                        tint = if (enableTest) MaterialTheme.colorScheme.onBackground
+                        else Color.Gray,
                         modifier = Modifier.fillMaxSize(0.5f)
                             .rotate(angle)
                     )

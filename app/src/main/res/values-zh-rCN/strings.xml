@@ -5,7 +5,7 @@
     <string name="connected">已连接</string>
     <string name="home">主页</string>
     <string name="config">配置</string>
-    <string name="about">关于</string>
+    <string name="logcat">关于</string>
     <string name="add_config">添加配置</string>
     <string name="clipboard_import">剪切板倒入</string>
     <string name="no_configuration">没有配置信息</string>
@@ -26,5 +26,14 @@
     <string name="dark_mode">暗黑模式</string>
     <string name="light_mode">正常模式</string>
     <string name="auto_mode">跟随系统</string>
-    <string name="dark_mode_description">选择是否开启深色模式</string>"
+    <string name="dark_mode_description">选择是否开启深色模式</string>
+    <string name="allow_app_settings">选择针对app代理</string>
+    <string name="select_app_settings">选择app开启代理</string>
+    <string name="repo_site">仓库</string>
+    <string name="no_log_text">暂无log打印</string>
+    <string name="clipboard_export">剪切板导出</string>
+    <string name="nick_name">别名</string>
+    <string name="subscription_url">订阅链接</string>
+    <string name="confirm">确认</string>
+    <string name="subscribe_failed">订阅失败</string>"
 </resources>

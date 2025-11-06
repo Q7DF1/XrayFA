@@ -1,7 +1,9 @@
 package com.android.xrayfa.ui.component
 
+import android.content.Intent
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,7 +36,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.android.xrayfa.common.repository.SettingsKeys
 
 @Composable
 fun SettingsScreen(
@@ -42,7 +47,10 @@ fun SettingsScreen(
     modifier: Modifier
 ) {
     val settingsState by viewmodel.settingsState.collectAsState()
-
+    val context = LocalContext.current
+    var isShowEditDialog by remember { mutableStateOf(false) }
+    var editInitValue by remember { mutableStateOf("") }
+    var editType by remember { mutableStateOf(SettingsKeys.SOCKS_PORT) }
     Box(
         modifier = modifier.fillMaxSize()
     ) {
@@ -70,6 +78,12 @@ fun SettingsScreen(
                         2 to stringResource(R.string.auto_mode)
                     )
                 )
+                SettingsFieldBox(
+                    title = R.string.allow_app_settings,
+                    content = stringResource(R.string.select_app_settings)
+                ) {
+                    viewmodel.startAppsActivity(context)
+                }
             }
 
             SettingsGroup(
@@ -79,7 +93,11 @@ fun SettingsScreen(
                 SettingsFieldBox(
                     title = R.string.socks_port,
                     content = settingsState.socksPort.toString()
-                ) { }
+                ) {
+                    editInitValue = settingsState.socksPort.toString()
+                    isShowEditDialog = true
+                    editType = SettingsKeys.SOCKS_PORT
+                }
                 SettingsFieldBox(
                     title = R.string.dns_ipv4,
                     content = settingsState.dnsIPv4
@@ -95,10 +113,37 @@ fun SettingsScreen(
                 SettingsFieldBox(
                     title = R.string.dns_ipv6,
                     content = settingsState.dnsIPv6,
+                    enable = settingsState.ipV6Enable,
                     onClick = {
                         if (settingsState.ipV6Enable) {
                             //todo
                         }
+                    }
+                )
+            }
+            SettingsGroup(
+                groupName = "other"
+            ) {
+                SettingsFieldBox(
+                    title = R.string.repo_site,
+                    ""
+                ) {
+                    viewmodel.openRepo(context)
+                }
+            }
+            if (isShowEditDialog) {
+                EditTextDialog(
+                    initialText = editInitValue,
+                    isNumeric = true,
+                    onConfirm = {
+                        when(editType) {
+                            SettingsKeys.SOCKS_PORT ->
+                                viewmodel.setSocksPort(it.toIntOrNull()?:10808)
+                        }
+                        isShowEditDialog = false
+                    },
+                    onDismiss = {
+                        isShowEditDialog = false
                     }
                 )
             }
@@ -227,11 +272,14 @@ fun SettingsSelectBox(
 fun SettingsFieldBox(
     @StringRes title: Int,
     content: String,
+    enable: Boolean = true,
     onClick: () ->Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth()
-            .clickable{onClick()},
+            .clickable(
+                enabled = enable
+            ){onClick()},
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
@@ -241,10 +289,12 @@ fun SettingsFieldBox(
             Text(
                 text = stringResource(title),
                 style = MaterialTheme.typography.titleMedium,
+                color = if (enable) MaterialTheme.colorScheme.onBackground else Color.Gray
             )
             Text(
                 text = content,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (enable) MaterialTheme.colorScheme.onBackground else Color.Gray
             )
         }
     }

@@ -2,9 +2,11 @@ package com.android.xrayfa.di
 
 import android.app.Activity
 import com.android.xrayfa.MainActivity
+import com.android.xrayfa.ui.AppsActivity
 import com.android.xrayfa.ui.DetailActivity
 import com.android.xrayfa.ui.QRCodeActivity
 import com.android.xrayfa.ui.SettingsActivity
+import com.android.xrayfa.ui.SubscriptionActivity
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.ClassKey
@@ -38,4 +40,14 @@ abstract class ActivityModule {
     @IntoMap
     @ClassKey(SettingsActivity::class)
     abstract fun bindSettingsActivity(activity: SettingsActivity): Activity
+
+    @Binds
+    @IntoMap
+    @ClassKey(AppsActivity::class)
+    abstract fun bindAppsActivity(activity: AppsActivity): Activity
+
+    @Binds
+    @IntoMap
+    @ClassKey(SubscriptionActivity::class)
+    abstract fun bindSubscriptionActivity(activity: SubscriptionActivity): Activity
 }

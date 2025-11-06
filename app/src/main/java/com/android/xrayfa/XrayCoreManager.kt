@@ -8,6 +8,7 @@ import com.android.xrayfa.parser.VLESSConfigParser
 import com.android.xrayfa.parser.VMESSConfigParser
 import com.android.xrayfa.rpc.XrayStatsClient
 import com.android.xrayfa.utils.Device
+import kotlinx.coroutines.CoroutineScope
 import xrayfa.tun2socks.qualifier.Background
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -25,7 +26,8 @@ import javax.inject.Singleton
 class XrayCoreManager
 @Inject constructor(
     @Application private val context: Context,
-    @Background private val bgExecutor: Executor
+    @Application private val coroutineScope: CoroutineScope,
+    private val parserFactory: ParserFactory
 ) {
 
     companion object {
@@ -65,24 +67,25 @@ class XrayCoreManager
     }
 
 
-    fun measureDelaySync(url: String): String {
+    fun measureDelaySync(url: String): Long {
         if (coreController?.isRunning == false) {
-            return "service not start"
+            return -1
         }
         var delay = 0L
         try {
             delay = coreController?.measureDelay(url) ?:0L
         }catch (e: Exception) {
-            return e.message.toString()
+            Log.e(TAG, "measureDelaySync: ${e.message}", )
+            return -1
         }
-        return delay.toString()
+        return delay
     }
 
     fun startV2rayCore(link: String,protocol: String) {
         startOrClose = true
-        bgExecutor.execute {
+        coroutineScope.launch {
             try {
-                coreController?.startLoop(ParserFactory.getParser(protocol).parse(link))
+                coreController?.startLoop(parserFactory.getParser(protocol).parse(link))
             }catch (e: Exception) {
                 Log.e(TAG, "startV2rayCore failed: ${e.message}")
             }

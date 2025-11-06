@@ -1,5 +1,6 @@
 package com.android.xrayfa.viewmodel
 
+import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -9,7 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.xrayfa.XrayBaseService
-import com.android.xrayfa.model.Link
+import com.android.xrayfa.dto.Link
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.protocol.protocolsPrefix
 import com.android.xrayfa.parser.ParserFactory
@@ -19,7 +20,9 @@ import com.android.xrayfa.XrayCoreManager
 import com.android.xrayfa.common.repository.DEFAULT_DELAY_TEST_URL
 import com.android.xrayfa.common.repository.SettingsKeys
 import com.android.xrayfa.common.repository.dataStore
+import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.ui.DetailActivity
+import com.android.xrayfa.ui.SubscriptionActivity
 import com.google.zxing.BarcodeFormat
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import kotlinx.coroutines.Dispatchers
@@ -33,13 +36,18 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import javax.inject.Inject
 import kotlin.jvm.java
 
 class XrayViewmodel(
     private val linkRepository: LinkRepository,
     private val xrayBaseServiceManager: XrayBaseServiceManager,
-    private val xrayCoreManager: XrayCoreManager
+    private val xrayCoreManager: XrayCoreManager,
+    private val parserFactory: ParserFactory,
+    private val okHttp: OkHttpClient,
+    private val subscriptionParser: SubscriptionParser
 ): ViewModel(){
 
     companion object {
@@ -50,29 +58,37 @@ class XrayViewmodel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _nodes = MutableStateFlow<List<Node>>(emptyList())
-    val node: StateFlow<List<Node>> = _nodes
+    val nodes: StateFlow<List<Node>> = _nodes
 
-    val _upSpeed = MutableStateFlow(0L)
+    private val _upSpeed = MutableStateFlow(0L)
     val upSpeed: StateFlow<Long> = _upSpeed.asStateFlow()
 
-    val _delay = MutableStateFlow("")
+    private val _delay = MutableStateFlow(-1L)
     val delay = _delay.asStateFlow()
 
-    val _testing = MutableStateFlow(false)
+    private val _testing = MutableStateFlow(false)
     val testing = _testing.asStateFlow()
 
-    val _downSpeed = MutableStateFlow(0L)
+    private val _downSpeed = MutableStateFlow(0L)
     val downSpeed: StateFlow<Long> = _downSpeed.asStateFlow()
 
-    val _isServiceRunning = MutableStateFlow(XrayBaseService.isRunning)
+    private val _isServiceRunning = MutableStateFlow(XrayBaseService.isRunning)
     val isServiceRunning: StateFlow<Boolean> = _isServiceRunning.asStateFlow()
 
-    val _qrcodebitmap = MutableStateFlow<Bitmap?>(null)
+    private val _qrcodebitmap = MutableStateFlow<Bitmap?>(null)
     val qrBitmap: StateFlow<Bitmap?> = _qrcodebitmap.asStateFlow()
 
-    val _deleteDialog = MutableStateFlow(false)
+    private val _deleteDialog = MutableStateFlow(false)
     val deleteDialog: StateFlow<Boolean> = _deleteDialog.asStateFlow()
+
+    private val _notConfig = MutableStateFlow(false)
+    val notConfig = _notConfig.asStateFlow()
     var deleteLinkId = -1
+
+    private val _logList = MutableStateFlow<List<String>>(emptyList())
+    val logList = _logList.asStateFlow()
+
+    var shareUrl = ""
 
 
     init {
@@ -84,18 +100,18 @@ class XrayViewmodel(
         xrayBaseServiceManager.viewmodelStateCallback = { running ->
             _isServiceRunning.value = running
         }
-        viewModelScope.launch {
-            val links = linkRepository.allLinks.first() // 获取原始链接，不执行解析
-            val parsedNodes = mutableListOf<Node>()
 
-            // 后台线程逐条解析
-            links.forEach { link ->
-                val node = withContext(Dispatchers.Default) {
-                    ParserFactory.getParser(link.protocolPrefix).preParse(link)
+        viewModelScope.launch {
+            linkRepository.allLinks
+                .map { links ->
+                    links.map { link ->
+                        parserFactory.getParser(link.protocolPrefix).preParse(link)
+                    }
                 }
-                parsedNodes.add(node)
-                _nodes.value = parsedNodes.toList() // 每条解析完就更新
-            }
+                .flowOn(Dispatchers.IO)
+                .collect { newNodes ->
+                    _nodes.value = newNodes
+                }
         }
     }
 
@@ -155,6 +171,11 @@ class XrayViewmodel(
         }
     }
 
+    fun startSubscriptionActivity(context: Context) {
+        val intent = Intent(context, SubscriptionActivity::class.java)
+        context.startActivity(intent)
+    }
+
 
 
     //link
@@ -167,7 +188,7 @@ class XrayViewmodel(
         val allLinks = linkRepository.allLinks
         val nodes = allLinks.map { links ->
             links.map { link ->
-                return@map ParserFactory.getParser(link.protocolPrefix).preParse(link)
+                return@map parserFactory.getParser(link.protocolPrefix).preParse(link)
             }
         }.flowOn(Dispatchers.IO)
 
@@ -177,7 +198,7 @@ class XrayViewmodel(
     fun getNodeById(id: Int): Flow<Node> {
         val link = linkRepository.loadLinksById(id)
         return link.map {
-            ParserFactory.getParser(it.protocolPrefix).preParse(it)
+            parserFactory.getParser(it.protocolPrefix).preParse(it)
         }
     }
 
@@ -187,7 +208,7 @@ class XrayViewmodel(
         val protocolPrefix = link.substringBefore("://").lowercase()
         Log.i(TAG, "addLink: $protocolPrefix")
         if (protocolsPrefix.contains(protocolPrefix)) {
-            val link0 =  Link(protocolPrefix = protocolPrefix, content = link)
+            val link0 =  Link(protocolPrefix = protocolPrefix, content = link, subscriptionId = 0)
             viewModelScope.launch {
                 Log.i(TAG, "addLink: $link0")
                 linkRepository.addLink(link0)
@@ -219,7 +240,7 @@ class XrayViewmodel(
     fun getSelectedNode(): Flow<Node?> {
         return linkRepository.querySelectedLink().map {
             it?.let {
-                ParserFactory.getParser(it.protocolPrefix).preParse(it)
+                parserFactory.getParser(it.protocolPrefix).preParse(it)
             }
         }
     }
@@ -254,9 +275,21 @@ class XrayViewmodel(
         viewModelScope.launch {
             val link = linkRepository.loadLinksById(id).first()
             val barcodeEncoder = BarcodeEncoder()
-            val bitmap = barcodeEncoder.encodeBitmap(link.content, BarcodeFormat.QR_CODE,400,400)
+            shareUrl = link.content
+            val bitmap = barcodeEncoder.encodeBitmap(shareUrl, BarcodeFormat.QR_CODE,400,400)
             _qrcodebitmap.value = bitmap
         }
+    }
+    //export clipboard
+    fun exportConfigToClipboard(context: Context) {
+        if (shareUrl == "") {
+            return
+        }
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+
+        val clip = ClipData.newPlainText("label", shareUrl)
+        clipboard.setPrimaryClip(clip)
+        shareUrl == ""
     }
 
     //delete dialog
@@ -291,18 +324,100 @@ class XrayViewmodel(
             }
         }
     }
+
+    /**
+     * Logcat
+     */
+    fun getLogcatContent() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+
+                val lst = LinkedHashSet<String>()
+                lst.add("logcat")
+                lst.add("-d")
+                lst.add("-v")
+                lst.add("time")
+                lst.add("-s")
+                lst.add("GoLog,tun2socks,AndroidRuntime,System.err")
+                val process = Runtime.getRuntime().exec(lst.toTypedArray())
+                val log = process.inputStream.bufferedReader().readText().lines()
+                val error = process.errorStream.bufferedReader().readText()
+                if (error.isNotEmpty()) {
+                    Log.e(TAG, "Logcat error: $error")
+                }
+                Log.i(TAG, "getLogcatContent: ${log.size} ${log[0]}")
+                _logList.value = log
+            }catch (e: Exception) {
+                Log.i(TAG, "getLogcatContent: ${e.message}")
+            }
+        }
+    }
+
+    fun exportLogcatToClipboard(context: Context) {
+        val log = _logList.value.joinToString(separator = "\n")
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("log",log)
+        clipboard.setPrimaryClip(clip)
+    }
+
+    fun getSubscription(url: String,subscriptionId: Int) {
+        val request = Request.Builder()
+            .get()
+            .url(url)
+            .build()
+        viewModelScope.launch(Dispatchers.IO) {
+            val response = okHttp.newCall(request)
+                .execute()
+
+            if (response.isSuccessful) {
+                val content = response.body?.string()?: ""
+                if (content != "") {
+                    val urls = subscriptionParser.parseUrl(content)
+                    linkRepository.deleteLinkBySubscriptionId(subscriptionId)
+                    val newLinks = urls.map {
+                        Log.i(TAG, "getSubscription: ${it.substringBefore("://")}")
+                        Log.i(TAG, "getSubscription: $it")
+                        Link(
+                            protocolPrefix = it.substringBefore("://"),
+                            content = it,
+                            selected = false,
+                            subscriptionId = subscriptionId
+                        )
+                    }
+                    linkRepository.addLink(*newLinks.toTypedArray())
+//                    val links = linkRepository.allLinks.first()
+//                    val nodes = links.map {
+//                        parserFactory.getParser(it.protocolPrefix).preParse(it)
+//                    }
+//                    withContext(Dispatchers.Main) {
+//                        _nodes.value = nodes
+//                    }
+                }
+            }
+        }
+    }
 }
 
 class XrayViewmodelFactory
 @Inject constructor(
     private val repository: LinkRepository,
     private val xrayBaseServiceManager: XrayBaseServiceManager,
-    private val xrayCoreManager: XrayCoreManager
+    private val xrayCoreManager: XrayCoreManager,
+    private val parserFactory: ParserFactory,
+    private val okHttp: OkHttpClient,
+    private val subscriptionParser: SubscriptionParser
 ): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(XrayViewmodel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return XrayViewmodel(repository,xrayBaseServiceManager,xrayCoreManager) as T
+            return XrayViewmodel(
+                repository,
+                xrayBaseServiceManager,
+                xrayCoreManager,
+                parserFactory,
+                okHttp,
+                subscriptionParser
+            ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
