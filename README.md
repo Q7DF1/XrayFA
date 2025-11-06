@@ -19,4 +19,4 @@ Xray-core For Android ![logo](logo.png)
 
 ## 🌟 Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=q7df1/xrayFA&type=Date)](https://star-h
+[![Star History Chart](https://api.star-history.com/svg?repos=q7df1/xrayFA&type=Date)](https://star-history.com/q7df1/xrayFA&Date)
