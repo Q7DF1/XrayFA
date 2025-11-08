@@ -4,7 +4,7 @@ Xray-core For Android
 
 ### Completed ✔️
 
-- ✅ VLESS 、VMESS 、SHADOWSOCKS 、TROJAN   protocol support
+- ✅ VLESS 、VMESS 、SHADOWSOCKS 、TROJAN protocol support
 - ✅ Subscription function
 - ✅ Simple Dashboard
 - ✅ Basic Settings
@@ -16,3 +16,5 @@ Xray-core For Android
 - [ ] Richer UI animations
 
 ---
+#### Powered by [Xray](https://github.com/XTLS/Xray-core)
+Submodules: [AndroidLibXrayLite](https://github.com/2dust/AndroidLibXrayLite/), [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel/)
