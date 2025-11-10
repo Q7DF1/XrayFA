@@ -1,10 +1,8 @@
-package xrayfa.tun2socks.qualifier;
+package com.android.xrayfa.common.di.qualifier;
 
 
-import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 
 import javax.inject.Qualifier;
 

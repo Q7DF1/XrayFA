@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.android.xrayfa.common.di.qualifier.ShortTime
 import com.android.xrayfa.dto.Link
 import com.android.xrayfa.dto.Subscription
 import com.android.xrayfa.parser.SubscriptionParser
@@ -170,7 +171,7 @@ class SubscriptionViewmodel(
 class SubscriptionViewmodelFactory
 @Inject constructor(
     val repository: SubscriptionRepository,
-    val okHttp: OkHttpClient,
+    @ShortTime val okHttp: OkHttpClient,
     val linkRepository: LinkRepository,
     val subscriptionParser: SubscriptionParser
 ): ViewModelProvider.Factory {

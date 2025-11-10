@@ -2,22 +2,14 @@ package com.android.xrayfa
 
 import android.content.Context
 import android.util.Log
-import xrayfa.tun2socks.qualifier.Application
+import com.android.xrayfa.common.di.qualifier.Application
 import com.android.xrayfa.parser.ParserFactory
-import com.android.xrayfa.parser.VLESSConfigParser
-import com.android.xrayfa.parser.VMESSConfigParser
-import com.android.xrayfa.rpc.XrayStatsClient
 import com.android.xrayfa.utils.Device
 import kotlinx.coroutines.CoroutineScope
-import xrayfa.tun2socks.qualifier.Background
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import libv2ray.CoreCallbackHandler
 import libv2ray.CoreController
 import libv2ray.Libv2ray
-import java.util.concurrent.Executor
 import javax.inject.Inject
 import javax.inject.Singleton
 

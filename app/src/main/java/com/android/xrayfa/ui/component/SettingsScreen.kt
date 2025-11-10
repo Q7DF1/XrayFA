@@ -1,6 +1,11 @@
 package com.android.xrayfa.ui.component
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,6 +43,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -54,6 +61,8 @@ fun SettingsScreen(
     var isShowEditDialog by remember { mutableStateOf(false) }
     var editInitValue by remember { mutableStateOf("") }
     var editType by remember { mutableStateOf(SettingsKeys.SOCKS_PORT) }
+
+    val geoIPDownloading by viewmodel.geoIPDownloading.collectAsState()
     Box(
         modifier = modifier.fillMaxSize()
     ) {
@@ -125,7 +134,9 @@ fun SettingsScreen(
                 )
                 SettingsWithBtnBox(
                     title = R.string.geo_ip,
-                    description = R.string.geo_ip_description
+                    description = R.string.geo_ip_description,
+                    downloading = geoIPDownloading,
+                    onDownloadClick = {viewmodel.downloadGeoIP(context = context)}
                 )
                 SettingsWithBtnBox(
                     title = R.string.geo_site,
@@ -204,7 +215,20 @@ fun SettingsCheckBox(
 fun SettingsWithBtnBox(
     @StringRes title: Int,
     @StringRes description: Int,
+    downloading: Boolean = false,
+    onDownloadClick: () -> Unit = {},
+    onImportClick: () -> Unit = {}
 ) {
+
+    val infiniteTransition = rememberInfiniteTransition()
+    val angle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = if (downloading) 360f else 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = LinearEasing)
+        )
+    )
+
     Row(
         modifier = Modifier.fillMaxWidth()
             .clickable{},
@@ -227,12 +251,16 @@ fun SettingsWithBtnBox(
             modifier = Modifier.weight(0.3f)
         ) {
             IconButton(
-                onClick = {} //todo
+                onClick = onDownloadClick
             ) {
                 Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.ic_download),
+                    imageVector = if (!downloading)
+                        ImageVector.vectorResource(R.drawable.ic_download)
+                    else
+                        Icons.Default.Refresh,
                     contentDescription = "download",
                     modifier = Modifier.size(24.dp)
+                        .rotate(angle)
                 )
             }
             IconButton(

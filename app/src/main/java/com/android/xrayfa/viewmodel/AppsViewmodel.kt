@@ -2,12 +2,9 @@ package com.android.xrayfa.viewmodel
 
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.util.Log
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -17,9 +14,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import xrayfa.tun2socks.qualifier.Background
-import java.util.concurrent.Executor
 import javax.inject.Inject
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
@@ -28,12 +22,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
-import kotlinx.coroutines.delay
 import androidx.core.graphics.createBitmap
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
 
 
 data class AppInfo(
