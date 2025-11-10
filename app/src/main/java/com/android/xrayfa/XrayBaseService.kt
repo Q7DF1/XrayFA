@@ -15,12 +15,10 @@ import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_LINK
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_PROTOCOL
 import xrayfa.tun2socks.utils.NetPreferences
 import xrayfa.tun2socks.Tun2SocksService
-import xrayfa.tun2socks.qualifier.Background
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import java.util.concurrent.Executor
 import javax.inject.Inject
 
 class XrayBaseService

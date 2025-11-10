@@ -17,6 +17,7 @@ import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.repository.LinkRepository
 import com.android.xrayfa.XrayBaseServiceManager
 import com.android.xrayfa.XrayCoreManager
+import com.android.xrayfa.common.di.qualifier.ShortTime
 import com.android.xrayfa.common.repository.DEFAULT_DELAY_TEST_URL
 import com.android.xrayfa.common.repository.SettingsKeys
 import com.android.xrayfa.common.repository.dataStore
@@ -404,7 +405,7 @@ class XrayViewmodelFactory
     private val xrayBaseServiceManager: XrayBaseServiceManager,
     private val xrayCoreManager: XrayCoreManager,
     private val parserFactory: ParserFactory,
-    private val okHttp: OkHttpClient,
+    @ShortTime private val okHttp: OkHttpClient,
     private val subscriptionParser: SubscriptionParser
 ): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

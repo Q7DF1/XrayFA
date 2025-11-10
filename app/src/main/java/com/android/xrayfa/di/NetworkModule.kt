@@ -1,12 +1,17 @@
 package com.android.xrayfa.di
 
 import android.content.Context
+import com.android.xrayfa.common.di.qualifier.Application
+import com.android.xrayfa.common.di.qualifier.LongTime
+import com.android.xrayfa.common.di.qualifier.ShortTime
 import dagger.Module
 import dagger.Provides
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import xrayfa.tun2socks.qualifier.Application
+import java.net.InetSocketAddress
+import java.net.Proxy
 import java.util.concurrent.TimeUnit
+import javax.inject.Singleton
 
 
 @Module
@@ -29,6 +34,7 @@ class NetworkModule {
 
 
     @Provides
+    @ShortTime
     fun provideOkHttpClient(interceptor: Interceptor): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(interceptor)
@@ -36,6 +42,20 @@ class NetworkModule {
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
+            .build()
+    }
+
+    @Provides
+    @LongTime
+    fun provideDownloadHttpClient(interceptor: Interceptor): OkHttpClient {
+        val proxy = Proxy(Proxy.Type.SOCKS, InetSocketAddress("127.0.0.1", 10808))
+        return OkHttpClient.Builder()
+            .addInterceptor(interceptor)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(120, TimeUnit.SECONDS)
+            .writeTimeout(120, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(false)
+            .proxy(proxy)
             .build()
     }
 }

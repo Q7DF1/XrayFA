@@ -2,7 +2,7 @@ package xrayfa.tun2socks
 
 import android.content.Context
 import android.util.Log
-import xrayfa.tun2socks.qualifier.Application
+import com.android.xrayfa.common.di.qualifier.Application
 import xrayfa.tun2socks.utils.Tun2SocksConfigUtil
 import javax.inject.Inject
 import javax.inject.Singleton

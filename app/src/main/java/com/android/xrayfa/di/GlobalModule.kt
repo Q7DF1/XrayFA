@@ -3,13 +3,13 @@ package com.android.xrayfa.di
 import android.content.Context
 import com.android.xrayfa.TrafficDetector
 import com.android.xrayfa.TrafficDetectorImpl
+import com.android.xrayfa.common.di.qualifier.Application
 import com.android.xrayfa.dao.LinkDao
 import com.android.xrayfa.dao.SubscriptionDao
 import com.android.xrayfa.dao.XrayFADatabase
 import com.android.xrayfa.parser.SubscriptionParser
-import xrayfa.tun2socks.qualifier.Application
-import xrayfa.tun2socks.qualifier.Background
-import xrayfa.tun2socks.qualifier.Main
+import com.android.xrayfa.common.di.qualifier.Background
+import com.android.xrayfa.common.di.qualifier.Main
 import xrayfa.tun2socks.utils.NetPreferences
 import dagger.Binds
 import dagger.Module
