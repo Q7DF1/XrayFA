@@ -43,7 +43,7 @@ class SettingsViewmodel(
     }
 
     val geoIPUrlTest = "https://github.com/v2fly/geoip/releases/latest/download/geoip.dat"
-
+    val geoSiteUrlTest = "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
     private val _geoIPDownloading = MutableStateFlow(false)
     val geoIPDownloading = _geoIPDownloading.asStateFlow()
 
@@ -89,27 +89,38 @@ class SettingsViewmodel(
     }
 
 
-    fun downloadGeoIP(url:String = geoIPUrlTest, context: Context) {
+    fun downloadGeoSite(context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _geoSiteDownloading.value = true
+            download(FILE_TYPE_SITE,context)
+            _geoSiteDownloading.value = false
+        }
+    }
+
+    fun downloadGeoIP(context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _geoIPDownloading.value = true
+            download(FILE_TYPE_IP,context)
+            _geoIPDownloading.value = false
+        }
+    }
+    private suspend fun download(fileType: Int, context: Context) {
+        val url = if (fileType == FILE_TYPE_IP) geoIPUrlTest else geoSiteUrlTest
         val request = Request.Builder()
             .url(url)
             .build()
-        viewModelScope.launch(Dispatchers.IO) {
-            Log.i(TAG, "downloadGeoIP: downloading")
-            _geoIPDownloading.value = true
-            okHttpClient.newCall(request).execute().use { res ->
-                if (!res.isSuccessful) throw IOException("Unexpected code $res")
+            Log.i(TAG, "$url: downloading")
+        okHttpClient.newCall(request).execute().use { res ->
+            if (!res.isSuccessful) throw IOException("Unexpected code $res")
 
-                res.body?.let { body ->
-                    val externalFilesDir =
-                            context.applicationContext.getExternalFilesDir("assert")
-                    val geoIpFile = File(externalFilesDir,"geoip.dat")
-                    geoIpFile.sink().buffer().use {sink ->
-                            sink.writeAll(body.source())
-                    }
-                    _geoIPDownloading.value = false
-                    Log.i(TAG, "downloadGeoIP: download completed")
+            res.body?.let { body ->
+                val file =
+                    File(context.filesDir,if (FILE_TYPE_IP == fileType)"geoip.dat" else "geosite.dat")
+                file.sink().buffer().use { sink ->
+                        sink.writeAll(body.source())
                 }
             }
+
         }
     }
 

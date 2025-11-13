@@ -71,7 +71,7 @@ fun SettingsScreen(
     var editType by remember { mutableStateOf(SettingsKeys.SOCKS_PORT) }
 
     val geoIPDownloading by viewmodel.geoIPDownloading.collectAsState()
-
+    val geoSiteDownloading by viewmodel.geoSiteDownloading.collectAsState()
     val importException by viewmodel.importException.collectAsState()
     val ipFilePickLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -173,6 +173,8 @@ fun SettingsScreen(
                 SettingsWithBtnBox(
                     title = R.string.geo_site,
                     description = R.string.geo_site_description,
+                    onDownloadClick = {viewmodel.downloadGeoSite(context)},
+                    downloading = geoSiteDownloading,
                     onImportClick = {
                         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                             addCategory(Intent.CATEGORY_OPENABLE)
