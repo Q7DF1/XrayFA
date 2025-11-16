@@ -23,6 +23,7 @@
     <string name="save">保存</string>
     <string name="enable_ipv6">启用IPv6</string>
     <string name="enable_ipv6_description">勾选后开启IPv6代理</string>
+    <string name="theme_select">主题</string>
     <string name="dark_mode">暗黑模式</string>
     <string name="light_mode">正常模式</string>
     <string name="auto_mode">跟随系统</string>
@@ -43,5 +44,10 @@
     <string name="download_geo_failed">下载geo文件失败</string>
     <string name="edit">编辑</string>
     <string name="can_not_be_empty">不能为空</string>
-    <string name="geo_import_try_later">下载中 请稍后再试</string>"
+    <string name="geo_import_try_later">下载中 请稍后再试</string>
+
+    <string name="err_ipv4_empty">请输入至少一个 IPv4 地址</string>
+    <string name="err_ipv4_item_empty">第 %1$d 个地址为空，请检查逗号或空格</string>
+    <string name="err_ipv4_invalid">第 %1$d 个地址 “%2$s” 不是合法的 IPv4 地址</string>
+    <string name="err_ipv4_duplicate">第 %1$d 个地址 “%2$s” 与前面的重复</string>
 </resources>

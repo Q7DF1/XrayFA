@@ -83,15 +83,16 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject> {
     }
 
 
-    fun getBaseDnsConfig(): DnsObject {
+    suspend fun getBaseDnsConfig(): DnsObject {
+        val settingsState = settingsRepo.settingsFlow.first()
+        val dns = settingsState.dnsIPv4.split(",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
         return DnsObject(
             hosts = mapOf(
                 "domain:googleapis.cn" to "googleapis.com"
             ),
-            servers = listOf(
-                "8.8.8.8",
-                "1.1.1.1"
-            )
+            servers = dns
         )
     }
 

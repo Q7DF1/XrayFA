@@ -24,6 +24,7 @@
     <string name="save">save</string>
     <string name="enable_ipv6">enable IPv6</string>
     <string name="enable_ipv6_description">Click to enable IPv6 proxy</string>
+    <string name="theme_select">Theme</string>
     <string name="dark_mode">Dark</string>
     <string name="light_mode">Light</string>
     <string name="auto_mode">Auto</string>
@@ -51,4 +52,9 @@
     <string name="edit">edit</string>
     <string name="can_not_be_empty">cannot be empty</string>
     <string name="geo_import_try_later">Downloading, please try again later.</string>
+
+    <string name="err_ipv4_empty">Please enter at least one IPv4 address</string>
+    <string name="err_ipv4_item_empty">The %1$d-th entry is empty, please check commas or spaces</string>
+    <string name="err_ipv4_invalid">The %1$d-th entry "%2$s" is not a valid IPv4 address</string>
+    <string name="err_ipv4_duplicate">The %1$d-th entry "%2$s" is duplicated</string>
 </resources>

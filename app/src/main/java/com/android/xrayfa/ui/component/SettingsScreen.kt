@@ -1,6 +1,7 @@
 package com.android.xrayfa.ui.component
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -54,8 +55,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.Preferences
 import com.android.xrayfa.common.repository.SettingsKeys
+import com.android.xrayfa.common.repository.SettingsState
 import com.android.xrayfa.viewmodel.FILE_TYPE_IP
 import com.android.xrayfa.viewmodel.FILE_TYPE_SITE
 
@@ -68,8 +72,8 @@ fun SettingsScreen(
     val context = LocalContext.current
     var isShowEditDialog by remember { mutableStateOf(false) }
     var editInitValue by remember { mutableStateOf("") }
-    var editType by remember { mutableStateOf(SettingsKeys.SOCKS_PORT) }
-
+    var editType: Preferences.Key<*> by remember { mutableStateOf(SettingsKeys.SOCKS_PORT) }
+    var validator: (String)->String? by remember { mutableStateOf({null}) }
     val geoIPDownloading by viewmodel.geoIPDownloading.collectAsState()
     val geoSiteDownloading by viewmodel.geoSiteDownloading.collectAsState()
     val importException by viewmodel.importException.collectAsState()
@@ -99,7 +103,7 @@ fun SettingsScreen(
                 groupName = "general"
             ) {
                 SettingsSelectBox(
-                    title = R.string.dark_mode,
+                    title = R.string.theme_select,
                     description = R.string.dark_mode_description,
                     onSelected = { mode ->
                         viewmodel.setDarkMode(mode)
@@ -135,11 +139,19 @@ fun SettingsScreen(
                     editInitValue = settingsState.socksPort.toString()
                     isShowEditDialog = true
                     editType = SettingsKeys.SOCKS_PORT
+                    validator = {
+                        if (it.isBlank()) context.getString(R.string.can_not_be_empty) else null
+                    }
                 }
                 SettingsFieldBox(
                     title = R.string.dns_ipv4,
                     content = settingsState.dnsIPv4
-                ) { }
+                ) {
+                    editInitValue = settingsState.dnsIPv4
+                    isShowEditDialog = true
+                    editType = SettingsKeys.DNS_IPV4
+                    validator = {validateIpv4List(it,context)}
+                }
                 SettingsCheckBox(
                     title = R.string.enable_ipv6,
                     description = R.string.enable_ipv6_description,
@@ -202,12 +214,15 @@ fun SettingsScreen(
                     dismissText = stringResource(R.string.cancel),
                     confirmText = stringResource(R.string.save),
                     initialText = editInitValue,
-                    isNumeric = true,
-                    validator = {if (it.isBlank()) context.getString(R.string.can_not_be_empty) else null},
+                    isNumeric = editType.name == SettingsKeys.SOCKS_PORT.name,
+                    validator = validator,
                     onConfirm = {
-                        when(editType) {
-                            SettingsKeys.SOCKS_PORT ->
+                        when(editType.name) {
+                            SettingsKeys.SOCKS_PORT.name ->
                                 viewmodel.setSocksPort(it.toIntOrNull()?:10808)
+
+                            SettingsKeys.DNS_IPV4.name ->
+                                viewmodel.setDnsIpV4(it)
                         }
                         isShowEditDialog = false
                     },
@@ -407,13 +422,15 @@ fun SettingsSelectBox(
                     DropdownMenuItem(
                         text = {
                             Text(
-                                text = option.value
+                                text = option.value,
+                                textAlign = TextAlign.Center
                             )
                         },
                         onClick = {
                             onSelected(option.key)
                             expand = false
-                        }
+                        },
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
                 }
             }
@@ -475,6 +492,47 @@ fun SettingsGroup(
         )
         content()
     }
+}
+
+
+/**
+ * Validate one or multiple IPv4 addresses separated by commas.
+ *
+ * @param input The input string (e.g., "192.168.0.1" or "8.8.8.8, 1.2.3.4")
+ * @return null if all addresses are valid; otherwise a warning message.
+ */
+fun validateIpv4List(input: String,context: Context): String? {
+    val trimmed = input.trim()
+    if (trimmed.isEmpty()) return context.getString(R.string.err_ipv4_empty)
+
+    // Strict IPv4 regex matching 0-255 for each segment
+    val ipv4Regex = Regex("""^(?:25[0-5]|2[0-4]\d|1?\d{1,2})(?:\.(?:25[0-5]|2[0-4]\d|1?\d{1,2})){3}$""")
+
+    val parts = trimmed.split(",")
+    if (parts.isEmpty()) return context.getString(R.string.err_ipv4_empty)
+
+    val seen = mutableSetOf<String>()
+    for ((index, raw) in parts.withIndex()) {
+        val part = raw.trim()
+
+        // Empty element (e.g. "1.1.1.1,,2.2.2.2")
+        if (part.isEmpty()) {
+            return context.getString(R.string.err_ipv4_item_empty,index + 1)
+        }
+
+        // IPv4 format check
+        if (!ipv4Regex.matches(part)) {
+            return context.getString(R.string.err_ipv4_invalid,index + 1 , part)
+        }
+
+        // Duplicate check
+        if (!seen.add(part)) {
+            return context.getString(R.string.err_ipv4_duplicate,index + 1 ,part)
+        }
+    }
+
+    // All valid
+    return null
 }
 
 @Composable

@@ -61,7 +61,7 @@ class SettingsRepository
             darkMode = prefs[SettingsKeys.DARK_MODE] ?: 0,
             ipV6Enable = prefs[SettingsKeys.IPV6_ENABLE] == true,
             socksPort = prefs[SettingsKeys.SOCKS_PORT] ?: 10808,
-            dnsIPv4 = prefs[SettingsKeys.DNS_IPV4] ?: "8.8.8.8",
+            dnsIPv4 = prefs[SettingsKeys.DNS_IPV4] ?: "8.8.8.8,1.1.1.1",
             dnsIPv6 = prefs[SettingsKeys.DNS_IPV6] ?: "2001:4860:4860::8888",
             delayTestUrl = prefs[SettingsKeys.DELAY_TEST_URL] ?: DEFAULT_DELAY_TEST_URL,
             version = prefs[SettingsKeys.VERSION] ?: "1.0.0"

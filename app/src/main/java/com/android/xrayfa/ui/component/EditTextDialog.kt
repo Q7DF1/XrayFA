@@ -2,6 +2,7 @@ package com.android.xrayfa.ui.component
 
 
 import android.app.Activity
+import android.content.Context
 import android.view.inputmethod.InputMethodManager
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,18 +27,19 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
- * 可复用的编辑弹窗
+ * A reusable editable dialog.
  *
- * @param initialText 初始文本
- * @param title 弹窗标题（可空）
- * @param label TextField 的 label（可空）
- * @param confirmText 确认按钮文本
- * @param dismissText 取消按钮文本
- * @param validator 校验函数：返回 null 表示合法，否则返回错误提示
- * @param isConfirmLoading 确认按钮是否显示 loading（用于异步保存）
- * @param onConfirm 点击确认并通过校验时回调（传入最新文本）
- * @param onDismiss 取消或关闭时回调
+ * @param initialText The initial text content.
+ * @param title The dialog title (nullable).
+ * @param label The label for the TextField (nullable).
+ * @param confirmText The text for the confirm button.
+ * @param dismissText The text for the dismiss/cancel button.
+ * @param validator A validation function: returns null if valid, otherwise an error message.
+ * @param isConfirmLoading Whether the confirm button should display a loading state (for async saving).
+ * @param onConfirm Callback invoked when the confirm button is clicked and validation passes (provides the updated text).
+ * @param onDismiss Callback invoked when the dialog is dismissed or canceled.
  */
+
 @Composable
 fun EditTextDialog(
     initialText: String,
@@ -57,7 +59,6 @@ fun EditTextDialog(
     var text by remember { mutableStateOf(initialText) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    // 保证 dialog 一出现就请求焦点并弹出键盘
     LaunchedEffect(Unit) {
         // Small delay to ensure dialog is composed before requesting focus
         delay(120)
@@ -66,7 +67,6 @@ fun EditTextDialog(
 
     AlertDialog(
         onDismissRequest = {
-            // 隐藏键盘然后触发 onDismiss
             focusManager.clearFocus()
             hideKeyboard(context)
             onDismiss()
@@ -90,7 +90,7 @@ fun EditTextDialog(
                         }
                         error = validator(it)
                     },
-                    label = { if (!label.isNullOrEmpty()) Text(label!!) },
+                    label = { if (!label.isNullOrEmpty()) Text(label) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRequester(focusRequester),
@@ -100,8 +100,6 @@ fun EditTextDialog(
                         keyboardType = if (isNumeric) KeyboardType.Number
                         else KeyboardType.Text
                     ),
-                    // 当按下 Done 时触发保存（如果通过校验）
-                    // 这里使用 keyboardActions 需要引入 accompanist 或 material -> 也可在 TextField 层外监听
                 )
                 if (error != null) {
                     Text(
@@ -115,10 +113,8 @@ fun EditTextDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    // 校验
                     val validation = validator(text)
                     if (validation == null) {
-                        // 合法：隐藏键盘并触发保存回调
                         focusManager.clearFocus()
                         hideKeyboard(context)
                         onConfirm(text)
@@ -148,7 +144,6 @@ fun EditTextDialog(
     )
 }
 
-/** 隐藏键盘的小工具 */
 private fun hideKeyboard(context: android.content.Context) {
     val imm = context.getSystemService(Activity.INPUT_METHOD_SERVICE) as? InputMethodManager
     val activity = context as? Activity
@@ -157,3 +152,6 @@ private fun hideKeyboard(context: android.content.Context) {
         imm.hideSoftInputFromWindow(view.windowToken, 0)
     }
 }
+
+
+
