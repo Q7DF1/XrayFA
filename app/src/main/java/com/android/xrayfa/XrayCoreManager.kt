@@ -73,15 +73,13 @@ class XrayCoreManager
         return delay
     }
 
-    fun startV2rayCore(link: String,protocol: String) {
+    suspend fun startV2rayCore(link: String,protocol: String) {
         startOrClose = true
-        coroutineScope.launch {
             try {
                 coreController?.startLoop(parserFactory.getParser(protocol).parse(link))
             }catch (e: Exception) {
                 Log.e(TAG, "startV2rayCore failed: ${e.message}")
             }
-        }
     }
 
     fun stopV2rayCore() {

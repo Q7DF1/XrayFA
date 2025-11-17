@@ -24,6 +24,7 @@ import com.android.xrayfa.common.repository.dataStore
 import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.ui.DetailActivity
 import com.android.xrayfa.ui.SubscriptionActivity
+import com.android.xrayfa.utils.EventBus
 import com.google.zxing.BarcodeFormat
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import kotlinx.coroutines.Dispatchers
@@ -98,8 +99,10 @@ class XrayViewmodel(
             _upSpeed.value = pair.first
             _downSpeed.value = pair.second
         }
-        xrayBaseServiceManager.viewmodelStateCallback = { running ->
-            _isServiceRunning.value = running
+        viewModelScope.launch {
+            EventBus.statusFlow.collect {
+                _isServiceRunning.value = it
+            }
         }
 
         viewModelScope.launch {

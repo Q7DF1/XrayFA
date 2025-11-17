@@ -11,6 +11,7 @@ import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.utils.EventBus
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_LINK
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_PROTOCOL
 import xrayfa.tun2socks.utils.NetPreferences
@@ -34,7 +35,6 @@ class XrayBaseService
         const val TAG = "XrayBaseService"
         const val CHANNEL_ID = "foreground_service_v2rayFA_channel"
         const val NOTIFICATION_ID = 1
-
         var isRunning: Boolean = false
     }
 
@@ -51,14 +51,15 @@ class XrayBaseService
             Log.i(TAG, "onStartCommand: stop...")
             stopV2rayCoreService()
             isRunning = false
+            EventBus.statusFlow.tryEmit(isRunning)
             return  START_NOT_STICKY
         }else {
-
             Log.i(TAG, "onStartCommand: start...")
             val link = intent?.getStringExtra(EXTRA_LINK)
             val protocol = intent?.getStringExtra(EXTRA_PROTOCOL)
             startV2rayCoreService(link!!,protocol!!)
             isRunning = true
+            EventBus.statusFlow.tryEmit(isRunning)
             return START_STICKY
         }
     }
@@ -106,8 +107,8 @@ class XrayBaseService
 
     private fun startV2rayCoreService(link: String,protocol: String) {
         v2rayCoreManager.trafficDetector = trafficDetector
-        v2rayCoreManager.startV2rayCore(link,protocol)
         serviceScope.launch {
+            v2rayCoreManager.startV2rayCore(link,protocol)
             startVpn()
             tunFd?.let {
                 tun2SocksService.startTun2Socks(it.fd)
