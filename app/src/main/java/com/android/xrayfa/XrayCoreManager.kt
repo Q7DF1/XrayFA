@@ -3,9 +3,11 @@ package com.android.xrayfa
 import android.content.Context
 import android.util.Log
 import com.android.xrayfa.common.di.qualifier.Application
+import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.utils.Device
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import libv2ray.CoreCallbackHandler
 import libv2ray.CoreController
@@ -19,7 +21,8 @@ class XrayCoreManager
 @Inject constructor(
     @Application private val context: Context,
     @Application private val coroutineScope: CoroutineScope,
-    private val parserFactory: ParserFactory
+    private val parserFactory: ParserFactory,
+    private val settingsRepository: SettingsRepository
 ) {
 
     companion object {
@@ -55,6 +58,12 @@ class XrayCoreManager
         Libv2ray.initCoreEnv(
             context.filesDir.absolutePath, Device.getDeviceIdForXUDPBaseKey()
         )
+        coroutineScope.launch {
+            val xrayCoreVersion = Libv2ray.checkVersionX()
+            if (settingsRepository.settingsFlow.first().xrayCoreVersion != xrayCoreVersion) {
+                settingsRepository.setXrayCoreVersion(xrayCoreVersion)
+            }
+        }
         coreController = Libv2ray.newCoreController(controllerHandler)
     }
 

@@ -3,9 +3,7 @@ package com.android.xrayfa.ui.component
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.LinearEasing
@@ -23,7 +21,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -59,7 +59,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
 import com.android.xrayfa.common.repository.SettingsKeys
-import com.android.xrayfa.common.repository.SettingsState
 import com.android.xrayfa.viewmodel.FILE_TYPE_IP
 import com.android.xrayfa.viewmodel.FILE_TYPE_SITE
 
@@ -93,14 +92,20 @@ fun SettingsScreen(
                 viewmodel.onSelectFile(context,uri, FILE_TYPE_SITE)
             }
         }
+    val scrollState = rememberScrollState()
+    val packageName = context.packageName
+    val pm = context.packageManager
+    val packageInfo = pm.getPackageInfo(packageName, 0)
+    val versionName = packageInfo.versionName?:"unknown"
     Box(
         modifier = modifier.fillMaxSize()
     ) {
         Column(
             modifier = Modifier.fillMaxWidth()
+                .verticalScroll(scrollState)
         ) {
             SettingsGroup(
-                groupName = "general"
+                groupName = stringResource(R.string.general_part)
             ) {
                 SettingsSelectBox(
                     title = R.string.theme_select,
@@ -129,7 +134,7 @@ fun SettingsScreen(
             }
 
             SettingsGroup(
-                groupName = "network"
+                groupName = stringResource(R.string.network_part)
             ) {
 
                 SettingsFieldBox(
@@ -166,15 +171,13 @@ fun SettingsScreen(
                     enable = settingsState.ipV6Enable,
                     onClick = {
                         if (settingsState.ipV6Enable) {
-                            //todo
+                            editInitValue = settingsState.dnsIPv6
+                            isShowEditDialog = true
+                            editType = SettingsKeys.DNS_IPV6
+                            validator = {validateIpv6List(it,context)}
                         }
                     }
                 )
-
-            }
-            SettingsGroup(
-                groupName = "other"
-            ) {
                 SettingsWithBtnBox(
                     title = R.string.geo_ip,
                     description = R.string.geo_ip_description,
@@ -201,6 +204,22 @@ fun SettingsScreen(
                         domainFilePickLauncher.launch(intent)
                     }
                 )
+            }
+            SettingsGroup(
+                groupName = stringResource(R.string.about_part)
+            ) {
+
+                SettingsFieldBox(
+                    title = R.string.xrayfa_version,
+                    content = versionName
+                ) {
+                }
+
+                SettingsFieldBox(
+                    title = R.string.xray_core_version,
+                    content = settingsState.xrayCoreVersion
+                ) {
+                }
                 SettingsFieldBox(
                     title = R.string.repo_site,
                     content = stringResource(R.string.repo_description)
@@ -223,6 +242,9 @@ fun SettingsScreen(
 
                             SettingsKeys.DNS_IPV4.name ->
                                 viewmodel.setDnsIpV4(it)
+
+                            SettingsKeys.DNS_IPV6.name ->
+                                viewmodel.setDnsIpV6(it)
                         }
                         isShowEditDialog = false
                     },
@@ -534,6 +556,65 @@ fun validateIpv4List(input: String,context: Context): String? {
     // All valid
     return null
 }
+
+/**
+ * Validate one or multiple IPv6 addresses separated by commas.
+ *
+ * @param input The input string (e.g., "2001:0db8::1" or "fe80::1, 2001:db8::2")
+ * @return null if all addresses are valid; otherwise a warning message.
+ */
+fun validateIpv6List(input: String, context: Context): String? {
+    val trimmed = input.trim()
+    if (trimmed.isEmpty()) return context.getString(R.string.err_ipv6_empty)
+
+    // IPv6 regex (simple, covers standard forms and shorthand)
+    val ipv6Regex = Regex(
+        // IPv6 pattern simplified to allow most valid IPv6 forms including ::
+        "^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|"+
+                "([0-9a-fA-F]{1,4}:){1,7}:|"+
+                "([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|"+
+                "([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|"+
+                "([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|"+
+                "([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|"+
+                "([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|"+
+                "[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|"+
+                ":((:[0-9a-fA-F]{1,4}){1,7}|:)|"+
+                "fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|"+
+                "::(ffff(:0{1,4}){0,1}:){0,1}"+
+                "((25[0-5]|(2[0-4]|1{0,1}[0-9])?[0-9])\\.){3,3}"+
+                "(25[0-5]|(2[0-4]|1{0,1}[0-9])?[0-9])|"+
+                "([0-9a-fA-F]{1,4}:){1,4}:"+
+                "((25[0-5]|(2[0-4]|1{0,1}[0-9])?[0-9])\\.){3,3}"+
+                "(25[0-5]|(2[0-4]|1{0,1}[0-9])?[0-9]))$"
+    )
+
+    val parts = trimmed.split(",")
+    if (parts.isEmpty()) return context.getString(R.string.err_ipv6_empty)
+
+    val seen = mutableSetOf<String>()
+    for ((index, raw) in parts.withIndex()) {
+        val part = raw.trim()
+
+        // Empty element (e.g. "2001::1,,fe80::1")
+        if (part.isEmpty()) {
+            return context.getString(R.string.err_ipv6_item_empty, index + 1)
+        }
+
+        // IPv6 format check
+        if (!ipv6Regex.matches(part)) {
+            return context.getString(R.string.err_ipv6_invalid, index + 1, part)
+        }
+
+        // Duplicate check
+        if (!seen.add(part)) {
+            return context.getString(R.string.err_ipv6_duplicate, index + 1, part)
+        }
+    }
+
+    // All valid
+    return null
+}
+
 
 @Composable
 @Preview

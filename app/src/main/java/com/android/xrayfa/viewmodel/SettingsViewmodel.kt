@@ -91,6 +91,12 @@ class SettingsViewmodel(
         }
     }
 
+    fun setDnsIpV6(dns: String) {
+        viewModelScope.launch {
+            repository.setDnsIPv6(dns)
+        }
+    }
+
     fun startAppsActivity(context: Context) {
         val intent = Intent(context, AppsActivity::class.java)
         context.startActivity(intent)

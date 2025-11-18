@@ -26,6 +26,7 @@ data class SettingsState(
     val dnsIPv4: String = "",
     val dnsIPv6: String = "",
     val delayTestUrl: String = DEFAULT_DELAY_TEST_URL,
+    val xrayCoreVersion: String = "unknown",
     val version: String = "1.0.0"
 )
 object SettingsKeys {
@@ -38,6 +39,7 @@ object SettingsKeys {
     val DELAY_TEST_URL = stringPreferencesKey("delay_test_site")
     //to json
     val ALLOW_PACKAGES = stringPreferencesKey("allow_packages")
+    val XRAY_CORE_VERSION = stringPreferencesKey("xray_version")
 }
 const val LIGHT_MODE = 0
 const val DARK_MODE = 1
@@ -64,7 +66,8 @@ class SettingsRepository
             dnsIPv4 = prefs[SettingsKeys.DNS_IPV4] ?: "8.8.8.8,1.1.1.1",
             dnsIPv6 = prefs[SettingsKeys.DNS_IPV6] ?: "2001:4860:4860::8888",
             delayTestUrl = prefs[SettingsKeys.DELAY_TEST_URL] ?: DEFAULT_DELAY_TEST_URL,
-            version = prefs[SettingsKeys.VERSION] ?: "1.0.0"
+            version = prefs[SettingsKeys.VERSION] ?: "1.0.0",
+            xrayCoreVersion = prefs[SettingsKeys.XRAY_CORE_VERSION]?:"unknown"
         )
 
     }
@@ -100,6 +103,11 @@ class SettingsRepository
     suspend fun setDnsIPv6(dns: String) {
         context.dataStore.edit {
             it[SettingsKeys.DNS_IPV6] = dns
+        }
+    }
+    suspend fun setXrayCoreVersion(version: String) {
+        context.dataStore.edit {
+            it[SettingsKeys.XRAY_CORE_VERSION] = version
         }
     }
 
