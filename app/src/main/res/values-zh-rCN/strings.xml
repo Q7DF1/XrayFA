@@ -50,4 +50,14 @@
     <string name="err_ipv4_item_empty">第 %1$d 个地址为空，请检查逗号或空格</string>
     <string name="err_ipv4_invalid">第 %1$d 个地址 “%2$s” 不是合法的 IPv4 地址</string>
     <string name="err_ipv4_duplicate">第 %1$d 个地址 “%2$s” 与前面的重复</string>
+
+    <string name="err_ipv6_empty">请输入至少一个IPv6地址</string>
+    <string name="err_ipv6_item_empty">第%d项IPv6地址为空，请检查</string>
+    <string name="err_ipv6_invalid">第%d项IPv6地址格式无效：%s</string>
+    <string name="err_ipv6_duplicate">第%d项IPv6地址重复：%s</string>
+    <string name="xrayfa_version">版本</string>
+    <string name="xray_core_version">Xray core 版本</string>
+    <string name="general_part">常规</string>
+    <string name="network_part">网络</string>
+    <string name="about_part">关于</string>
 </resources>

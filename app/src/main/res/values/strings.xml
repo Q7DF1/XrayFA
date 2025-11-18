@@ -57,4 +57,15 @@
     <string name="err_ipv4_item_empty">The %1$d-th entry is empty, please check commas or spaces</string>
     <string name="err_ipv4_invalid">The %1$d-th entry "%2$s" is not a valid IPv4 address</string>
     <string name="err_ipv4_duplicate">The %1$d-th entry "%2$s" is duplicated</string>
+
+    <string name="err_ipv6_empty">Please enter at least one IPv6 address</string>
+    <string name="err_ipv6_item_empty">IPv6 address #%d is empty, please check</string>
+    <string name="err_ipv6_invalid">IPv6 address #%d is invalid: %s</string>
+    <string name="err_ipv6_duplicate">IPv6 address #%d is duplicated: %s</string>
+
+    <string name="xrayfa_version">Version</string>
+    <string name="xray_core_version">Xray core version</string>
+    <string name="general_part">general</string>
+    <string name="network_part">network</string>
+    <string name="about_part">other</string>
 </resources>

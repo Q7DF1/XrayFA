@@ -19,6 +19,7 @@ import xrayfa.tun2socks.Tun2SocksService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -81,21 +82,24 @@ class XrayBaseService
     private suspend fun startVpn() {
         startForegroundNotification()
         val prefs  = NetPreferences(this)
-            val builder = Builder()
-            val allowedPackages = settingsRepo.getAllowedPackages()
-            if (!allowedPackages.isEmpty()) {
-                allowedPackages.forEach {
-                    builder.addAllowedApplication(it)
-                }
-            }else {
-                builder.addDisallowedApplication(applicationContext.packageName)
+        val builder = Builder()
+        val allowedPackages = settingsRepo.getAllowedPackages()
+        if (!allowedPackages.isEmpty()) {
+            allowedPackages.forEach {
+                builder.addAllowedApplication(it)
             }
-            tunFd = builder.setSession(resources.getString(R.string.app_label))
-                .addAddress(prefs.tunnelIpv4Address, prefs.tunnelIpv4Prefix)
-                .addRoute("0.0.0.0",0)
-                .setMtu(prefs.tunnelMtu)
-                .setBlocking(false)
-                .establish()
+        }else {
+            builder.addDisallowedApplication(applicationContext.packageName)
+        }
+        if (settingsRepo.settingsFlow.first().ipV6Enable) {
+            builder.addAddress(prefs.tunnelIpv6Address,prefs.tunnelIpv6Prefix)
+        }
+        tunFd = builder.setSession(resources.getString(R.string.app_label))
+            .addAddress(prefs.tunnelIpv4Address, prefs.tunnelIpv4Prefix)
+            .addRoute("0.0.0.0",0)
+            .setMtu(prefs.tunnelMtu)
+            .setBlocking(false)
+            .establish()
     }
 
     private fun stopVPN() {
