@@ -65,6 +65,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.android.xrayfa.R
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.ui.ArcBottomShape
@@ -85,7 +86,7 @@ fun HomeScreen(
     val coroutineScope = rememberCoroutineScope()
 
     Box(modifier = Modifier.fillMaxSize()){
-        Dashboard(xrayViewmodel = xrayViewmodel,node = selectedNode)
+        Dashboard(xrayViewmodel = xrayViewmodel,node = selectedNode,notConfig)
         //Dashboard(xrayViewmodel,modifier = Modifier.align(Alignment.TopCenter))
 
         V2rayStarter(xrayViewmodel,modifier = Modifier.align(BiasAlignment(0f,0.8f))) {
@@ -100,7 +101,7 @@ fun HomeScreen(
                 true
             }
         }
-        ExceptionMessage(notConfig,stringResource(R.string.config_not_ready))
+
     }
 }
 
@@ -182,6 +183,7 @@ fun V2rayStarter(
 fun Dashboard(
     xrayViewmodel: XrayViewmodel,
     node: Node?,
+    showError: Boolean = false
 ) {
     val context = LocalContext.current
     val delay by xrayViewmodel.delay.collectAsState()
@@ -206,10 +208,10 @@ fun Dashboard(
                 },
                 actions = {HomeActionButton()},
                 colors = TopAppBarDefaults.topAppBarColors(MaterialTheme.colorScheme.primary),
-
+                modifier = Modifier.zIndex(1f)
                 )
             Box(
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
             ) {
@@ -232,6 +234,10 @@ fun Dashboard(
                     xrayViewmodel = xrayViewmodel,
                     modifier = Modifier.align(BiasAlignment(0f,0.7f))
                 )
+                ExceptionMessage(
+                    shown = showError,
+                    msg = stringResource(R.string.config_not_ready),
+                    modifier = Modifier.zIndex(0f)) // hide in appTopBar
             }
         }
 
