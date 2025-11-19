@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -53,6 +54,7 @@ import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.ui.navigation.list_navigation
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.android.xrayfa.R
+
 import com.android.xrayfa.ui.SettingsActivity
 
 
@@ -71,35 +73,6 @@ fun XrayFAContainer(
     var checked by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = getString(LocalContext.current,currentScreen.title),
-                    )
-                },
-                navigationIcon = {
-                    Icon(
-                        imageVector = currentScreen.icon,
-                        contentDescription = ""
-                    )
-                },
-                actions = {
-                    when(currentScreen) {
-                        Home -> HomeActionButton()
-                        Logcat -> LogcatActionButton(xrayViewmodel)
-                        Config -> ConfigActionButton(xrayViewmodel)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = if (currentScreen.route == "home") {
-                        MaterialTheme.colorScheme.primary
-                    }else {
-                        MaterialTheme.colorScheme.background
-                    }
-                )
-            )
-        },
         bottomBar = {
 
             XrayBottomNavOpt(
@@ -118,7 +91,9 @@ fun XrayFAContainer(
         NavHost(
             navController = naviController,
             startDestination = Home.route,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(
+                bottom = innerPadding.calculateBottomPadding(),
+            )
         ) {
             composable(
                 route = Home.route,

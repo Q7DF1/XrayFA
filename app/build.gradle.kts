@@ -175,7 +175,7 @@ dependencies {
     kapt(libs.dagger.compiler)
     implementation (libs.dagger.android)
     kapt(libs.dagger.android.processor)
-    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation(libs.zxing.android.embedded)
     implementation(libs.gson)
 
 
@@ -186,10 +186,10 @@ dependencies {
     implementation("io.grpc:grpc-protobuf:1.63.0")
     implementation("io.grpc:grpc-stub:1.63.0")
     implementation("javax.annotation:javax.annotation-api:1.3.2")
-    implementation("androidx.datastore:datastore-preferences:1.1.7")
+    implementation(libs.androidx.datastore.preferences)
 
-    implementation ("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation ("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    implementation (libs.okhttp)
+    implementation (libs.logging.interceptor)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -42,6 +42,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -53,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -61,6 +63,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.android.xrayfa.R
 import com.android.xrayfa.ui.QRCodeActivity
+import com.android.xrayfa.ui.navigation.Config
+import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
@@ -93,46 +97,60 @@ fun ConfigScreen(
 
     Box(
         modifier = Modifier.fillMaxSize()
-            .padding(16.dp)
-
     ) {
-        if (nodes.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Text(
-                    style = MaterialTheme.typography.headlineLarge,
-                    text = stringResource(R.string.no_configuration),
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
-        }else {
-            LazyColumn(
-                state = listState
-            ) {
-                items(nodes, key = {it.id}) {node ->
-                    NodeCard(
-                        node = node,
-                        modifier = Modifier,
-                        delete = {
-                            xrayViewmodel.showDeleteDialog(node.id)
-                        },
-                        onChoose = {
-                            xrayViewmodel.setSelectedNode(node.id)
-                            onNavigate2Home(node.id)
-                        },
-                        onShare = {
-                            xrayViewmodel.generateQRCode(node.id)
-                        },
-                        onEdit = {
-                            xrayViewmodel.startDetailActivity(context = context,id = node.id)
-                        },
-                        selected =node.selected
+        Column(modifier = Modifier.fillMaxSize()){
+
+            TopAppBar(
+                title = {Text(context.getString(Config.title))},
+                navigationIcon = {
+                    Icon(
+                        imageVector = Config.icon,
+                        contentDescription = ""
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                },
+                actions = {ConfigActionButton(xrayViewmodel)},
+                modifier = Modifier.shadow(4.dp)
+            )
+            if (nodes.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Text(
+                        style = MaterialTheme.typography.headlineLarge,
+                        text = stringResource(R.string.no_configuration),
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
+            }else {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    items(nodes, key = {it.id}) {node ->
+                        NodeCard(
+                            node = node,
+                            modifier = Modifier,
+                            delete = {
+                                xrayViewmodel.showDeleteDialog(node.id)
+                            },
+                            onChoose = {
+                                xrayViewmodel.setSelectedNode(node.id)
+                                onNavigate2Home(node.id)
+                            },
+                            onShare = {
+                                xrayViewmodel.generateQRCode(node.id)
+                            },
+                            onEdit = {
+                                xrayViewmodel.startDetailActivity(context = context,id = node.id)
+                            },
+                            selected =node.selected
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
             }
         }
+
         AnimatedVisibility(
             visible = !listState.isAtBottom,
             enter = fadeIn(),

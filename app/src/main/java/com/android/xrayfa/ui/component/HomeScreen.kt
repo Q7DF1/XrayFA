@@ -37,11 +37,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -65,10 +68,12 @@ import androidx.compose.ui.unit.dp
 import com.android.xrayfa.R
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.ui.ArcBottomShape
+import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     xrayViewmodel: XrayViewmodel,
@@ -78,10 +83,8 @@ fun HomeScreen(
     val selectedNode by xrayViewmodel.getSelectedNode().collectAsState(null)
     var notConfig by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
-    Box(
-        modifier = Modifier.fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
+
+    Box(modifier = Modifier.fillMaxSize()){
         Dashboard(xrayViewmodel = xrayViewmodel,node = selectedNode)
         //Dashboard(xrayViewmodel,modifier = Modifier.align(Alignment.TopCenter))
 
@@ -174,6 +177,7 @@ fun V2rayStarter(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Dashboard(
     xrayViewmodel: XrayViewmodel,
@@ -191,29 +195,46 @@ fun Dashboard(
         modifier = Modifier.fillMaxWidth()
             .fillMaxHeight(0.5f)
     ) {
-        Box(
-            modifier = Modifier.padding(8.dp)
-        ) {
-            node?.let {
-                NodeCard(
-                    node = node,
-                    modifier = Modifier.align(BiasAlignment(0f,-0.5f)),
-                    onTest = {xrayViewmodel.measureDelay(context = context)},
-                    delayMs = delay,
-                    testing = test,
-                    enableTest = isRunning
+        Column(modifier = Modifier.fillMaxSize()){
+            TopAppBar(
+                title = {Text(context.getString(Home.title))},
+                navigationIcon = {
+                    Icon(
+                        imageVector = Home.icon,
+                        contentDescription = ""
+                    )
+                },
+                actions = {HomeActionButton()},
+                colors = TopAppBarDefaults.topAppBarColors(MaterialTheme.colorScheme.primary),
+
                 )
-            }?: Text(
-                //TODO more beautiful
-                text = stringResource(R.string.select_configuration_notify),
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.align(BiasAlignment(0f,-0.5f))
-            )
-            DashboardContent(
-                xrayViewmodel = xrayViewmodel,
-                modifier = Modifier.align(BiasAlignment(0f,0.7f))
-            )
+            Box(
+                modifier = Modifier.padding(8.dp)
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
+                node?.let {
+                    NodeCard(
+                        node = node,
+                        modifier = Modifier.align(BiasAlignment(0f,-0.5f)),
+                        onTest = {xrayViewmodel.measureDelay(context = context)},
+                        delayMs = delay,
+                        testing = test,
+                        enableTest = isRunning
+                    )
+                }?: Text(
+                    //TODO more beautiful
+                    text = stringResource(R.string.select_configuration_notify),
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.align(BiasAlignment(0f,-0.5f))
+                )
+                DashboardContent(
+                    xrayViewmodel = xrayViewmodel,
+                    modifier = Modifier.align(BiasAlignment(0f,0.7f))
+                )
+            }
         }
+
     }
 }
 
