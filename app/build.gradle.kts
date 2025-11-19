@@ -14,11 +14,13 @@ android {
     compileSdk = 36
 
     defaultConfig {
+        val appVersionName:String by project
+        val appVersionCode:String by project
         applicationId = "com.android.xrayfa"
         minSdk = 28
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0-alph"
+        versionCode = appVersionCode.toInt()
+        versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

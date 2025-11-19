@@ -157,12 +157,9 @@ fun ConfigScreen(
             exit = fadeOut(),
             modifier = Modifier.align (BiasAlignment(1f,0.9f))
         ) {
-//            AddConfigButton(
-//                xrayViewmodel = xrayViewmodel,
-//                modifier = Modifier.align(BiasAlignment(1f,0.8f))
-//            )
             FloatingActionButton(
                 onClick = {showSheet = true},
+                modifier = Modifier.padding(end = 16.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,

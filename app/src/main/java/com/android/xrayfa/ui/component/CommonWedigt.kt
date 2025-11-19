@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.zIndex
 import com.android.xrayfa.R
 
 
@@ -94,7 +95,11 @@ fun DeleteDialog(
 }
 
 @Composable
-fun ExceptionMessage(shown: Boolean, msg: String = "") {
+fun ExceptionMessage(
+    shown: Boolean,
+    msg: String = "",
+    modifier: Modifier = Modifier
+) {
     AnimatedVisibility(
         visible = shown,
         enter = slideInVertically(
@@ -106,7 +111,8 @@ fun ExceptionMessage(shown: Boolean, msg: String = "") {
             // Exits by sliding out from offset 0 to -fullHeight.
             targetOffsetY = { fullHeight -> -fullHeight },
             animationSpec = tween(durationMillis = 250, easing = FastOutLinearInEasing)
-        )
+        ),
+        modifier = modifier
     ) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
