@@ -124,12 +124,14 @@ fun ConfigScreen(
             }else {
                 LazyColumn(
                     state = listState,
-                    modifier = Modifier.padding(top = 8.dp)
                 ) {
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                     items(nodes, key = {it.id}) {node ->
                         NodeCard(
                             node = node,
-                            modifier = Modifier,
+                            modifier = Modifier.padding(bottom = 8.dp),
                             delete = {
                                 xrayViewmodel.showDeleteDialog(node.id)
                             },
@@ -143,9 +145,8 @@ fun ConfigScreen(
                             onEdit = {
                                 xrayViewmodel.startDetailActivity(context = context,id = node.id)
                             },
-                            selected =node.selected
+                            selected =node.selected,
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }

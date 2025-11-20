@@ -84,7 +84,7 @@ fun NodeCard(
         border = if (selected) BorderStroke(width = 2.dp, color = Color(0xFF00BFFF)) else null
     ) {
         Row(
-            modifier = modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -93,7 +93,7 @@ fun NodeCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Box(
-                    modifier = modifier
+                    modifier = Modifier
                         .size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
                         .clip(CircleShape)
                         .background(node.color),
@@ -150,7 +150,7 @@ fun NodeCard(
                     onClick = {
                         delete()
                     } ,
-                    modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
+                    Modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
@@ -163,7 +163,7 @@ fun NodeCard(
                     onClick = {
                         onEdit.invoke()
                     },
-                    modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
+                    Modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Default.ArrowForward,
@@ -187,7 +187,7 @@ fun NodeCard(
                         onTest.invoke()
                     },
                     enabled = enableTest,
-                    modifier = modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
+                    modifier = Modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
                 ) {
                     Icon(
                         imageVector = Icons.Default.Refresh,

@@ -60,7 +60,7 @@ fun LogcatScreen(
                    )
                }else {
                    LazyColumn(
-                       modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp)
+                       modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 4.dp)
                    ) {
                        items(items = logList) { logLine->
                            Text(
