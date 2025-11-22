@@ -4,7 +4,14 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.WindowInsets
@@ -98,14 +105,12 @@ fun XrayFAContainer(
             composable(
                 route = Home.route,
                 enterTransition = {
-                    slideInHorizontally(initialOffsetX = { x->
-                        if (initialState.destination.route == Config.route) x else -x
-                    }, animationSpec = tween(400))
+                    scaleIn(initialScale = 0.92f, animationSpec = subtleAnimSpec) +
+                            fadeIn(animationSpec = subtleAnimSpec)
                 },
                 exitTransition = {
-                    slideOutHorizontally(targetOffsetX = { x ->
-                        if (targetState.destination.route == Config.route) x else -x
-                    }, animationSpec = tween(400))
+                    scaleOut(targetScale = 0.92f, animationSpec = subtleAnimSpec) +
+                            fadeOut(animationSpec = subtleAnimSpec)
                 }
             ) { backStackEntry ->
                 HomeScreen(
@@ -117,10 +122,12 @@ fun XrayFAContainer(
             composable(
                 route = Config.route,
                 enterTransition = {
-                    slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(400))
+                    scaleIn(initialScale = 0.92f, animationSpec = subtleAnimSpec) +
+                            fadeIn(animationSpec = subtleAnimSpec)
                 },
                 exitTransition = {
-                    slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(400))
+                    scaleOut(targetScale = 0.92f, animationSpec = subtleAnimSpec) +
+                            fadeOut(animationSpec = subtleAnimSpec)
                 }
             ) {
                 ConfigScreen(
@@ -136,10 +143,12 @@ fun XrayFAContainer(
             composable(
                 route = Logcat.route,
                 enterTransition = {
-                    slideInHorizontally(initialOffsetX = {it}, animationSpec = tween(400))
+                    scaleIn(initialScale = 0.92f, animationSpec = subtleAnimSpec) +
+                            fadeIn(animationSpec = subtleAnimSpec)
                 },
                 exitTransition = {
-                    slideOutHorizontally(targetOffsetX = {it}, animationSpec = tween(400))
+                    scaleOut(targetScale = 0.92f, animationSpec = subtleAnimSpec) +
+                            fadeOut(animationSpec = subtleAnimSpec)
                 }
             ) {
                 LogcatScreen(xrayViewmodel)
@@ -221,3 +230,9 @@ fun NavHostController.navigateSingleTopTo(route: String) {
         restoreState = true
     }
 }
+
+val popAnimationSpec = spring<Float>(
+    dampingRatio = Spring.DampingRatioMediumBouncy, // 弹性阻尼：中等回弹
+    stiffness = Spring.StiffnessLow // 刚度：低（越低越慢越Q）
+)
+val subtleAnimSpec = tween<Float>(durationMillis = 300, easing = FastOutSlowInEasing)

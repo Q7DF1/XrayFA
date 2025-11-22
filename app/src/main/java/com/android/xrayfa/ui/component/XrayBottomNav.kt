@@ -153,14 +153,19 @@ fun XrayBottomNavOpt(
             .fillMaxWidth()
             .height(heightDp)
             .background(backgroundColor)
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .padding(horizontal = 8.dp)
     ) {
         val itemWidthPx = constraints.maxWidth / itemCount
         val itemWidthDp = with(density) { itemWidthPx.toDp() }
 
         // 动画控制背景位置和宽度
         LaunchedEffect(selectedIndex, itemWidthPx) {
-            animOffsetX.animateTo(selectedIndex * itemWidthPx.toFloat(), tween(300))
+            animOffsetX.animateTo(
+                targetValue = selectedIndex * itemWidthPx.toFloat(),
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessLow
+                ))
             animWidth.animateTo(itemWidthPx.toFloat(), tween(300))
         }
 
