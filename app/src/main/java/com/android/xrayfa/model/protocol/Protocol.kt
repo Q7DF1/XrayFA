@@ -24,3 +24,9 @@ val protocolsPrefix = listOf(
     SHADOW_SOCKS.protocolName,
     TROJAN.protocolName
 )
+val protocolPrefixMap = mapOf(
+    SHADOW_SOCKS.protocolName to SHADOW_SOCKS,
+    VLESS.protocolName to VLESS,
+    VMESS.protocolName to VMESS,
+    TROJAN.protocolName to TROJAN
+)

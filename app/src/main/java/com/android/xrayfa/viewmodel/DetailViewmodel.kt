@@ -9,11 +9,10 @@ import com.android.xrayfa.model.TrojanOutboundConfigurationObject
 import com.android.xrayfa.model.VMESSOutboundConfigurationObject
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.parser.VLESSConfigParser
-import com.android.xrayfa.repository.LinkRepository
+import com.android.xrayfa.repository.NodeRepository
 import javax.inject.Inject
 
 class DetailViewmodel(
-    val repository: LinkRepository,
     val parserFactory: ParserFactory
 ): ViewModel() {
 
@@ -52,13 +51,12 @@ class DetailViewmodel(
 
 class DetailViewmodelFactory
 @Inject constructor(
-    val repository: LinkRepository,
     val parserFactory: ParserFactory
 ): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DetailViewmodel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return DetailViewmodel(repository,parserFactory) as T
+            return DetailViewmodel(parserFactory) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

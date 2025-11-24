@@ -1,9 +1,12 @@
 package com.android.xrayfa.parser
 
+import android.os.Build
+import androidx.annotation.RequiresApi
+import com.android.xrayfa.XrayAppCompatFactory
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.dto.Link
 import com.android.xrayfa.model.MuxObject
-import com.android.xrayfa.model.Node
+import com.android.xrayfa.dto.Node
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.ServerObject
 import com.android.xrayfa.model.UserObject
@@ -16,6 +19,7 @@ import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
 import com.android.xrayfa.utils.ColorMap
+import com.android.xrayfa.utils.Device
 import java.net.URLDecoder
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -143,12 +147,18 @@ class VLESSConfigParser
         val vlessConfig = parseVLESS(link.content)
         return Node(
             id = link.id,
-            protocol = Protocol.VLESS,
+            url = link.content,
+            protocolPrefix = link.protocolPrefix,
+            subscriptionId = link.subscriptionId,
             address = vlessConfig.server,
             port = vlessConfig.port,
             selected = link.selected,
             remark = vlessConfig.remark,
-            color = ColorMap.getValue(link.subscriptionId)
+            countryISO = Device.getCountryISOFromIp(
+                geoPath = "${XrayAppCompatFactory.xrayPATH}/GeoLite2-Country.mmdb",
+                ip = vlessConfig.server
+            )
+
         )
     }
 

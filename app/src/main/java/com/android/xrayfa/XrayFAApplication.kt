@@ -1,7 +1,7 @@
 package com.android.xrayfa
 
 import android.app.Application
-import com.android.xrayfa.common.repository.AUTO_MODE
+import com.android.xrayfa.common.repository.Theme
 import com.android.xrayfa.common.repository.SettingsKeys
 import com.android.xrayfa.common.repository.dataStore
 import kotlinx.coroutines.CoroutineScope
@@ -13,8 +13,7 @@ import kotlinx.coroutines.launch
 
 class XrayFAApplication: Application() {
 
-
-    private val _isDarkTheme = MutableStateFlow(AUTO_MODE)
+    private val _isDarkTheme = MutableStateFlow(Theme.AUTO_MODE)
     val isDarkTheme: StateFlow<Int> get() = _isDarkTheme
 
     var contextAvailableCallback: ContextAvailableCallback? = null
@@ -24,7 +23,7 @@ class XrayFAApplication: Application() {
         CoroutineScope(Dispatchers.IO).launch {
             dataStore.data
                 .map { prefs ->
-                    prefs[SettingsKeys.DARK_MODE] ?: AUTO_MODE
+                    prefs[SettingsKeys.DARK_MODE] ?: Theme.AUTO_MODE
                 }
                 .collect { value ->
                     _isDarkTheme.value = value

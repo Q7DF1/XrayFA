@@ -11,10 +11,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.xrayfa.common.di.qualifier.ShortTime
 import com.android.xrayfa.dto.Link
+import com.android.xrayfa.dto.Node
 import com.android.xrayfa.dto.Subscription
+import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.parser.SubscriptionParser
-import com.android.xrayfa.repository.LinkRepository
+import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.repository.SubscriptionRepository
+import com.android.xrayfa.utils.Device
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.TAG
 import com.google.zxing.BarcodeFormat
 import com.journeyapps.barcodescanner.BarcodeEncoder
@@ -36,8 +39,9 @@ val emptySubscription = Subscription(0,"","")
 class SubscriptionViewmodel(
     val repository: SubscriptionRepository,
     val okHttp: OkHttpClient,
-    val linkRepository: LinkRepository,
-    val subscriptionParser: SubscriptionParser
+    val linkRepository: NodeRepository,
+    val subscriptionParser: SubscriptionParser,
+    val parserFactory: ParserFactory
 ): ViewModel() {
 
     private val _subscriptions = MutableStateFlow<List<Subscription>>(emptyList())
@@ -180,14 +184,17 @@ class SubscriptionViewmodel(
                         val newLinks = urls.map {
                             Log.i(TAG, "getSubscription: ${it.substringBefore("://")}")
                             Log.i(TAG, "getSubscription: $it")
-                            Link(
+                            val link = Link(
                                 protocolPrefix = it.substringBefore("://"),
                                 content = it,
                                 selected = false,
-                                subscriptionId = subscriptionId
+                                subscriptionId = subscriptionId,
                             )
+                            val preParse =
+                                parserFactory.getParser(link.protocolPrefix).preParse(link)
+                            preParse
                         }
-                        linkRepository.addLink(*newLinks.toTypedArray())
+                        linkRepository.addNode(*newLinks.toTypedArray())
                     }
                     //todo show success
                     callback()
@@ -211,13 +218,19 @@ class SubscriptionViewmodelFactory
 @Inject constructor(
     val repository: SubscriptionRepository,
     @ShortTime val okHttp: OkHttpClient,
-    val linkRepository: LinkRepository,
-    val subscriptionParser: SubscriptionParser
+    val nodeRepository: NodeRepository,
+    val subscriptionParser: SubscriptionParser,
+    val parserFactory: ParserFactory
 ): ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SubscriptionViewmodel::class.java)) {
-            return SubscriptionViewmodel(repository,okHttp,linkRepository,subscriptionParser) as T
+            return SubscriptionViewmodel(repository,
+                okHttp,
+                nodeRepository,
+                subscriptionParser,
+                parserFactory
+            ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

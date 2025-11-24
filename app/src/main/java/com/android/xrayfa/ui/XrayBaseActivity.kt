@@ -8,8 +8,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import com.android.xrayfa.XrayFAApplication
-import com.android.xrayfa.common.repository.DARK_MODE
-import com.android.xrayfa.common.repository.LIGHT_MODE
+import com.android.xrayfa.common.repository.Theme
 import com.android.xrayfa.ui.theme.V2rayForAndroidUITheme
 
 abstract class XrayBaseActivity(
@@ -26,8 +25,8 @@ abstract class XrayBaseActivity(
             val theme = app.isDarkTheme.collectAsState()
             V2rayForAndroidUITheme(
                 darkTheme = when (theme.value) {
-                    LIGHT_MODE -> false
-                    DARK_MODE -> true
+                    Theme.LIGHT_MODE -> false
+                    Theme.DARK_MODE -> true
                     else -> isSystemInDarkTheme()
                 }
             ) {

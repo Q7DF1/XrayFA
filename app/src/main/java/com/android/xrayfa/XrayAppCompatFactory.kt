@@ -23,6 +23,7 @@ class XrayAppCompatFactory: AppComponentFactory(),ContextAvailableCallback {
         const val TAG = "V2rayAppCompatFactory"
 
         var rootComponent: XrayFAComponent? = null
+        var xrayPATH: String? = null
     }
 
     @set:Inject
@@ -63,7 +64,7 @@ class XrayAppCompatFactory: AppComponentFactory(),ContextAvailableCallback {
          val fileDir = context.filesDir
          val geoipFile = File(fileDir, "geoip.dat")
          val geositeFile = File(fileDir, "geosite.dat")
-
+         xrayPATH = context.filesDir.absolutePath
          if (!geoipFile.exists()) {
              Log.i(TAG, "onContextAvailable: copy geoip.dat")
              context.assets.open("geoip.dat").use { input ->

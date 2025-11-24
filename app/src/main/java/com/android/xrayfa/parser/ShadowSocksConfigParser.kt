@@ -1,14 +1,18 @@
 package com.android.xrayfa.parser
 
+import android.os.Build
+import androidx.annotation.RequiresApi
+import com.android.xrayfa.XrayAppCompatFactory
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.dto.Link
-import com.android.xrayfa.model.Node
+import com.android.xrayfa.dto.Node
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.ShadowSocksOutboundConfigurationObject
 import com.android.xrayfa.model.ShadowSocksServerObject
 import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.utils.ColorMap
+import com.android.xrayfa.utils.Device
 import java.util.Base64
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -78,12 +82,17 @@ class ShadowSocksConfigParser
         val shadowSocksConfig = parseLink(link.content)
         return Node(
             id = link.id,
-            protocol = Protocol.SHADOW_SOCKS,
+            url = link.content,
+            protocolPrefix = "ss",
+            subscriptionId = link.subscriptionId,
             port = shadowSocksConfig.port,
             address = shadowSocksConfig.server,
             selected = link.selected,
             remark = shadowSocksConfig.tag,
-            color = ColorMap.getValue(link.subscriptionId)
+            countryISO = Device.getCountryISOFromIp(
+                geoPath = "${XrayAppCompatFactory.xrayPATH}/GeoLite2-Country.mmdb",
+                ip = shadowSocksConfig.server
+            )
         )
     }
 

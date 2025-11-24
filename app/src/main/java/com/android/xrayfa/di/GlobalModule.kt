@@ -10,6 +10,7 @@ import com.android.xrayfa.dao.XrayFADatabase
 import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.common.di.qualifier.Background
 import com.android.xrayfa.common.di.qualifier.Main
+import com.android.xrayfa.dao.NodeDao
 import xrayfa.tun2socks.utils.NetPreferences
 import dagger.Binds
 import dagger.Module
@@ -61,14 +62,21 @@ abstract class GlobalModule {
 
      @Provides
      @Singleton
-     fun provideLinkDatabase(context: Context): XrayFADatabase {
-         return XrayFADatabase.getLinkDatabase(context)
+     fun provideXrayDatabase(context: Context): XrayFADatabase {
+         return XrayFADatabase.getXrayDatabase(context)
      }
 
      @Provides
      @Singleton
+     @Deprecated("use LinkDao instead")
      fun provideLinkDao(linkDatabase: XrayFADatabase): LinkDao {
          return linkDatabase.LinkDao()
+     }
+
+     @Provides
+     @Singleton
+     fun provideNodeDao(xrayFADatabase: XrayFADatabase): NodeDao {
+         return xrayFADatabase.NodeDao()
      }
 
      @Provides

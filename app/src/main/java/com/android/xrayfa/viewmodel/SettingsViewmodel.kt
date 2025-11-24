@@ -1,6 +1,5 @@
 package com.android.xrayfa.viewmodel
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -10,7 +9,7 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.android.xrayfa.common.repository.Mode
+import com.android.xrayfa.common.repository.Theme
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.common.repository.SettingsState
 import com.android.xrayfa.ui.AppsActivity
@@ -67,7 +66,7 @@ class SettingsViewmodel(
     )
 
 
-    fun setDarkMode(@Mode darkMode: Int) {
+    fun setDarkMode(@Theme darkMode: Int) {
         viewModelScope.launch {
             repository.setDarkMode(darkMode)
         }

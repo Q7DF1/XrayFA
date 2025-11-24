@@ -1,8 +1,11 @@
 package com.android.xrayfa.parser
 
+import android.os.Build
+import androidx.annotation.RequiresApi
+import com.android.xrayfa.XrayAppCompatFactory
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.dto.Link
-import com.android.xrayfa.model.Node
+import com.android.xrayfa.dto.Node
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.TrojanOutboundConfigurationObject
 import com.android.xrayfa.model.TrojanServerObject
@@ -12,6 +15,7 @@ import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
 import com.android.xrayfa.utils.ColorMap
+import com.android.xrayfa.utils.Device
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
@@ -109,11 +113,16 @@ class TrojanConfigParser
         val trojanConfig = parseTrojan(link.content)
         return Node(
             id = link.id,
-            protocol = Protocol.TROJAN,
+            url = link.content,
+            subscriptionId = link.subscriptionId,
+            protocolPrefix = link.protocolPrefix,
             address = trojanConfig.host?:"unknown",
             port = trojanConfig.port?:0,
             remark = trojanConfig.remark,
-            color = ColorMap.getValue(link.subscriptionId)
+            countryISO = Device.getCountryISOFromIp(
+                geoPath = "${XrayAppCompatFactory.xrayPATH}/GeoLite2-Country.mmdb",
+                ip = trojanConfig.host?:""
+            )
         )
     }
 }

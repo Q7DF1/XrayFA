@@ -67,7 +67,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.android.xrayfa.R
-import com.android.xrayfa.model.Node
+import com.android.xrayfa.dto.Node
 import com.android.xrayfa.ui.ArcBottomShape
 import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.viewmodel.XrayViewmodel

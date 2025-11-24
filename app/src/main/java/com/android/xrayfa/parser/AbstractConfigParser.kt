@@ -7,7 +7,7 @@ import com.android.xrayfa.model.DnsObject
 import com.android.xrayfa.model.InboundObject
 import com.android.xrayfa.dto.Link
 import com.android.xrayfa.model.LogObject
-import com.android.xrayfa.model.Node
+import com.android.xrayfa.dto.Node
 import com.android.xrayfa.model.NoneOutboundConfigurationObject
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.PolicyObject

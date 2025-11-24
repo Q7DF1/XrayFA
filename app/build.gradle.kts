@@ -188,6 +188,8 @@ dependencies {
     implementation("io.grpc:grpc-protobuf:1.63.0")
     implementation("io.grpc:grpc-stub:1.63.0")
     implementation("javax.annotation:javax.annotation-api:1.3.2")
+    // 在 build.gradle 中
+    implementation ("com.maxmind.geoip2:geoip2:4.2.0")
     implementation(libs.androidx.datastore.preferences)
 
     implementation (libs.okhttp)

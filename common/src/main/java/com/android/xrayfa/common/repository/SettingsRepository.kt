@@ -41,17 +41,24 @@ object SettingsKeys {
     val ALLOW_PACKAGES = stringPreferencesKey("allow_packages")
     val XRAY_CORE_VERSION = stringPreferencesKey("xray_version")
 }
-const val LIGHT_MODE = 0
-const val DARK_MODE = 1
-const val AUTO_MODE = 2
 
 const val DEFAULT_DELAY_TEST_URL = "https://www.google.com"
 
 val listType = object : TypeToken<MutableList<String>>() {}.type
 
-@IntDef(LIGHT_MODE, DARK_MODE, AUTO_MODE)
+@IntDef(value = [
+    Theme.LIGHT_MODE,
+    Theme.DARK_MODE,
+    Theme.AUTO_MODE
+])
 @Retention(AnnotationRetention.SOURCE)
-annotation class Mode
+annotation class Theme {
+    companion object {
+        const val LIGHT_MODE = 0
+        const val DARK_MODE = 1
+        const val AUTO_MODE = 2
+    }
+}
 
 
 @Singleton
@@ -76,7 +83,7 @@ class SettingsRepository
         Gson().fromJson<MutableList<String>>(prefs[SettingsKeys.ALLOW_PACKAGES], listType) ?: emptyList()
     }
 
-    suspend fun setDarkMode(@Mode darkMode: Int) {
+    suspend fun setDarkMode(@Theme darkMode: Int) {
         context.dataStore.edit {
             it[SettingsKeys.DARK_MODE] = darkMode
         }

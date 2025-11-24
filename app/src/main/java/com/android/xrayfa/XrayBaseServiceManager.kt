@@ -3,7 +3,7 @@ package com.android.xrayfa
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
-import com.android.xrayfa.repository.LinkRepository
+import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_LINK
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_PROTOCOL
 import kotlinx.coroutines.flow.first
@@ -14,7 +14,7 @@ import javax.inject.Singleton
 @Singleton
 class XrayBaseServiceManager
 @Inject constructor(
-    val repository: LinkRepository,
+    val repository: NodeRepository,
     val trafficDetector: TrafficDetector
 ) {
 
@@ -35,7 +35,7 @@ class XrayBaseServiceManager
         }
         val intent = Intent(context, XrayBaseService::class.java).apply {
             action = "connect"
-            putExtra(EXTRA_LINK, first.content)
+            putExtra(EXTRA_LINK, first.url)
             putExtra(EXTRA_PROTOCOL, first.protocolPrefix)
         }
         context.startForegroundService(intent)

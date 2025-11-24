@@ -1,6 +1,10 @@
 package com.android.xrayfa.ui.component
 
 import android.annotation.SuppressLint
+import android.net.InetAddresses
+import android.os.Build
+import android.util.Patterns
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -44,10 +48,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.android.xrayfa.model.Node
+import com.android.xrayfa.dto.Node
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.draw.rotate
+import androidx.core.text.isDigitsOnly
+import com.android.xrayfa.model.protocol.protocolPrefixMap
+import com.android.xrayfa.utils.ColorMap
+import com.android.xrayfa.utils.Device
 
+@RequiresApi(Build.VERSION_CODES.Q)
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun NodeCard(
@@ -62,7 +71,8 @@ fun NodeCard(
     delayMs: Long = -1,
     testing: Boolean = false,
     selected: Boolean = false,
-    enableTest: Boolean = false
+    enableTest: Boolean = false,
+    countryEmoji: String = ""
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
@@ -96,15 +106,21 @@ fun NodeCard(
                     modifier = Modifier
                         .size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
                         .clip(CircleShape)
-                        .background(node.color),
+                        .background(ColorMap.getValue(node.subscriptionId)),
                     contentAlignment = Alignment.Center
                 ) {
+                    if (countryEmoji.isNotEmpty()) {
+                        Text(
+                            text = countryEmoji
+                        )
+                    }else {
                     Icon(
                         imageVector = Icons.Default.Star,
                         contentDescription = "",
                         tint = Color.White,
                         modifier = Modifier.size(24.dp)
                     )
+                    }
                 }
                 Spacer(Modifier.width(8.dp))
                 Column(
@@ -118,7 +134,7 @@ fun NodeCard(
                     )
                     Row {
                         Text(
-                            text = node.protocol.name,
+                            text = protocolPrefixMap[node.protocolPrefix]!!.name,
                             fontWeight = FontWeight.Medium,
                             style = MaterialTheme.typography.bodyMedium
                         )

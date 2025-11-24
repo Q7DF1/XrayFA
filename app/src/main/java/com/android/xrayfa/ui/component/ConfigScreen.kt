@@ -65,6 +65,7 @@ import com.android.xrayfa.R
 import com.android.xrayfa.ui.QRCodeActivity
 import com.android.xrayfa.ui.navigation.Config
 import com.android.xrayfa.ui.navigation.Home
+import com.android.xrayfa.utils.Device
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
@@ -146,6 +147,7 @@ fun ConfigScreen(
                                 xrayViewmodel.startDetailActivity(context = context,id = node.id)
                             },
                             selected =node.selected,
+                            countryEmoji = Device.countryCodeToEmoji(node.countryISO)
                         )
                     }
                 }

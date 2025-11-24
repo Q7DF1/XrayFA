@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
+@Deprecated("use NodeRepository instead")
 @Singleton
 class LinkRepository @Inject constructor(
     private val linkDao: LinkDao
