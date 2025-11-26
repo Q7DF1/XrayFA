@@ -178,17 +178,19 @@ class XrayViewmodel(
 
     fun addLink(link: String) {
         // pre parse
-        val protocolPrefix = link.substringBefore("://").lowercase()
-        Log.i(TAG, "addLink: $protocolPrefix")
-        if (protocolsPrefix.contains(protocolPrefix)) {
-            val link0 =  Link(protocolPrefix = protocolPrefix, content = link, subscriptionId = 0)
-            val node = parserFactory.getParser(protocolPrefix).preParse(link0)
-            viewModelScope.launch {
-                Log.i(TAG, "addLink: $link0")
-                repository.addNode(node)
+        viewModelScope.launch {
+            val protocolPrefix = link.substringBefore("://").lowercase()
+            Log.i(TAG, "addLink: $protocolPrefix")
+            if (protocolsPrefix.contains(protocolPrefix)) {
+                val link0 =  Link(protocolPrefix = protocolPrefix, content = link, subscriptionId = 0)
+                val node = parserFactory.getParser(protocolPrefix).preParse(link0)
+                viewModelScope.launch {
+                    Log.i(TAG, "addLink: $link0")
+                    repository.addNode(node)
+                }
+            }else {
+                //TODO
             }
-        }else {
-            //TODO
         }
     }
 
@@ -214,17 +216,19 @@ class XrayViewmodel(
 
 
 
-    fun deleteLinkById(id: Int) {
+    fun deleteNodeById(id: Int) {
         viewModelScope.launch {
             repository.deleteLinkById(id)
         }
     }
 
-
-    fun deleteLinkByIdWithCallback(id: Int, callback: () -> Unit) {
-        callback()
-        deleteLinkById(id)
+    fun deleteAllNodes() {
+        viewModelScope.launch {
+            repository.deleteAllNodes()
+        }
     }
+
+
 
 
     //barcode
@@ -260,8 +264,8 @@ class XrayViewmodel(
         deleteLinkId = -1
     }
 
-    fun deleteLinkByIdWithDialog() {
-        deleteLinkById(deleteLinkId)
+    fun deleteNodeByIdWithDialog() {
+        deleteNodeById(deleteLinkId)
         hideDeleteDialog()
     }
 

@@ -1,8 +1,6 @@
 package com.android.xrayfa.repository
 
-import com.android.xrayfa.dao.LinkDao
 import com.android.xrayfa.dao.NodeDao
-import com.android.xrayfa.dto.Link
 import com.android.xrayfa.dto.Node
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -12,40 +10,44 @@ import javax.inject.Singleton
 class NodeRepository @Inject constructor(
     private val nodeDao: NodeDao
 ){
-    val allLinks = nodeDao.getAllLinks()
+    val allLinks = nodeDao.getAllNodes()
 
     suspend fun addNode(vararg links: Node) {
-        nodeDao.addLink(*links)
+        nodeDao.addNode(*links)
     }
 
     suspend fun deleteLink(link: Node) {
-        nodeDao.deleteLink(link)
+        nodeDao.deleteNode(link)
     }
 
     fun loadLinksById(id: Int): Flow<Node> {
-        return nodeDao.loadLinksById(id)
+        return nodeDao.loadNodeById(id)
     }
     suspend fun clearSelection() {
         return nodeDao.clearSelection()
     }
 
      fun querySelectedLink(): Flow<Node?> {
-        return nodeDao.querySelectedLink()
+        return nodeDao.querySelectedNode()
     }
 
     suspend fun updateLink(node: Node) {
-        return  nodeDao.updateLink(node)
+        return  nodeDao.updateNode(node)
     }
 
     suspend fun updateLinkById(id: Int, selected: Boolean) {
-        return nodeDao.updateLinkById(id,selected)
+        return nodeDao.updateNodeById(id,selected)
     }
 
     suspend fun deleteLinkById(id: Int) {
-        return nodeDao.deleteLinkById(id)
+        return nodeDao.deleteNodeById(id)
     }
 
     suspend fun deleteLinkBySubscriptionId(subscriptionId: Int) {
         return nodeDao.deleteBySubscriptionId(subscriptionId)
+    }
+
+    suspend fun deleteAllNodes() {
+        return nodeDao.deleteAll()
     }
 }

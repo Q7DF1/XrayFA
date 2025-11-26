@@ -174,5 +174,5 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject> {
     @Throws(Exception::class)
     abstract fun parseOutbound(link: String): OutboundObject<T>
     @Throws(Exception::class)
-    abstract fun preParse(link: Link): Node
+    abstract suspend fun preParse(link: Link): Node
 }

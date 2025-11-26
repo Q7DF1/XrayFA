@@ -13,6 +13,7 @@ import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.utils.ColorMap
 import com.android.xrayfa.utils.Device
+import kotlinx.coroutines.flow.first
 import java.util.Base64
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -78,7 +79,7 @@ class ShadowSocksConfigParser
         )
     }
 
-    override fun preParse(link: Link): Node {
+    override suspend fun preParse(link: Link): Node {
         val shadowSocksConfig = parseLink(link.content)
         return Node(
             id = link.id,
@@ -89,10 +90,12 @@ class ShadowSocksConfigParser
             address = shadowSocksConfig.server,
             selected = link.selected,
             remark = shadowSocksConfig.tag,
-            countryISO = Device.getCountryISOFromIp(
-                geoPath = "${XrayAppCompatFactory.xrayPATH}/GeoLite2-Country.mmdb",
-                ip = shadowSocksConfig.server
-            )
+            countryISO = if (settingsRepo.settingsFlow.first().geoLiteInstall) {
+                Device.getCountryISOFromIp(
+                    geoPath = "${XrayAppCompatFactory.xrayPATH}/GeoLite2-Country.mmdb",
+                    ip = shadowSocksConfig.server
+                )
+            } else ""
         )
     }
 

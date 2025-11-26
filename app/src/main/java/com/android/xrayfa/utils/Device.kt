@@ -26,17 +26,12 @@ object Device {
 
 
     fun getCountryISOFromIp(geoPath: String, ip: String):String {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (!InetAddresses.isNumericAddress(ip)) {
-                return ""
-            }
-        }else "" //todo
         return try {
             val file = File(geoPath)
             val reader = DatabaseReader.Builder(file).build()
             val address = InetAddress.getByName(ip)
             val res = reader.country(address)
-            res.country.isoCode ?: ""
+            countryCodeToEmoji(res.country.isoCode ?: "")
         }catch (e: Exception) {
             Log.e(TAG, "getCountryFromIp: parse ip failed: ${e.message}")
             ""
@@ -45,7 +40,7 @@ object Device {
 
 
 
-    fun countryCodeToEmoji(countryCode: String): String {
+    private fun countryCodeToEmoji(countryCode: String): String {
         val code = countryCode.uppercase()
         if (code.length != 2) return "❓"
         val flagOffset = 0x1F1E6

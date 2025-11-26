@@ -20,6 +20,7 @@ import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
 import com.android.xrayfa.utils.ColorMap
 import com.android.xrayfa.utils.Device
+import kotlinx.coroutines.flow.first
 import java.net.URLDecoder
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -143,7 +144,7 @@ class VLESSConfigParser
         )
     }
 
-    override fun preParse(link: Link): Node {
+    override suspend fun preParse(link: Link): Node {
         val vlessConfig = parseVLESS(link.content)
         return Node(
             id = link.id,
@@ -154,11 +155,12 @@ class VLESSConfigParser
             port = vlessConfig.port,
             selected = link.selected,
             remark = vlessConfig.remark,
-            countryISO = Device.getCountryISOFromIp(
-                geoPath = "${XrayAppCompatFactory.xrayPATH}/GeoLite2-Country.mmdb",
-                ip = vlessConfig.server
-            )
-
+            countryISO = if (settingsRepo.settingsFlow.first().geoLiteInstall) {
+                Device.getCountryISOFromIp(
+                    geoPath = "${XrayAppCompatFactory.xrayPATH}/GeoLite2-Country.mmdb",
+                    ip = vlessConfig.server
+                )
+            } else ""
         )
     }
 

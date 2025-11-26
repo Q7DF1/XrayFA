@@ -16,6 +16,7 @@ import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
 import com.android.xrayfa.utils.ColorMap
 import com.android.xrayfa.utils.Device
+import kotlinx.coroutines.flow.first
 import java.net.URI
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
@@ -109,7 +110,7 @@ class TrojanConfigParser
 
     }
 
-    override fun preParse(link: Link): Node {
+    override suspend fun preParse(link: Link): Node {
         val trojanConfig = parseTrojan(link.content)
         return Node(
             id = link.id,
@@ -119,10 +120,12 @@ class TrojanConfigParser
             address = trojanConfig.host?:"unknown",
             port = trojanConfig.port?:0,
             remark = trojanConfig.remark,
-            countryISO = Device.getCountryISOFromIp(
-                geoPath = "${XrayAppCompatFactory.xrayPATH}/GeoLite2-Country.mmdb",
-                ip = trojanConfig.host?:""
-            )
+            countryISO = if (settingsRepo.settingsFlow.first().geoLiteInstall) {
+                Device.getCountryISOFromIp(
+                    geoPath = "${XrayAppCompatFactory.xrayPATH}/GeoLite2-Country.mmdb",
+                    ip = trojanConfig.host?:""
+                )
+            } else ""
         )
     }
 }

@@ -27,7 +27,8 @@ data class SettingsState(
     val dnsIPv6: String = "",
     val delayTestUrl: String = DEFAULT_DELAY_TEST_URL,
     val xrayCoreVersion: String = "unknown",
-    val version: String = "1.0.0"
+    val version: String = "1.0.0",
+    val geoLiteInstall: Boolean = false
 )
 object SettingsKeys {
     val DARK_MODE = intPreferencesKey("dark_mode")
@@ -40,6 +41,7 @@ object SettingsKeys {
     //to json
     val ALLOW_PACKAGES = stringPreferencesKey("allow_packages")
     val XRAY_CORE_VERSION = stringPreferencesKey("xray_version")
+    val GEO_LITE_INSTALL = booleanPreferencesKey("geo_lite_install")
 }
 
 const val DEFAULT_DELAY_TEST_URL = "https://www.google.com"
@@ -74,7 +76,8 @@ class SettingsRepository
             dnsIPv6 = prefs[SettingsKeys.DNS_IPV6] ?: "2001:4860:4860::8888",
             delayTestUrl = prefs[SettingsKeys.DELAY_TEST_URL] ?: DEFAULT_DELAY_TEST_URL,
             version = prefs[SettingsKeys.VERSION] ?: "1.0.0",
-            xrayCoreVersion = prefs[SettingsKeys.XRAY_CORE_VERSION]?:"unknown"
+            xrayCoreVersion = prefs[SettingsKeys.XRAY_CORE_VERSION]?:"unknown",
+            geoLiteInstall = prefs[SettingsKeys.GEO_LITE_INSTALL] == true
         )
 
     }
@@ -128,6 +131,12 @@ class SettingsRepository
         val listJson = Gson().toJson(packages, listType)
         context.dataStore.edit {
             it[SettingsKeys.ALLOW_PACKAGES] = listJson
+        }
+    }
+
+    suspend fun setGeoLiteInstall(installed: Boolean) {
+        context.dataStore.edit {
+            it[SettingsKeys.GEO_LITE_INSTALL] = installed
         }
     }
 

@@ -23,6 +23,7 @@ import com.android.xrayfa.model.stream.WsSettings
 import com.android.xrayfa.utils.ColorMap
 import com.android.xrayfa.utils.Device
 import com.google.gson.JsonParser
+import kotlinx.coroutines.flow.first
 import java.util.Base64
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -120,7 +121,7 @@ class VMESSConfigParser
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    override fun preParse(link: Link): Node {
+    override suspend fun preParse(link: Link): Node {
         val cleanLink = link.content.removePrefix("vmess://").trim()
 
         val decoded = String(Base64.getDecoder().decode(cleanLink))
@@ -137,11 +138,12 @@ class VMESSConfigParser
             selected = link.selected,
             remark = json.get("ps").asString
                 ?:"vmess-${json.get("add").asString}-${json.get("port").asString}",
-            countryISO =
+            countryISO = if (settingsRepo.settingsFlow.first().geoLiteInstall) {
                 Device.getCountryISOFromIp(
                     geoPath = "${XrayAppCompatFactory.xrayPATH}/GeoLite2-Country.mmdb",
                     ip = json.get("add").asString
                 )
+            } else ""
         )
     }
 

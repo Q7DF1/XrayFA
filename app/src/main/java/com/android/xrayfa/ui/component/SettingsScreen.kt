@@ -66,8 +66,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.datastore.preferences.core.Preferences
 import com.android.xrayfa.common.repository.SettingsKeys
-import com.android.xrayfa.viewmodel.FILE_TYPE_IP
-import com.android.xrayfa.viewmodel.FILE_TYPE_SITE
+import com.android.xrayfa.viewmodel.GEOFileType
+import com.android.xrayfa.viewmodel.GEOFileType.Companion.FILE_TYPE_IP
 
 @Composable
 fun SettingsScreen(
@@ -82,6 +82,7 @@ fun SettingsScreen(
     var validator: (String)->String? by remember { mutableStateOf({null}) }
     val geoIPDownloading by viewmodel.geoIPDownloading.collectAsState()
     val geoSiteDownloading by viewmodel.geoSiteDownloading.collectAsState()
+    val geoLiteDownloading by viewmodel.geoLiteDownloading.collectAsState()
     val importException by viewmodel.importException.collectAsState()
     val downloadException by viewmodel.downloadException.collectAsState()
     val ipFilePickLauncher =
@@ -96,7 +97,7 @@ fun SettingsScreen(
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 val uri = result.data?.data?: return@rememberLauncherForActivityResult
-                viewmodel.onSelectFile(context,uri, FILE_TYPE_SITE)
+                viewmodel.onSelectFile(context,uri, GEOFileType.FILE_TYPE_SITE)
             }
         }
     val scrollState = rememberScrollState()
@@ -211,6 +212,13 @@ fun SettingsScreen(
                         domainFilePickLauncher.launch(intent)
                     }
                 )
+                SettingsWithBtnBox(
+                    title = R.string.geo_lite_title,
+                    description = R.string.geo_ip_lite_description,
+                    onDownloadClick = {viewmodel.downloadGeoLite(context)},
+                    downloading = geoLiteDownloading,
+                    enable = settingsState.geoLiteInstall
+                )
             }
             SettingsGroup(
                 groupName = stringResource(R.string.about_part)
@@ -229,7 +237,8 @@ fun SettingsScreen(
                 }
                 SettingsFieldBox(
                     title = R.string.repo_site,
-                    content = stringResource(R.string.repo_description)
+                    content = stringResource(R.string.repo_description),
+                    icon = ImageVector.vectorResource(R.drawable.ic_github)
                 ) {
                     viewmodel.openRepo(context)
                 }
@@ -317,7 +326,8 @@ fun SettingsWithBtnBox(
     @StringRes description: Int,
     downloading: Boolean = false,
     onDownloadClick: () -> Unit = {},
-    onImportClick: () -> Unit = {}
+    onImportClick: (() -> Unit)? = null,
+    enable: Boolean = true
 ) {
 
     val infiniteTransition = rememberInfiniteTransition()
@@ -332,7 +342,7 @@ fun SettingsWithBtnBox(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable {},
+            .clickable {}, //todo optional: download url
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
@@ -342,11 +352,13 @@ fun SettingsWithBtnBox(
         ) {
             Text(
                 text = stringResource(title),
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
+                color = if (enable) MaterialTheme.colorScheme.onBackground else Color.Gray
             )
             Text(
                 text = stringResource(description),
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (enable) MaterialTheme.colorScheme.onBackground else Color.Gray
             )
         }
         Row(
@@ -366,14 +378,16 @@ fun SettingsWithBtnBox(
                         .rotate(angle)
                 )
             }
-            IconButton(
-                onClick = onImportClick
-            ) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(R.drawable.ic_import),
-                    contentDescription = "import",
-                    modifier = Modifier.size(24.dp)
-                )
+            if (onImportClick != null) {
+                IconButton(
+                    onClick = onImportClick
+                ) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(R.drawable.ic_import),
+                        contentDescription = "import",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
         }
     }
@@ -473,6 +487,7 @@ fun SettingsFieldBox(
     @StringRes title: Int,
     content: String,
     enable: Boolean = true,
+    icon: ImageVector? = null,
     onClick: () ->Unit
 ) {
     Row(
@@ -497,6 +512,14 @@ fun SettingsFieldBox(
                 text = content,
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (enable) MaterialTheme.colorScheme.onBackground else Color.Gray
+            )
+        }
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = "",
+                modifier = Modifier.size(24.dp)
+                    .weight(0.2f)
             )
         }
     }
@@ -620,34 +643,4 @@ fun validateIpv6List(input: String, context: Context): String? {
 
     // All valid
     return null
-}
-
-
-@Composable
-@Preview
-fun SettingsFieldBoxPreview() {
-    SettingsFieldBox(
-        R.string.enable_ipv6,
-        "192.168.0.1",
-    ) {
-        //empty
-    }
-}
-
-@Composable
-@Preview
-fun SettingsSelectBoxPreview() {
-    SettingsSelectBox(
-        R.string.delete,
-        R.string.delete_notify
-    )
-}
-
-@Composable
-@Preview
-fun SettingsCheckBoxPreview() {
-    SettingsCheckBox(
-        R.string.cancel,
-        R.string.save
-    )
 }

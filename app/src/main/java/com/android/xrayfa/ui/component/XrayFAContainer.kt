@@ -211,6 +211,13 @@ fun ConfigActionButton(
                 xrayViewmodel.startSubscriptionActivity(context)
             }
         )
+        DropdownMenuItem(
+            text = {Text("delete All")},
+            onClick = {
+                expend = false
+                xrayViewmodel.deleteAllNodes()
+            }
+        )
     }
 }
 

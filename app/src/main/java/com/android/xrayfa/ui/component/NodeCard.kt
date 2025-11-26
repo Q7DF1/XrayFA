@@ -134,7 +134,7 @@ fun NodeCard(
                     )
                     Row {
                         Text(
-                            text = protocolPrefixMap[node.protocolPrefix]!!.name,
+                            text = protocolPrefixMap[node.protocolPrefix]!!.protocolName,
                             fontWeight = FontWeight.Medium,
                             style = MaterialTheme.typography.bodyMedium
                         )
