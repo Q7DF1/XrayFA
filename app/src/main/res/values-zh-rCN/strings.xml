@@ -60,4 +60,5 @@
     <string name="general_part">常规</string>
     <string name="network_part">网络</string>
     <string name="about_part">关于</string>
+    <string name="geo_ip_lite_description">IP对应国家信息</string>
 </resources>

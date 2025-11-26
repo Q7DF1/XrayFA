@@ -66,8 +66,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.datastore.preferences.core.Preferences
 import com.android.xrayfa.common.repository.SettingsKeys
-import com.android.xrayfa.viewmodel.FILE_TYPE_IP
-import com.android.xrayfa.viewmodel.FILE_TYPE_SITE
+import com.android.xrayfa.viewmodel.GEOFileType
+import com.android.xrayfa.viewmodel.GEOFileType.Companion.FILE_TYPE_IP
 
 @Composable
 fun SettingsScreen(
@@ -82,6 +82,7 @@ fun SettingsScreen(
     var validator: (String)->String? by remember { mutableStateOf({null}) }
     val geoIPDownloading by viewmodel.geoIPDownloading.collectAsState()
     val geoSiteDownloading by viewmodel.geoSiteDownloading.collectAsState()
+    val geoLiteDownloading by viewmodel.geoLiteDownloading.collectAsState()
     val importException by viewmodel.importException.collectAsState()
     val downloadException by viewmodel.downloadException.collectAsState()
     val ipFilePickLauncher =
@@ -96,7 +97,7 @@ fun SettingsScreen(
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 val uri = result.data?.data?: return@rememberLauncherForActivityResult
-                viewmodel.onSelectFile(context,uri, FILE_TYPE_SITE)
+                viewmodel.onSelectFile(context,uri, GEOFileType.FILE_TYPE_SITE)
             }
         }
     val scrollState = rememberScrollState()
@@ -210,6 +211,13 @@ fun SettingsScreen(
                         }
                         domainFilePickLauncher.launch(intent)
                     }
+                )
+                SettingsWithBtnBox(
+                    title = R.string.geo_lite_title,
+                    description = R.string.geo_ip_lite_description,
+                    onDownloadClick = {viewmodel.downloadGeoLite(context)},
+                    downloading = geoLiteDownloading,
+                    onImportClick = {}
                 )
             }
             SettingsGroup(

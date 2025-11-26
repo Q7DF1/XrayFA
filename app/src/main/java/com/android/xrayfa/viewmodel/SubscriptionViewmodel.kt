@@ -5,19 +5,16 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.xrayfa.common.di.qualifier.ShortTime
 import com.android.xrayfa.dto.Link
-import com.android.xrayfa.dto.Node
 import com.android.xrayfa.dto.Subscription
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.repository.SubscriptionRepository
-import com.android.xrayfa.utils.Device
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.TAG
 import com.google.zxing.BarcodeFormat
 import com.journeyapps.barcodescanner.BarcodeEncoder
@@ -39,7 +36,7 @@ val emptySubscription = Subscription(0,"","")
 class SubscriptionViewmodel(
     val repository: SubscriptionRepository,
     val okHttp: OkHttpClient,
-    val linkRepository: NodeRepository,
+    val nodeRepository: NodeRepository,
     val subscriptionParser: SubscriptionParser,
     val parserFactory: ParserFactory
 ): ViewModel() {
@@ -180,8 +177,8 @@ class SubscriptionViewmodel(
                     val content = response.body?.string() ?: ""
                     if (content != "") {
                         val urls = subscriptionParser.parseUrl(content)
-                        linkRepository.deleteLinkBySubscriptionId(subscriptionId)
-                        val newLinks = urls.map {
+                        nodeRepository.deleteLinkBySubscriptionId(subscriptionId)
+                        val newNodes = urls.map {
                             Log.i(TAG, "getSubscription: ${it.substringBefore("://")}")
                             Log.i(TAG, "getSubscription: $it")
                             val link = Link(
@@ -190,13 +187,13 @@ class SubscriptionViewmodel(
                                 selected = false,
                                 subscriptionId = subscriptionId,
                             )
-                            val preParse =
+                            val node =
                                 parserFactory.getParser(link.protocolPrefix).preParse(link)
-                            preParse
+                            Log.i(TAG, "getSubscriptionWithCallback: $node")
+                            node
                         }
-                        linkRepository.addNode(*newLinks.toTypedArray())
+                        nodeRepository.addNode(*newNodes.toTypedArray())
                     }
-                    //todo show success
                     callback()
                 }
             }catch (e: Exception) {

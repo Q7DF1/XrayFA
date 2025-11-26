@@ -68,4 +68,6 @@
     <string name="general_part">general</string>
     <string name="network_part">network</string>
     <string name="about_part">other</string>
+    <string name="geo_lite_title" translatable="false">Geo_ip_lite</string>
+    <string name="geo_ip_lite_description">IP address and corresponding country information</string>
 </resources>

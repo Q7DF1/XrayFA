@@ -26,11 +26,6 @@ object Device {
 
 
     fun getCountryISOFromIp(geoPath: String, ip: String):String {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (!InetAddresses.isNumericAddress(ip)) {
-                return ""
-            }
-        }else "" //todo
         return try {
             val file = File(geoPath)
             val reader = DatabaseReader.Builder(file).build()

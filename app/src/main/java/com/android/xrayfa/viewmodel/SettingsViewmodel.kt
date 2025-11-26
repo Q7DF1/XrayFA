@@ -6,6 +6,7 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.IntDef
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -33,8 +34,19 @@ import okio.buffer
 import okio.sink
 import java.io.File
 
-const val FILE_TYPE_SITE = 0
-const val FILE_TYPE_IP = 1
+
+@IntDef(value = [
+    GEOFileType.FILE_TYPE_SITE,
+    GEOFileType.FILE_TYPE_IP,
+    GEOFileType.FILE_TYPE_LITE
+])
+annotation class GEOFileType {
+    companion object {
+        const val FILE_TYPE_SITE = 0
+        const val FILE_TYPE_IP = 1
+        const val FILE_TYPE_LITE = 2
+    }
+}
 class SettingsViewmodel(
     val repository: SettingsRepository,
     val okHttpClient: OkHttpClient
@@ -47,11 +59,16 @@ class SettingsViewmodel(
 
     val geoIPUrlTest = "https://github.com/v2fly/geoip/releases/latest/download/geoip.dat"
     val geoSiteUrlTest = "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
+    val geoLiteUrlTest = "https://github.com/P3TERX/GeoLite.mmdb/raw/download/GeoLite2-Country.mmdb"
     private val _geoIPDownloading = MutableStateFlow(false)
     val geoIPDownloading = _geoIPDownloading.asStateFlow()
 
     private val _geoSiteDownloading = MutableStateFlow(false)
     val geoSiteDownloading = _geoSiteDownloading.asStateFlow()
+
+
+    private val _geoLiteDownloading = MutableStateFlow(false)
+    val geoLiteDownloading = _geoLiteDownloading.asStateFlow()
 
     private val _importException = MutableStateFlow(false)
     val importException = _importException.asStateFlow()
@@ -113,9 +130,22 @@ class SettingsViewmodel(
         }
         viewModelScope.launch(Dispatchers.IO) {
             _geoSiteDownloading.value = true
-            download(FILE_TYPE_SITE,context)
+            download(GEOFileType.FILE_TYPE_SITE,context)
             _geoSiteDownloading.value = false
         }
+    }
+
+    fun downloadGeoLite(context: Context) {
+        if (_geoSiteDownloading.value || _geoIPDownloading.value || _geoLiteDownloading.value) {
+            return
+        }
+        viewModelScope.launch(Dispatchers.IO){
+            _geoLiteDownloading.value = true
+            download(GEOFileType.FILE_TYPE_LITE,context)
+            _geoLiteDownloading.value = false
+            repository.setGeoLiteInstall(true)
+        }
+
     }
 
     fun downloadGeoIP(context: Context) {
@@ -125,12 +155,20 @@ class SettingsViewmodel(
         }
         viewModelScope.launch(Dispatchers.IO) {
             _geoIPDownloading.value = true
-            download(FILE_TYPE_IP,context)
+            download(GEOFileType.FILE_TYPE_IP,context)
             _geoIPDownloading.value = false
         }
     }
-    private suspend fun download(fileType: Int, context: Context)  = withContext(Dispatchers.IO ){
-        val url = if (fileType == FILE_TYPE_IP) geoIPUrlTest else geoSiteUrlTest
+
+
+    private suspend fun download(
+        url: String,
+        target:String,
+        flow: MutableStateFlow<Boolean>,
+        context: Context
+    ) = withContext(Dispatchers.IO) {
+
+
         val request = Request.Builder()
             .url(url)
             .build()
@@ -141,15 +179,14 @@ class SettingsViewmodel(
 
                 res.body?.let { body ->
                     val file =
-                        File(context.filesDir,if (FILE_TYPE_IP == fileType)"geoip.dat" else "geosite.dat")
+                        File(context.filesDir,target)
                     file.sink().buffer().use { sink ->
                         sink.writeAll(body.source())
                     }
                 }
             }
         }catch (e: Exception) {
-            if (fileType == FILE_TYPE_IP) _geoIPDownloading.value = false
-            else _geoSiteDownloading.value = false
+            flow.value = false
             launch {
                 _downloadException.value = true
                 delay(2000L)
@@ -157,10 +194,27 @@ class SettingsViewmodel(
             }
             Log.e(TAG, "download: exception $e")
         }
+    }
+    private suspend fun download(
+        @GEOFileType fileType: Int,
+        context: Context
+    ) {
+
+        when(fileType) {
+            GEOFileType.FILE_TYPE_IP ->
+                download(geoIPUrlTest, "geoip.dat",_geoIPDownloading,context)
+            GEOFileType.FILE_TYPE_SITE ->
+                download(geoSiteUrlTest,"geosite.dat",_geoSiteDownloading,context)
+            GEOFileType.FILE_TYPE_LITE ->
+                download(geoLiteUrlTest,"GeoLite2-Country.mmdb",_geoLiteDownloading,context)
+            else -> {
+                Log.e(TAG, "download: download type error")
+            }
+        }
 
     }
 
-    fun onSelectFile(context: Context,uri: Uri,fileType: Int) {
+    fun onSelectFile(context: Context,uri: Uri,@GEOFileType fileType: Int) {
         if (_geoSiteDownloading.value || _geoIPDownloading.value) {
             Toast.makeText(context,R.string.geo_import_try_later,Toast.LENGTH_SHORT).show()
             return
@@ -177,7 +231,7 @@ class SettingsViewmodel(
                 return@launch
             }
 
-            val targetName = if (fileType == FILE_TYPE_IP)
+            val targetName = if (fileType == GEOFileType.FILE_TYPE_IP)
                 "geoip.dat"
             else "geosite.dat"
             val file = File(context.filesDir,targetName)
