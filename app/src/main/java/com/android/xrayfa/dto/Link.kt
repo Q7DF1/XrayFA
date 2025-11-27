@@ -10,5 +10,4 @@ data class Link(
     val content: String,
     val subscriptionId: Int,
     val selected: Boolean = false,
-    val countryISO: String = ""
 )
