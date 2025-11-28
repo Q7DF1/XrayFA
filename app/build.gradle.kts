@@ -28,16 +28,24 @@ android {
     }
     signingConfigs {
         create("release") {
-            storeFile = file("xrayfa.jks")
-            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
-            keyAlias = System.getenv("KEY_ALIAS") ?: ""
-            keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+            val keystoreFile = file("xrayfa.jks")
+            if(keystoreFile.exists()) {
+                storeFile = keystoreFile
+                storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+                keyAlias = System.getenv("KEY_ALIAS") ?: ""
+                keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+            }else {
+                println("keystore file not found , building unsigned release apk")
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            val keystoreFile = File("xrayfa.jks")
+            if (keystoreFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isDebuggable = false
             isJniDebuggable = false
             isMinifyEnabled = true
