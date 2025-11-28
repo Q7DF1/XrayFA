@@ -6,7 +6,6 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.android.xrayfa.dto.Link
 import com.android.xrayfa.dto.Node
 import com.android.xrayfa.dto.Subscription
 
