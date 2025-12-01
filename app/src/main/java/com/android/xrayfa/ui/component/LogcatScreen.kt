@@ -53,11 +53,15 @@ fun LogcatScreen(
                    modifier = Modifier.shadow(4.dp)
                )
                if (logList.size <= 1) {
-                   Text(
-                       text = stringResource(R.string.no_log_text),
-                       style = MaterialTheme.typography.headlineMedium,
-                       modifier = Modifier.align(Alignment.CenterHorizontally)
-                   )
+                   Box(
+                       modifier = Modifier.fillMaxSize()
+                   ) {
+                       Text(
+                           text = stringResource(R.string.no_log_text),
+                           style = MaterialTheme.typography.headlineMedium,
+                           modifier = Modifier.align(Alignment.Center)
+                       )
+                   }
                }else {
                    LazyColumn(
                        modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 4.dp)

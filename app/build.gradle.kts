@@ -28,7 +28,7 @@ android {
     }
     signingConfigs {
         create("release") {
-            val keystoreFile = file("xrayfa.jks")
+            val keystoreFile = project.file("xrayfa.jks")
             if(keystoreFile.exists()) {
                 storeFile = keystoreFile
                 storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
@@ -42,7 +42,7 @@ android {
 
     buildTypes {
         release {
-            val keystoreFile = File("xrayfa.jks")
+            val keystoreFile = project.file("xrayfa.jks")
             if (keystoreFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
             }
