@@ -166,14 +166,14 @@ fun XrayBottomNavOpt(
                     dampingRatio = Spring.DampingRatioLowBouncy,
                     stiffness = Spring.StiffnessLow
                 ))
-            animWidth.animateTo(itemWidthPx.toFloat(), tween(300))
+            //animWidth.animateTo(itemWidthPx.toFloat(), tween(300))
         }
 
         // 背景放大镜
         Box(
             modifier = Modifier
                 .offset { IntOffset(animOffsetX.value.toInt(), 0) }
-                .width(with(density) { animWidth.value.toDp() })
+                .width(itemWidthDp)
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(24.dp))
                 .background(selectedColor.copy(alpha = 0.12f))
