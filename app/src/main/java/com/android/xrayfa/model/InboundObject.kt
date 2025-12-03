@@ -3,7 +3,6 @@ package com.android.xrayfa.model
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import kotlinx.serialization.Serializable
 
-@Serializable
 data class InboundObject(
     val listen: String? = null,
     val port: Int? = null,

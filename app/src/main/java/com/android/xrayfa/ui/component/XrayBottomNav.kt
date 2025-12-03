@@ -32,6 +32,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -52,7 +56,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -62,68 +65,7 @@ import com.android.xrayfa.ui.navigation.Config
 import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.ui.navigation.Logcat
 import com.android.xrayfa.ui.navigation.NavigateDestination
-import kotlin.collections.forEach
 
-@Deprecated("XrayBottomNavOpt")
-@Composable
-fun XrayBottomNav(
-    items: List<NavigateDestination>,
-    currentScreen: NavigateDestination,
-    onItemSelected: (NavigateDestination) -> Unit,
-    labelProvider: (NavigateDestination) -> String,
-    modifier: Modifier = Modifier,
-    backgroundColor: Color = MaterialTheme.colorScheme.surface,
-    selectedColor: Color = MaterialTheme.colorScheme.primary,
-    unselectedColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 8.dp, vertical = 8.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            items.forEach { item ->
-                val selected = item.route == currentScreen.route
-                val iconScale by animateFloatAsState(
-                    targetValue = if (selected) 1.14f else 1f,
-                    animationSpec = tween(
-                        durationMillis = 300,
-                        easing = FastOutSlowInEasing
-                    )
-                )
-                val labelPadding by animateDpAsState(if (selected) 8.dp else 0.dp)
-
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(50))
-                        .background(
-                            if (selected) selectedColor.copy(alpha = 0.12f)
-                            else Color.Transparent
-                        )
-                        .clickable { onItemSelected(item) }
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.route,
-                        tint = if (selected) selectedColor else unselectedColor,
-                        modifier = Modifier
-                            .size(28.dp)
-                            .scale(iconScale)
-                    )
-                    Spacer(Modifier.width(labelPadding))
-                    Text(
-                        text = labelProvider(item),
-                        color = if (selected) selectedColor else unselectedColor,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-        }
-}
 
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
@@ -204,7 +146,12 @@ fun XrayBottomNavOpt(
                         horizontalArrangement = Arrangement.Center,
                     ) {
                         Icon(
-                            imageVector = item.icon,
+                            imageVector = when(item){
+                                is Home -> Icons.Default.Home
+                                is Config -> Icons.Default.Build
+                                is Logcat -> Icons.Default.Warning
+                                else -> throw IllegalArgumentException("Invalid Nav type")
+                            },
                             contentDescription = item.route,
                             tint = if (selected) selectedColor else unselectedColor,
                             modifier = Modifier.size(28.dp).scale(iconScale)
@@ -222,69 +169,6 @@ fun XrayBottomNavOpt(
                 }
             }
         }
-    }
-}
-
-
-@Composable
-fun FloatingBottomNav(
-    currentScreen: NavigateDestination,
-    onItemSelected: (NavigateDestination) -> Unit = {},
-) {
-
-    var isOn by remember { mutableStateOf(false) }
-    val transition = updateTransition(targetState = isOn, label = "switchTransition")
-
-    val ballOffset by transition.animateDp(
-        label = "ballOffset",
-        transitionSpec = { spring(stiffness = Spring.StiffnessMedium) }
-    ) { state ->
-        if (state) 30.dp else 0.dp // 球移动距离
-    }
-
-    Row(
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(horizontal = 8.dp)
-    ) {
-        Box(
-            modifier = Modifier.background(Color.Gray,RoundedCornerShape(32.dp))
-                .padding(end = 16.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .offset(x = ballOffset) // 核心：动画偏移
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(Color.White)
-                    .shadow(2.dp, CircleShape)
-                    .clickable{isOn  = !isOn}
-                    .align(Alignment.CenterStart)
-            )
-            Row(
-            ) {
-                ItemTab(
-                    icon = Config.icon,
-                    title = stringResource(Config.title),
-                )
-                ItemTab(
-                    icon = Home.icon,
-                    title = stringResource(Home.title),
-                )
-            }
-
-        }
-
-        Surface(
-            color = Color.Gray,
-            shape = CircleShape,
-        ) {
-            ItemTab(
-                icon = Logcat.icon,
-                title = stringResource(Logcat.title),
-            )
-        }
-
     }
 }
 

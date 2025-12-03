@@ -5,16 +5,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation3.runtime.NavKey
 
 import com.android.xrayfa.R
+import kotlinx.serialization.Serializable
 
-data object Home: NavigateDestination {
-    override val icon: ImageVector
-        get() = Icons.Default.Home
+@Serializable
+data object Home: NavigateDestination{
     override val route: String
         get() = "home"
-    override val containerColor: Color
-        get() = Color(0xFF00BFFF)
     override val title: Int
         get() = R.string.home
 }

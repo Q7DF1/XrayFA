@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     kotlin("kapt") version "2.2.10"
     id("com.google.protobuf") version "0.9.4"
+    id ("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
 }
 
 android {
@@ -189,7 +190,8 @@ dependencies {
     implementation(libs.gson)
 
 
-    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.navigation3.runtime)
 
 
     implementation("io.grpc:grpc-okhttp:1.63.0")

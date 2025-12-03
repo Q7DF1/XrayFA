@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -62,8 +63,8 @@ import com.journeyapps.barcodescanner.ScanOptions
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfigScreen(
-    onNavigate2Home: (Int) -> Unit,
-    xrayViewmodel: XrayViewmodel
+    xrayViewmodel: XrayViewmodel,
+    onNavigate2Home: (Int) -> Unit
 ) {
     val nodes by xrayViewmodel.nodes.collectAsState()
     val qrBitMap by xrayViewmodel.qrBitmap.collectAsState()
@@ -94,7 +95,7 @@ fun ConfigScreen(
                 title = {Text(context.getString(Config.title))},
                 navigationIcon = {
                     Icon(
-                        imageVector = Config.icon,
+                        imageVector = Icons.Default.Build,
                         contentDescription = ""
                     )
                 },

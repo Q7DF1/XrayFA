@@ -35,6 +35,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -202,7 +203,7 @@ fun Dashboard(
                 title = {Text(context.getString(Home.title))},
                 navigationIcon = {
                     Icon(
-                        imageVector = Home.icon,
+                        imageVector = Icons.Default.Home,
                         contentDescription = ""
                     )
                 },

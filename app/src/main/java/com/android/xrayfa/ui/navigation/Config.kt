@@ -54,20 +54,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat.getString
+import androidx.navigation3.runtime.NavKey
 import com.android.xrayfa.ui.QRCodeActivity
 import com.android.xrayfa.ui.component.NodeCard
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.android.xrayfa.R
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
+import kotlinx.serialization.Serializable
 
+@Serializable
 data object Config: NavigateDestination {
-    override val icon: ImageVector
-        get() = Icons.Default.Build
     override val route: String
         get() = "config"
-    override val containerColor: Color
-        get() = Color.White
     override val title: Int
         get() = R.string.config
 }
