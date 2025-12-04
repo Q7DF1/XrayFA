@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.Flow
 
 
 @Dao
+@Deprecated("use NodeDao instead")
 interface LinkDao {
 
     @Query("SELECT * FROM link")
