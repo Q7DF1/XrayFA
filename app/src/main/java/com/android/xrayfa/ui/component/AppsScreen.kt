@@ -43,6 +43,8 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,7 +85,9 @@ fun AppsScreen(
         val searchAppInfoCompleted by remember { derivedStateOf { viewmodel.searchAppCompleted } }
         val listState = rememberLazyListState()
         LaunchedEffect(Unit) {
-            viewmodel.getInstalledPackages(context)
+            withContext(Dispatchers.IO) {
+                viewmodel.getInstalledPackages(context)
+            }
         }
         Box(
             modifier = Modifier.fillMaxSize()

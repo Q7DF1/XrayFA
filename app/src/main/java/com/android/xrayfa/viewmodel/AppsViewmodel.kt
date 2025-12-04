@@ -50,7 +50,7 @@ class AppsViewmodel(
     )
 
     fun setAllowedPackages(packages: List<String>,callback: suspend ()-> Unit) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             settingsRepo.setAllowedPackages(packages)
             callback()
         }
