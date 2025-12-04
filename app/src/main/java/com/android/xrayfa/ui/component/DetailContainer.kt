@@ -11,7 +11,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -131,6 +135,7 @@ fun VLESSConfigScreen(
     detailViewmodel: DetailViewmodel,
 ) {
     val vlessConfig by remember { mutableStateOf(detailViewmodel.parseVLESSProtocol(content))}
+    val vlessParamMap = vlessConfig.param.toMutableMap()
     var address by
     rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(vlessConfig.server))
@@ -148,42 +153,61 @@ fun VLESSConfigScreen(
         modifier = Modifier.padding(innerPadding)
             .fillMaxSize()
     ) {
-        Column(
+        LazyColumn (
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxWidth(0.7f)
                 .align(BiasAlignment(0f,-1f))
         ) {
-            OutlinedTextField(
-                value = address,
-                onValueChange = {address = it},
-                label = { Text("ip") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            item {
+                OutlinedTextField(
+                    value = address,
+                    onValueChange = {address = it},
+                    label = { Text("ip") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
-            SelectField(
-                title = "protocol",
-                field = vlessConfig.protocol.name,
-                fieldList = listOf("vless", "vmess","trojan","shadowsocks"),
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = port,
-                onValueChange = {port = it},
-                label = { Text("port") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = id,
-                onValueChange = {id = it},
-                label = {Text("id")},
-                maxLines = 1,
-                modifier = Modifier.fillMaxWidth()
-            )
+            item {
+
+                SelectField(
+                    title = "protocol",
+                    field = vlessConfig.protocol.name,
+                    fieldList = listOf("vless", "vmess","trojan","shadowsocks"),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            item {
+                OutlinedTextField(
+                    value = port,
+                    onValueChange = {port = it},
+                    label = { Text("port") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            item {
+                OutlinedTextField(
+                    value = id,
+                    onValueChange = {id = it},
+                    label = {Text("id")},
+                    maxLines = 1,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            items(items = vlessConfig.param.toList()) { (key, value) ->
+                OutlinedTextField(
+                    value = value,
+                    onValueChange = {vlessParamMap[key] = it},
+                    label = { Text(key) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            item {
+                ActionButton(
+                    modifier = Modifier.align(BiasAlignment(0f,0.8f))
+                )
+            }
         }
-        ActionButton(
-            modifier = Modifier.align(BiasAlignment(0f,0.8f))
-        )
     }
 }
 
