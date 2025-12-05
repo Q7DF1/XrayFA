@@ -31,8 +31,8 @@ class NodeRepository @Inject constructor(
         return nodeDao.querySelectedNode()
     }
 
-    suspend fun updateLink(node: Node) {
-        return  nodeDao.updateNode(node)
+    suspend fun updateNodeUrlAndPort(id: Int,url: String,port: Int) {
+        return  nodeDao.updateNodeUrlAndPort(id,url,port)
     }
 
     suspend fun updateLinkById(id: Int, selected: Boolean) {

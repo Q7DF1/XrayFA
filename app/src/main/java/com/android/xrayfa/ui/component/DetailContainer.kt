@@ -11,7 +11,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -28,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -75,15 +80,18 @@ fun SelectField(
     title:String,
     field: String,
     fieldList: List<String>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
 
     var expanded by remember { mutableStateOf(false) }
     var fieldValue by remember { mutableStateOf(field) }
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = {expanded = !expanded},
-        modifier = modifier
+        onExpandedChange = {
+            if (enabled) expanded = !expanded
+        },
+        modifier = modifier,
     ) {
         OutlinedTextField(
             value = fieldValue,
@@ -100,6 +108,7 @@ fun SelectField(
                     contentDescription = "",
                 )
             },
+            enabled = enabled,
             modifier = modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable,true)
         )
 
@@ -131,6 +140,9 @@ fun VLESSConfigScreen(
     detailViewmodel: DetailViewmodel,
 ) {
     val vlessConfig by remember { mutableStateOf(detailViewmodel.parseVLESSProtocol(content))}
+    var vlessParamMapState =
+        rememberSaveable { mutableStateOf<Map<String,String>>(vlessConfig.param) }
+    val vlessParamMap by vlessParamMapState
     var address by
     rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(vlessConfig.server))
@@ -148,49 +160,81 @@ fun VLESSConfigScreen(
         modifier = Modifier.padding(innerPadding)
             .fillMaxSize()
     ) {
-        Column(
+        LazyColumn (
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxWidth(0.7f)
                 .align(BiasAlignment(0f,-1f))
         ) {
-            OutlinedTextField(
-                value = address,
-                onValueChange = {address = it},
-                label = { Text("ip") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            item {
+                OutlinedTextField(
+                    value = address,
+                    onValueChange = {address = it},
+                    label = { Text("ip") },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = false
+                )
+            }
 
-            SelectField(
-                title = "protocol",
-                field = vlessConfig.protocol.name,
-                fieldList = listOf("vless", "vmess","trojan","shadowsocks"),
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = port,
-                onValueChange = {port = it},
-                label = { Text("port") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = id,
-                onValueChange = {id = it},
-                label = {Text("id")},
-                maxLines = 1,
-                modifier = Modifier.fillMaxWidth()
-            )
+            item {
+
+                SelectField(
+                    title = "protocol",
+                    field = vlessConfig.protocol.name,
+                    fieldList = listOf("vless", "vmess","trojan","shadowsocks"),
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = false
+                )
+            }
+            item {
+                OutlinedTextField(
+                    value = port,
+                    onValueChange = {port = it},
+                    label = { Text("port") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            item {
+                OutlinedTextField(
+                    value = id,
+                    onValueChange = {id = it},
+                    label = {Text("id")},
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            items(items = vlessParamMap.keys.toList()) { key ->
+                OutlinedTextField(
+                    value = vlessParamMap[key]?:"",
+                    onValueChange = { value ->
+                        vlessParamMapState.update(key,value)
+                    },
+                    label = { Text(key) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
+
         ActionButton(
             modifier = Modifier.align(BiasAlignment(0f,0.8f))
         )
     }
 }
 
+/**
+ * update Map when value changed
+ */
+fun <K,V>MutableState<Map<K, V>>.update(key: K, value: V) {
+    this.value = this.value.toMutableMap().apply {
+        this[key] = value
+    }
+}
+
+
+
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun ActionButton(
-    modifier: Modifier
+    modifier: Modifier = Modifier,
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
@@ -200,7 +244,9 @@ fun ActionButton(
             .fillMaxWidth()
     ) {
         Button(
-            onClick = {},
+            onClick = {
+
+            },
             modifier = Modifier.weight(1f)
                 .padding(horizontal = (screenWidth * 0.08).dp),
             colors = ButtonColors(
@@ -213,7 +259,8 @@ fun ActionButton(
             Text(stringResource(R.string.cancel))
         }
         Button(
-            onClick = {},
+            onClick = {
+            },
             modifier = Modifier.weight(1f)
                 .padding(horizontal = (screenWidth * 0.08).dp),
             colors = ButtonColors(

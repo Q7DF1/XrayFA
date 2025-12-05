@@ -28,8 +28,8 @@ interface NodeDao {
     @Query("DELETE FROM node WHERE id = :id")
     suspend fun deleteNodeById(id: Int)
 
-    @Update()
-    suspend fun updateNode(link: Node)
+    @Query("UPDATE node SET url = :url, port = :port WHERE id = :id")
+    suspend fun updateNodeUrlAndPort(id: Int,url: String,port: Int)
 
     @Query("SELECT * FROM node WHERE selected = 1 LIMIT 1")
     fun querySelectedNode(): Flow<Node?>
