@@ -32,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -79,15 +80,18 @@ fun SelectField(
     title:String,
     field: String,
     fieldList: List<String>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
 
     var expanded by remember { mutableStateOf(false) }
     var fieldValue by remember { mutableStateOf(field) }
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = {expanded = !expanded},
-        modifier = modifier
+        onExpandedChange = {
+            if (enabled) expanded = !expanded
+        },
+        modifier = modifier,
     ) {
         OutlinedTextField(
             value = fieldValue,
@@ -104,6 +108,7 @@ fun SelectField(
                     contentDescription = "",
                 )
             },
+            enabled = enabled,
             modifier = modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable,true)
         )
 
@@ -135,7 +140,9 @@ fun VLESSConfigScreen(
     detailViewmodel: DetailViewmodel,
 ) {
     val vlessConfig by remember { mutableStateOf(detailViewmodel.parseVLESSProtocol(content))}
-    val vlessParamMap = vlessConfig.param.toMutableMap()
+    var vlessParamMapState =
+        rememberSaveable { mutableStateOf<Map<String,String>>(vlessConfig.param) }
+    val vlessParamMap by vlessParamMapState
     var address by
     rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(vlessConfig.server))
@@ -164,7 +171,8 @@ fun VLESSConfigScreen(
                     value = address,
                     onValueChange = {address = it},
                     label = { Text("ip") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = false
                 )
             }
 
@@ -174,7 +182,8 @@ fun VLESSConfigScreen(
                     title = "protocol",
                     field = vlessConfig.protocol.name,
                     fieldList = listOf("vless", "vmess","trojan","shadowsocks"),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = false
                 )
             }
             item {
@@ -190,31 +199,42 @@ fun VLESSConfigScreen(
                     value = id,
                     onValueChange = {id = it},
                     label = {Text("id")},
-                    maxLines = 1,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            items(items = vlessConfig.param.toList()) { (key, value) ->
+            items(items = vlessParamMap.keys.toList()) { key ->
                 OutlinedTextField(
-                    value = value,
-                    onValueChange = {vlessParamMap[key] = it},
+                    value = vlessParamMap[key]?:"",
+                    onValueChange = { value ->
+                        vlessParamMapState.update(key,value)
+                    },
                     label = { Text(key) },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            item {
-                ActionButton(
-                    modifier = Modifier.align(BiasAlignment(0f,0.8f))
-                )
-            }
         }
+
+        ActionButton(
+            modifier = Modifier.align(BiasAlignment(0f,0.8f))
+        )
     }
 }
+
+/**
+ * update Map when value changed
+ */
+fun <K,V>MutableState<Map<K, V>>.update(key: K, value: V) {
+    this.value = this.value.toMutableMap().apply {
+        this[key] = value
+    }
+}
+
+
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun ActionButton(
-    modifier: Modifier
+    modifier: Modifier = Modifier,
 ) {
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
@@ -224,7 +244,9 @@ fun ActionButton(
             .fillMaxWidth()
     ) {
         Button(
-            onClick = {},
+            onClick = {
+
+            },
             modifier = Modifier.weight(1f)
                 .padding(horizontal = (screenWidth * 0.08).dp),
             colors = ButtonColors(
@@ -237,7 +259,8 @@ fun ActionButton(
             Text(stringResource(R.string.cancel))
         }
         Button(
-            onClick = {},
+            onClick = {
+            },
             modifier = Modifier.weight(1f)
                 .padding(horizontal = (screenWidth * 0.08).dp),
             colors = ButtonColors(
