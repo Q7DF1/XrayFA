@@ -1,7 +1,5 @@
 package com.android.xrayfa.parser
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.android.xrayfa.XrayAppCompatFactory
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.dto.Link
@@ -9,9 +7,7 @@ import com.android.xrayfa.dto.Node
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.ShadowSocksOutboundConfigurationObject
 import com.android.xrayfa.model.ShadowSocksServerObject
-import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.model.stream.StreamSettingsObject
-import com.android.xrayfa.utils.ColorMap
 import com.android.xrayfa.utils.Device
 import kotlinx.coroutines.flow.first
 import java.util.Base64
@@ -32,7 +28,7 @@ class ShadowSocksConfigParser
         val tag: String?
     )
 
-    fun parseLink(url: String): ShadowSocksConfig {
+    fun decodeShadowSocks(url: String): ShadowSocksConfig {
         require(url.startsWith("ss://")) { "Not a valid Shadowsocks URL" }
 
 
@@ -59,7 +55,7 @@ class ShadowSocksConfigParser
     }
 
     override fun parseOutbound(url: String): OutboundObject<ShadowSocksOutboundConfigurationObject> {
-        val shadowSocksConfig = parseLink(url)
+        val shadowSocksConfig = decodeShadowSocks(url)
         return OutboundObject(
             tag = "proxy",
             protocol = "shadowsocks",
@@ -80,7 +76,7 @@ class ShadowSocksConfigParser
     }
 
     override suspend fun preParse(link: Link): Node {
-        val shadowSocksConfig = parseLink(link.content)
+        val shadowSocksConfig = decodeShadowSocks(link.content)
         return Node(
             id = link.id,
             url = link.content,

@@ -22,6 +22,7 @@ import com.android.xrayfa.utils.ColorMap
 import com.android.xrayfa.utils.Device
 import kotlinx.coroutines.flow.first
 import java.net.URLDecoder
+import java.net.URLEncoder
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -46,7 +47,10 @@ class VLESSConfigParser
     )
 
 
-    fun parseVLESS(url: String): VLESSConfig {
+    /**
+     * decode vless protocol from share link
+     */
+    fun decodeVLESS(url: String): VLESSConfig {
         val decode = URLDecoder.decode(url, "UTF-8")
         val withoutProtocol = decode.removePrefix("vless://")
 
@@ -78,10 +82,39 @@ class VLESSConfigParser
         )
 
     }
+
+    /**
+     * encode vless protocol to share link
+     */
+    fun encodeVLESS(config: VLESSConfig):String {
+
+        val mainPart = "${config.uuid}@${config.server}:${config.port}"
+
+        val query = config.param.entries.joinToString("&") { "${it.key}=${it.value}" }
+
+        val remarkEncoded = config.remark?.let {
+            URLEncoder.encode(it, "UTF-8")
+        } ?: ""
+
+        return buildString {
+            append("vless://")
+            append(mainPart)
+            if (query.isNotEmpty()) {
+                append("?")
+                append(query)
+            }
+            if (remarkEncoded.isNotEmpty()) {
+                append("#")
+                append(remarkEncoded)
+            }
+        }
+    }
+
+
     override fun parseOutbound(url: String): OutboundObject<VLESSOutboundConfigurationObject> {
 
 
-        val parseVLESS = parseVLESS(url)
+        val parseVLESS = decodeVLESS(url)
         val queryParams = parseVLESS.param
         val network = queryParams["type"] ?: "raw"
         val security = queryParams["security"] ?: "none"
@@ -145,7 +178,7 @@ class VLESSConfigParser
     }
 
     override suspend fun preParse(link: Link): Node {
-        val vlessConfig = parseVLESS(link.content)
+        val vlessConfig = decodeVLESS(link.content)
         return Node(
             id = link.id,
             url = link.content,

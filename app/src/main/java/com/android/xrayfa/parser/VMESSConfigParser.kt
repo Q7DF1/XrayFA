@@ -1,7 +1,5 @@
 package com.android.xrayfa.parser
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.android.xrayfa.XrayAppCompatFactory
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.dto.Link
@@ -20,8 +18,8 @@ import com.android.xrayfa.model.stream.RawSettings
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
-import com.android.xrayfa.utils.ColorMap
 import com.android.xrayfa.utils.Device
+import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import kotlinx.coroutines.flow.first
 import java.util.Base64
@@ -45,28 +43,20 @@ class VMESSConfigParser
         val host:String,
         val network:String,
         val address:String,
+        val others: JsonObject
     )
 
-    override fun parseOutbound(link: String): OutboundObject<VMESSOutboundConfigurationObject> {
+    override fun parseOutbound(url: String): OutboundObject<VMESSOutboundConfigurationObject> {
 
         try {
-            // 1. 去掉前缀
-            val cleanLink = link.removePrefix("vmess://").trim()
 
-            // 2. Base64 解码
-            val decoded = String(Base64.getDecoder().decode(cleanLink))
-
-            // 3. 转成 JSON
-            val json = JsonParser.parseString(decoded).asJsonObject
-            for ((key, value) in json.entrySet()) {
-                //Log.i(TAG,"$key: $value")
-                println("$key: $value")
-            }
-            val uuid = json.get("id").asString
-            val tls = json.get("tls").asString
-            val host = json.get("host").asString
-            val network = json.get("net").asString
-            val address = json.get("add").asString
+            val vmess = decodeVMESS(url)
+            val uuid = vmess.uuid
+            val tls = vmess.tls
+            val host = vmess.host
+            val network = vmess.network
+            val address = vmess.address
+            val json = vmess.others
             return OutboundObject(
                 protocol = "vmess",
                 settings = VMESSOutboundConfigurationObject(
@@ -120,14 +110,9 @@ class VMESSConfigParser
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     override suspend fun preParse(link: Link): Node {
-        val cleanLink = link.content.removePrefix("vmess://").trim()
-
-        val decoded = String(Base64.getDecoder().decode(cleanLink))
-
-        val json = JsonParser.parseString(decoded).asJsonObject
-
+        val vmess = decodeVMESS(link.content)
+        val json = vmess.others
         return Node(
             id = link.id,
             url = link.content,
@@ -144,6 +129,29 @@ class VMESSConfigParser
                     ip = json.get("add").asString
                 )
             } else ""
+        )
+    }
+
+
+    fun decodeVMESS(url: String): VMESSConfig {
+
+        val cleanLink = url.removePrefix("vmess://").trim()
+
+        val decoded = String(Base64.getDecoder().decode(cleanLink))
+
+        val json = JsonParser.parseString(decoded).asJsonObject
+        val uuid = json.get("id").asString
+        val tls = json.get("tls").asString
+        val host = json.get("host").asString
+        val network = json.get("net").asString
+        val address = json.get("add").asString
+        return VMESSConfig(
+            uuid = uuid,
+            tls = tls,
+            host = host,
+            network = network,
+            address = address,
+            others = json
         )
     }
 
