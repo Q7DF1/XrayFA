@@ -41,11 +41,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.android.xrayfa.R
 import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.viewmodel.DetailViewmodel
@@ -61,13 +63,15 @@ fun DetailContainer(
         topBar = {
             TopAppBar(
             title = { Text("Detail") },
-        )}
+                modifier = Modifier.shadow(4.dp)
+            )
+        }
     ) { innerPadding ->
         when(protocol) {
             Protocol.VLESS.protocolName -> VLESSConfigScreen(innerPadding, content, detailViewmodel)
-            Protocol.VMESS.protocolName -> VMESSConfigScreen()
-            Protocol.TROJAN.protocolName -> TROJANConfigScreen()
-            Protocol.SHADOW_SOCKS.protocolName -> SHADOWSOCKSConfigScreen()
+            Protocol.VMESS.protocolName -> VMESSConfigScreen(innerPadding,content,detailViewmodel)
+            Protocol.TROJAN.protocolName -> TROJANConfigScreen(innerPadding,content,detailViewmodel)
+            Protocol.SHADOW_SOCKS.protocolName -> SHADOWSOCKSConfigScreen(innerPadding,content,detailViewmodel)
             else -> Text("Unknown protocol")
         }
     }
@@ -81,7 +85,7 @@ fun SelectField(
     field: String,
     fieldList: List<String>,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    readOnly: Boolean = true // description all this component
 ) {
 
     var expanded by remember { mutableStateOf(false) }
@@ -89,7 +93,7 @@ fun SelectField(
     ExposedDropdownMenuBox(
         expanded = expanded,
         onExpandedChange = {
-            if (enabled) expanded = !expanded
+            if (!readOnly) expanded = !expanded
         },
         modifier = modifier,
     ) {
@@ -108,7 +112,6 @@ fun SelectField(
                     contentDescription = "",
                 )
             },
-            enabled = enabled,
             modifier = modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable,true)
         )
 
@@ -163,8 +166,8 @@ fun VLESSConfigScreen(
         LazyColumn (
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth(0.7f)
-                .align(BiasAlignment(0f,-1f))
+            modifier = Modifier.fillMaxWidth()
+                .padding(horizontal = 16.dp)
         ) {
             item {
                 OutlinedTextField(
@@ -172,10 +175,9 @@ fun VLESSConfigScreen(
                     onValueChange = {address = it},
                     label = { Text("ip") },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = false
+                    readOnly = true
                 )
             }
-
             item {
 
                 SelectField(
@@ -183,7 +185,7 @@ fun VLESSConfigScreen(
                     field = vlessConfig.protocol.name,
                     fieldList = listOf("vless", "vmess","trojan","shadowsocks"),
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = false
+                    readOnly = true
                 )
             }
             item {
@@ -191,7 +193,8 @@ fun VLESSConfigScreen(
                     value = port,
                     onValueChange = {port = it},
                     label = { Text("port") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true
                 )
             }
             item {
@@ -199,7 +202,8 @@ fun VLESSConfigScreen(
                     value = id,
                     onValueChange = {id = it},
                     label = {Text("id")},
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true
                 )
             }
             items(items = vlessParamMap.keys.toList()) { key ->
@@ -209,14 +213,11 @@ fun VLESSConfigScreen(
                         vlessParamMapState.update(key,value)
                     },
                     label = { Text(key) },
+                    readOnly = true,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
         }
-
-        ActionButton(
-            modifier = Modifier.align(BiasAlignment(0f,0.8f))
-        )
     }
 }
 
@@ -275,12 +276,161 @@ fun ActionButton(
     }
 }
 
-//TODO: add more protocols
 @Composable
-fun VMESSConfigScreen() {}
+fun VMESSConfigScreen(
+    innerPadding: PaddingValues,
+    content:String,
+    detailViewmodel: DetailViewmodel,
+) {
+    val vmess = detailViewmodel.parseVMESSProtocol(content)
+    val vmessParamMap = vmess.others.asMap()
+    LazyColumn(
+        modifier = Modifier.padding(innerPadding)
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+    ) {
+        items(items = vmessParamMap.toList()) { (key,value) ->
+            val field = value.asString
+            var enable = true
+            if (field.isEmpty()) {
+                enable = false
+            }
+            OutlinedTextField(
+                value = field,
+                onValueChange = {},
+                label = { Text(key) },
+                readOnly = true,
+                enabled = enable,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
 
 @Composable
-fun TROJANConfigScreen() {}
+fun TROJANConfigScreen(
+    innerPadding: PaddingValues,
+    content:String,
+    detailViewmodel: DetailViewmodel,
+) {
+    val trojan = detailViewmodel.parseTrojanProtocol(content)
+    LazyColumn(
+     modifier = Modifier.padding(innerPadding)
+         .fillMaxSize()
+         .padding(horizontal = 16.dp)
+    ) {
+
+        item {
+            OutlinedTextField(
+                value = trojan.host?:"",
+                onValueChange = {},
+                label = { Text("host") },
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true
+            )
+        }
+        item {
+
+            SelectField(
+                title = "protocol",
+                field = trojan.scheme,
+                fieldList = listOf("vless", "vmess","trojan","shadowsocks"),
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true
+            )
+        }
+        item {
+            OutlinedTextField(
+                value = trojan.port.toString(),
+                onValueChange = {},
+                label = { Text("port") },
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true
+            )
+        }
+        item {
+            OutlinedTextField(
+                value = trojan.password,
+                onValueChange = {},
+                label = {Text("password")},
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true
+            )
+        }
+        items(items = trojan.params.toList()) { (key,value) ->
+
+            OutlinedTextField(
+                value = value,
+                onValueChange = {},
+                label = {Text(key)},
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true
+            )
+        }
+    }
+}
 
 @Composable
-fun SHADOWSOCKSConfigScreen() {}
+fun SHADOWSOCKSConfigScreen(
+    innerPadding: PaddingValues,
+    content:String,
+    detailViewmodel: DetailViewmodel,
+) {
+    val shadowSocks = detailViewmodel.parseShadowSocks(content)
+    LazyColumn(
+        modifier = Modifier.padding(innerPadding)
+            .fillMaxSize()
+            .padding(horizontal = 16.dp)
+    ) {
+        item {
+
+            OutlinedTextField(
+                value = shadowSocks.server,
+                onValueChange = {},
+                label = {Text("server")},
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true
+            )
+        }
+
+        item {
+            OutlinedTextField(
+                value = shadowSocks.port.toString(),
+                onValueChange = {},
+                label = {Text("port")},
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true
+            )
+        }
+
+        item {
+            OutlinedTextField(
+                value = shadowSocks.password,
+                onValueChange = {},
+                label = {Text("password")},
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true
+            )
+        }
+
+        item {
+            OutlinedTextField(
+                value = shadowSocks.tag?:"",
+                onValueChange = {},
+                label = {Text("tag")},
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true
+            )
+        }
+
+        item {
+            OutlinedTextField(
+                value = shadowSocks.method,
+                onValueChange = {},
+                label = {Text("method")},
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true
+            )
+        }
+    }
+}

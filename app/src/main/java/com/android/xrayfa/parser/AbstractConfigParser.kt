@@ -36,6 +36,7 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject> {
 
     abstract val settingsRepo: SettingsRepository
 
+
     suspend fun getBaseInboundConfig(): InboundObject {
         val settingsState = settingsRepo.settingsFlow.first()
         return InboundObject(

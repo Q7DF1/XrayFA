@@ -11,7 +11,10 @@ import com.android.xrayfa.model.TrojanOutboundConfigurationObject
 import com.android.xrayfa.model.VMESSOutboundConfigurationObject
 import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.parser.ParserFactory
+import com.android.xrayfa.parser.ShadowSocksConfigParser
+import com.android.xrayfa.parser.TrojanConfigParser
 import com.android.xrayfa.parser.VLESSConfigParser
+import com.android.xrayfa.parser.VMESSConfigParser
 import com.android.xrayfa.repository.NodeRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,6 +40,17 @@ class DetailViewmodel(
         return (parserFactory.getParser("vless") as VLESSConfigParser).decodeVLESS(content)
     }
 
+    fun parseVMESSProtocol(content: String): VMESSConfigParser.VMESSConfig {
+        return (parserFactory.getParser("vmess") as VMESSConfigParser).decodeVMESS(content)
+    }
+
+    fun parseTrojanProtocol(content:String): TrojanConfigParser.TrojanConfig {
+        return (parserFactory.getParser("trojan") as TrojanConfigParser).decodeTrojan(content)
+    }
+    fun parseShadowSocks(content:String): ShadowSocksConfigParser.ShadowSocksConfig {
+        return (parserFactory.getParser("ss") as ShadowSocksConfigParser).decodeShadowSocks(content)
+    }
+
     fun saveVLESSModify(id: Int,config: VLESSConfigParser.VLESSConfig) {
         val newUrl = (parserFactory.getParser(Protocol.VLESS.protocolName)
                 as VLESSConfigParser).encodeVLESS(config)
@@ -45,21 +59,6 @@ class DetailViewmodel(
             nodeRepository.updateNodeUrlAndPort(id,newUrl,config.port)
         }
     }
-    
-    fun parseVMESSProtocol(content: String): OutboundObject<VMESSOutboundConfigurationObject> {
-        return parseProtocol("vmess",content)
-    }
-
-    fun parseTROJANProtocol(content: String): OutboundObject<TrojanOutboundConfigurationObject> {
-        return parseProtocol("trojan",content)
-    }
-
-    fun parseSHADOWSOCKSProtocol(
-        content: String
-    ): OutboundObject<ShadowSocksOutboundConfigurationObject> {
-        return parseProtocol("ss",content)
-    }
-
 
 }
 
