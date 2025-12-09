@@ -219,6 +219,18 @@ fun SettingsScreen(
                     downloading = geoLiteDownloading,
                     enable = settingsState.geoLiteInstall
                 )
+                SettingsFieldBox(
+                    title = R.string.test_url,
+                    content = settingsState.delayTestUrl
+                ) {
+                    //todo: domain validator
+                    editInitValue = settingsState.delayTestUrl
+                    isShowEditDialog = true
+                    editType = SettingsKeys.DELAY_TEST_URL
+                    validator = {
+                        if (it.isBlank()) context.getString(R.string.can_not_be_empty) else null
+                    }
+                }
             }
             SettingsGroup(
                 groupName = stringResource(R.string.about_part)
@@ -261,6 +273,9 @@ fun SettingsScreen(
 
                             SettingsKeys.DNS_IPV6.name ->
                                 viewmodel.setDnsIpV6(it)
+
+                            SettingsKeys.DELAY_TEST_URL.name ->
+                                viewmodel.setDelayTestUrl(it)
                         }
                         isShowEditDialog = false
                     },
