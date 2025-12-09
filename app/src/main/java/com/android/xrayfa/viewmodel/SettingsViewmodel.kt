@@ -113,6 +113,12 @@ class SettingsViewmodel(
         }
     }
 
+    fun setDelayTestUrl(url: String) {
+        viewModelScope.launch {
+            repository.setDelayTestUrl(url)
+        }
+    }
+
     fun startAppsActivity(context: Context) {
         val intent = Intent(context, AppsActivity::class.java)
         context.startActivity(intent)
