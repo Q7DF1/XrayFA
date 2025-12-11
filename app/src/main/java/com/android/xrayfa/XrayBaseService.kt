@@ -27,7 +27,6 @@ class XrayBaseService
 @Inject constructor(
     private val tun2SocksService: Tun2SocksService,
     private val v2rayCoreManager: XrayCoreManager,
-    private val trafficDetector: TrafficDetector,
     private val settingsRepo: SettingsRepository
 ): VpnService(){
 
@@ -110,7 +109,6 @@ class XrayBaseService
 
 
     private fun startV2rayCoreService(link: String,protocol: String) {
-        v2rayCoreManager.trafficDetector = trafficDetector
         serviceScope.launch {
             v2rayCoreManager.startV2rayCore(link,protocol)
             startVpn()

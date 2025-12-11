@@ -15,7 +15,6 @@ import javax.inject.Singleton
 class XrayBaseServiceManager
 @Inject constructor(
     val repository: NodeRepository,
-    val trafficDetector: TrafficDetector
 ) {
 
     companion object {
@@ -41,9 +40,6 @@ class XrayBaseServiceManager
         context.startForegroundService(intent)
 
         qsStateCallBack(true)
-        trafficDetector.consumeTraffic{ pair ->
-            viewmodelTrafficCallback(pair)
-        }
         return true
     }
 

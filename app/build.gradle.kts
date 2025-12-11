@@ -1,4 +1,3 @@
-import com.google.protobuf.gradle.id
 import com.android.build.api.variant.FilterConfiguration.FilterType.*
 
 plugins {
@@ -6,7 +5,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     kotlin("kapt") version "2.2.10"
-    id("com.google.protobuf") version "0.9.4"
     id ("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
 }
 
@@ -104,31 +102,31 @@ val aarOutput = xrayLibDir.resolve("libv2ray.aar")
 
 val libsDir = file("libs")
 
-//tasks.register<Exec>("buildGoMobile") {
-//    workingDir = xrayLibDir
-//    commandLine("go","install","golang.org/x/mobile/cmd/gomobile@latest")
-//}
-
-protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:3.25.1"
-    }
-    plugins {
-        id("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:1.63.0"
-        }
-    }
-    generateProtoTasks {
-        all().forEach { task ->
-            task.plugins {
-                id("grpc")
-            }
-            task.builtins {
-                id("java")
-            }
-        }
-    }
+tasks.register<Exec>("buildGoMobile") {
+    workingDir = xrayLibDir
+    commandLine("go","install","golang.org/x/mobile/cmd/gomobile@latest")
 }
+
+//protobuf {
+//    protoc {
+//        artifact = "com.google.protobuf:protoc:3.25.1"
+//    }
+//    plugins {
+//        id("grpc") {
+//            artifact = "io.grpc:protoc-gen-grpc-java:1.63.0"
+//        }
+//    }
+//    generateProtoTasks {
+//        all().forEach { task ->
+//            task.plugins {
+//                id("grpc")
+//            }
+//            task.builtins {
+//                id("java")
+//            }
+//        }
+//    }
+//}
 
 tasks.register<Exec>("initGoMobile") {
     //dependsOn("buildGoMobile")
@@ -194,9 +192,9 @@ dependencies {
     implementation(libs.androidx.navigation3.runtime)
 
 
-    implementation("io.grpc:grpc-okhttp:1.63.0")
-    implementation("io.grpc:grpc-protobuf:1.63.0")
-    implementation("io.grpc:grpc-stub:1.63.0")
+//    implementation("io.grpc:grpc-okhttp:1.63.0")
+//    implementation("io.grpc:grpc-protobuf:1.63.0")
+//    implementation("io.grpc:grpc-stub:1.63.0")
     implementation("javax.annotation:javax.annotation-api:1.3.2")
     // 在 build.gradle 中
     implementation ("com.maxmind.geoip2:geoip2:4.2.0")
