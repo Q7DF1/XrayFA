@@ -132,8 +132,14 @@ class XrayCoreManager
                     Log.i(TAG, "startTrafficDetection: cur = $cur,last = $last")
                     val up = queryStats(TAG_PROXY, UP_STEAM)
                     val down = queryStats(TAG_PROXY,DOWN_STEAM)
-                    upSpeed = up / ((cur - last) / 1000.0) / 1024
-                    downSpeed = down / ((cur - last) / 1000.0) / 1024
+                    val deltaTimeSec = (cur - last) / 1000.0
+                    if (deltaTimeSec > 0) {
+                        upSpeed = (up / deltaTimeSec) / 1024
+                        downSpeed = (down / deltaTimeSec) / 1024
+                    } else {
+                        upSpeed = 0.0
+                        downSpeed = 0.0
+                    }
                     if (last != 0L) {
                         trafficChannel.send(Pair(upSpeed,downSpeed))
                     }else {
