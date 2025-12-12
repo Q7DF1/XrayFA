@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import libv2ray.CoreCallbackHandler
 import libv2ray.CoreController
 import libv2ray.Libv2ray
+import java.util.function.Consumer
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.log
@@ -54,8 +55,10 @@ class XrayCoreManager
     }
     private var coreController: CoreController? = null
     private var job: Job? = null
+    private var consumeJob: Job? = null
     private var startOrClose = false
     private val trafficChannel = Channel<Pair<Double, Double>>(capacity = 0)
+    private val consumes: MutableList<Consumer<Pair<Double, Double>>> = ArrayList()
 
     val controllerHandler = object: CoreCallbackHandler {
         override fun onEmitStatus(p0: Long, p1: String?): Long {
@@ -69,11 +72,15 @@ class XrayCoreManager
 
         override fun shutdown(): Long {
             Log.i(TAG, "shutdown: end")
+            if (consumeJob?.isActive == true) consumeJob?.cancel()
             return 0L
         }
 
         override fun startup(): Long {
             Log.i(TAG, "startup: start")
+            consumeJob = coroutineScope.launch(Dispatchers.Default) {
+                consumeTraffic()
+            }
             return 0L
         }
 
@@ -129,7 +136,6 @@ class XrayCoreManager
                 var downSpeed: Double
                 while (true) {
                     var cur = System.currentTimeMillis()
-                    Log.i(TAG, "startTrafficDetection: cur = $cur,last = $last")
                     val up = queryStats(TAG_PROXY, UP_STEAM)
                     val down = queryStats(TAG_PROXY,DOWN_STEAM)
                     val deltaTimeSec = (cur - last) / 1000.0
@@ -155,13 +161,19 @@ class XrayCoreManager
         Log.d(TAG, "stopTrafficDetection: ${job?.isActive}")
     }
 
+    override fun addConsume(consume: Consumer<Pair<Double, Double>>) {
+        consumes.add(consume)
+    }
+
     /**
      * transfer the up/download data to ui layer
      */
-    override suspend fun consumeTraffic(onConsume: suspend (Pair<Double, Double>) -> Unit) {
+    override suspend fun consumeTraffic() {
 
         for (pair in trafficChannel) {
-            onConsume(pair)
+            consumes.forEach {
+                it.accept(pair)
+            }
             delay(3000L)
         }
     }

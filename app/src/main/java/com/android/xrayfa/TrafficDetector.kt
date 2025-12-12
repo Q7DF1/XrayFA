@@ -1,5 +1,7 @@
 package com.android.xrayfa
 
+import java.util.function.Consumer
+
 
 /**
  * Traffic detector, used to calculate upload and download speeds for front-end display
@@ -11,6 +13,9 @@ interface TrafficDetector {
     fun stopTrafficDetection()
 
 
-    suspend fun consumeTraffic(onConsume: suspend (Pair<Double, Double>) -> Unit)
+    fun addConsume(consume: Consumer<Pair<Double, Double>>)
+
+    suspend fun consumeTraffic()
+
 
 }
