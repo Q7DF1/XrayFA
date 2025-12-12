@@ -59,8 +59,8 @@ class XrayViewmodel(
     private val _nodes = MutableStateFlow<List<Node>>(emptyList())
     val nodes: StateFlow<List<Node>> = _nodes
 
-    private val _upSpeed = MutableStateFlow(0L)
-    val upSpeed: StateFlow<Long> = _upSpeed.asStateFlow()
+    private val _upSpeed = MutableStateFlow(0.0)
+    val upSpeed: StateFlow<Double> = _upSpeed.asStateFlow()
 
     private val _delay = MutableStateFlow(-1L)
     val delay = _delay.asStateFlow()
@@ -68,8 +68,8 @@ class XrayViewmodel(
     private val _testing = MutableStateFlow(false)
     val testing = _testing.asStateFlow()
 
-    private val _downSpeed = MutableStateFlow(0L)
-    val downSpeed: StateFlow<Long> = _downSpeed.asStateFlow()
+    private val _downSpeed = MutableStateFlow(0.0)
+    val downSpeed: StateFlow<Double> = _downSpeed.asStateFlow()
 
     private val _isServiceRunning = MutableStateFlow(XrayBaseService.isRunning)
     val isServiceRunning: StateFlow<Boolean> = _isServiceRunning.asStateFlow()

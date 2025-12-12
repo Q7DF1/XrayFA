@@ -5,35 +5,18 @@
     android:viewportWidth="48"
     android:viewportHeight="48">
 
-    <!-- 纸飞机主体（缩小后居中） -->
     <path
-        android:fillColor="#00FFFFFF"
-        android:strokeColor="#BEEBFF"
-        android:strokeWidth="1.8"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M10,12 L38,22 L26,26 L30,36 L22,30 L16,34 Z" />
+        android:fillColor="#1565C0"
+        android:pathData="M44,4 L4,44 L28,28 Z" />
 
-    <!-- 飞机中线 -->
     <path
-        android:fillColor="#00FFFFFF"
-        android:strokeColor="#A8E6FF"
-        android:strokeWidth="1.4"
-        android:strokeLineCap="round"
-        android:pathData="M10,12 L22,30" />
+        android:fillColor="#42A5F5"
+        android:pathData="M4,44 L28,28 L34,34 Z" />
 
-    <!-- Project-X 的 X 标志（缩放居中） -->
     <path
-        android:fillColor="#00FFFFFF"
-        android:strokeColor="#C9F0FF"
-        android:strokeWidth="1.6"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
         android:strokeLineCap="round"
-        android:pathData="M18,18 L30,30" />
-    <path
-        android:fillColor="#00FFFFFF"
-        android:strokeColor="#C9F0FF"
-        android:strokeWidth="1.6"
-        android:strokeLineCap="round"
-        android:pathData="M30,18 L18,30" />
+        android:pathData="M24,11 L36,23 M36,11 L24,23" />
 
 </vector>
