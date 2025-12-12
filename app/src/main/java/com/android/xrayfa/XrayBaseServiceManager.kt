@@ -15,6 +15,7 @@ import javax.inject.Singleton
 class XrayBaseServiceManager
 @Inject constructor(
     val repository: NodeRepository,
+    val trafficDetector: TrafficDetector
 ) {
 
     companion object {
@@ -22,7 +23,7 @@ class XrayBaseServiceManager
     }
 
     var qsStateCallBack: (Boolean)->Unit = {}
-    var viewmodelTrafficCallback: (Pair<Long,Long>) -> Unit = {}
+    var viewmodelTrafficCallback: (Pair<Double, Double>) -> Unit = {}
 
     suspend fun startXrayBaseService(context: Context): Boolean {
 
@@ -38,8 +39,11 @@ class XrayBaseServiceManager
             putExtra(EXTRA_PROTOCOL, first.protocolPrefix)
         }
         context.startForegroundService(intent)
-
         qsStateCallBack(true)
+
+        trafficDetector.consumeTraffic {
+            viewmodelTrafficCallback(it)
+        }
         return true
     }
 

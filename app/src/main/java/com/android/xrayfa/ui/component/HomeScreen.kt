@@ -245,7 +245,7 @@ fun Dashboard(
     }
 }
 
-@SuppressLint("ConfigurationScreenWidthHeight")
+@SuppressLint("ConfigurationScreenWidthHeight", "DefaultLocale")
 @Composable
 fun DashboardContent(
     xrayViewmodel: XrayViewmodel,
@@ -294,7 +294,7 @@ fun DashboardContent(
                         style = MaterialTheme.typography.labelMedium,
                     )
                     Text(
-                        text = "$upSpeed KB/s",
+                        text = "${String.format("%.1f",upSpeed)} KB/s",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -332,7 +332,7 @@ fun DashboardContent(
                         style = MaterialTheme.typography.labelMedium,
                     )
                     Text(
-                        text = "$downSpeed KB/s",
+                        text = "${String.format("%.1f",downSpeed)} KB/s",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

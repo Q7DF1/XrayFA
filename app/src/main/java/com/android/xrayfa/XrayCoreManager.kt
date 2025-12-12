@@ -12,6 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -54,6 +55,8 @@ class XrayCoreManager
     private var coreController: CoreController? = null
     private var job: Job? = null
     private var startOrClose = false
+    private val trafficChannel = Channel<Pair<Double, Double>>(capacity = 0)
+
     val controllerHandler = object: CoreCallbackHandler {
         override fun onEmitStatus(p0: Long, p1: String?): Long {
             Log.i(TAG, "onEmitStatus: $p0 $p1")
@@ -121,21 +124,40 @@ class XrayCoreManager
 
     override fun startTrafficDetection() {
             job = coroutineScope.launch(Dispatchers.IO) {
+                var last = 0L
+                var upSpeed: Double
+                var downSpeed: Double
                 while (true) {
-                    val queryStats = queryStats(TAG_PROXY, UP_STEAM)
-                    Log.i(TAG, "startTrafficDetection: $queryStats")
-                    delay(1000)
+                    var cur = System.currentTimeMillis()
+                    Log.i(TAG, "startTrafficDetection: cur = $cur,last = $last")
+                    val up = queryStats(TAG_PROXY, UP_STEAM)
+                    val down = queryStats(TAG_PROXY,DOWN_STEAM)
+                    upSpeed = up / ((cur - last) / 1000.0) / 1024
+                    downSpeed = down / ((cur - last) / 1000.0) / 1024
+                    if (last != 0L) {
+                        trafficChannel.send(Pair(upSpeed,downSpeed))
+                    }else {
+                        trafficChannel.send(Pair(0.0,0.0))
+                    }
+                    last = cur
             }
         }
     }
-
 
     override fun stopTrafficDetection() {
         job?.cancel()
         Log.d(TAG, "stopTrafficDetection: ${job?.isActive}")
     }
 
-    override suspend fun consumeTraffic(onConsume: suspend (Pair<Long, Long>) -> Unit) {
+    /**
+     * transfer the up/download data to ui layer
+     */
+    override suspend fun consumeTraffic(onConsume: suspend (Pair<Double, Double>) -> Unit) {
+
+        for (pair in trafficChannel) {
+            onConsume(pair)
+            delay(3000L)
+        }
     }
 
     /**
@@ -144,7 +166,6 @@ class XrayCoreManager
      * @return traffic todo may be ?
      */
     private fun queryStats(@Tag tag: String, @Stream stream: String): Long {
-        coreController?.queryStats(tag, stream)
-        return 0L
+        return coreController?.queryStats(tag, stream) ?: 0L
     }
 }

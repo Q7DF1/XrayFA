@@ -1,6 +1,8 @@
 package com.android.xrayfa.di
 
 import android.content.Context
+import com.android.xrayfa.TrafficDetector
+import com.android.xrayfa.XrayCoreManager
 import com.android.xrayfa.common.di.qualifier.Application
 import com.android.xrayfa.dao.SubscriptionDao
 import com.android.xrayfa.dao.XrayFADatabase
@@ -86,6 +88,9 @@ abstract class GlobalModule {
 
     @Binds
     abstract fun bindTun2SocksService(service: TProxyService): Tun2SocksService
+
+    @Binds
+    abstract fun bindTrafficDetector(xrayCoreManager: XrayCoreManager): TrafficDetector
 
 
 }
