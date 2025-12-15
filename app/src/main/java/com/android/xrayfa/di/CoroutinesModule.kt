@@ -1,6 +1,7 @@
 package com.android.xrayfa.di
 
 import com.android.xrayfa.common.di.qualifier.Application
+import com.android.xrayfa.common.di.qualifier.Background
 import com.android.xrayfa.common.di.qualifier.Main
 import dagger.Module
 import dagger.Provides
@@ -15,8 +16,8 @@ class CoroutinesModule {
 
     @Provides
     @Singleton
-    @Application
-    fun applicationScope(
+    @Main
+    fun mainScope(
         @Main dispatcherContext: CoroutineContext,
     ): CoroutineScope = CoroutineScope(dispatcherContext)
 
@@ -26,5 +27,24 @@ class CoroutinesModule {
     fun mainCoroutineContext(): CoroutineContext {
         return Dispatchers.Main.immediate + SupervisorJob()
     }
+
+
+
+    @Provides
+    @Singleton
+    @Background
+    fun backgroundScope(
+        @Background dispatcherContext: CoroutineContext,
+    ): CoroutineScope = CoroutineScope(dispatcherContext)
+
+
+    @Provides
+    @Singleton
+    @Background
+    fun backgroundCoroutineContext(): CoroutineContext {
+        return Dispatchers.IO + SupervisorJob()
+    }
+
+
 
 }

@@ -1,6 +1,7 @@
 package com.android.xrayfa
 
-import kotlinx.coroutines.CoroutineScope
+import java.util.function.Consumer
+
 
 /**
  * Traffic detector, used to calculate upload and download speeds for front-end display
@@ -12,6 +13,9 @@ interface TrafficDetector {
     fun stopTrafficDetection()
 
 
-    suspend fun consumeTraffic(onConsume: suspend (Pair<Long, Long>) -> Unit)
+    fun addConsume(consume: Consumer<Pair<Double, Double>>)
+
+    suspend fun consumeTraffic()
+
 
 }
