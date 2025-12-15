@@ -1,5 +1,6 @@
 package com.android.xrayfa
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,6 +10,7 @@ import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.util.Log
+import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.utils.EventBus
@@ -26,7 +28,7 @@ import javax.inject.Inject
 class XrayBaseService
 @Inject constructor(
     private val tun2SocksService: Tun2SocksService,
-    private val v2rayCoreManager: XrayCoreManager,
+    private val xrayCoreManager: XrayCoreManager,
     private val settingsRepo: SettingsRepository
 ): VpnService(){
 
@@ -40,6 +42,11 @@ class XrayBaseService
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Default + serviceJob)
+
+    @SuppressLint("RemoteViewLayout")
+    private var notificationView = RemoteViews("com.android.xrayfa", R.layout.notification_traffic_layout)
+    var upStream = 0.0
+    var downStream = 0.0
 
     var tunFd: ParcelFileDescriptor? = null
 
@@ -110,7 +117,12 @@ class XrayBaseService
 
     private fun startV2rayCoreService(link: String,protocol: String) {
         serviceScope.launch {
-            v2rayCoreManager.startV2rayCore(link,protocol)
+            xrayCoreManager.addConsume { (up,down)->
+                upStream = up
+                downStream = down
+                postUpdateForegroundNotification()
+            }
+            xrayCoreManager.startV2rayCore(link,protocol)
             startVpn()
             tunFd?.let {
                 tun2SocksService.startTun2Socks(it.fd)
@@ -118,7 +130,6 @@ class XrayBaseService
         }
 
         
-        //postUpdateForegroundNotification()
     }
 
     private fun stopV2rayCoreService() {
@@ -126,22 +137,23 @@ class XrayBaseService
             tun2SocksService.stopTun2Socks()
         }
         stopVPN()
-        v2rayCoreManager.stopV2rayCore()
+        xrayCoreManager.stopV2rayCore()
         stopSelf()
         stopForeground(STOP_FOREGROUND_REMOVE)
     }
 
-    private fun makeForegroundNotification(connected: Boolean): Notification {
-        var content :String = if (connected)
-            resources.getString(R.string.connected)
-        else resources.getString(R.string.connecting)
-
+    @SuppressLint("DefaultLocale")
+    private fun makeForegroundNotification(update: Boolean): Notification {
+        if (update) {
+            notificationView.setTextViewText(R.id.stream_up,"up: ${String.format("%.1f",upStream)} kb/s")
+            notificationView.setTextViewText(R.id.stream_down,"up: ${String.format("%.1f",downStream)} kb/s")
+        }
         val pendingIntent = PendingIntent.getActivity(
             this,0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE
         )
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(resources.getString(R.string.app_label))
-            .setContentText(content)
+            .setContent(notificationView)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentIntent(pendingIntent)
             .build()
@@ -149,7 +161,7 @@ class XrayBaseService
         return notification
     }
     private fun startForegroundNotification() {
-        val notification = makeForegroundNotification(true) // todo 直接
+        val notification = makeForegroundNotification(false)
         startForeground(NOTIFICATION_ID, notification)
     }
 

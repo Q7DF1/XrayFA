@@ -71,4 +71,5 @@
     <string name="geo_lite_title" translatable="false">Geo_ip_lite</string>
     <string name="geo_ip_lite_description">IP address and corresponding country information</string>
     <string name="test_url">test url</string>
+    <string name="default_speed">000.0 KB/s</string>
 </resources>
