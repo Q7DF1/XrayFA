@@ -45,6 +45,7 @@ class XrayBaseService
 
     @SuppressLint("RemoteViewLayout")
     private var notificationView = RemoteViews("com.android.xrayfa", R.layout.notification_traffic_layout)
+    private lateinit var notification: Notification
     var upStream = 0.0
     var downStream = 0.0
 
@@ -86,7 +87,6 @@ class XrayBaseService
 
 
     private suspend fun startVpn() {
-        startForegroundNotification()
         val prefs  = NetPreferences(this)
         val builder = Builder()
         val allowedPackages = settingsRepo.getAllowedPackages()
@@ -117,6 +117,7 @@ class XrayBaseService
 
     private fun startV2rayCoreService(link: String,protocol: String) {
         serviceScope.launch {
+            startForegroundNotification()
             xrayCoreManager.addConsume { (up,down)->
                 upStream = up
                 downStream = down
@@ -145,18 +146,22 @@ class XrayBaseService
     @SuppressLint("DefaultLocale")
     private fun makeForegroundNotification(update: Boolean): Notification {
         if (update) {
-            notificationView.setTextViewText(R.id.stream_up,"up: ${String.format("%.1f",upStream)} kb/s")
-            notificationView.setTextViewText(R.id.stream_down,"up: ${String.format("%.1f",downStream)} kb/s")
+            notificationView.setTextViewText(R.id.stream_up,"${String.format("%.1f",upStream)} kb/s")
+            notificationView.setTextViewText(R.id.stream_down,"${String.format("%.1f",downStream)} kb/s")
+        } else {
+            val pendingIntent = PendingIntent.getActivity(
+                this,0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE
+            )
+            notification = NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle(resources.getString(R.string.app_label))
+                .setContent(notificationView)
+                .setCustomBigContentView(notificationView)
+                .setSmallIcon(R.drawable.ic_xrayfa_foreground)
+                .setContentIntent(pendingIntent)
+                .setPriority(NotificationManager.IMPORTANCE_LOW)
+                .setSilent(true)
+                .build()
         }
-        val pendingIntent = PendingIntent.getActivity(
-            this,0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE
-        )
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(resources.getString(R.string.app_label))
-            .setContent(notificationView)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentIntent(pendingIntent)
-            .build()
 
         return notification
     }
@@ -172,14 +177,12 @@ class XrayBaseService
     }
 
     private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val serviceChannel = NotificationChannel(
-                CHANNEL_ID,
-                "Foreground Service Channel",
-                NotificationManager.IMPORTANCE_HIGH
-            )
-            val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(serviceChannel)
-        }
+        val serviceChannel = NotificationChannel(
+            CHANNEL_ID,
+            "Foreground Service Channel",
+            NotificationManager.IMPORTANCE_DEFAULT
+        )
+        val manager = getSystemService(NotificationManager::class.java)
+        manager.createNotificationChannel(serviceChannel)
     }
 }
