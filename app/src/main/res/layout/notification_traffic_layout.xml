@@ -1,37 +1,59 @@
 <!-- res/layout/notification_net_speed.xml -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
+    android:gravity="center_vertical"
     android:padding="8dp">
 
-    <ImageView
-        android:layout_width="14dp"
-        android:layout_height="14dp"
-        android:src="@drawable/ic_up"/>
 
-    <TextView
-        android:id="@+id/stream_up"
-        android:layout_width="64dp"
-        android:layout_height="wrap_content"
-        android:gravity="end"
-        android:fontFamily="monospace"
-        android:text="@string/default_speed"/>
+    <LinearLayout android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_width="0dp">
+        <ImageView
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:src="@drawable/ic_up"
+            android:layout_marginEnd="4dp"/>
 
+        <TextView
+            android:id="@+id/stream_up"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:fontFamily="monospace"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:text="@string/default_speed"/>
+    </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="12dp"
-        android:layout_height="1dp"/>
-    <ImageView
-        android:layout_width="14dp"
-        android:layout_height="14dp"
-        android:src="@drawable/ic_down"/>
+    <LinearLayout android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_width="0dp"
+        android:paddingStart="20dp"
+        tools:ignore="RtlSymmetry">
 
-    <TextView
-        android:id="@+id/stream_down"
-        android:layout_width="64dp"
-        android:layout_height="wrap_content"
-        android:gravity="end"
-        android:fontFamily="monospace"
-        android:text="@string/default_speed"/>
+        <ImageView
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:src="@drawable/ic_down"
+            android:layout_marginEnd="4dp"/>
+
+        <TextView
+            android:id="@+id/stream_down"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:fontFamily="monospace"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:text="@string/default_speed"/>
+    </LinearLayout>
+
 </LinearLayout>
+
