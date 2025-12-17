@@ -11,8 +11,7 @@ import com.android.xrayfa.XrayFAApplication
 import com.android.xrayfa.common.repository.Theme
 import com.android.xrayfa.ui.theme.V2rayForAndroidUITheme
 
-abstract class XrayBaseActivity(
-): ComponentActivity(){
+abstract class XrayBaseActivity: ComponentActivity(){
 
     @Composable
     abstract fun Content()
