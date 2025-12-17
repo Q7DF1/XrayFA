@@ -171,7 +171,7 @@ fun ConfigActionButton(
             text = {Text("delete All")},
             onClick = {
                 expend = false
-                xrayViewmodel.deleteAllNodes()
+                xrayViewmodel.showDeleteDialog(/*delete all*/)
             }
         )
     }

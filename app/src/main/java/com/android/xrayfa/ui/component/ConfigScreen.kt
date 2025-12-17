@@ -250,7 +250,7 @@ fun ConfigScreen(
             DeleteDialog(
                 onDismissRequest = {xrayViewmodel.hideDeleteDialog()},
             ) {
-                xrayViewmodel.deleteNodeByIdWithDialog()
+                xrayViewmodel.deleteNodeFromDialog()
             }
         }
     }

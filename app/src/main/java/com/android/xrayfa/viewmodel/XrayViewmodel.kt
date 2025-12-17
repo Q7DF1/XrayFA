@@ -53,6 +53,8 @@ class XrayViewmodel(
         const val TAG = "XrayViewmodel"
         const val EXTRA_LINK = "com.android.xrayFA.EXTRA_LINK"
         const val EXTRA_PROTOCOL = "com.android.xrayFA.EXTRA_PROTOCOL"
+        const val DELETE_ALL = -2
+        const val DELETE_NONE = -1
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -82,7 +84,7 @@ class XrayViewmodel(
 
     private val _notConfig = MutableStateFlow(false)
     val notConfig = _notConfig.asStateFlow()
-    var deleteLinkId = -1
+    var deleteLinkId = DELETE_NONE
 
     private val _logList = MutableStateFlow<List<String>>(emptyList())
     val logList = _logList.asStateFlow()
@@ -216,6 +218,9 @@ class XrayViewmodel(
 
 
 
+
+    fun deleteNode(id: Int) = if (id == DELETE_ALL) deleteAllNodes() else deleteNodeById(id)
+
     fun deleteNodeById(id: Int) {
         viewModelScope.launch {
             repository.deleteLinkById(id)
@@ -254,18 +259,19 @@ class XrayViewmodel(
     }
 
     //delete dialog
-    fun showDeleteDialog(id: Int) {
+    fun showDeleteDialog(id: Int = DELETE_ALL) {
         _deleteDialog.value = true
         deleteLinkId = id
     }
 
+
     fun hideDeleteDialog() {
         _deleteDialog.value = false
-        deleteLinkId = -1
+        deleteLinkId = DELETE_NONE
     }
 
-    fun deleteNodeByIdWithDialog() {
-        deleteNodeById(deleteLinkId)
+    fun deleteNodeFromDialog() {
+        deleteNode(id = deleteLinkId)
         hideDeleteDialog()
     }
 
