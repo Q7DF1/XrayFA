@@ -1,11 +1,13 @@
 package com.android.xrayfa.viewmodel
 
+import android.app.ActivityOptions
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.util.Log
+import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -153,15 +155,28 @@ class XrayViewmodel(
         return XrayBaseService.isRunning
     }
 
-    fun startDetailActivity(context: Context,id: Int) {
+    fun startDetailActivity(
+        context: Context,
+        id: Int,
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        view: View) {
         viewModelScope.launch {
             val link = repository.loadLinksById(id).first()
             val intent = Intent(context, DetailActivity::class.java).apply {
                 putExtra(EXTRA_LINK, link.url)
                 putExtra(EXTRA_PROTOCOL,link.protocolPrefix)
             }
-
-            context.startActivity(intent)
+            val options = ActivityOptions.makeScaleUpAnimation(
+                view,
+                x,
+                y,
+                width,
+                height
+            )
+            context.startActivity(intent,options.toBundle())
         }
     }
 
