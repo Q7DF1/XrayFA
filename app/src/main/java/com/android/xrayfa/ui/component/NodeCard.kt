@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.net.InetAddresses
 import android.os.Build
 import android.util.Patterns
+import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
@@ -50,7 +51,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.dto.Node
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.IntSize
 import androidx.core.text.isDigitsOnly
 import com.android.xrayfa.model.protocol.protocolPrefixMap
 import com.android.xrayfa.utils.ColorMap
@@ -66,7 +76,7 @@ fun NodeCard(
     delete: (() -> Unit)? = null,
     onChoose: () -> Unit = {},
     onShare: (() -> Unit)? = null,
-    onEdit: (() -> Unit)? = null,
+    onEdit: ((view: View,x:Int,y:Int,width:Int,height:Int) -> Unit)? = null,
     onTest: (() -> Unit)? = null,
     delayMs: Long = -1,
     testing: Boolean = false,
@@ -74,6 +84,7 @@ fun NodeCard(
     enableTest: Boolean = false,
     countryEmoji: String = ""
 ) {
+    val view = LocalView.current
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp
     val roundCornerShape = RoundedCornerShape(32.dp)
@@ -84,11 +95,15 @@ fun NodeCard(
         delayMs < 900 -> Color(0xFFFFAA00)
         else -> Color.Red
     }
+    var itemCoordinates by remember { mutableStateOf<Pair<Offset, IntSize>?>(null) }
     Surface(
         color = backgroundColor,
         tonalElevation = 8.dp,
         modifier = modifier.fillMaxWidth()
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = 8.dp)
+            .onGloballyPositioned { layoutCoordinates ->
+                itemCoordinates = layoutCoordinates.positionInWindow() to layoutCoordinates.size
+            },
         shape = roundCornerShape,
         onClick = {onChoose()},
         border = if (selected) BorderStroke(width = 2.dp, color = Color(0xFF00BFFF)) else null
@@ -177,7 +192,14 @@ fun NodeCard(
             if (onEdit != null) {
                 IconButton(
                     onClick = {
-                        onEdit.invoke()
+                        itemCoordinates?.let { (offset, size) ->
+                            onEdit.invoke(view,
+                                offset.x.toInt(),
+                                offset.y.toInt(),
+                                size.width,
+                                size.height
+                            )
+                        }
                     },
                     Modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
                 ) {

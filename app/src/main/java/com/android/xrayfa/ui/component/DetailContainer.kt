@@ -47,7 +47,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import com.android.xrayfa.R
 import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.viewmodel.DetailViewmodel

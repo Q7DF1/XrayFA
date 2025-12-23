@@ -133,8 +133,8 @@ fun ConfigScreen(
                             onShare = {
                                 xrayViewmodel.generateQRCode(node.id)
                             },
-                            onEdit = {
-                                xrayViewmodel.startDetailActivity(context = context,id = node.id)
+                            onEdit = { view,x,y,width,height ->
+                                xrayViewmodel.startDetailActivity(context = context,id = node.id,x,y,width,height,view)
                             },
                             selected =node.selected,
                             countryEmoji = node.countryISO
