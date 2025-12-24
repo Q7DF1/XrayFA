@@ -8,12 +8,12 @@ Xray-core For Android
 - ✅ Subscription function
 - ✅ Simple Dashboard
 - ✅ Basic Settings
+- ✅ Rich setting functions
+- ✅ Richer UI animations
 
 ### TODO🚧
 
-- [ ] Rich setting functions
-- [ ] Support content editing
-- [ ] Richer UI animations
+- [ ] ~~Support content editing~~
 
 ---
 #### Powered by [Xray-core](https://github.com/XTLS/Xray-core)
