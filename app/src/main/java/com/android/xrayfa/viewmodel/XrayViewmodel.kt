@@ -166,6 +166,11 @@ class XrayViewmodel(
         viewModelScope.launch {
             val link = repository.loadLinksById(id).first()
             val intent = Intent(context, DetailActivity::class.java).apply {
+                putExtra("ANIM_SOURCE_X", x)
+                putExtra("ANIM_SOURCE_Y", y)
+                putExtra("ANIM_SOURCE_W", width)
+                putExtra("ANIM_SOURCE_H", height)
+
                 putExtra(EXTRA_LINK, link.url)
                 putExtra(EXTRA_PROTOCOL,link.protocolPrefix)
             }
