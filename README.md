@@ -16,5 +16,5 @@ Xray-core For Android
 - [ ] Richer UI animations
 
 ---
-#### Powered by [Xray](https://github.com/XTLS/Xray-core)
+#### Powered by [Xray-core](https://github.com/XTLS/Xray-core)
 Submodules: [AndroidLibXrayLite](https://github.com/2dust/AndroidLibXrayLite/), [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel/)
