@@ -20,8 +20,10 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -56,7 +58,13 @@ fun EditTextDialog(
     val context = LocalContext.current
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
-    var text by remember { mutableStateOf(initialText) }
+    //var text by remember { mutableStateOf(initialText) }
+    var textValue by remember {
+        mutableStateOf(TextFieldValue(
+            text = initialText,
+            selection = TextRange(initialText.length)
+        ))
+    }
     var error by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
@@ -79,16 +87,16 @@ fun EditTextDialog(
         text = {
             Column {
                 TextField(
-                    value = text,
-                    onValueChange = {
+                    value = textValue,
+                    onValueChange = { newValue ->
                         if (isNumeric) {
-                            if (it.all { c -> c.isDigit() }) {
-                                text = it
+                            if (newValue.text.all { c -> c.isDigit() }) {
+                                textValue = newValue
                             }
                         }else {
-                            text = it
+                            textValue = newValue
                         }
-                        error = validator(it)
+                        error = validator(newValue.text)
                     },
                     label = { if (!label.isNullOrEmpty()) Text(label) },
                     modifier = Modifier
@@ -113,11 +121,12 @@ fun EditTextDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    val validation = validator(text)
+                    val currentText = textValue.text
+                    val validation = validator(currentText)
                     if (validation == null) {
                         focusManager.clearFocus()
                         hideKeyboard(context)
-                        onConfirm(text)
+                        onConfirm(currentText)
                     } else {
                         error = validation
                     }
