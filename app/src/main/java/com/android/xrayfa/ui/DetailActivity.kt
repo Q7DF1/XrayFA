@@ -2,11 +2,15 @@ package com.android.xrayfa.ui
 
 import android.R.attr.progress
 import android.graphics.Color
+import android.graphics.Outline
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.util.TypedValue
 import android.view.View
+import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import android.view.animation.DecelerateInterpolator
 import androidx.activity.BackEventCompat
 import androidx.activity.OnBackPressedCallback
@@ -24,7 +28,7 @@ class DetailActivity
 @Inject constructor(
     val detailViewmodelFactory: DetailViewmodelFactory
 ): XrayBaseActivity() {
-
+    companion object { const val TAG = "DetailActivity"}
 
     private var sourceX = 0
     private var sourceY = 0
@@ -51,7 +55,7 @@ class DetailActivity
         } else {
             onBackPressedDispatcher.addCallback(this,object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    runExitAnimation()
+                    runExitAnimation0()
                 }
 
             })
@@ -118,7 +122,7 @@ class DetailActivity
             // 4. 手势确认：执行剩余的退出动画并 Finish
             override fun handleOnBackPressed() {
                 // 此时 View 可能处于半缩放状态，直接从当前状态动画到最终状态
-                runExitAnimation()
+                runExitAnimation0()
             }
         })
     }
@@ -143,12 +147,73 @@ class DetailActivity
         sourceH = intent.getIntExtra("ANIM_SOURCE_H", 0)
     }
 
-    private fun runExitAnimation() {
+    private fun runExitAnimation0() {
         val sourceX = intent.getIntExtra("ANIM_SOURCE_X", 0)
         val sourceY = intent.getIntExtra("ANIM_SOURCE_Y", 0)
         val sourceW = intent.getIntExtra("ANIM_SOURCE_W", 0)
         val sourceH = intent.getIntExtra("ANIM_SOURCE_H", 0)
 
+        if (sourceW == 0 || sourceH == 0) {
+            finish()
+            overridePendingTransition(0, 0)
+            return
+        }
+
+        val cardColor = intent.getIntExtra("ANIM_BG_COLOR", Color.WHITE)
+        val rootView = findViewById<ViewGroup>(android.R.id.content)
+        val screenW = rootView.width.toFloat()
+        val screenH = rootView.height.toFloat()
+
+        val scaleX = sourceW.toFloat() / screenW
+        val scaleY = sourceH.toFloat() / screenH
+
+
+        val typedValue = TypedValue()
+        theme.resolveAttribute(com.google.android.material.R.attr.colorSurface, typedValue, true)
+        rootView.setBackgroundColor(cardColor)
+
+        rootView.outlineProvider = object : ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: Outline) {
+                val cornerRadius = TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP, 32f, resources.displayMetrics
+                )
+                outline.setRoundRect(0, 0, view.width, view.height, cornerRadius)
+            }
+        }
+        rootView.clipToOutline = true
+
+        val contentView = rootView.getChildAt(0)
+        contentView?.animate()
+            ?.alpha(0f)         // 让文字内容变透明
+            ?.setDuration(100)  // 动作要快，100ms内文字消失，只留背景
+            ?.start()
+
+        rootView.pivotX = 0f
+        rootView.pivotY = 0f
+
+        rootView.animate()
+            .setDuration(300) // 背景缩放慢一点，看清楚轨迹
+            // .setInterpolator(PathInterpolator(0.2f, 0f, 0f, 1f)) // 建议用这种 Material 风格的贝塞尔曲线，更有质感
+            .setInterpolator(DecelerateInterpolator())
+            .scaleX(scaleX)
+            .scaleY(scaleY)
+            .translationX(sourceX.toFloat())
+            .translationY(sourceY.toFloat())
+            // 注意：这里不要再让 rootView alpha 变 0 了，否则背景也没了
+            // .alpha(0f)  <-- 去掉这行
+            .withEndAction {
+                finish()
+                overridePendingTransition(0, 0)
+            }
+            .start()
+    }
+
+    private fun runExitAnimation() {
+        val sourceX = intent.getIntExtra("ANIM_SOURCE_X", 0)
+        val sourceY = intent.getIntExtra("ANIM_SOURCE_Y", 0)
+        val sourceW = intent.getIntExtra("ANIM_SOURCE_W", 0)
+        val sourceH = intent.getIntExtra("ANIM_SOURCE_H", 0)
+        Log.d(TAG, "runExitAnimation: $sourceX $sourceY $sourceW $sourceH")
         if (sourceW == 0 || sourceH == 0) {
             finish()
             overridePendingTransition(0, 0)
