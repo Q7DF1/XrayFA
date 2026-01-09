@@ -17,13 +17,14 @@ android {
         val appVersionCode:String by project
         applicationId = "com.android.xrayfa"
         minSdk = 28
-        targetSdk = 35
+        targetSdk = 36
         versionCode = appVersionCode.toInt()
         versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-
+        base {
+            archivesName.set("XrayFA")
+        }
     }
     signingConfigs {
         create("release") {
