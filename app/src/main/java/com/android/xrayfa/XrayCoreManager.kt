@@ -118,7 +118,7 @@ class XrayCoreManager
     suspend fun startV2rayCore(link: String,protocol: String) {
         startOrClose = true
         try {
-            coreController?.startLoop(parserFactory.getParser(protocol).parse(link))
+            coreController?.startLoop(parserFactory.getParser(protocol).parse(link),0)
         }catch (e: Exception) {
             Log.e(TAG, "startV2rayCore failed: ${e.message}")
         }
