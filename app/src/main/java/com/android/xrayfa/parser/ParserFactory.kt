@@ -17,10 +17,10 @@ class ParserFactory @Inject constructor(
 
     fun getParser(protocol: String): AbstractConfigParser<*> {
         return when(protocol) {
-            Protocol.VLESS.protocolName -> vlessConfigParser
-            Protocol.VMESS.protocolName -> vmessConfigParser
-            Protocol.TROJAN.protocolName -> trojanConfigParser
-            Protocol.SHADOW_SOCKS.protocolName -> shadowSocksConfigParser
+            Protocol.VLESS.protocolType -> vlessConfigParser
+            Protocol.VMESS.protocolType -> vmessConfigParser
+            Protocol.TROJAN.protocolType -> trojanConfigParser
+            Protocol.SHADOW_SOCKS.protocolType -> shadowSocksConfigParser
 
             else -> {
                 throw IllegalArgumentException("Unsupported protocol: $protocol")

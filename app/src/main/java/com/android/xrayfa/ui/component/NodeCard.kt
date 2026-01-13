@@ -1,9 +1,7 @@
 package com.android.xrayfa.ui.component
 
 import android.annotation.SuppressLint
-import android.net.InetAddresses
 import android.os.Build
-import android.util.Patterns
 import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.LinearEasing
@@ -28,7 +26,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
@@ -57,14 +54,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.IntSize
-import androidx.core.text.isDigitsOnly
 import com.android.xrayfa.model.protocol.protocolPrefixMap
 import com.android.xrayfa.utils.ColorMap
-import com.android.xrayfa.utils.Device
 
 @RequiresApi(Build.VERSION_CODES.Q)
 @SuppressLint("ConfigurationScreenWidthHeight")
@@ -149,7 +143,7 @@ fun NodeCard(
                     )
                     Row {
                         Text(
-                            text = protocolPrefixMap[node.protocolPrefix]!!.protocolName,
+                            text = protocolPrefixMap[node.protocolPrefix]!!.protocolType,
                             fontWeight = FontWeight.Medium,
                             style = MaterialTheme.typography.bodyMedium
                         )
