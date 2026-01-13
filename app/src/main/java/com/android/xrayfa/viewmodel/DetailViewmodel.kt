@@ -3,12 +3,8 @@ package com.android.xrayfa.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.model.AbsOutboundConfigurationObject
 import com.android.xrayfa.model.OutboundObject
-import com.android.xrayfa.model.ShadowSocksOutboundConfigurationObject
-import com.android.xrayfa.model.TrojanOutboundConfigurationObject
-import com.android.xrayfa.model.VMESSOutboundConfigurationObject
 import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.parser.ShadowSocksConfigParser
@@ -37,22 +33,26 @@ class DetailViewmodel(
     }
 
     fun parseVLESSProtocol(content: String): VLESSConfigParser.VLESSConfig {
-        return (parserFactory.getParser("vless") as VLESSConfigParser).decodeVLESS(content)
+        return (parserFactory.getParser(Protocol.VLESS.protocolType) as VLESSConfigParser)
+            .decodeVLESS(content)
     }
 
     fun parseVMESSProtocol(content: String): VMESSConfigParser.VMESSConfig {
-        return (parserFactory.getParser("vmess") as VMESSConfigParser).decodeVMESS(content)
+        return (parserFactory.getParser(Protocol.VMESS.protocolType) as VMESSConfigParser)
+            .decodeVMESS(content)
     }
 
     fun parseTrojanProtocol(content:String): TrojanConfigParser.TrojanConfig {
-        return (parserFactory.getParser("trojan") as TrojanConfigParser).decodeTrojan(content)
+        return (parserFactory.getParser(Protocol.TROJAN.protocolType) as TrojanConfigParser)
+            .decodeTrojan(content)
     }
     fun parseShadowSocks(content:String): ShadowSocksConfigParser.ShadowSocksConfig {
-        return (parserFactory.getParser("ss") as ShadowSocksConfigParser).decodeShadowSocks(content)
+        return (parserFactory.getParser(Protocol.SHADOW_SOCKS.protocolType) as ShadowSocksConfigParser)
+            .decodeShadowSocks(content)
     }
 
     fun saveVLESSModify(id: Int,config: VLESSConfigParser.VLESSConfig) {
-        val newUrl = (parserFactory.getParser(Protocol.VLESS.protocolName)
+        val newUrl = (parserFactory.getParser(Protocol.VLESS.protocolType)
                 as VLESSConfigParser).encodeVLESS(config)
 
         viewModelScope.launch(Dispatchers.IO) {

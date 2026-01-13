@@ -6,7 +6,7 @@ import com.android.xrayfa.model.protocol.Protocol.VLESS
 import com.android.xrayfa.model.protocol.Protocol.VMESS
 
 enum class Protocol(
-    val protocolName: String
+    val protocolType: String
 ) {
     VLESS("vless"),
 
@@ -19,14 +19,14 @@ enum class Protocol(
 
 }
 val protocolsPrefix = listOf(
-    VLESS.protocolName,
-    VMESS.protocolName,
-    SHADOW_SOCKS.protocolName,
-    TROJAN.protocolName
+    VLESS.protocolType,
+    VMESS.protocolType,
+    SHADOW_SOCKS.protocolType,
+    TROJAN.protocolType
 )
 val protocolPrefixMap = mapOf(
-    SHADOW_SOCKS.protocolName to SHADOW_SOCKS,
-    VLESS.protocolName to VLESS,
-    VMESS.protocolName to VMESS,
-    TROJAN.protocolName to TROJAN
+    SHADOW_SOCKS.protocolType to SHADOW_SOCKS,
+    VLESS.protocolType to VLESS,
+    VMESS.protocolType to VMESS,
+    TROJAN.protocolType to TROJAN
 )
