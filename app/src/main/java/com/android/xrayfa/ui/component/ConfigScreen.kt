@@ -77,6 +77,7 @@ fun ConfigScreen(
     val scanOptions = ScanOptions()
     scanOptions.setOrientationLocked(true)
     scanOptions.captureActivity = QRCodeActivity::class.java
+    scanOptions.setBeepEnabled(false)
     val barcodeLauncher = rememberLauncherForActivityResult(ScanContract()) {
             result->
         if (result.contents == null) {
