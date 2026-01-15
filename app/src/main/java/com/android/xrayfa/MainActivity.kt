@@ -24,7 +24,6 @@ class MainActivity @Inject constructor(
     override fun Content() {
         val viewmodel =
             ViewModelProvider(this, xrayViewmodelFactory)[XrayViewmodel::class.java]
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         checkNotificationPermission()
         XrayFAContainer(viewmodel)
     }
