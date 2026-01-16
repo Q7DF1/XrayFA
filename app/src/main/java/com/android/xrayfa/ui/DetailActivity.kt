@@ -128,7 +128,7 @@ class DetailActivity
     }
 
     @Composable
-    override fun Content() {
+    override fun Content(isLandscape: Boolean) {
         val protocol = intent.getStringExtra(XrayViewmodel.EXTRA_PROTOCOL)
         val content = intent.getStringExtra(XrayViewmodel.EXTRA_LINK)
         val viewmodel =
