@@ -12,7 +12,7 @@ class AppsActivity
     val viewmodelFactory: AppsViewmodelFactory
 ): XrayBaseActivity() {
     @Composable
-    override fun Content() {
+    override fun Content(isLandScape: Boolean) {
 
         val viewmodel = ViewModelProvider.create(this,viewmodelFactory)[AppsViewmodel::class.java]
         AppsScreen(viewmodel)

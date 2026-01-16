@@ -19,7 +19,7 @@ class SettingsActivity
 ): XrayBaseActivity() {
 
     @Composable
-    override fun Content() {
+    override fun Content(isLandscape: Boolean) {
         val viewmodel = ViewModelProvider.create(this, factory)[SettingsViewmodel::class.java]
         SettingsContainer(viewmodel)
     }

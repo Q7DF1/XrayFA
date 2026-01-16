@@ -2,7 +2,6 @@ package com.android.xrayfa
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
@@ -21,7 +20,7 @@ class MainActivity @Inject constructor(
 ) : XrayBaseActivity() {
     @SuppressLint("SourceLockedOrientationActivity")
     @Composable
-    override fun Content() {
+    override fun Content(isLandScape: Boolean) {
         val viewmodel =
             ViewModelProvider(this, xrayViewmodelFactory)[XrayViewmodel::class.java]
         checkNotificationPermission()
