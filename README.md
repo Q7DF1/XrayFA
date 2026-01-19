@@ -89,3 +89,7 @@ This project wouldn't be possible without the following open-source projects:
 ## 📄 License
 
 Distributed under the Apache-2.0 License. See `LICENSE` for more information.
+
+## 🌟 Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=q7df1/xrayFA&type=Date)](https://star-history.com/q7df1/xrayFA&Date)
