@@ -10,7 +10,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -59,6 +61,7 @@ import com.android.xrayfa.ui.navigation.toEntries
 @Composable
 fun XrayFAContainer(
     xrayViewmodel: XrayViewmodel,
+    isLandScape: Boolean,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -88,10 +91,13 @@ fun XrayFAContainer(
 
     }
 
-    Scaffold(
-        bottomBar = {
+    if (isLandScape) {
+        Row(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // NavigationNail
 
-            XrayBottomNavOpt(
+            XraySideNavOpt(
                 items = list_navigation,
                 currentScreen = current as NavigateDestination,
                 onItemSelected = { item ->
@@ -99,18 +105,40 @@ fun XrayFAContainer(
                 },
                 labelProvider = { item -> item.route },
             )
-        },
-        containerColor = MaterialTheme.colorScheme.background,
-        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
-    ) { innerPadding->
+            // Content
+            NavDisplay(
+                entries = navigationState.toEntries(entryProvider),
+                onBack = {navigator.goBack()},
+                sceneStrategy = remember { DialogSceneStrategy() },
+            )
+        }
+    }else {
 
-        NavDisplay(
-            entries = navigationState.toEntries(entryProvider),
-            onBack = {navigator.goBack()},
-            sceneStrategy = remember { DialogSceneStrategy() },
-            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
-        )
+        Scaffold(
+            bottomBar = {
+
+                XrayBottomNavOpt(
+                    items = list_navigation,
+                    currentScreen = current as NavigateDestination,
+                    onItemSelected = { item ->
+                        navigator.navigate(item)
+                    },
+                    labelProvider = { item -> item.route },
+                )
+            },
+            containerColor = MaterialTheme.colorScheme.background,
+            modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+        ) { innerPadding->
+
+            NavDisplay(
+                entries = navigationState.toEntries(entryProvider),
+                onBack = {navigator.goBack()},
+                sceneStrategy = remember { DialogSceneStrategy() },
+                modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
+            )
+        }
     }
+
 }
 
 @Composable
