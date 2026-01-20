@@ -18,6 +18,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -67,6 +68,117 @@ import com.android.xrayfa.ui.navigation.Logcat
 import com.android.xrayfa.ui.navigation.NavigateDestination
 
 
+
+@Composable
+fun XraySideNavOpt(
+    items: List<NavigateDestination>,
+    currentScreen: NavigateDestination,
+    onItemSelected: (NavigateDestination) -> Unit,
+    labelProvider: (NavigateDestination) -> String,
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = MaterialTheme.colorScheme.surface,
+    selectedColor: Color = MaterialTheme.colorScheme.primary,
+    unselectedColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+) {
+    val density = LocalDensity.current
+    val itemCount = items.size
+    val selectedIndex = items.indexOfFirst { it.route == currentScreen.route }.coerceAtLeast(0)
+
+    // 1. 改为 Y 轴动画
+    val animOffsetY = remember { Animatable(0f) }
+
+    // 侧边栏通常宽度固定，这里设为 80.dp (Material Design 3 Rail 标准宽度)
+    val widthDp = 80.dp
+
+    BoxWithConstraints(
+        modifier = modifier
+            .width(widthDp) // 固定宽度
+            .fillMaxHeight() // 填满高度
+            .background(backgroundColor)
+            .padding(vertical = 8.dp) // 改为垂直 Padding
+    ) {
+        // 2. 计算每个 Item 的高度而不是宽度
+        val itemHeightPx = constraints.maxHeight / itemCount
+        val itemHeightDp = with(density) { itemHeightPx.toDp() }
+
+        // 动画控制背景位置
+        LaunchedEffect(selectedIndex, itemHeightPx) {
+            animOffsetY.animateTo(
+                targetValue = selectedIndex * itemHeightPx.toFloat(),
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessLow
+                )
+            )
+        }
+
+        // 3. 背景放大镜 (改为垂直方向移动，填满宽度)
+        Box(
+            modifier = Modifier
+                .offset { IntOffset(0, animOffsetY.value.toInt()) } // Y轴偏移
+                .height(itemHeightDp) // 高度跟随计算
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(selectedColor.copy(alpha = 0.12f))
+        )
+
+        // 4. 容器改为 Column
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceEvenly, // 垂直均匀分布
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            items.forEachIndexed { index, item ->
+                val selected = index == selectedIndex
+                val iconScale by animateFloatAsState(if (selected) 1.14f else 1f, tween(300))
+
+                // 垂直布局时，文字通常在图标下方，所以动画控制的是高度 Spacer
+                val labelPadding by animateDpAsState(if (selected) 4.dp else 0.dp, tween(300))
+
+                Box(
+                    modifier = Modifier
+                        .height(itemHeightDp)
+                        .fillMaxWidth()
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { onItemSelected(item) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    // 5. 内容排列改为 Column (上图下文)
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Icon(
+                            imageVector = when(item){
+                                is Home -> Icons.Default.Home
+                                is Config -> Icons.Default.Build
+                                is Logcat -> Icons.Default.Warning
+                                else -> throw IllegalArgumentException("Invalid Nav type")
+                            },
+                            contentDescription = item.route,
+                            tint = if (selected) selectedColor else unselectedColor,
+                            modifier = Modifier.size(28.dp).scale(iconScale)
+                        )
+
+                        // 间距的高度动画
+                        Spacer(Modifier.height(labelPadding))
+
+                        if (selected) {
+                            Text(
+                                text = labelProvider(item),
+                                color = selectedColor,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 12.sp // 侧边栏文字通常稍微小一点
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable

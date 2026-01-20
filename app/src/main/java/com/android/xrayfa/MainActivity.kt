@@ -20,11 +20,11 @@ class MainActivity @Inject constructor(
 ) : XrayBaseActivity() {
     @SuppressLint("SourceLockedOrientationActivity")
     @Composable
-    override fun Content(isLandScape: Boolean) {
+    override fun Content(isLandscape: Boolean) {
         val viewmodel =
             ViewModelProvider(this, xrayViewmodelFactory)[XrayViewmodel::class.java]
         checkNotificationPermission()
-        XrayFAContainer(viewmodel)
+        XrayFAContainer(viewmodel,isLandscape)
     }
 
     companion object {
