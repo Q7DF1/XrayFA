@@ -179,6 +179,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.adaptive)
     kapt(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
     implementation(libs.dagger)
@@ -191,6 +192,8 @@ dependencies {
 
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.material3.adaptive.navigation3)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 
 
 //    implementation("io.grpc:grpc-okhttp:1.63.0")
