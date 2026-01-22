@@ -38,9 +38,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import com.android.xrayfa.ui.navigation.Logcat
@@ -51,16 +53,21 @@ import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.android.xrayfa.R
 
 import com.android.xrayfa.ui.SettingsActivity
+import com.android.xrayfa.ui.navigation.Detail
+import com.android.xrayfa.ui.navigation.ListDetailSceneStrategy
 import com.android.xrayfa.ui.navigation.NavigateDestination
 import com.android.xrayfa.ui.navigation.Navigator
+import com.android.xrayfa.ui.navigation.rememberListDetailSceneStrategy
 import com.android.xrayfa.ui.navigation.rememberNavigationState
 import com.android.xrayfa.ui.navigation.toEntries
+import com.android.xrayfa.viewmodel.DetailViewmodel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun XrayFAContainer(
     xrayViewmodel: XrayViewmodel,
+    detailViewmodel: DetailViewmodel,
     isLandScape: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -80,13 +87,27 @@ fun XrayFAContainer(
         }
         entry<Config> {
             ConfigScreen(xrayViewmodel) {
-                if (!xrayViewmodel.isServiceRunning.value) {
-                    navigator.navigate(Home)
+                when(it) {
+                    is Home -> {
+                        if (!xrayViewmodel.isServiceRunning.value) {
+                            navigator.navigate(Home)
+                        }
+                    }
+                    is Detail -> {
+                        navigator.navigate(Detail(it.protocol,it.content))
+                    }
                 }
             }
         }
         entry<Logcat> {
             LogcatScreen(xrayViewmodel)
+        }
+        entry<Detail> { key ->
+            DetailContainer(
+                protocol = key.protocol,
+                content = key.content,
+                detailViewmodel = detailViewmodel
+            )
         }
 
     }
@@ -96,21 +117,45 @@ fun XrayFAContainer(
             modifier = Modifier.fillMaxSize()
         ) {
             // NavigationNail
-
-            XraySideNavOpt(
-                items = list_navigation,
-                currentScreen = current as NavigateDestination,
-                onItemSelected = { item ->
-                    navigator.navigate(item)
-                },
-                labelProvider = { item -> item.route },
-            )
+//
+//            XraySideNavOpt(
+//                items = list_navigation,
+//                currentScreen = current as NavigateDestination,
+//                onItemSelected = { item ->
+//                    navigator.navigate(item)
+//                },
+//                labelProvider = { item -> item.route },
+//            )
             // Content
-            NavDisplay(
-                entries = navigationState.toEntries(entryProvider),
-                onBack = {navigator.goBack()},
-                sceneStrategy = remember { DialogSceneStrategy() },
-            )
+//            NavDisplay(
+//                entries = navigationState.toEntries(entryProvider),
+//                onBack = {navigator.goBack()},
+//                sceneStrategy = remember { DialogSceneStrategy() },
+//            )
+            val backStack = rememberNavBackStack(Config,Home)
+            val listDetailSceneStrategy = rememberListDetailSceneStrategy<NavKey>()
+            Scaffold { paddingValues ->
+                NavDisplay(
+                    backStack = backStack,
+                    modifier = Modifier.padding(paddingValues = paddingValues),
+                    onBack =  { backStack.removeLastOrNull() },
+                    sceneStrategy = listDetailSceneStrategy,
+                    entryProvider = entryProvider {
+                        entry<Home>(
+                            metadata = ListDetailSceneStrategy.detailPane()
+                        ) {
+                            HomeScreen(xrayViewmodel)
+                        }
+                        entry<Config>(
+                            metadata = ListDetailSceneStrategy.listPane()
+                        ) {
+                            ConfigScreen(xrayViewmodel) {
+                                backStack.addDetail(Home)
+                            }
+                        }
+                    }
+                )
+            }
         }
     }else {
 
@@ -213,3 +258,9 @@ val popAnimationSpec = spring<Float>(
     stiffness = Spring.StiffnessLow // 刚度：低（越低越慢越Q）
 )
 val subtleAnimSpec = tween<Float>(durationMillis = 300, easing = FastOutSlowInEasing)
+private fun NavBackStack<NavKey>.addDetail(detailRoute: Home) {
+
+    // Remove any existing detail routes, then add the new detail route
+    removeIf { it is Home }
+    add(detailRoute)
+}

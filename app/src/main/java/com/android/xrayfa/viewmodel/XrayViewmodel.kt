@@ -154,7 +154,7 @@ class XrayViewmodel(
     fun isServiceRunning(): Boolean {
         return XrayBaseService.isRunning
     }
-
+    @Deprecated("single Activity")
     fun startDetailActivity(
         context: Context,
         id: Int,
