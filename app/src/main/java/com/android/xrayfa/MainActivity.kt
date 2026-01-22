@@ -12,19 +12,24 @@ import androidx.lifecycle.ViewModelProvider
 import com.android.xrayfa.ui.component.XrayFAContainer
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.android.xrayfa.ui.XrayBaseActivity
+import com.android.xrayfa.viewmodel.DetailViewmodel
+import com.android.xrayfa.viewmodel.DetailViewmodelFactory
 import com.android.xrayfa.viewmodel.XrayViewmodelFactory
 import javax.inject.Inject
 
 class MainActivity @Inject constructor(
-    val xrayViewmodelFactory: XrayViewmodelFactory
+    val xrayViewmodelFactory: XrayViewmodelFactory,
+    val detailViewmodelFactory: DetailViewmodelFactory
 ) : XrayBaseActivity() {
     @SuppressLint("SourceLockedOrientationActivity")
     @Composable
     override fun Content(isLandscape: Boolean) {
         val viewmodel =
             ViewModelProvider(this, xrayViewmodelFactory)[XrayViewmodel::class.java]
+        val detailViewmodel =
+            ViewModelProvider.create(this,detailViewmodelFactory)[DetailViewmodel::class.java]
         checkNotificationPermission()
-        XrayFAContainer(viewmodel,isLandscape)
+        XrayFAContainer(viewmodel,detailViewmodel,isLandscape)
     }
 
     companion object {

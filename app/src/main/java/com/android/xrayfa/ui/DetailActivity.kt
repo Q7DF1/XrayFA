@@ -23,7 +23,7 @@ import com.android.xrayfa.viewmodel.DetailViewmodel
 import com.android.xrayfa.viewmodel.DetailViewmodelFactory
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import javax.inject.Inject
-
+@Deprecated("single Activity mode")
 class DetailActivity
 @Inject constructor(
     val detailViewmodelFactory: DetailViewmodelFactory

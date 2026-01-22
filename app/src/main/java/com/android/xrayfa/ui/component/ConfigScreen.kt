@@ -55,7 +55,9 @@ import androidx.compose.ui.window.Dialog
 import com.android.xrayfa.R
 import com.android.xrayfa.ui.QRCodeActivity
 import com.android.xrayfa.ui.navigation.Config
-import com.android.xrayfa.utils.Device
+import com.android.xrayfa.ui.navigation.Detail
+import com.android.xrayfa.ui.navigation.Home
+import com.android.xrayfa.ui.navigation.NavigateDestination
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
@@ -64,7 +66,7 @@ import com.journeyapps.barcodescanner.ScanOptions
 @Composable
 fun ConfigScreen(
     xrayViewmodel: XrayViewmodel,
-    onNavigate2Home: (Int) -> Unit
+    onNavigate: (NavigateDestination) -> Unit
 ) {
     val nodes by xrayViewmodel.nodes.collectAsState()
     val qrBitMap by xrayViewmodel.qrBitmap.collectAsState()
@@ -129,13 +131,14 @@ fun ConfigScreen(
                             },
                             onChoose = {
                                 xrayViewmodel.setSelectedNode(node.id)
-                                onNavigate2Home(node.id)
+                                onNavigate(Home)
                             },
                             onShare = {
                                 xrayViewmodel.generateQRCode(node.id)
                             },
                             onEdit = { view,x,y,width,height ->
-                                xrayViewmodel.startDetailActivity(context = context,id = node.id,x,y,width,height,view)
+                                //xrayViewmodel.startDetailActivity(context = context,id = node.id,x,y,width,height,view)
+                                onNavigate(Detail(node.protocolPrefix,node.url))
                             },
                             selected =node.selected,
                             countryEmoji = node.countryISO
