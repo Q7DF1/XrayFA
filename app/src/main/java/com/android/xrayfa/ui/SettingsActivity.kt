@@ -13,6 +13,7 @@ import com.android.xrayfa.viewmodel.SettingsViewmodel
 import com.android.xrayfa.viewmodel.SettingsViewmodelFactory
 import javax.inject.Inject
 
+@Deprecated("single Activity")
 class SettingsActivity
 @Inject constructor(
     val factory: SettingsViewmodelFactory

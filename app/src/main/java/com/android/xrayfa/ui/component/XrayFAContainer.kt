@@ -57,10 +57,12 @@ import com.android.xrayfa.ui.navigation.Detail
 import com.android.xrayfa.ui.navigation.ListDetailSceneStrategy
 import com.android.xrayfa.ui.navigation.NavigateDestination
 import com.android.xrayfa.ui.navigation.Navigator
+import com.android.xrayfa.ui.navigation.Settings
 import com.android.xrayfa.ui.navigation.rememberListDetailSceneStrategy
 import com.android.xrayfa.ui.navigation.rememberNavigationState
 import com.android.xrayfa.ui.navigation.toEntries
 import com.android.xrayfa.viewmodel.DetailViewmodel
+import com.android.xrayfa.viewmodel.SettingsViewmodel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,6 +70,7 @@ import com.android.xrayfa.viewmodel.DetailViewmodel
 fun XrayFAContainer(
     xrayViewmodel: XrayViewmodel,
     detailViewmodel: DetailViewmodel,
+    settingsViewmodel: SettingsViewmodel,
     isLandScape: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -83,7 +86,9 @@ fun XrayFAContainer(
 
     val entryProvider: (NavKey) -> NavEntry<NavKey> = entryProvider {
         entry<Home> { key ->
-            HomeScreen(xrayViewmodel)
+            HomeScreen(xrayViewmodel) {
+                navigator.navigate(Settings)
+            }
         }
         entry<Config> {
             ConfigScreen(xrayViewmodel) {
@@ -108,6 +113,9 @@ fun XrayFAContainer(
                 content = key.content,
                 detailViewmodel = detailViewmodel
             )
+        }
+        entry<Settings> {
+            SettingsContainer(settingsViewmodel)
         }
 
     }
@@ -187,10 +195,12 @@ fun XrayFAContainer(
 }
 
 @Composable
-fun HomeActionButton() {
+fun HomeActionButton(
+    onSettingsClick: () -> Unit
+) {
     val context = LocalContext.current
     IconButton(
-        onClick = {onSettingsClick(context)}
+        onClick = {onSettingsClick()}
     ) {
         Icon(
             imageVector = Icons.Default.Settings,
@@ -250,6 +260,7 @@ fun ConfigActionButton(
     }
 }
 
+@Deprecated("single Activity")
 fun onSettingsClick(context: Context) {
     context.startActivity(Intent(context, SettingsActivity::class.java))
 }

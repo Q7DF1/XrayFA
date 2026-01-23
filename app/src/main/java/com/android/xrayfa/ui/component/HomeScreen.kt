@@ -79,7 +79,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     xrayViewmodel: XrayViewmodel,
-    modifier: Modifier = Modifier
+    onSettingsClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val selectedNode by xrayViewmodel.getSelectedNode().collectAsState(null)
@@ -87,7 +87,12 @@ fun HomeScreen(
     val coroutineScope = rememberCoroutineScope()
 
     Box(modifier = Modifier.fillMaxSize()){
-        Dashboard(xrayViewmodel = xrayViewmodel,node = selectedNode,notConfig)
+        Dashboard(
+            xrayViewmodel = xrayViewmodel,
+            node = selectedNode,
+            onSettingsClick = onSettingsClick,
+            showError = notConfig
+        )
         //Dashboard(xrayViewmodel,modifier = Modifier.align(Alignment.TopCenter))
 
         V2rayStarter(xrayViewmodel,modifier = Modifier.align(BiasAlignment(0f,0.8f))) {
@@ -184,6 +189,7 @@ fun V2rayStarter(
 fun Dashboard(
     xrayViewmodel: XrayViewmodel,
     node: Node?,
+    onSettingsClick: () -> Unit = {},
     showError: Boolean = false
 ) {
     val context = LocalContext.current
@@ -207,7 +213,7 @@ fun Dashboard(
                         contentDescription = ""
                     )
                 },
-                actions = {HomeActionButton()},
+                actions = {HomeActionButton(onSettingsClick)},
                 colors = TopAppBarDefaults.topAppBarColors(MaterialTheme.colorScheme.primary),
                 modifier = Modifier.zIndex(1f)
                 )
