@@ -73,4 +73,5 @@
     <string name="test_url">test url</string>
     <string name="default_speed">000.0 KB/s</string>
     <string name="detail_title">Detail</string>
+    <string name="settings_title">Settings</string>
 </resources>
