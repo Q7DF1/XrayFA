@@ -7,6 +7,8 @@ import com.android.xrayfa.viewmodel.AppsViewmodel
 import com.android.xrayfa.viewmodel.AppsViewmodelFactory
 import javax.inject.Inject
 
+
+@Deprecated("single Activity")
 class AppsActivity
 @Inject constructor(
     val viewmodelFactory: AppsViewmodelFactory

@@ -53,6 +53,7 @@ import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.android.xrayfa.R
 
 import com.android.xrayfa.ui.SettingsActivity
+import com.android.xrayfa.ui.navigation.Apps
 import com.android.xrayfa.ui.navigation.Detail
 import com.android.xrayfa.ui.navigation.ListDetailSceneStrategy
 import com.android.xrayfa.ui.navigation.NavigateDestination
@@ -62,6 +63,7 @@ import com.android.xrayfa.ui.navigation.Subscription
 import com.android.xrayfa.ui.navigation.rememberListDetailSceneStrategy
 import com.android.xrayfa.ui.navigation.rememberNavigationState
 import com.android.xrayfa.ui.navigation.toEntries
+import com.android.xrayfa.viewmodel.AppsViewmodel
 import com.android.xrayfa.viewmodel.DetailViewmodel
 import com.android.xrayfa.viewmodel.SettingsViewmodel
 import com.android.xrayfa.viewmodel.SubscriptionViewmodel
@@ -74,6 +76,7 @@ fun XrayFAContainer(
     detailViewmodel: DetailViewmodel,
     settingsViewmodel: SettingsViewmodel,
     subscriptViewmodel: SubscriptionViewmodel,
+    appViewmodel: AppsViewmodel,
     isLandScape: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -95,16 +98,7 @@ fun XrayFAContainer(
         }
         entry<Config> {
             ConfigScreen(xrayViewmodel) {
-                when(it) {
-                    is Home -> {
-                        if (!xrayViewmodel.isServiceRunning.value) {
-                            navigator.navigate(Home)
-                        }
-                    }
-                    is Detail -> {
-                        navigator.navigate(Detail(it.protocol,it.content))
-                    }
-                }
+                navigator.navigate(it)
             }
         }
         entry<Logcat> {
@@ -118,12 +112,17 @@ fun XrayFAContainer(
             )
         }
         entry<Settings> {
-            SettingsContainer(settingsViewmodel)
+            SettingsContainer(settingsViewmodel) {
+                navigator.navigate(it)
+            }
         }
         entry<Subscription> {
             SubscriptionScreen(subscriptViewmodel) {
                 navigator.navigate(Config)
             }
+        }
+        entry<Apps> {
+            AppsScreen(appViewmodel)
         }
 
     }
@@ -235,7 +234,8 @@ fun LogcatActionButton(
 
 @Composable
 fun ConfigActionButton(
-    xrayViewmodel: XrayViewmodel
+    xrayViewmodel: XrayViewmodel,
+    onNavigate: (NavigateDestination) -> Unit
 ) {
     var expend by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -255,7 +255,8 @@ fun ConfigActionButton(
             text = {Text("subscription")},
             onClick = {
                 expend = false
-                xrayViewmodel.startSubscriptionActivity(context)
+                onNavigate(Subscription)
+                //xrayViewmodel.startSubscriptionActivity(context)
             }
         )
         DropdownMenuItem(

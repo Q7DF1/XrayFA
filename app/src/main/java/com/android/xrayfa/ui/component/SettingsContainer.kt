@@ -16,12 +16,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
+import com.android.xrayfa.ui.navigation.NavigateDestination
 import com.android.xrayfa.viewmodel.SettingsViewmodel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsContainer(
-    viewmodel: SettingsViewmodel
+    viewmodel: SettingsViewmodel,
+    onNavigate: (NavigateDestination) -> Unit
 ) {
 
     Scaffold(
@@ -38,6 +40,7 @@ fun SettingsContainer(
     ) { innerPadding ->
         SettingsScreen(
             viewmodel = viewmodel,
+            onNavigate = onNavigate,
             modifier = Modifier.padding(innerPadding)
         )
     }

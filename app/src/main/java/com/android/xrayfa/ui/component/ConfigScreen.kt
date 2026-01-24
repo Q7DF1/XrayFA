@@ -58,6 +58,7 @@ import com.android.xrayfa.ui.navigation.Config
 import com.android.xrayfa.ui.navigation.Detail
 import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.ui.navigation.NavigateDestination
+import com.android.xrayfa.ui.navigation.Subscription
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
@@ -102,7 +103,7 @@ fun ConfigScreen(
                         contentDescription = ""
                     )
                 },
-                actions = {ConfigActionButton(xrayViewmodel)},
+                actions = {ConfigActionButton(xrayViewmodel,onNavigate)},
                 modifier = Modifier.shadow(4.dp)
             )
             if (nodes.isEmpty()) {
@@ -131,7 +132,7 @@ fun ConfigScreen(
                             },
                             onChoose = {
                                 xrayViewmodel.setSelectedNode(node.id)
-                                onNavigate(Home)
+                                onNavigate(Subscription)
                             },
                             onShare = {
                                 xrayViewmodel.generateQRCode(node.id)
