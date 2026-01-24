@@ -33,7 +33,7 @@ To build XrayFA from source, you need Android Studio and a basic understanding o
 1.  **Clone the repository**
     Make sure to clone with submodules to include the necessary libraries (like `AndroidLibXrayLite` and `tun2socks`).
     ```bash
-    git clone --recursive [https://github.com/Q7DF1/XrayFA.git](https://github.com/Q7DF1/XrayFA.git)
+    git clone --recursive https://github.com/Q7DF1/XrayFA.git
     cd XrayFA
     ```
 

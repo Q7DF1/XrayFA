@@ -7,6 +7,8 @@ import com.android.xrayfa.viewmodel.SubscriptionViewmodel
 import com.android.xrayfa.viewmodel.SubscriptionViewmodelFactory
 import javax.inject.Inject
 
+
+@Deprecated("single Activity")
 class SubscriptionActivity
 @Inject constructor(
     val factory: SubscriptionViewmodelFactory
