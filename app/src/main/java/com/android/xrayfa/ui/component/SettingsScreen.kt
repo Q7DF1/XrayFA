@@ -66,12 +66,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.datastore.preferences.core.Preferences
 import com.android.xrayfa.common.repository.SettingsKeys
+import com.android.xrayfa.ui.navigation.Apps
+import com.android.xrayfa.ui.navigation.NavigateDestination
 import com.android.xrayfa.viewmodel.GEOFileType
 import com.android.xrayfa.viewmodel.GEOFileType.Companion.FILE_TYPE_IP
 
 @Composable
 fun SettingsScreen(
     viewmodel: SettingsViewmodel,
+    onNavigate: (NavigateDestination) -> Unit,
     modifier: Modifier
 ) {
     val settingsState by viewmodel.settingsState.collectAsState()
@@ -137,7 +140,8 @@ fun SettingsScreen(
                     title = R.string.allow_app_settings,
                     content = stringResource(R.string.select_app_settings)
                 ) {
-                    viewmodel.startAppsActivity(context)
+                    //viewmodel.startAppsActivity(context)
+                    onNavigate(Apps)
                 }
             }
 

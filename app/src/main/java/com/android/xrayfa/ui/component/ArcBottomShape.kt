@@ -1,4 +1,4 @@
-package com.android.xrayfa.ui
+package com.android.xrayfa.ui.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.background
@@ -12,6 +12,8 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.material3.Surface
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.tooling.preview.Preview
 
 class ArcBottomShape(private val arcHeight: Float) : Shape {
@@ -19,7 +21,7 @@ class ArcBottomShape(private val arcHeight: Float) : Shape {
         size: Size,
         layoutDirection: LayoutDirection,
         density: Density
-    ) = androidx.compose.ui.graphics.Outline.Generic(Path().apply {
+    ) = Outline.Generic(Path().apply {
         reset()
         // 左上角
         moveTo(0f, 0f)
@@ -48,7 +50,7 @@ fun ArcSurfaceDemo() {
     ) {
         Box(
             modifier = Modifier
-                .background(androidx.compose.ui.graphics.Color.Cyan)
+                .background(Color.Cyan)
         )
     }
 }
