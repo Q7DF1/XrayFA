@@ -25,7 +25,8 @@ To build XrayFA from source, you need Android Studio and a basic understanding o
 
 ### Prerequisites
 * Android Studio (latest stable version recommended)
-* JDK 11 or higher
+* **JDK 11 or higher**
+* **Go (Golang) environment** (Version 1.21 or higher is recommended for Xray-core compilation)
 * Git
 
 ### Steps
