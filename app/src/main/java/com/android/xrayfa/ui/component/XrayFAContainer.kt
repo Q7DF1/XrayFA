@@ -58,11 +58,13 @@ import com.android.xrayfa.ui.navigation.ListDetailSceneStrategy
 import com.android.xrayfa.ui.navigation.NavigateDestination
 import com.android.xrayfa.ui.navigation.Navigator
 import com.android.xrayfa.ui.navigation.Settings
+import com.android.xrayfa.ui.navigation.Subscription
 import com.android.xrayfa.ui.navigation.rememberListDetailSceneStrategy
 import com.android.xrayfa.ui.navigation.rememberNavigationState
 import com.android.xrayfa.ui.navigation.toEntries
 import com.android.xrayfa.viewmodel.DetailViewmodel
 import com.android.xrayfa.viewmodel.SettingsViewmodel
+import com.android.xrayfa.viewmodel.SubscriptionViewmodel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,6 +73,7 @@ fun XrayFAContainer(
     xrayViewmodel: XrayViewmodel,
     detailViewmodel: DetailViewmodel,
     settingsViewmodel: SettingsViewmodel,
+    subscriptViewmodel: SubscriptionViewmodel,
     isLandScape: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -116,6 +119,11 @@ fun XrayFAContainer(
         }
         entry<Settings> {
             SettingsContainer(settingsViewmodel)
+        }
+        entry<Subscription> {
+            SubscriptionScreen(subscriptViewmodel) {
+                navigator.navigate(Config)
+            }
         }
 
     }
