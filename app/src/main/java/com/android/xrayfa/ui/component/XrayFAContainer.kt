@@ -147,7 +147,7 @@ fun XrayFAContainer(
 //                onBack = {navigator.goBack()},
 //                sceneStrategy = remember { DialogSceneStrategy() },
 //            )
-            val backStack = rememberNavBackStack(Config,Home)
+            val backStack = rememberNavBackStack(Home,Settings)
             val listDetailSceneStrategy = rememberListDetailSceneStrategy<NavKey>()
             Scaffold { paddingValues ->
                 NavDisplay(
@@ -157,16 +157,17 @@ fun XrayFAContainer(
                     sceneStrategy = listDetailSceneStrategy,
                     entryProvider = entryProvider {
                         entry<Home>(
-                            metadata = ListDetailSceneStrategy.detailPane()
+                            metadata = ListDetailSceneStrategy.listPane()
                         ) {
                             HomeScreen(xrayViewmodel)
                         }
-                        entry<Config>(
-                            metadata = ListDetailSceneStrategy.listPane()
+                        entry<Settings>(
+                            metadata = ListDetailSceneStrategy.detailPane()
                         ) {
-                            ConfigScreen(xrayViewmodel) {
-                                backStack.addDetail(Home)
-                            }
+                            SettingsContainer(
+                                settingsViewmodel,
+                                onNavigate = { navigator.navigate(it) }
+                            )
                         }
                     }
                 )
