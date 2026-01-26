@@ -63,6 +63,7 @@ import com.android.xrayfa.ui.navigation.Subscription
 import com.android.xrayfa.ui.navigation.rememberListDetailSceneStrategy
 import com.android.xrayfa.ui.navigation.rememberNavigationState
 import com.android.xrayfa.ui.navigation.toEntries
+import com.android.xrayfa.ui.scene.rememberXrayFASceneStrategy
 import com.android.xrayfa.viewmodel.AppsViewmodel
 import com.android.xrayfa.viewmodel.DetailViewmodel
 import com.android.xrayfa.viewmodel.SettingsViewmodel
@@ -132,29 +133,23 @@ fun XrayFAContainer(
             modifier = Modifier.fillMaxSize()
         ) {
             // NavigationNail
-//
-//            XraySideNavOpt(
-//                items = list_navigation,
-//                currentScreen = current as NavigateDestination,
-//                onItemSelected = { item ->
-//                    navigator.navigate(item)
-//                },
-//                labelProvider = { item -> item.route },
-//            )
-            // Content
-//            NavDisplay(
-//                entries = navigationState.toEntries(entryProvider),
-//                onBack = {navigator.goBack()},
-//                sceneStrategy = remember { DialogSceneStrategy() },
-//            )
+            XraySideNavOpt(
+                items = list_navigation,
+                currentScreen = current as NavigateDestination,
+                onItemSelected = { item ->
+                    navigator.navigate(item)
+                },
+                labelProvider = { item -> item.route },
+            )
+
             val backStack = rememberNavBackStack(Home,Settings)
-            val listDetailSceneStrategy = rememberListDetailSceneStrategy<NavKey>()
+            val sceneStrategy = rememberXrayFASceneStrategy<NavKey>()
             Scaffold { paddingValues ->
                 NavDisplay(
                     backStack = backStack,
                     modifier = Modifier.padding(paddingValues = paddingValues),
                     onBack =  { backStack.removeLastOrNull() },
-                    sceneStrategy = listDetailSceneStrategy,
+                    sceneStrategy = sceneStrategy,
                     entryProvider = entryProvider {
                         entry<Home>(
                             metadata = ListDetailSceneStrategy.listPane()
