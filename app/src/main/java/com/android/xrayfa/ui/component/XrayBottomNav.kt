@@ -1,7 +1,9 @@
 package com.android.xrayfa.ui.component
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColor
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
@@ -12,6 +14,10 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -41,6 +47,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -74,7 +81,7 @@ fun XraySideNavOpt(
     items: List<NavigateDestination>,
     currentScreen: NavigateDestination,
     onItemSelected: (NavigateDestination) -> Unit,
-    labelProvider: (NavigateDestination) -> String,
+    labelProvider: (NavigateDestination) -> String, // 保留用于无障碍描述 (contentDescription)
     modifier: Modifier = Modifier,
     backgroundColor: Color = MaterialTheme.colorScheme.surface,
     selectedColor: Color = MaterialTheme.colorScheme.primary,
@@ -84,96 +91,99 @@ fun XraySideNavOpt(
     val itemCount = items.size
     val selectedIndex = items.indexOfFirst { it.route == currentScreen.route }.coerceAtLeast(0)
 
-    // 1. 改为 Y 轴动画
-    val animOffsetY = remember { Animatable(0f) }
+    // --- 1. 尺寸配置 ---
+    val railWidthDp = 72.dp
+    val itemSizeDp = 56.dp // 圆形按钮大小
+    val itemSpacing = 16.dp // 增加间距，因为没有文字，散开一点更好看
 
-    // 侧边栏通常宽度固定，这里设为 80.dp (Material Design 3 Rail 标准宽度)
-    val widthDp = 80.dp
+    // --- 2. 动画状态 ---
+    val animOffsetY = remember { Animatable(0f) }
 
     BoxWithConstraints(
         modifier = modifier
-            .width(widthDp) // 固定宽度
-            .fillMaxHeight() // 填满高度
+            .width(railWidthDp)
+            .fillMaxHeight()
             .background(backgroundColor)
-            .padding(vertical = 8.dp) // 改为垂直 Padding
     ) {
-        // 2. 计算每个 Item 的高度而不是宽度
-        val itemHeightPx = constraints.maxHeight / itemCount
-        val itemHeightDp = with(density) { itemHeightPx.toDp() }
+        val maxHeightPx = constraints.maxHeight.toFloat()
+        val itemSizePx = with(density) { itemSizeDp.toPx() }
+        val spacingPx = with(density) { itemSpacing.toPx() }
 
-        // 动画控制背景位置
-        LaunchedEffect(selectedIndex, itemHeightPx) {
+        // 计算内容总高度和起始偏移量 (垂直居中)
+        val contentHeightPx = (itemSizePx * itemCount) + (spacingPx * (itemCount - 1))
+        val topOffsetPx = (maxHeightPx - contentHeightPx) / 2f
+
+        // --- 3. 背景球动画 (保持 LowBouncy 回弹效果) ---
+        LaunchedEffect(selectedIndex, topOffsetPx) {
+            val targetY = topOffsetPx + (selectedIndex * (itemSizePx + spacingPx))
+
             animOffsetY.animateTo(
-                targetValue = selectedIndex * itemHeightPx.toFloat(),
+                targetValue = targetY,
                 animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    dampingRatio = Spring.DampingRatioLowBouncy, // 果冻回弹
                     stiffness = Spring.StiffnessLow
                 )
             )
         }
 
-        // 3. 背景放大镜 (改为垂直方向移动，填满宽度)
+        // 背景指示器 (圆形)
         Box(
             modifier = Modifier
-                .offset { IntOffset(0, animOffsetY.value.toInt()) } // Y轴偏移
-                .height(itemHeightDp) // 高度跟随计算
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(24.dp))
+                .align(Alignment.TopCenter)
+                .offset { IntOffset(0, animOffsetY.value.toInt()) }
+                .size(itemSizeDp)
+                .clip(CircleShape)
                 .background(selectedColor.copy(alpha = 0.12f))
         )
 
-        // 4. 容器改为 Column
+        // 按钮容器
         Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceEvenly, // 垂直均匀分布
+            modifier = Modifier
+                .width(railWidthDp)
+                .height(with(density) { contentHeightPx.toDp() })
+                .align(Alignment.Center), // 物理居中
+            verticalArrangement = Arrangement.spacedBy(itemSpacing),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             items.forEachIndexed { index, item ->
                 val selected = index == selectedIndex
-                val iconScale by animateFloatAsState(if (selected) 1.14f else 1f, tween(300))
 
-                // 垂直布局时，文字通常在图标下方，所以动画控制的是高度 Spacer
-                val labelPadding by animateDpAsState(if (selected) 4.dp else 0.dp, tween(300))
+                // 图标缩放：1.0 -> 1.15 (稍微大一点点，因为没有文字了，图标是唯一主角)
+                val iconScale by animateFloatAsState(
+                    targetValue = if (selected) 1.15f else 1f,
+                    animationSpec = tween(300)
+                )
+
+                // 颜色平滑过渡
+                val iconColor by animateColorAsState(
+                    targetValue = if (selected) selectedColor else unselectedColor,
+                    animationSpec = tween(300)
+                )
 
                 Box(
                     modifier = Modifier
-                        .height(itemHeightDp)
-                        .fillMaxWidth()
+                        .size(itemSizeDp)
+                        .clip(CircleShape)
                         .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
                         ) { onItemSelected(item) },
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center // 绝对居中
                 ) {
-                    // 5. 内容排列改为 Column (上图下文)
-                    Column(
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Icon(
-                            imageVector = when(item){
-                                is Home -> Icons.Default.Home
-                                is Config -> Icons.Default.Build
-                                is Logcat -> Icons.Default.Warning
-                                else -> throw IllegalArgumentException("Invalid Nav type")
-                            },
-                            contentDescription = item.route,
-                            tint = if (selected) selectedColor else unselectedColor,
-                            modifier = Modifier.size(28.dp).scale(iconScale)
-                        )
-
-                        // 间距的高度动画
-                        Spacer(Modifier.height(labelPadding))
-
-                        if (selected) {
-                            Text(
-                                text = labelProvider(item),
-                                color = selectedColor,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 12.sp // 侧边栏文字通常稍微小一点
-                            )
-                        }
-                    }
+                    Icon(
+                        imageVector = when(item){
+                            is Home -> Icons.Default.Home
+                            is Config -> Icons.Default.Build
+                            is Logcat -> Icons.Default.Warning
+                            else -> Icons.Default.Warning
+                        },
+                        // 使用 labelProvider 作为描述，保证无障碍功能正常
+                        contentDescription = labelProvider(item),
+                        tint = iconColor,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .scale(iconScale)
+                    )
                 }
             }
         }
