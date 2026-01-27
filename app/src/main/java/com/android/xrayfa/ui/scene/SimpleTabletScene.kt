@@ -63,12 +63,12 @@ class XrayFASceneStrategy<T : Any>(val windowSizeClass: WindowSizeClass) : Scene
     }
 
     override fun SceneStrategyScope<T>.calculateScene(entries: List<NavEntry<T>>): Scene<T>? {
-        if (windowSizeClass.isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)) {
+        if (!windowSizeClass.isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)) {
             return null
         }
 
         val configEntry =
-            entries.lastOrNull()?.takeIf { it.metadata.containsKey(CONFIG_KEY) } ?: return null
+            entries.findLast { it.metadata.containsKey(CONFIG_KEY) } ?: return null
         val detailEntry =
             entries.lastOrNull()?.takeIf { it.metadata.containsKey(DETAIL_KEY) } ?: return null
 

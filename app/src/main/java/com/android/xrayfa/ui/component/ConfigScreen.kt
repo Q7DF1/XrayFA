@@ -96,7 +96,7 @@ fun ConfigScreen(
         Column(modifier = Modifier.fillMaxSize()){
 
             TopAppBar(
-                title = {Text(context.getString(Config.title))},
+                title = {Text(stringResource(Config.title))},
                 navigationIcon = {
                     Icon(
                         imageVector = Icons.Default.Build,
@@ -132,7 +132,6 @@ fun ConfigScreen(
                             },
                             onChoose = {
                                 xrayViewmodel.setSelectedNode(node.id)
-                                onNavigate(Subscription)
                             },
                             onShare = {
                                 xrayViewmodel.generateQRCode(node.id)
