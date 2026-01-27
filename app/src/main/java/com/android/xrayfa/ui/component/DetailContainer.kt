@@ -54,7 +54,7 @@ fun DetailContainer(
     Scaffold(
         topBar = {
             TopAppBar(
-            title = { Text("Detail") },
+                title = { Text("Detail") },
                 modifier = Modifier.shadow(4.dp)
             )
         }

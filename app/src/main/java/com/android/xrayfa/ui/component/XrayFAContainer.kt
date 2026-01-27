@@ -63,6 +63,7 @@ import com.android.xrayfa.ui.navigation.Subscription
 import com.android.xrayfa.ui.navigation.rememberListDetailSceneStrategy
 import com.android.xrayfa.ui.navigation.rememberNavigationState
 import com.android.xrayfa.ui.navigation.toEntries
+import com.android.xrayfa.ui.scene.XrayFASceneStrategy
 import com.android.xrayfa.ui.scene.rememberXrayFASceneStrategy
 import com.android.xrayfa.viewmodel.AppsViewmodel
 import com.android.xrayfa.viewmodel.DetailViewmodel
@@ -142,31 +143,27 @@ fun XrayFAContainer(
                 labelProvider = { item -> item.route },
             )
 
-            val backStack = rememberNavBackStack(Home,Settings)
+            val backStack = rememberNavBackStack(Config, Detail("",""))
             val sceneStrategy = rememberXrayFASceneStrategy<NavKey>()
-            Scaffold { paddingValues ->
-                NavDisplay(
+            NavDisplay(
                     backStack = backStack,
-                    modifier = Modifier.padding(paddingValues = paddingValues),
                     onBack =  { backStack.removeLastOrNull() },
                     sceneStrategy = sceneStrategy,
                     entryProvider = entryProvider {
-                        entry<Home>(
-                            metadata = ListDetailSceneStrategy.listPane()
+                        entry<Config>(
+                            metadata = XrayFASceneStrategy.configPane()
                         ) {
-                            HomeScreen(xrayViewmodel)
+                            ConfigScreen(xrayViewmodel) {
+                                backStack.addDetail(it as Detail)
+                            }
                         }
-                        entry<Settings>(
-                            metadata = ListDetailSceneStrategy.detailPane()
+                        entry<Detail>(
+                            metadata = XrayFASceneStrategy.detailPane()
                         ) {
-                            SettingsContainer(
-                                settingsViewmodel,
-                                onNavigate = { navigator.navigate(it) }
-                            )
+                            DetailContainer(it.protocol, it.content, detailViewmodel)
                         }
                     }
-                )
-            }
+            )
         }
     }else {
 
@@ -274,9 +271,9 @@ val popAnimationSpec = spring<Float>(
     stiffness = Spring.StiffnessLow // 刚度：低（越低越慢越Q）
 )
 val subtleAnimSpec = tween<Float>(durationMillis = 300, easing = FastOutSlowInEasing)
-private fun NavBackStack<NavKey>.addDetail(detailRoute: Home) {
+private fun NavBackStack<NavKey>.addDetail(detailRoute: Detail) {
 
     // Remove any existing detail routes, then add the new detail route
-    removeIf { it is Home }
+    removeIf { it is Detail }
     add(detailRoute)
 }
