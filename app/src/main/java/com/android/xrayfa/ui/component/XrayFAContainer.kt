@@ -6,10 +6,6 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -55,12 +51,10 @@ import com.android.xrayfa.R
 import com.android.xrayfa.ui.SettingsActivity
 import com.android.xrayfa.ui.navigation.Apps
 import com.android.xrayfa.ui.navigation.Detail
-import com.android.xrayfa.ui.navigation.ListDetailSceneStrategy
 import com.android.xrayfa.ui.navigation.NavigateDestination
 import com.android.xrayfa.ui.navigation.Navigator
 import com.android.xrayfa.ui.navigation.Settings
 import com.android.xrayfa.ui.navigation.Subscription
-import com.android.xrayfa.ui.navigation.rememberListDetailSceneStrategy
 import com.android.xrayfa.ui.navigation.rememberNavigationState
 import com.android.xrayfa.ui.navigation.toEntries
 import com.android.xrayfa.ui.scene.XrayFASceneStrategy
@@ -91,7 +85,6 @@ fun XrayFAContainer(
     )
     val navigator = remember { Navigator(navigationState) }
     val current = navigationState.topLevelRoute
-
     val entryProvider: (NavKey) -> NavEntry<NavKey> = entryProvider {
         entry<Home> { key ->
             HomeScreen(xrayViewmodel) {
@@ -133,17 +126,21 @@ fun XrayFAContainer(
         Row(
             modifier = Modifier.fillMaxSize()
         ) {
+
+            val backStack = rememberNavBackStack(
+                Home, Settings
+            )
+            val left =  backStack.first()
             // NavigationNail
             XraySideNavOpt(
                 items = list_navigation,
-                currentScreen = current as NavigateDestination,
+                currentScreen = left as NavigateDestination,
                 onItemSelected = { item ->
-                    navigator.navigate(item)
+                    backStack.addLeft(item)
                 },
                 labelProvider = { item -> item.route },
             )
 
-            val backStack = rememberNavBackStack(Config, Detail("",""))
             val sceneStrategy = rememberXrayFASceneStrategy<NavKey>()
             NavDisplay(
                     backStack = backStack,
@@ -151,16 +148,45 @@ fun XrayFAContainer(
                     sceneStrategy = sceneStrategy,
                     entryProvider = entryProvider {
                         entry<Config>(
-                            metadata = XrayFASceneStrategy.configPane()
+                            metadata = XrayFASceneStrategy.leftPane()
                         ) {
                             ConfigScreen(xrayViewmodel) {
-                                backStack.addDetail(it as Detail)
+                                backStack.addRight(it)
                             }
                         }
+                        entry<Home>(
+                            metadata = XrayFASceneStrategy.leftPane()
+                        ) {
+                            HomeScreen(xrayViewmodel) {
+                                backStack.addRight(Settings)
+                            }
+                        }
+                        entry<Logcat>(
+                            metadata = XrayFASceneStrategy.leftPane()
+                        ) {
+                            LogcatScreen(xrayViewmodel)
+                        }
                         entry<Detail>(
-                            metadata = XrayFASceneStrategy.detailPane()
+                            metadata = XrayFASceneStrategy.rightPane()
                         ) {
                             DetailContainer(it.protocol, it.content, detailViewmodel)
+                        }
+                        entry<Settings>(
+                            metadata = XrayFASceneStrategy.rightPane()
+                        ) {
+                            SettingsContainer(settingsViewmodel) {
+                            }
+                        }
+                        entry<Subscription>(
+                            metadata = XrayFASceneStrategy.rightPane()
+                        ) {
+                            SubscriptionScreen(subscriptViewmodel) {
+                            }
+                        }
+                        entry<Apps>(
+                            metadata = XrayFASceneStrategy.rightPane()
+                        ) {
+                            AppsScreen(appViewmodel)
                         }
                     }
             )
@@ -271,9 +297,23 @@ val popAnimationSpec = spring<Float>(
     stiffness = Spring.StiffnessLow // 刚度：低（越低越慢越Q）
 )
 val subtleAnimSpec = tween<Float>(durationMillis = 300, easing = FastOutSlowInEasing)
-private fun NavBackStack<NavKey>.addDetail(detailRoute: Detail) {
+private fun NavBackStack<NavKey>.addRight(right: NavKey) {
 
     // Remove any existing detail routes, then add the new detail route
-    removeIf { it is Detail }
-    add(detailRoute)
+    if (size >= 2) {
+        removeLast()
+    }
+    add(right)
+}
+
+private fun NavBackStack<NavKey>.addLeft(left: NavKey) {
+    if (lastOrNull() == left) {
+        return
+    }
+    removeAll(this)
+    add(left)
+    when(left) {
+        is Home -> add(Settings)
+        is Config -> add(Subscription)
+    }
 }

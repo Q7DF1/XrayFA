@@ -13,6 +13,7 @@ import androidx.navigation3.scene.SceneStrategy
 import androidx.navigation3.scene.SceneStrategyScope
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
+import com.android.xrayfa.ui.navigation.Logcat
 
 class SimpleTabletScene<T:Any>(
     override val key: Any,
@@ -53,13 +54,13 @@ class XrayFASceneStrategy<T : Any>(val windowSizeClass: WindowSizeClass) : Scene
          * Helper function to add metadata to a [NavEntry] indicating it can be displayed
          * as a list in the [com.android.xrayfa.ui.scene.XrayFASceneStrategy].
          */
-        fun configPane() = mapOf(CONFIG_KEY to true)
+        fun leftPane() = mapOf(CONFIG_KEY to true)
 
         /**
          * Helper function to add metadata to a [NavEntry] indicating it can be displayed
          * as a list in the [com.android.xrayfa.ui.scene.XrayFASceneStrategy].
          */
-        fun detailPane() = mapOf(DETAIL_KEY to true)
+        fun rightPane() = mapOf(DETAIL_KEY to true)
     }
 
     override fun SceneStrategyScope<T>.calculateScene(entries: List<NavEntry<T>>): Scene<T>? {
@@ -67,18 +68,21 @@ class XrayFASceneStrategy<T : Any>(val windowSizeClass: WindowSizeClass) : Scene
             return null
         }
 
-        val configEntry =
+        val leftEntry =
             entries.findLast { it.metadata.containsKey(CONFIG_KEY) } ?: return null
-        val detailEntry =
+        val rightEntry =
             entries.lastOrNull()?.takeIf { it.metadata.containsKey(DETAIL_KEY) } ?: return null
-
-        val sceneKey = configEntry.contentKey
+         //logcat just show as full screen
+        if (leftEntry == Logcat) {
+            return null
+        }
+        val sceneKey = leftEntry.contentKey
 
         return SimpleTabletScene(
             key = sceneKey,
             previousEntries = entries.dropLast(1),
-            leftEntry = configEntry,
-            rightEntry = detailEntry
+            leftEntry = leftEntry,
+            rightEntry = rightEntry
         )
 
 
