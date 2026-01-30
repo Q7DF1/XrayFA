@@ -1,4 +1,4 @@
-# 🚀 XrayFA
+# 🚀 [XrayFA](https://github.com/Q7DF1/XrayFA)
 
 **XrayFA** is a powerful and user-friendly Android client for [Xray-core](https://github.com/XTLS/Xray-core). It provides a secure and fast proxy experience on Android devices, supporting multiple protocols including VLESS, VMESS, Shadowsocks, and Trojan.
 
