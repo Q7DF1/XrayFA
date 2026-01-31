@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    kotlin("kapt") version "2.2.10"
+    alias(libs.plugins.kotlin.kapt)
 }
 
 android {

@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    kotlin("kapt") version "2.2.10"
+    alias(libs.plugins.kotlin.kapt)
     id ("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
 }
 
