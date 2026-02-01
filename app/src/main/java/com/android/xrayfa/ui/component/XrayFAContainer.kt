@@ -6,6 +6,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
@@ -268,10 +270,11 @@ fun ConfigActionButton(
     }
     DropdownMenu(
         expanded = expend,
-        onDismissRequest = {expend = false}
+        onDismissRequest = {expend = false},
+        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
     ) {
         DropdownMenuItem(
-            text = {Text("subscription")},
+            text = {Text(stringResource(R.string.menu_subscription))},
             onClick = {
                 expend = false
                 onNavigate(Subscription)
@@ -279,7 +282,7 @@ fun ConfigActionButton(
             }
         )
         DropdownMenuItem(
-            text = {Text("delete All")},
+            text = {Text(stringResource(R.string.menu_delete_all))},
             onClick = {
                 expend = false
                 xrayViewmodel.showDeleteDialog(/*delete all*/)

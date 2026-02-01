@@ -66,4 +66,6 @@
     <string name="detail_title">详情</string>
     <string name="settings_title">设置</string>
     <string name="subscription_title">订阅</string>
+    <string name="menu_subscription">订阅</string>
+    <string name="menu_delete_all">全部删除</string>
 </resources>

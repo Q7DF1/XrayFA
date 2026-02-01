@@ -75,4 +75,6 @@
     <string name="detail_title">Detail</string>
     <string name="settings_title">Settings</string>
     <string name="subscription_title">Subscription</string>
+    <string name="menu_subscription">subscription</string>
+    <string name="menu_delete_all">Delete All</string>
 </resources>
