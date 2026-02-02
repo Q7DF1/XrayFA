@@ -132,6 +132,7 @@ fun ConfigScreen(
                             },
                             onChoose = {
                                 xrayViewmodel.setSelectedNode(node.id)
+                                onNavigate(Home)
                             },
                             onShare = {
                                 xrayViewmodel.generateQRCode(node.id)
@@ -168,6 +169,7 @@ fun ConfigScreen(
         if (showSheet) {
             ModalBottomSheet(
                 onDismissRequest = {showSheet = false},
+                containerColor = MaterialTheme.colorScheme.surface,
                 sheetState = sheetState
             ) {
                 Row(
