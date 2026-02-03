@@ -207,6 +207,7 @@ fun SubscriptionScreen(
             if (isBottomSheetShow) {
                 ModalBottomSheet(
                     onDismissRequest = { isBottomSheetShow = false },
+                    containerColor = MaterialTheme.colorScheme.surface
                 ) {
                     Column(
                         modifier = Modifier.fillMaxWidth(0.7f)

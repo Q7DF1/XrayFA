@@ -242,8 +242,11 @@ fun SettingsScreen(
 
                 SettingsFieldBox(
                     title = R.string.xrayfa_version,
-                    content = versionName
+                    content = versionName,
+                    icon = Icons.Default.Refresh
                 ) {
+                    // check version
+
                 }
 
                 SettingsFieldBox(
@@ -381,7 +384,8 @@ fun SettingsWithBtnBox(
             )
         }
         Row(
-            modifier = Modifier.weight(0.3f)
+            modifier = Modifier.weight(0.3f),
+            horizontalArrangement = Arrangement.Center
         ) {
             IconButton(
                 onClick = onDownloadClick
