@@ -51,15 +51,6 @@ class DetailViewmodel(
             .decodeShadowSocks(content)
     }
 
-    fun saveVLESSModify(id: Int,config: VLESSConfigParser.VLESSConfig) {
-        val newUrl = (parserFactory.getParser(Protocol.VLESS.protocolType)
-                as VLESSConfigParser).encodeVLESS(config)
-
-        viewModelScope.launch(Dispatchers.IO) {
-            nodeRepository.updateNodeUrlAndPort(id,newUrl,config.port)
-        }
-    }
-
 }
 
 

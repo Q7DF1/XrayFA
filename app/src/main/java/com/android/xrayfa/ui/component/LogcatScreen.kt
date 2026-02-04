@@ -44,7 +44,7 @@ fun LogcatScreen(
         ) {
            Column(modifier = Modifier.fillMaxSize()) {
                TopAppBar(
-                   title = {Text(context.getString(Logcat.title))},
+                   title = {Text(stringResource(Logcat.title))},
                    navigationIcon = {
                        Icon(
                            imageVector = Icons.Default.Warning,
