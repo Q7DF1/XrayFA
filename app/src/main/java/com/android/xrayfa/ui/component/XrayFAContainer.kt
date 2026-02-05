@@ -295,11 +295,6 @@ fun ConfigActionButton(
 fun onSettingsClick(context: Context) {
     context.startActivity(Intent(context, SettingsActivity::class.java))
 }
-val popAnimationSpec = spring<Float>(
-    dampingRatio = Spring.DampingRatioMediumBouncy, // 弹性阻尼：中等回弹
-    stiffness = Spring.StiffnessLow // 刚度：低（越低越慢越Q）
-)
-val subtleAnimSpec = tween<Float>(durationMillis = 300, easing = FastOutSlowInEasing)
 private fun NavBackStack<NavKey>.addRight(right: NavKey) {
 
     // Remove any existing detail routes, then add the new detail route
