@@ -145,23 +145,26 @@ class XrayBaseService
 
     @SuppressLint("DefaultLocale")
     private fun makeForegroundNotification(update: Boolean): Notification {
-        if (update) {
-            notificationView.setTextViewText(R.id.stream_up,"${String.format("%.1f",upStream)} kb/s")
-            notificationView.setTextViewText(R.id.stream_down,"${String.format("%.1f",downStream)} kb/s")
-        } else {
-            val pendingIntent = PendingIntent.getActivity(
-                this,0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE
-            )
+//        if (update) {
+//            notificationView.setTextViewText(R.id.stream_up,"${String.format("%.1f",upStream)} kb/s")
+//            notificationView.setTextViewText(R.id.stream_down,"${String.format("%.1f",downStream)} kb/s")
+//        } else {
+//            val pendingIntent = PendingIntent.getActivity(
+//                this,0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE
+//            )
             notification = NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(resources.getString(R.string.app_label))
-                .setContent(notificationView)
-                .setCustomBigContentView(notificationView)
+                .setContentText("${String.format("%.1f",upStream)} kb/s ${String.format("%.1f",downStream)} kb/s")
+//                .setContent(notificationView)
                 .setSmallIcon(R.drawable.ic_xrayfa_foreground)
-                .setContentIntent(pendingIntent)
+                //.setContentIntent(pendingIntent)
                 .setPriority(NotificationManager.IMPORTANCE_LOW)
                 .setSilent(true)
+                .setRequestPromotedOngoing(true)
+                .setOngoing(true)
+                .setStyle(NotificationCompat.BigTextStyle())
                 .build()
-        }
+//        }
 
         return notification
     }
