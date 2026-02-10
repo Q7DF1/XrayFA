@@ -28,7 +28,8 @@ data class SettingsState(
     val delayTestUrl: String = DEFAULT_DELAY_TEST_URL,
     val xrayCoreVersion: String = "unknown",
     val version: String = "1.0.0",
-    val geoLiteInstall: Boolean = false
+    val geoLiteInstall: Boolean = false,
+    val liveUpdateNotification: Boolean = false
 )
 object SettingsKeys {
     val DARK_MODE = intPreferencesKey("dark_mode")
@@ -42,6 +43,7 @@ object SettingsKeys {
     val ALLOW_PACKAGES = stringPreferencesKey("allow_packages")
     val XRAY_CORE_VERSION = stringPreferencesKey("xray_version")
     val GEO_LITE_INSTALL = booleanPreferencesKey("geo_lite_install")
+    val LIVE_UPDATE_NOTIFICATION = booleanPreferencesKey("live_update_notification")
 }
 
 const val DEFAULT_DELAY_TEST_URL = "https://www.google.com"
@@ -77,7 +79,8 @@ class SettingsRepository
             delayTestUrl = prefs[SettingsKeys.DELAY_TEST_URL] ?: DEFAULT_DELAY_TEST_URL,
             version = prefs[SettingsKeys.VERSION] ?: "1.0.0",
             xrayCoreVersion = prefs[SettingsKeys.XRAY_CORE_VERSION]?:"unknown",
-            geoLiteInstall = prefs[SettingsKeys.GEO_LITE_INSTALL] == true
+            geoLiteInstall = prefs[SettingsKeys.GEO_LITE_INSTALL] == true,
+            liveUpdateNotification = prefs[SettingsKeys.LIVE_UPDATE_NOTIFICATION] == true
         )
 
     }
@@ -137,6 +140,12 @@ class SettingsRepository
     suspend fun setGeoLiteInstall(installed: Boolean) {
         context.dataStore.edit {
             it[SettingsKeys.GEO_LITE_INSTALL] = installed
+        }
+    }
+
+    suspend fun setLiveUpdateNotification(enable: Boolean) {
+        context.dataStore.edit {
+            it[SettingsKeys.LIVE_UPDATE_NOTIFICATION] = enable
         }
     }
 

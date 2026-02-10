@@ -119,6 +119,12 @@ class SettingsViewmodel(
         }
     }
 
+    fun setLiveUpdateNotification(enable: Boolean) {
+        viewModelScope.launch {
+            repository.setLiveUpdateNotification(enable)
+        }
+    }
+
     fun startAppsActivity(context: Context) {
         val intent = Intent(context, AppsActivity::class.java)
         context.startActivity(intent)
