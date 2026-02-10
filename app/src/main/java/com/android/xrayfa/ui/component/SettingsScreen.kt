@@ -143,6 +143,15 @@ fun SettingsScreen(
                     //viewmodel.startAppsActivity(context)
                     onNavigate(Apps)
                 }
+
+                SettingsCheckBox(
+                    title = R.string.live_update_notification,
+                    description = R.string.live_update_notification_desc,
+                    checked = settingsState.liveUpdateNotification,
+                    onCheckedChange = { checked->
+                        viewmodel.setLiveUpdateNotification(checked)
+                    }
+                )
             }
 
             SettingsGroup(

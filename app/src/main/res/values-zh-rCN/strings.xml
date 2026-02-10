@@ -68,4 +68,6 @@
     <string name="subscription_title">订阅</string>
     <string name="menu_subscription">订阅</string>
     <string name="menu_delete_all">全部删除</string>
+    <string name="live_update_notification">动态通知</string>
+    <string name="live_update_notification_desc">通知将会显示在状态栏</string>
 </resources>

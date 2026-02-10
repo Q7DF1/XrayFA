@@ -77,4 +77,6 @@
     <string name="subscription_title">Subscription</string>
     <string name="menu_subscription">subscription</string>
     <string name="menu_delete_all">Delete All</string>
+    <string name="live_update_notification">Live update notification</string>
+    <string name="live_update_notification_desc">Notification will pin at status bar</string>
 </resources>
