@@ -47,6 +47,7 @@ class XrayBaseService
     private var notificationView = RemoteViews("com.android.xrayfa", R.layout.notification_traffic_layout)
     private lateinit var notification: Notification
     private var liveUpdate = false
+    private lateinit var pendingIntent: PendingIntent
     var upStream = 0.0
     var downStream = 0.0
 
@@ -75,6 +76,13 @@ class XrayBaseService
 
     override fun onCreate() {
         super.onCreate()
+        pendingIntent = PendingIntent.getActivity(
+            this,0, Intent(
+                this,
+                MainActivity::class.java
+            ),
+            PendingIntent.FLAG_IMMUTABLE
+        )
         createNotificationChannel()
     }
 
@@ -148,6 +156,20 @@ class XrayBaseService
 
         if (liveUpdate) {
         //todo update notification
+            notification =  NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle(resources.getString(R.string.app_label))
+                .setContentText("${String.format("%.1f",upStream)} kb/s ${String.format("%.1f",downStream)} kb/s")
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentIntent(pendingIntent)
+                .setPriority(NotificationManager.IMPORTANCE_LOW)
+                .setSilent(true)
+                .setRequestPromotedOngoing(true)
+                .setOngoing(true)
+                .setStyle(NotificationCompat.BigTextStyle()
+                    .setBigContentTitle(resources.getString(R.string.app_label))
+                    .bigText("${String.format("%.1f",upStream)} kb/s ${String.format("%.1f",downStream)} kb/s")
+                )
+                .build()
         }else {
             notificationView.setTextViewText(R.id.stream_up,"${String.format("%.1f",upStream)} kb/s")
             notificationView.setTextViewText(R.id.stream_down,"${String.format("%.1f",downStream)} kb/s")
@@ -160,13 +182,7 @@ class XrayBaseService
     @SuppressLint("DefaultLocale")
     private fun makeForegroundNotification(liveUpdate: Boolean = false): Notification {
 
-        val pendingIntent = PendingIntent.getActivity(
-            this,0, Intent(
-                this,
-                MainActivity::class.java
-            ),
-            PendingIntent.FLAG_IMMUTABLE
-        )
+
         notification = if (liveUpdate) {
             NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(resources.getString(R.string.app_label))
@@ -177,7 +193,10 @@ class XrayBaseService
                 .setSilent(true)
                 .setRequestPromotedOngoing(true)
                 .setOngoing(true)
-                .setStyle(NotificationCompat.BigTextStyle())
+                .setStyle(NotificationCompat.BigTextStyle()
+                    .setBigContentTitle(resources.getString(R.string.app_label))
+                    .bigText("${String.format("%.1f",upStream)} kb/s ${String.format("%.1f",downStream)} kb/s")
+                )
                 .build()
         } else {
             NotificationCompat.Builder(this, CHANNEL_ID)
@@ -208,8 +227,11 @@ class XrayBaseService
         val serviceChannel = NotificationChannel(
             CHANNEL_ID,
             "Foreground Service Channel",
-            NotificationManager.IMPORTANCE_HIGH
-        )
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            setShowBadge(false)
+            lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
+        }
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(serviceChannel)
     }
