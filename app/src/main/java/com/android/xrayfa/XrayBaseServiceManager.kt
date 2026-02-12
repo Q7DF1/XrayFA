@@ -40,7 +40,7 @@ class XrayBaseServiceManager
         }
         context.startForegroundService(intent)
         qsStateCallBack(true)
-        trafficDetector.addConsume({
+        trafficDetector.addConsumer({
             viewmodelTrafficCallback(it)
         })
         return true

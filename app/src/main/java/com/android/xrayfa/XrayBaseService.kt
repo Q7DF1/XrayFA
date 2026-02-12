@@ -1,18 +1,13 @@
 package com.android.xrayfa
 
-import android.annotation.SuppressLint
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.util.Log
-import android.widget.RemoteViews
-import androidx.core.app.NotificationCompat
 import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.helper.NotificationHelper
 import com.android.xrayfa.utils.EventBus
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_LINK
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_PROTOCOL
@@ -29,27 +24,18 @@ class XrayBaseService
 @Inject constructor(
     private val tun2SocksService: Tun2SocksService,
     private val xrayCoreManager: XrayCoreManager,
-    private val settingsRepo: SettingsRepository
+    private val settingsRepo: SettingsRepository,
+    private val notificationHelper: NotificationHelper
 ): VpnService(){
 
     companion object {
 
         const val TAG = "XrayBaseService"
-        const val CHANNEL_ID = "foreground_service_v2rayFA_channel"
-        const val NOTIFICATION_ID = 1
         var isRunning: Boolean = false
     }
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Default + serviceJob)
-
-    @SuppressLint("RemoteViewLayout")
-    private var notificationView = RemoteViews("com.android.xrayfa", R.layout.notification_traffic_layout)
-    private lateinit var notification: Notification
-    private var liveUpdate = false
-    private lateinit var pendingIntent: PendingIntent
-    var upStream = 0.0
-    var downStream = 0.0
 
     var tunFd: ParcelFileDescriptor? = null
 
@@ -76,14 +62,6 @@ class XrayBaseService
 
     override fun onCreate() {
         super.onCreate()
-        pendingIntent = PendingIntent.getActivity(
-            this,0, Intent(
-                this,
-                MainActivity::class.java
-            ),
-            PendingIntent.FLAG_IMMUTABLE
-        )
-        createNotificationChannel()
     }
 
     override fun onDestroy() {
@@ -125,13 +103,18 @@ class XrayBaseService
 
 
     private fun startV2rayCoreService(link: String,protocol: String) {
+        val notification = notificationHelper.makeNotification(Pair(0.0,0.0))
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(
+                NotificationHelper.NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+            )
+        }else startForeground(NotificationHelper.NOTIFICATION_ID,notification)
         serviceScope.launch {
-            liveUpdate = settingsRepo.settingsFlow.first().liveUpdateNotification
-            startForegroundNotification(liveUpdate)
-            xrayCoreManager.addConsume { (up,down)->
-                upStream = up
-                downStream = down
-                postUpdateForegroundNotification()
+            notificationHelper.showNotification()
+            xrayCoreManager.addConsumer { data->
+                notificationHelper.updateNotification(data)
             }
             xrayCoreManager.startV2rayCore(link,protocol)
             startVpn()
@@ -152,87 +135,5 @@ class XrayBaseService
         stopSelf()
         stopForeground(STOP_FOREGROUND_REMOVE)
     }
-    private fun updateNotification(): Boolean {
 
-        if (liveUpdate) {
-        //todo update notification
-            notification =  NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle(resources.getString(R.string.app_label))
-                .setContentText("${String.format("%.1f",upStream)} kb/s ${String.format("%.1f",downStream)} kb/s")
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentIntent(pendingIntent)
-                .setPriority(NotificationManager.IMPORTANCE_LOW)
-                .setSilent(true)
-                .setRequestPromotedOngoing(true)
-                .setOngoing(true)
-                .setStyle(NotificationCompat.BigTextStyle()
-                    .setBigContentTitle(resources.getString(R.string.app_label))
-                    .bigText("${String.format("%.1f",upStream)} kb/s ${String.format("%.1f",downStream)} kb/s")
-                )
-                .build()
-        }else {
-            notificationView.setTextViewText(R.id.stream_up,"${String.format("%.1f",upStream)} kb/s")
-            notificationView.setTextViewText(R.id.stream_down,"${String.format("%.1f",downStream)} kb/s")
-        }
-
-        return true
-
-
-    }
-    @SuppressLint("DefaultLocale")
-    private fun makeForegroundNotification(liveUpdate: Boolean = false): Notification {
-
-
-        notification = if (liveUpdate) {
-            NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle(resources.getString(R.string.app_label))
-                .setContentText("${String.format("%.1f",upStream)} kb/s ${String.format("%.1f",downStream)} kb/s")
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentIntent(pendingIntent)
-                .setPriority(NotificationManager.IMPORTANCE_LOW)
-                .setSilent(true)
-                .setRequestPromotedOngoing(true)
-                .setOngoing(true)
-                .setStyle(NotificationCompat.BigTextStyle()
-                    .setBigContentTitle(resources.getString(R.string.app_label))
-                    .bigText("${String.format("%.1f",upStream)} kb/s ${String.format("%.1f",downStream)} kb/s")
-                )
-                .build()
-        } else {
-            NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle(resources.getString(R.string.app_label))
-                .setContent(notificationView)
-                .setCustomBigContentView(notificationView)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentIntent(pendingIntent)
-                .setPriority(NotificationManager.IMPORTANCE_LOW)
-                .setSilent(true)
-                .build()
-        }
-
-        return notification
-    }
-    private fun startForegroundNotification(liveUpdate: Boolean) {
-        val notification = makeForegroundNotification(liveUpdate)
-        startForeground(NOTIFICATION_ID, notification)
-    }
-
-    private fun postUpdateForegroundNotification() {
-        updateNotification()
-        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        manager.notify(NOTIFICATION_ID, notification)
-    }
-
-    private fun createNotificationChannel() {
-        val serviceChannel = NotificationChannel(
-            CHANNEL_ID,
-            "Foreground Service Channel",
-            NotificationManager.IMPORTANCE_DEFAULT
-        ).apply {
-            setShowBadge(false)
-            lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
-        }
-        val manager = getSystemService(NotificationManager::class.java)
-        manager.createNotificationChannel(serviceChannel)
-    }
 }
