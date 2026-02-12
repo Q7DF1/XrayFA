@@ -13,7 +13,7 @@ interface TrafficDetector {
     fun stopTrafficDetection()
 
 
-    fun addConsume(consume: Consumer<Pair<Double, Double>>)
+    fun addConsumer(consume: Consumer<Pair<Double, Double>>)
 
     suspend fun consumeTraffic()
 

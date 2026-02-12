@@ -161,7 +161,7 @@ class XrayCoreManager
         Log.d(TAG, "stopTrafficDetection: ${job?.isActive}")
     }
 
-    override fun addConsume(consume: Consumer<Pair<Double, Double>>) {
+    override fun addConsumer(consume: Consumer<Pair<Double, Double>>) {
         consumes.add(consume)
     }
 
