@@ -60,9 +60,6 @@ class XrayBaseService
         }
     }
 
-    override fun onCreate() {
-        super.onCreate()
-    }
 
     override fun onDestroy() {
         Log.i(TAG, "onDestroy: close VPN")
@@ -103,19 +100,19 @@ class XrayBaseService
 
 
     private fun startV2rayCoreService(link: String,protocol: String) {
-        val notification = notificationHelper.makeNotification(Pair(0.0,0.0))
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(
-                NotificationHelper.NOTIFICATION_ID,
-                notification,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
-            )
-        }else startForeground(NotificationHelper.NOTIFICATION_ID,notification)
+//        val notification = notificationHelper.makeNotification(Pair(0.0,0.0))
+//        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//            startForeground(
+//                NotificationHelper.NOTIFICATION_ID,
+//                notification,
+//                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+//            )
+//        }else startForeground(NotificationHelper.NOTIFICATION_ID,notification)
         serviceScope.launch {
             notificationHelper.showNotification()
-            xrayCoreManager.addConsumer { data->
-                notificationHelper.updateNotification(data)
-            }
+//            xrayCoreManager.addConsumer { data->
+//                notificationHelper.updateNotification(data)
+//            }
             xrayCoreManager.startV2rayCore(link,protocol)
             startVpn()
             tunFd?.let {
@@ -133,7 +130,7 @@ class XrayBaseService
         stopVPN()
         xrayCoreManager.stopV2rayCore()
         stopSelf()
-        stopForeground(STOP_FOREGROUND_REMOVE)
+        notificationHelper.hideNotification()
     }
 
 }

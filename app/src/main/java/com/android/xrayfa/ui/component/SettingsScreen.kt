@@ -66,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.datastore.preferences.core.Preferences
 import com.android.xrayfa.common.repository.SettingsKeys
+import com.android.xrayfa.helper.NotificationHelper
 import com.android.xrayfa.ui.navigation.Apps
 import com.android.xrayfa.ui.navigation.NavigateDestination
 import com.android.xrayfa.viewmodel.GEOFileType
@@ -143,15 +144,16 @@ fun SettingsScreen(
                     //viewmodel.startAppsActivity(context)
                     onNavigate(Apps)
                 }
-
-                SettingsCheckBox(
-                    title = R.string.live_update_notification,
-                    description = R.string.live_update_notification_desc,
-                    checked = settingsState.liveUpdateNotification,
-                    onCheckedChange = { checked->
-                        viewmodel.setLiveUpdateNotification(checked)
-                    }
-                )
+                if (NotificationHelper.canPostPromotionsEnabled(LocalContext.current)) {
+                    SettingsCheckBox(
+                        title = R.string.live_update_notification,
+                        description = R.string.live_update_notification_desc,
+                        checked = settingsState.liveUpdateNotification,
+                        onCheckedChange = { checked->
+                            viewmodel.setLiveUpdateNotification(checked)
+                        }
+                    )
+                }
             }
 
             SettingsGroup(
