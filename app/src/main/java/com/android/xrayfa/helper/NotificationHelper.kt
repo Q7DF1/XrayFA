@@ -6,8 +6,11 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.util.Log
 import android.widget.RemoteViews
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.android.xrayfa.MainActivity
@@ -29,9 +32,17 @@ class NotificationHelper @Inject constructor(
 ) {
 
     companion object {
-        const val CHANNEL_ID = "foreground_service_v2rayFA_channel"
+        const val CHANNEL_ID = "foreground_service_v2rayFA_channel_notification_id"
         const val NOTIFICATION_ID = 1
         const val TAG = "NotificationHelper"
+
+        fun canPostPromotionsEnabled(context: Context): Boolean {
+            return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+                with(NotificationManagerCompat.from(context)) {
+                    canPostPromotedNotifications()
+                }
+            }else false
+        }
     }
     private var notificationView = RemoteViews("com.android.xrayfa", R.layout.notification_traffic_layout)
     val pendingIntent: PendingIntent? = PendingIntent.getActivity(
@@ -42,20 +53,19 @@ class NotificationHelper @Inject constructor(
     PendingIntent.FLAG_IMMUTABLE
     )
 
-    val liveBuilder = NotificationCompat.Builder(context,CHANNEL_ID)
+    val liveBuilder: NotificationCompat.Builder = NotificationCompat.Builder(context,CHANNEL_ID)
 
         .setContentTitle(context.resources.getString(R.string.app_label))
-        //.setContentText("${String.format("%.1f",upStream)} kb/s ${String.format("%.1f",downStream)} kb/s")
-        .setSmallIcon(R.drawable.small_notification)
+        .setContentText("${String.format("%.1f",0.0)} kb/s ${String.format("%.1f",0.0)} kb/s")
+        .setSmallIcon(R.drawable.ic_small_notification)
         .setContentIntent(pendingIntent)
         .setPriority(NotificationManager.IMPORTANCE_MAX)
-        .setCategory(NotificationCompat.CATEGORY_SERVICE)
-        .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
+        .setCategory(NotificationCompat.CATEGORY_STATUS)
         .setSilent(true)
         .setRequestPromotedOngoing(true)
         .setOngoing(true)
-        .setShortCriticalText(context.resources.getString(R.string.app_label))
-    val normalBuilder = NotificationCompat.Builder(context, CHANNEL_ID)
+        .setShortCriticalText("XrayFA")
+    val normalBuilder: NotificationCompat.Builder = NotificationCompat.Builder(context, CHANNEL_ID)
         .setContentTitle(context.resources.getString(R.string.app_label))
         .setContent(notificationView)
         .setCustomBigContentView(notificationView)
@@ -96,7 +106,7 @@ class NotificationHelper @Inject constructor(
         val manager = context.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(serviceChannel)
     }
-    suspend fun showNotification() {
+    fun showNotification() {
         createNotificationChannel()
         val notification = makeNotification(Pair(0.0,0.0))
         with(NotificationManagerCompat.from(context)) {
@@ -104,11 +114,17 @@ class NotificationHelper @Inject constructor(
         }
     }
 
+    fun hideNotification() {
+        with(NotificationManagerCompat.from(context)) {
+            cancel(NOTIFICATION_ID)
+        }
+    }
+
     fun makeNotification(data: Pair<Double,Double>): Notification {
 
-         return if (liveUpdate) {
+         return if (liveUpdate && canPostPromotionsEnabled(context)) {
              liveBuilder
-                 //.setContentText("${String.format("%.1f",data.first)} kb/s ${String.format("%.1f",data.second)} kb/s")
+                 .setContentText("${String.format("%.1f",data.first)} kb/s ${String.format("%.1f",data.second)} kb/s")
                  .setStyle(NotificationCompat.BigTextStyle()
                      .setBigContentTitle(context.resources.getString(R.string.app_label))
                      .bigText("${String.format("%.1f",data.first)} kb/s ${String.format("%.1f",data.second)} kb/s")
@@ -128,4 +144,8 @@ class NotificationHelper @Inject constructor(
             notify(NOTIFICATION_ID, notification)
         }
     }
+
+
+
+
 }

@@ -38,7 +38,7 @@ class XrayBaseServiceManager
             putExtra(EXTRA_LINK, first.url)
             putExtra(EXTRA_PROTOCOL, first.protocolPrefix)
         }
-        context.startForegroundService(intent)
+        context.startService(intent)
         qsStateCallBack(true)
         trafficDetector.addConsumer({
             viewmodelTrafficCallback(it)

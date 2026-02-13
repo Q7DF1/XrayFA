@@ -11,7 +11,7 @@ android {
     defaultConfig {
         //applicationId = "hev.htproxy"
         minSdk = 28
-        targetSdk = 35
+        targetSdk = 36
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 //        ndk {
