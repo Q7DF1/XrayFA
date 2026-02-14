@@ -57,6 +57,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
@@ -216,7 +217,6 @@ fun XrayBottomNavOpt(
         modifier = modifier
             .fillMaxWidth()
             .height(heightDp)
-            .background(backgroundColor)
             .padding(horizontal = 8.dp)
     ) {
         val itemWidthPx = constraints.maxWidth / itemCount
@@ -232,7 +232,6 @@ fun XrayBottomNavOpt(
                 ))
             //animWidth.animateTo(itemWidthPx.toFloat(), tween(300))
         }
-
         // 背景放大镜
         Box(
             modifier = Modifier

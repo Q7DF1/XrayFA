@@ -1,11 +1,9 @@
-package com.android.xrayfa
+package com.android.xrayfa.core
 
-import android.content.Intent
-import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
-import android.util.Log
 import android.widget.Toast
+import com.android.xrayfa.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -37,7 +35,7 @@ class QuickStartTileService
         if (!XrayBaseService.isRunning) {
             serviceScope.launch {
                 if (!xrayBaseServiceManager.startXrayBaseService(applicationContext)) {
-                    Toast.makeText(applicationContext,R.string.config_not_ready,Toast.LENGTH_SHORT)
+                    Toast.makeText(applicationContext, R.string.config_not_ready,Toast.LENGTH_SHORT)
                         .show()
                 }
             }

@@ -150,7 +150,9 @@ fun ConfigScreen(
         }
 
         AnimatedVisibility(
-            visible = !listState.isAtBottom,
+            visible = !listState.isAtBottom{ isAtBottom ->
+                if (isAtBottom) xrayViewmodel.hideNavigationBar() else xrayViewmodel.showNavigationBar()
+            },
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier.align (BiasAlignment(1f,0.9f))
@@ -264,22 +266,23 @@ fun ConfigScreen(
 }
 
 
-val LazyListState.isAtBottom: Boolean
-    get() {
-        val layoutInfo = layoutInfo
-        val visibleItems = layoutInfo.visibleItemsInfo
-        val totalItems = layoutInfo.totalItemsCount
+fun LazyListState.isAtBottom(callBack: (Boolean)-> Unit): Boolean{
+    val layoutInfo = layoutInfo
+    val visibleItems = layoutInfo.visibleItemsInfo
+    val totalItems = layoutInfo.totalItemsCount
 
-        if (visibleItems.isEmpty() || totalItems == 0) return false
+    if (visibleItems.isEmpty() || totalItems == 0) return false
 
-        val contentHeight = layoutInfo.totalItemsCount.takeIf { it > 0 }?.let {
-            layoutInfo.visibleItemsInfo.sumOf { it.size }
-        } ?: 0
-        val viewportHeight = layoutInfo.viewportEndOffset
+    val contentHeight = layoutInfo.totalItemsCount.takeIf { it > 0 }?.let {
+        layoutInfo.visibleItemsInfo.sumOf { it.size }
+    } ?: 0
+    val viewportHeight = layoutInfo.viewportEndOffset
 
-        if (contentHeight <= viewportHeight) return false
+    if (contentHeight <= viewportHeight) return false
 
-        val lastVisible = visibleItems.last()
-        return lastVisible.index == totalItems - 1 &&
-                lastVisible.offset + lastVisible.size <= viewportHeight
-    }
+    val lastVisible = visibleItems.last()
+    val isAtBottom =  lastVisible.index == totalItems - 1 &&
+            lastVisible.offset + lastVisible.size <= viewportHeight
+    callBack(isAtBottom)
+    return isAtBottom
+}

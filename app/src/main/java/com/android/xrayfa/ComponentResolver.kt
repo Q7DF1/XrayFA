@@ -27,7 +27,7 @@ class ComponentResolver
         return resolve(className, serviceProviders)
     }
 
-    fun <T> resolve(className: String,creators: Map<Class<*>,Provider<T>>): T? {
+    fun <T> resolve(className: String,creators: Map<Class<*>, Provider<T>>): T? {
         val clazz = Class.forName(className)
         val provider = creators[clazz]
         return provider?.get()

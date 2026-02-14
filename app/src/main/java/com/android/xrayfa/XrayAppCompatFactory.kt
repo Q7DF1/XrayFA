@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.AppComponentFactory
+import com.android.xrayfa.ComponentResolver
 import com.android.xrayfa.di.DaggerXrayFAComponent
 import com.android.xrayfa.di.XrayFAComponent
 import java.io.File

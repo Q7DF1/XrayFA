@@ -1,4 +1,4 @@
-package com.android.xrayfa
+package com.android.xrayfa.core
 
 import android.content.Context
 import android.util.Log
@@ -11,7 +11,6 @@ import com.android.xrayfa.utils.Device
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -22,7 +21,6 @@ import libv2ray.Libv2ray
 import java.util.function.Consumer
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.log
 
 const val TAG_PROXY = "proxy"
 const val TAG_DIRECT = "direct"

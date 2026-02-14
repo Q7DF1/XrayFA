@@ -11,13 +11,13 @@ import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.android.xrayfa.XrayBaseService
+import com.android.xrayfa.core.XrayBaseService
 import com.android.xrayfa.dto.Link
 import com.android.xrayfa.dto.Node
 import com.android.xrayfa.model.protocol.protocolsPrefix
 import com.android.xrayfa.parser.ParserFactory
-import com.android.xrayfa.XrayBaseServiceManager
-import com.android.xrayfa.XrayCoreManager
+import com.android.xrayfa.core.XrayBaseServiceManager
+import com.android.xrayfa.core.XrayCoreManager
 import com.android.xrayfa.common.di.qualifier.ShortTime
 import com.android.xrayfa.common.repository.DEFAULT_DELAY_TEST_URL
 import com.android.xrayfa.common.repository.SettingsKeys
@@ -83,6 +83,9 @@ class XrayViewmodel(
 
     private val _deleteDialog = MutableStateFlow(false)
     val deleteDialog: StateFlow<Boolean> = _deleteDialog.asStateFlow()
+
+    private val _showNavigationBar = MutableStateFlow(true)
+    val showNavigationBar  = _showNavigationBar.asStateFlow()
 
     private val _notConfig = MutableStateFlow(false)
     val notConfig = _notConfig.asStateFlow()
@@ -288,6 +291,14 @@ class XrayViewmodel(
     fun hideDeleteDialog() {
         _deleteDialog.value = false
         deleteLinkId = DELETE_NONE
+    }
+
+    fun showNavigationBar() {
+        _showNavigationBar.value = true
+    }
+
+    fun hideNavigationBar() {
+        _showNavigationBar.value = false
     }
 
     fun deleteNodeFromDialog() {

@@ -2,11 +2,15 @@ package com.android.xrayfa.ui.component
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +18,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
@@ -26,11 +31,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -54,20 +62,22 @@ import com.android.xrayfa.ui.SettingsActivity
 import com.android.xrayfa.ui.navigation.Apps
 import com.android.xrayfa.ui.navigation.Detail
 import com.android.xrayfa.ui.navigation.NavigateDestination
-import com.android.xrayfa.ui.navigation.Navigator
 import com.android.xrayfa.ui.navigation.Settings
 import com.android.xrayfa.ui.navigation.Subscription
-import com.android.xrayfa.ui.navigation.rememberNavigationState
-import com.android.xrayfa.ui.navigation.toEntries
 import com.android.xrayfa.ui.scene.XrayFASceneStrategy
 import com.android.xrayfa.ui.scene.rememberXrayFASceneStrategy
 import com.android.xrayfa.viewmodel.AppsViewmodel
 import com.android.xrayfa.viewmodel.DetailViewmodel
 import com.android.xrayfa.viewmodel.SettingsViewmodel
 import com.android.xrayfa.viewmodel.SubscriptionViewmodel
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
+import dev.chrisbanes.haze.materials.HazeMaterials
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
 @Composable
 fun XrayFAContainer(
     xrayViewmodel: XrayViewmodel,
@@ -80,22 +90,25 @@ fun XrayFAContainer(
 ) {
     val context = LocalContext.current
 
-    // migrate to navigation 3
-    val navigationState = rememberNavigationState(
-        startRoute = Home,
-        topLevelRoutes = setOf(Home, Config, Logcat)
+//    // migrate to navigation 3
+//    val navigationState = rememberNavigationState(
+//        startRoute = Home,
+//        topLevelRoutes = setOf(Home, Config, Logcat)
+//    )
+//    val navigator = remember { Navigator(navigationState) }
+//    val current = navigationState.topLevelRoute
+    val navBackStack = rememberNavBackStack(
+        Home
     )
-    val navigator = remember { Navigator(navigationState) }
-    val current = navigationState.topLevelRoute
     val entryProvider: (NavKey) -> NavEntry<NavKey> = entryProvider {
         entry<Home> { key ->
             HomeScreen(xrayViewmodel) {
-                navigator.navigate(Settings)
+                navBackStack.routeTo(Settings)
             }
         }
         entry<Config> {
             ConfigScreen(xrayViewmodel) {
-                navigator.navigate(it)
+                navBackStack.routeTo(it)
             }
         }
         entry<Logcat> {
@@ -110,12 +123,12 @@ fun XrayFAContainer(
         }
         entry<Settings> {
             SettingsContainer(settingsViewmodel) {
-                navigator.navigate(it)
+                navBackStack.routeTo(it)
             }
         }
         entry<Subscription> {
             SubscriptionScreen(subscriptViewmodel) {
-                navigator.navigate(Config)
+                navBackStack.routeTo(Config)
             }
         }
         entry<Apps> {
@@ -194,28 +207,46 @@ fun XrayFAContainer(
             )
         }
     }else {
-
-        Scaffold(
-            bottomBar = {
-
-                XrayBottomNavOpt(
-                    items = list_navigation,
-                    currentScreen = current as NavigateDestination,
-                    onItemSelected = { item ->
-                        navigator.navigate(item)
-                    },
-                    labelProvider = { item -> item.route },
+        val top = navBackStack.lastOrNull()
+        val hazeState = remember { HazeState() }
+        val showNavigationBar by xrayViewmodel.showNavigationBar.collectAsState()
+        if (top is Home || top is Config || top is Logcat) {
+            Box(
+                modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+            ) {
+                NavDisplay(
+                    backStack = navBackStack,
+                    entryProvider = entryProvider,
+                    onBack = {navBackStack.routeBack()},
+                    modifier = Modifier.hazeSource(state = hazeState)
                 )
-            },
-            containerColor = MaterialTheme.colorScheme.background,
-            modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
-        ) { innerPadding->
+                AnimatedVisibility(
+                    visible = showNavigationBar,
+                    modifier = Modifier.align(Alignment.BottomCenter)
+                ) {
+                    XrayBottomNavOpt(
+                        items = list_navigation,
+                        currentScreen = navBackStack.last() as NavigateDestination,
+                        onItemSelected = { item ->
+                            navBackStack.routeTo(item)
+                        },
+                        labelProvider = { item -> item.route },
+                        modifier = Modifier
+                            .padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
+                            .clip(RoundedCornerShape(24.dp))
+                            .hazeEffect(state = hazeState, style = HazeMaterials.ultraThin())
+                            .padding(vertical = 3.dp)
+                    )
+                }
 
+                //XrayBottomNav(modifier = Modifier.align(Alignment.BottomCenter))
+            }
+        }else {
             NavDisplay(
-                entries = navigationState.toEntries(entryProvider),
-                onBack = {navigator.goBack()},
-                sceneStrategy = remember { DialogSceneStrategy() },
-                modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
+                backStack = navBackStack,
+                entryProvider = entryProvider,
+                onBack = {navBackStack.routeBack()},
+                modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
             )
         }
     }
@@ -314,4 +345,26 @@ private fun NavBackStack<NavKey>.addLeft(left: NavKey) {
         is Home -> add(Settings)
         is Config -> add(Subscription)
     }
+}
+private fun NavBackStack<NavKey>.routeTo(key: NavKey) {
+    if (key in list_navigation) {
+        removeAll(this)
+    }
+    add(key)
+}
+
+private fun NavBackStack<NavKey>.routeBack() {
+    val nav = lastOrNull()
+    if (nav in list_navigation) {
+        if (nav is Home) {
+            // exit the application
+        }else {
+            remove(nav)
+            add(Home)
+        }
+        return
+    }
+
+    removeLastOrNull()
+
 }

@@ -48,7 +48,7 @@
         <activity android:name=".ui.AppsActivity" />
         <activity android:name=".ui.SubscriptionActivity"/>
 
-        <service android:name=".XrayBaseService"
+        <service android:name=".core.XrayBaseService"
             android:exported="true"
             android:permission="android.permission.BIND_VPN_SERVICE">
             <intent-filter>
@@ -57,7 +57,7 @@
         </service>
 
 
-        <service android:name=".QuickStartTileService"
+        <service android:name=".core.QuickStartTileService"
             android:exported="true"
             android:label="@string/app_label"
             android:icon="@drawable/ic_xrayfa_foreground"

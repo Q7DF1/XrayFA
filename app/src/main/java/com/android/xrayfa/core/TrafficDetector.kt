@@ -1,4 +1,4 @@
-package com.android.xrayfa
+package com.android.xrayfa.core
 
 import java.util.function.Consumer
 
