@@ -1,12 +1,12 @@
 package com.android.xrayfa.di
 
 import android.app.Service
-import com.android.xrayfa.QuickStartTileService
+import com.android.xrayfa.core.QuickStartTileService
 import dagger.Binds
 import dagger.Module
 import dagger.multibindings.ClassKey
 import dagger.multibindings.IntoMap
-import com.android.xrayfa.XrayBaseService
+import com.android.xrayfa.core.XrayBaseService
 
 /**
  *

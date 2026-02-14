@@ -1,7 +1,5 @@
 package com.android.xrayfa.parser
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.android.xrayfa.XrayAppCompatFactory
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.dto.Link
@@ -18,7 +16,6 @@ import com.android.xrayfa.model.stream.RawSettings
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
-import com.android.xrayfa.utils.ColorMap
 import com.android.xrayfa.utils.Device
 import kotlinx.coroutines.flow.first
 import java.net.URLDecoder

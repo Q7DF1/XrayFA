@@ -202,6 +202,8 @@ dependencies {
     implementation("javax.annotation:javax.annotation-api:1.3.2")
     // 在 build.gradle 中
     implementation ("com.maxmind.geoip2:geoip2:4.2.0")
+    implementation("dev.chrisbanes.haze:haze:1.6.10")
+    implementation("dev.chrisbanes.haze:haze-materials:1.6.10")
     implementation(libs.androidx.datastore.preferences)
 
     implementation (libs.okhttp)

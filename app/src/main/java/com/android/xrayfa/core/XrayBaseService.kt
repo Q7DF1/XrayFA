@@ -1,11 +1,10 @@
-package com.android.xrayfa
+package com.android.xrayfa.core
 
 import android.content.Intent
-import android.content.pm.ServiceInfo
 import android.net.VpnService
-import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.util.Log
+import com.android.xrayfa.R
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.helper.NotificationHelper
 import com.android.xrayfa.utils.EventBus

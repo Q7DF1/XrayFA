@@ -1,8 +1,9 @@
-package com.android.xrayfa
+package com.android.xrayfa.core
 
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
+import com.android.xrayfa.R
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_LINK
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_PROTOCOL
