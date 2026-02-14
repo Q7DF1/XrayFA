@@ -98,7 +98,7 @@ fun XrayFAContainer(
 //    val navigator = remember { Navigator(navigationState) }
 //    val current = navigationState.topLevelRoute
     val navBackStack = rememberNavBackStack(
-        Home, Settings,Logcat
+        Home
     )
     val entryProvider: (NavKey) -> NavEntry<NavKey> = entryProvider {
         entry<Home> { key ->
