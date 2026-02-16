@@ -73,6 +73,7 @@ class XrayFASceneStrategy<T : Any>(val windowSizeClass: WindowSizeClass) : Scene
         val rightEntry =
             entries.lastOrNull()?.takeIf { it.metadata.containsKey(DETAIL_KEY) } ?: return null
          //logcat just show as full screen
+        //todo remove it
         if (leftEntry == Logcat) {
             return null
         }

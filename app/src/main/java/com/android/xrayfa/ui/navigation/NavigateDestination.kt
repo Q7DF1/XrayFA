@@ -8,8 +8,7 @@ interface NavigateDestination: NavKey {
     val title:  Int
 }
 
-val list_navigation: List<NavigateDestination> = listOf(Config,Home, Logcat)
-
+val list_navigation: List<NavigateDestination> = listOf(Config,Home)
 
 
 
