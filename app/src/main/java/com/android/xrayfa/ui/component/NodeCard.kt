@@ -53,6 +53,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalView
@@ -76,6 +77,7 @@ fun NodeCard(
     testing: Boolean = false,
     selected: Boolean = false,
     enableTest: Boolean = false,
+    roundCorner: Boolean = false,
     countryEmoji: String = ""
 ) {
     val view = LocalView.current
@@ -92,13 +94,11 @@ fun NodeCard(
     var itemCoordinates by remember { mutableStateOf<Pair<Offset, IntSize>?>(null) }
     Surface(
         color = backgroundColor,
-        tonalElevation = 8.dp,
         modifier = modifier.fillMaxWidth()
-            .padding(horizontal = 8.dp)
             .onGloballyPositioned { layoutCoordinates ->
                 itemCoordinates = layoutCoordinates.positionInWindow() to layoutCoordinates.size
             },
-        shape = roundCornerShape,
+        shape = if (roundCorner) roundCornerShape else RectangleShape,
         onClick = {onChoose()},
         border = if (selected) BorderStroke(width = 2.dp, color = Color(0xFF00BFFF)) else null
     ) {

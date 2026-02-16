@@ -228,10 +228,12 @@ fun Dashboard(
                 node?.let {
                     NodeCard(
                         node = node,
-                        modifier = Modifier.align(BiasAlignment(0f,-0.5f)),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                            .align(BiasAlignment(0f,-0.5f)),
                         onTest = {xrayViewmodel.measureDelay(context = context)},
                         delayMs = delay,
                         testing = test,
+                        roundCorner = true,
                         enableTest = isRunning
                     )
                 }?: Text(
