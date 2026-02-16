@@ -68,6 +68,7 @@ import androidx.datastore.preferences.core.Preferences
 import com.android.xrayfa.common.repository.SettingsKeys
 import com.android.xrayfa.helper.NotificationHelper
 import com.android.xrayfa.ui.navigation.Apps
+import com.android.xrayfa.ui.navigation.Logcat
 import com.android.xrayfa.ui.navigation.NavigateDestination
 import com.android.xrayfa.viewmodel.GEOFileType
 import com.android.xrayfa.viewmodel.GEOFileType.Companion.FILE_TYPE_IP
@@ -143,6 +144,12 @@ fun SettingsScreen(
                 ) {
                     //viewmodel.startAppsActivity(context)
                     onNavigate(Apps)
+                }
+                SettingsFieldBox(
+                    title = R.string.logcat,
+                    content = stringResource(R.string.logcat_desc)
+                ) {
+                    onNavigate(Logcat)
                 }
                 if (NotificationHelper.canPostPromotionsEnabled(LocalContext.current)) {
                     SettingsCheckBox(
@@ -493,7 +500,8 @@ fun SettingsSelectBox(
             }
             DropdownMenu(
                 expanded = expand,
-                onDismissRequest = {expand = false}
+                onDismissRequest = {expand = false},
+                containerColor = MaterialTheme.colorScheme.background,
             ) {
                 options.forEach { option ->
                     DropdownMenuItem(

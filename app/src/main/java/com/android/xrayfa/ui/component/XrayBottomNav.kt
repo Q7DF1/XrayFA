@@ -64,6 +64,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -74,7 +76,7 @@ import com.android.xrayfa.ui.navigation.Config
 import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.ui.navigation.Logcat
 import com.android.xrayfa.ui.navigation.NavigateDestination
-
+import kotlin.math.min
 
 
 @Composable
@@ -191,7 +193,7 @@ fun XraySideNavOpt(
     }
 }
 
-@SuppressLint("UnusedBoxWithConstraintsScope")
+@SuppressLint("UnusedBoxWithConstraintsScope", "ConfigurationScreenWidthHeight")
 @Composable
 fun XrayBottomNavOpt(
     items: List<NavigateDestination>,
@@ -210,12 +212,13 @@ fun XrayBottomNavOpt(
     val animOffsetX = remember { Animatable(0f) }
     val animWidth = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
-
+    val configuration = LocalConfiguration.current
+    val std = min(configuration.screenWidthDp,configuration.screenHeightDp)
     val heightDp = 48.dp
 
     BoxWithConstraints(
         modifier = modifier
-            .fillMaxWidth()
+            .width((0.6 * std).dp)
             .height(heightDp)
             .padding(horizontal = 8.dp)
     ) {
