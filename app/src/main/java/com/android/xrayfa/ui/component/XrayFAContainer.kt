@@ -183,11 +183,7 @@ fun XrayFAContainer(
             }
             entry<Config> {
                 ConfigScreen(xrayViewmodel) {
-                    navBackStack.routeTo(it) {
-                        if (it is Home) {
-                            xrayViewmodel.showNavigationBar()
-                        }
-                    }
+                    navBackStack.routeTo(it)
                 }
             }
             entry<Logcat> {
