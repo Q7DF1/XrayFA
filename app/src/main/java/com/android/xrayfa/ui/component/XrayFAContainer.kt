@@ -8,6 +8,10 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -226,6 +230,13 @@ fun XrayFAContainer(
             AnimatedVisibility(
                 // todo try another way(#182)
                 visible = showNavigationBar && isTopLevel || top is Home,
+                enter = slideInVertically(
+                    initialOffsetY = { fullHeight -> fullHeight } // Start from the bottom (offset = height)
+                ) + fadeIn(),
+                // From top to bottom
+                exit = slideOutVertically(
+                    targetOffsetY = { fullHeight -> fullHeight } // Exit towards the bottom
+                ) + fadeOut(),
                 modifier = Modifier.align(Alignment.BottomCenter)
                     .onGloballyPositioned { coordinates ->
                         // Convert measured pixel height to Dp and update state
