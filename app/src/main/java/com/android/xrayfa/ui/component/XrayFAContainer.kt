@@ -100,42 +100,6 @@ fun XrayFAContainer(
     val navBackStack = rememberNavBackStack(
         Home
     )
-    val entryProvider: (NavKey) -> NavEntry<NavKey> = entryProvider {
-        entry<Home> { key ->
-            HomeScreen(xrayViewmodel) {
-                navBackStack.routeTo(Settings)
-            }
-        }
-        entry<Config> {
-            ConfigScreen(xrayViewmodel) {
-                navBackStack.routeTo(it)
-            }
-        }
-        entry<Logcat> {
-            LogcatScreen(xrayViewmodel)
-        }
-        entry<Detail> { key ->
-            DetailContainer(
-                protocol = key.protocol,
-                content = key.content,
-                detailViewmodel = detailViewmodel
-            )
-        }
-        entry<Settings> {
-            SettingsContainer(settingsViewmodel) {
-                navBackStack.routeTo(it)
-            }
-        }
-        entry<Subscription> {
-            SubscriptionScreen(subscriptViewmodel) {
-                navBackStack.routeTo(Config)
-            }
-        }
-        entry<Apps> {
-            AppsScreen(appViewmodel)
-        }
-
-    }
 
     if (isLandScape) {
         Row(
@@ -210,44 +174,77 @@ fun XrayFAContainer(
         val top = navBackStack.lastOrNull()
         val hazeState = remember { HazeState() }
         val showNavigationBar by xrayViewmodel.showNavigationBar.collectAsState()
-        if (top is Home || top is Config || top is Logcat) {
-            Box(
-                modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
-            ) {
-                NavDisplay(
-                    backStack = navBackStack,
-                    entryProvider = entryProvider,
-                    onBack = {navBackStack.routeBack()},
-                    modifier = Modifier.hazeSource(state = hazeState)
-                )
-                AnimatedVisibility(
-                    visible = showNavigationBar,
-                    modifier = Modifier.align(Alignment.BottomCenter)
-                ) {
-                    XrayBottomNavOpt(
-                        items = list_navigation,
-                        currentScreen = navBackStack.last() as NavigateDestination,
-                        onItemSelected = { item ->
-                            navBackStack.routeTo(item)
-                        },
-                        labelProvider = { item -> item.route },
-                        modifier = Modifier
-                            .padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
-                            .clip(RoundedCornerShape(24.dp))
-                            .hazeEffect(state = hazeState, style = HazeMaterials.ultraThin())
-                            .padding(vertical = 3.dp)
-                    )
+        val isTopLevel = top in list_navigation
+        val entryProvider: (NavKey) -> NavEntry<NavKey> = entryProvider {
+            entry<Home> { key ->
+                HomeScreen(xrayViewmodel) {
+                    navBackStack.routeTo(Settings)
                 }
-
-                //XrayBottomNav(modifier = Modifier.align(Alignment.BottomCenter))
             }
-        }else {
+            entry<Config> {
+                ConfigScreen(xrayViewmodel) {
+                    navBackStack.routeTo(it) {
+                        if (it is Home) {
+                            xrayViewmodel.showNavigationBar()
+                        }
+                    }
+                }
+            }
+            entry<Logcat> {
+                LogcatScreen(xrayViewmodel)
+            }
+            entry<Detail> { key ->
+                DetailContainer(
+                    protocol = key.protocol,
+                    content = key.content,
+                    detailViewmodel = detailViewmodel
+                )
+            }
+            entry<Settings> {
+                SettingsContainer(settingsViewmodel) {
+                    navBackStack.routeTo(it)
+                }
+            }
+            entry<Subscription> {
+                SubscriptionScreen(subscriptViewmodel) {
+                    navBackStack.routeTo(Config)
+                }
+            }
+            entry<Apps> {
+                AppsScreen(appViewmodel)
+            }
+
+        }
+        Box(
+            modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+        ) {
             NavDisplay(
                 backStack = navBackStack,
                 entryProvider = entryProvider,
                 onBack = {navBackStack.routeBack()},
-                modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+                modifier = Modifier.hazeSource(state = hazeState)
             )
+            AnimatedVisibility(
+                // todo try another way(#182)
+                visible = showNavigationBar && isTopLevel || top is Home,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            ) {
+                XrayBottomNavOpt(
+                    items = list_navigation,
+                    currentScreen = navBackStack.last() as NavigateDestination,
+                    onItemSelected = { item ->
+                        navBackStack.routeTo(item)
+                    },
+                    labelProvider = { item -> item.route },
+                    modifier = Modifier
+                        .padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .hazeEffect(state = hazeState, style = HazeMaterials.ultraThin())
+                        .padding(vertical = 3.dp)
+                )
+            }
+
+            //XrayBottomNav(modifier = Modifier.align(Alignment.BottomCenter))
         }
     }
 
@@ -326,6 +323,10 @@ fun ConfigActionButton(
 fun onSettingsClick(context: Context) {
     context.startActivity(Intent(context, SettingsActivity::class.java))
 }
+
+/**
+ * change right content of screen  
+ */
 private fun NavBackStack<NavKey>.addRight(right: NavKey) {
 
     // Remove any existing detail routes, then add the new detail route
@@ -335,6 +336,9 @@ private fun NavBackStack<NavKey>.addRight(right: NavKey) {
     add(right)
 }
 
+/**
+ * change right content of screen  
+ */
 private fun NavBackStack<NavKey>.addLeft(left: NavKey) {
     if (lastOrNull() == left) {
         return
