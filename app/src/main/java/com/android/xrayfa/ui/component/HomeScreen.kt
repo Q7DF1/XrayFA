@@ -56,10 +56,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.android.xrayfa.R
@@ -73,6 +76,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     xrayViewmodel: XrayViewmodel,
+    bottomPadding: Dp = 0.dp,
     onSettingsClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -89,7 +93,13 @@ fun HomeScreen(
         )
         //Dashboard(xrayViewmodel,modifier = Modifier.align(Alignment.TopCenter))
 
-        V2rayStarter(xrayViewmodel,modifier = Modifier.align(BiasAlignment(0f,0.8f))) {
+        V2rayStarter(
+            xrayViewmodel,
+            modifier = Modifier.align(BiasAlignment(
+                0f,
+                if (bottomPadding == 0.dp)0.8f else 0.9f)
+            ).padding(bottom = bottomPadding)
+        ) {
             if (selectedNode == null) {
                 coroutineScope.launch {
                     notConfig = true
@@ -132,22 +142,13 @@ fun V2rayStarter(
         }
     }
 
-    IconButton(
-        onClick = {
-            if (!onCheck()) {
-                return@IconButton
-            }
-            if (!toggle) {
-                val prepare = VpnService.prepare(context)
-                if (prepare != null) {
-                    launcher.launch(prepare)
-                }else {
-                    xrayViewmodel.startV2rayService(context)
-                }
-            }else{
-                xrayViewmodel.stopV2rayService(context)
-            }
+    AnimatedContent(
+        targetState = toggle,
+        transitionSpec = {
+            (fadeIn(tween(300)) + scaleIn(initialScale = 0.6f, animationSpec = tween(300))) togetherWith
+                    (fadeOut(tween(300)) + scaleOut(targetScale = 1.4f, animationSpec = tween(300)))
         },
+        label = "iconSwitchAnim",
         modifier = modifier
             .clip(CircleShape)
             .background(color)
@@ -156,22 +157,30 @@ fun V2rayStarter(
                 scaleX = scale,
                 scaleY = scale
             )
-    ) {
-
-        AnimatedContent(
-            targetState = toggle,
-            transitionSpec = {
-                (fadeIn(tween(300)) + scaleIn(initialScale = 0.6f, animationSpec = tween(300))) togetherWith
-                        (fadeOut(tween(300)) + scaleOut(targetScale = 1.4f, animationSpec = tween(300)))
-            },
-            label = "iconSwitchAnim",
-        ) { state ->
+    ){ state ->
+        IconButton(
+            onClick = {
+                if (!onCheck()) {
+                    return@IconButton
+                }
+                if (!toggle) {
+                    val prepare = VpnService.prepare(context)
+                    if (prepare != null) {
+                        launcher.launch(prepare)
+                    }else {
+                        xrayViewmodel.startV2rayService(context)
+                    }
+                }else{
+                    xrayViewmodel.stopV2rayService(context)
+                }
+            }
+        ) {
             Icon(
                 imageVector = if (state) Icons.Filled.Done
                 else ImageVector.vectorResource(R.drawable.ic_power),
                 contentDescription = "",
                 tint = Color.White,
-                modifier = modifier.size(36.dp)
+                modifier = Modifier.size(36.dp)
             )
         }
     }
