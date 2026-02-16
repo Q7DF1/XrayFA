@@ -40,7 +40,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
@@ -89,7 +91,8 @@ fun XrayFAContainer(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-
+    val density = LocalDensity.current
+    var customNavBarHeightDp by remember { mutableStateOf(0.dp) }
 //    // migrate to navigation 3
 //    val navigationState = rememberNavigationState(
 //        startRoute = Home,
@@ -177,12 +180,12 @@ fun XrayFAContainer(
         val isTopLevel = top in list_navigation
         val entryProvider: (NavKey) -> NavEntry<NavKey> = entryProvider {
             entry<Home> { key ->
-                HomeScreen(xrayViewmodel) {
+                HomeScreen(xrayViewmodel,bottomPadding = customNavBarHeightDp) {
                     navBackStack.routeTo(Settings)
                 }
             }
             entry<Config> {
-                ConfigScreen(xrayViewmodel) {
+                ConfigScreen(xrayViewmodel, bottomPadding = customNavBarHeightDp) {
                     navBackStack.routeTo(it)
                 }
             }
@@ -224,6 +227,11 @@ fun XrayFAContainer(
                 // todo try another way(#182)
                 visible = showNavigationBar && isTopLevel || top is Home,
                 modifier = Modifier.align(Alignment.BottomCenter)
+                    .onGloballyPositioned { coordinates ->
+                        // Convert measured pixel height to Dp and update state
+                        val heightPx = coordinates.size.height
+                        customNavBarHeightDp = with(density) { heightPx.toDp() }
+                    }
             ) {
                 XrayBottomNavOpt(
                     items = list_navigation,

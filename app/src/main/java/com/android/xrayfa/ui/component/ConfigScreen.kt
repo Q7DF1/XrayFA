@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -50,8 +51,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.Popup
 import com.android.xrayfa.R
 import com.android.xrayfa.ui.QRCodeActivity
 import com.android.xrayfa.ui.navigation.Config
@@ -67,6 +70,7 @@ import com.journeyapps.barcodescanner.ScanOptions
 @Composable
 fun ConfigScreen(
     xrayViewmodel: XrayViewmodel,
+    bottomPadding: Dp = 0.dp,
     onNavigate: (NavigateDestination) -> Unit
 ) {
     val nodes by xrayViewmodel.nodes.collectAsState()
@@ -148,7 +152,6 @@ fun ConfigScreen(
                 }
             }
         }
-
         AnimatedVisibility(
             visible = !listState.isAtBottom{ isAtBottom ->
                 if (isAtBottom) xrayViewmodel.hideNavigationBar() else xrayViewmodel.showNavigationBar()
@@ -156,6 +159,7 @@ fun ConfigScreen(
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier.align (BiasAlignment(1f,0.9f))
+                .padding(bottom = bottomPadding)
         ) {
             FloatingActionButton(
                 onClick = {showSheet = true},
