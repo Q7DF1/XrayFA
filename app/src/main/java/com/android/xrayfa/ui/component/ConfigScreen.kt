@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -130,7 +131,6 @@ fun ConfigScreen(
                     items(nodes, key = {it.id}) {node ->
                         NodeCard(
                             node = node,
-                            modifier = Modifier.padding(bottom = 8.dp),
                             delete = {
                                 xrayViewmodel.showDeleteDialog(node.id)
                             },
@@ -146,8 +146,10 @@ fun ConfigScreen(
                                 onNavigate(Detail(node.protocolPrefix,node.url))
                             },
                             selected =node.selected,
+                            roundCorner = false,
                             countryEmoji = node.countryISO
                         )
+                        HorizontalDivider()
                     }
                 }
             }
