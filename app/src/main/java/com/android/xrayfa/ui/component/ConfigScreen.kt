@@ -32,12 +32,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -50,6 +54,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -86,6 +91,10 @@ fun ConfigScreen(
     scanOptions.setOrientationLocked(true)
     scanOptions.captureActivity = QRCodeActivity::class.java
     scanOptions.setBeepEnabled(false)
+
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+        rememberTopAppBarState()
+    )
     val barcodeLauncher = rememberLauncherForActivityResult(ScanContract()) {
             result->
         if (result.contents == null) {
@@ -100,7 +109,7 @@ fun ConfigScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize()){
 
-            TopAppBar(
+            MediumTopAppBar(
                 title = {Text(stringResource(Config.title))},
                 navigationIcon = {
                     Icon(
@@ -109,7 +118,11 @@ fun ConfigScreen(
                     )
                 },
                 actions = {ConfigActionButton(xrayViewmodel,onNavigate)},
-                modifier = Modifier.shadow(4.dp)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surface
+                ),
+                scrollBehavior = scrollBehavior,
             )
             if (nodes.isEmpty()) {
                 Box(
@@ -124,9 +137,10 @@ fun ConfigScreen(
             }else {
                 LazyColumn(
                     state = listState,
+                    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
                 ) {
                     item {
-                        Spacer(modifier = Modifier.height(8.dp))
+                        HorizontalDivider()
                     }
                     items(nodes, key = {it.id}) {node ->
                         NodeCard(
