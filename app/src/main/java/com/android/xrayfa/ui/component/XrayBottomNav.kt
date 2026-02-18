@@ -20,6 +20,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -63,6 +64,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -76,6 +78,7 @@ import com.android.xrayfa.ui.navigation.Config
 import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.ui.navigation.Logcat
 import com.android.xrayfa.ui.navigation.NavigateDestination
+import kotlinx.coroutines.launch
 import kotlin.math.min
 
 
@@ -222,18 +225,49 @@ fun XrayBottomNavOpt(
             .height(heightDp)
             .padding(horizontal = 8.dp)
     ) {
+        val maxWidthPx = constraints.maxWidth.toFloat()
         val itemWidthPx = constraints.maxWidth / itemCount
         val itemWidthDp = with(density) { itemWidthPx.toDp() }
 
+        // 核心修改 1：定义手势逻辑
+        val dragModifier = Modifier.pointerInput(itemCount) {
+            detectDragGestures(
+                onDrag = { change, dragAmount ->
+                    change.consume() // 消费掉事件，防止父布局滑动干扰
+                    scope.launch {
+                        // 计算新的偏移量，并限制在 [0, 最大宽度-项宽] 之间
+                        val newOffset = (animOffsetX.value + dragAmount.x)
+                            .coerceIn(0f, maxWidthPx - itemWidthPx)
+                        animOffsetX.snapTo(newOffset) // 让滑块背景实时跟手
+                    }
+                },
+                onDragEnd = {
+                    // 核心修改 2：松手时计算落点
+                    val targetIndex = ((animOffsetX.value + itemWidthPx / 2) / itemWidthPx)
+                        .toInt()
+                        .coerceIn(0, itemCount - 1)
+
+                    // 触发外部状态切换
+                    onItemSelected(items[targetIndex])
+                }
+            )
+        }
+
         // 动画控制背景位置和宽度
-        LaunchedEffect(selectedIndex, itemWidthPx) {
+//        LaunchedEffect(selectedIndex, itemWidthPx) {
+//            animOffsetX.animateTo(
+//                targetValue = selectedIndex * itemWidthPx.toFloat(),
+//                animationSpec = spring(
+//                    dampingRatio = Spring.DampingRatioLowBouncy,
+//                    stiffness = Spring.StiffnessLow
+//                ))
+//            //animWidth.animateTo(itemWidthPx.toFloat(), tween(300))
+//        }
+        LaunchedEffect(selectedIndex) {
             animOffsetX.animateTo(
-                targetValue = selectedIndex * itemWidthPx.toFloat(),
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy,
-                    stiffness = Spring.StiffnessLow
-                ))
-            //animWidth.animateTo(itemWidthPx.toFloat(), tween(300))
+                targetValue = (selectedIndex * itemWidthPx).toFloat(),
+                animationSpec = spring(Spring.DampingRatioLowBouncy, Spring.StiffnessLow)
+            )
         }
         // 背景放大镜
         Box(
@@ -243,10 +277,11 @@ fun XrayBottomNavOpt(
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(24.dp))
                 .background(selectedColor.copy(alpha = 0.12f))
+                .then(dragModifier)
         )
 
         Row(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().then(dragModifier),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
