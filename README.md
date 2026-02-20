@@ -11,9 +11,9 @@
 ##  📸  Screenshots
 
 <p aligin="center">
-    <img src="docs/config_xrayFA.jpg" width="33%" />
-    <img src="docs/home_xrayFA.jpg" width="33%" />
-    <img src="docs/settings_xrayFA.jpg" width="33%" />
+    <img src="docs/config_xrayFA.jpg" width="30%" />
+    <img src="docs/home_xrayFA.jpg" width="30%" />
+    <img src="docs/settings_xrayFA.jpg" width="30%" />
 </p>
 
 
