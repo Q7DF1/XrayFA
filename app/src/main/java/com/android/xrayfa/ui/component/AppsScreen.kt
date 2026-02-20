@@ -3,7 +3,9 @@ package com.android.xrayfa.ui.component
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Settings
@@ -26,6 +29,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,10 +43,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.android.xrayfa.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -53,6 +61,21 @@ fun AppsScreen(
     viewmodel: AppsViewmodel
 ) {
 
+    val listState = rememberLazyListState()
+
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
+        rememberTopAppBarState()
+    )
+    // Observe the overlap fraction to determine if the list is scrolled
+    val isScrolled by remember {
+        derivedStateOf { scrollBehavior.state.overlappedFraction > 0f }
+    }
+
+    // Animate the shadow elevation for a smooth transition
+    val appBarElevation by animateDpAsState(
+        targetValue = if (isScrolled) 4.dp else 0.dp,
+        label = "TopBarShadowElevation"
+    )
     val context = LocalContext.current
     Scaffold(
         topBar = {
@@ -63,7 +86,7 @@ fun AppsScreen(
                         imageVector = Icons.Default.Settings,
                         contentDescription = "all_app_settings_lab"
                     )
-                                 },
+                },
                 actions = {
                     IconButton(
                         onClick = {
@@ -76,14 +99,20 @@ fun AppsScreen(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "unselect all app"
                     )
-                }
-            },
-                modifier = Modifier.shadow(4.dp)
-        )}
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surface
+                ),
+                scrollBehavior = scrollBehavior,
+                modifier = Modifier
+                    .shadow(appBarElevation)
+        )},
+        modifier = Modifier.clip(RoundedCornerShape(12.dp))
     ) { paddingValue ->
 
         val searchAppInfoCompleted by remember { derivedStateOf { viewmodel.searchAppCompleted } }
-        val listState = rememberLazyListState()
         LaunchedEffect(Unit) {
             withContext(Dispatchers.IO) {
                 viewmodel.getInstalledPackages(context)
@@ -91,6 +120,7 @@ fun AppsScreen(
         }
         Box(
             modifier = Modifier.fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(top = paddingValue.calculateTopPadding())
         ) {
 
@@ -101,7 +131,8 @@ fun AppsScreen(
             }else {
                 val appInfos by viewmodel.appInfos.collectAsState()
                 LazyColumn(
-                    state = listState
+                    state = listState,
+                    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
                 ) {
                     items(appInfos) { appInfo ->
                         ApkInfoItem(
