@@ -160,8 +160,7 @@ fun XrayFAContainer(
                         entry<Settings>(
                             metadata = XrayFASceneStrategy.rightPane()
                         ) {
-                            SettingsContainer(settingsViewmodel) {
-                            }
+                            SettingsScreen(settingsViewmodel) { }
                         }
                         entry<Subscription>(
                             metadata = XrayFASceneStrategy.rightPane()
@@ -204,7 +203,7 @@ fun XrayFAContainer(
                 )
             }
             entry<Settings> {
-                SettingsContainer(settingsViewmodel) {
+                SettingsScreen(settingsViewmodel) {
                     navBackStack.routeTo(it)
                 }
             }

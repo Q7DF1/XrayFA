@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -31,6 +32,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,8 +43,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +58,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.nestedscroll.nestedScrollModifierNode
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -90,6 +97,21 @@ fun SubscriptionScreen(
     val requesting by viewmodel.requesting.collectAsState()
     val subscribeError by viewmodel.subscribeError.collectAsState()
     val qrBitMap by viewmodel.qrBitmap.collectAsState()
+
+
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
+        rememberTopAppBarState()
+    )
+    // Observe the overlap fraction to determine if the list is scrolled
+    val isScrolled by remember {
+        derivedStateOf { scrollBehavior.state.overlappedFraction > 0f }
+    }
+
+    // Animate the shadow elevation for a smooth transition
+    val appBarElevation by animateDpAsState(
+        targetValue = if (isScrolled) 4.dp else 0.dp,
+        label = "TopBarShadowElevation"
+    )
     Scaffold(
         topBar = {
             TopAppBar(
@@ -101,7 +123,12 @@ fun SubscriptionScreen(
                     modifier = Modifier.size(24.dp)
                     )
                 },
-                modifier = Modifier.shadow(4.dp)
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surface
+                ),
+                modifier = Modifier.shadow(appBarElevation)
             )
         }
     ) { paddingValues ->
@@ -116,7 +143,8 @@ fun SubscriptionScreen(
                 )
             }else {
                 LazyColumn(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
                 ) {
                     items(items = subscriptions, key = {it.id}) {
                         Row(
@@ -185,6 +213,7 @@ fun SubscriptionScreen(
                                 )
                             }
                         }
+                        HorizontalDivider()
                     }
                 }
 
