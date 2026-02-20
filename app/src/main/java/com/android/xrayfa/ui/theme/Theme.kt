@@ -28,13 +28,13 @@ private val LightColorScheme = lightColorScheme(
     primary = blueSky,
     secondary = PurpleGrey40,
     tertiary = Pink40,
-    background = Color.White,  // 纯白
-    surface = Color.White,     // 纯白
+    background = gray_background,
+    surface = Color.White,
     onPrimary = Color.White,
     onSecondary = Color.White,
     onTertiary = Color.White,
-    onBackground = Color.Black, // 白底用黑字
-    onSurface = Color.Black     // 白底用黑字
+    onBackground = Color.Black,
+    onSurface = Color.Black
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
