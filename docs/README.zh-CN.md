@@ -2,14 +2,21 @@
 
 **XrayFA** 是一款功能强大且用户友好的 Android 客户端，基于 [Xray-core](https://github.com/XTLS/Xray-core) 开发。它旨在为 Android 设备提供安全、快速的代理体验，支持包括 VLESS、VMESS、Shadowsocks 和 Trojan 在内的多种主流协议。
 
----
 **[English](../README.md)|简体中文**。
----
+
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/Q7DF1/XrayFA)
 ![GitHub license](https://img.shields.io/github/license/Q7DF1/XrayFA)
 ![GitHub top language](https://img.shields.io/github/languages/top/Q7DF1/XrayFA)
 
 ---
+
+## 📸  界面预览
+
+<p aligin="center">
+    <img src="config_xrayFA.jpg" width="30%" />
+    <img src="home_xrayFA.jpg" width="30%" />
+    <img src="settings_xrayFA.jpg" width="30%" />
+</p>
 
 ## ✨ 功能特性
 
