@@ -1,14 +1,22 @@
 # 🚀 [XrayFA](https://github.com/Q7DF1/XrayFA)
 
 **XrayFA** is a powerful and user-friendly Android client for [Xray-core](https://github.com/XTLS/Xray-core). It provides a secure and fast proxy experience on Android devices, supporting multiple protocols including VLESS, VMESS, Shadowsocks, and Trojan.
----
 
 **English|[简体中文](docs/README.zh-CN.md)**。
----
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/Q7DF1/XrayFA)
 ![GitHub license](https://img.shields.io/github/license/Q7DF1/XrayFA)
 ![GitHub top language](https://img.shields.io/github/languages/top/Q7DF1/XrayFA)
+
+##  📸  Screenshots
+
+<p aligin="center">
+    <img src="docs/config_xrayFA.jpg" width="30%" />
+    <img src="docs/home_xrayFA.jpg" width="30%" />
+    <img src="docs/settings_xrayFA.jpg" width="30%" />
+</p>
+
+
 
 ## ✨ Features
 
