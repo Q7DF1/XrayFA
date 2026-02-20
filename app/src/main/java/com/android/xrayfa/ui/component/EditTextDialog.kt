@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -79,6 +81,7 @@ fun EditTextDialog(
             hideKeyboard(context)
             onDismiss()
         },
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
             if (!title.isNullOrEmpty()) {
                 Text(text = title)
@@ -88,6 +91,10 @@ fun EditTextDialog(
             Column {
                 TextField(
                     value = textValue,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.background,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                    ),
                     onValueChange = { newValue ->
                         if (isNumeric) {
                             if (newValue.text.all { c -> c.isDigit() }) {

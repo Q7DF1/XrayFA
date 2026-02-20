@@ -13,6 +13,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,6 +38,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -107,7 +109,7 @@ fun SettingsScreen(
     var isShowEditDialog by remember { mutableStateOf(false) }
     var editInitValue by remember { mutableStateOf("") }
     var editType: Preferences.Key<*> by remember { mutableStateOf(SettingsKeys.SOCKS_PORT) }
-    var validator: (String)->String? by remember { mutableStateOf({null}) }
+    var validator : (String)->String? by remember { mutableStateOf({null}) }
     val geoIPDownloading by viewmodel.geoIPDownloading.collectAsState()
     val geoSiteDownloading by viewmodel.geoSiteDownloading.collectAsState()
     val geoLiteDownloading by viewmodel.geoLiteDownloading.collectAsState()
@@ -141,10 +143,6 @@ fun SettingsScreen(
                     imageVector = Icons.Default.Settings,
                     contentDescription = "settings"
                 ) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                ),
                 modifier = Modifier.shadow(appBarElevation)
             )
         }
@@ -153,6 +151,7 @@ fun SettingsScreen(
         Box(
             modifier = Modifier.fillMaxSize()
                 .padding(innerPadding)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth()
@@ -179,6 +178,7 @@ fun SettingsScreen(
                             2 to stringResource(R.string.auto_mode)
                         )
                     )
+                    HorizontalDivider()
                     SettingsFieldBox(
                         title = R.string.allow_app_settings,
                         content = stringResource(R.string.select_app_settings)
@@ -186,6 +186,8 @@ fun SettingsScreen(
                         //viewmodel.startAppsActivity(context)
                         onNavigate(Apps)
                     }
+
+                    HorizontalDivider()
                     SettingsFieldBox(
                         title = R.string.logcat,
                         content = stringResource(R.string.logcat_desc)
@@ -616,18 +618,24 @@ fun SettingsGroup(
     groupName: String,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 8.dp)
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        Text(
-            text = groupName,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
-        content()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp)
+        ) {
+            Text(
+                text = groupName,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+            content()
+        }
     }
 }
 
