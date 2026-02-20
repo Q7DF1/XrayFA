@@ -3,6 +3,7 @@ package com.android.xrayfa.ui.component
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
@@ -44,6 +45,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -61,6 +64,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.Popup
+import androidx.compose.ui.zIndex
 import com.android.xrayfa.R
 import com.android.xrayfa.ui.QRCodeActivity
 import com.android.xrayfa.ui.navigation.Config
@@ -92,8 +96,18 @@ fun ConfigScreen(
     scanOptions.captureActivity = QRCodeActivity::class.java
     scanOptions.setBeepEnabled(false)
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
         rememberTopAppBarState()
+    )
+    // Observe the overlap fraction to determine if the list is scrolled
+    val isScrolled by remember {
+        derivedStateOf { scrollBehavior.state.overlappedFraction > 0f }
+    }
+
+    // Animate the shadow elevation for a smooth transition
+    val appBarElevation by animateDpAsState(
+        targetValue = if (isScrolled) 4.dp else 0.dp,
+        label = "TopBarShadowElevation"
     )
     val barcodeLauncher = rememberLauncherForActivityResult(ScanContract()) {
             result->
@@ -108,22 +122,27 @@ fun ConfigScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         Column(modifier = Modifier.fillMaxSize()){
-
-            MediumTopAppBar(
-                title = {Text(stringResource(Config.title))},
-                navigationIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Build,
-                        contentDescription = ""
-                    )
-                },
-                actions = {ConfigActionButton(xrayViewmodel,onNavigate)},
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                ),
-                scrollBehavior = scrollBehavior,
-            )
+            Surface(
+                shadowElevation = appBarElevation,
+                color = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.zIndex(1f)
+            ) {
+                TopAppBar(
+                    title = {Text(stringResource(Config.title))},
+                    navigationIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Build,
+                            contentDescription = ""
+                        )
+                    },
+                    actions = {ConfigActionButton(xrayViewmodel,onNavigate)},
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    scrollBehavior = scrollBehavior,
+                )
+            }
             if (nodes.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize()
@@ -139,9 +158,6 @@ fun ConfigScreen(
                     state = listState,
                     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
                 ) {
-                    item {
-                        HorizontalDivider()
-                    }
                     items(nodes, key = {it.id}) {node ->
                         NodeCard(
                             node = node,
