@@ -13,9 +13,9 @@
 ## 📸  界面预览
 
 <p aligin="center">
-    <img src="config_xrayFA.jpg" width="33%" />
-    <img src="home_xrayFA.jpg" width="33%" />
-    <img src="settings_xrayFA.jpg" width="33%" />
+    <img src="config_xrayFA.jpg" width="30%" />
+    <img src="home_xrayFA.jpg" width="30%" />
+    <img src="settings_xrayFA.jpg" width="30%" />
 </p>
 
 ## ✨ 功能特性
