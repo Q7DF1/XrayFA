@@ -72,9 +72,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.zIndex
 import androidx.datastore.preferences.core.Preferences
 import com.android.xrayfa.common.repository.SettingsKeys
 import com.android.xrayfa.helper.NotificationHelper
@@ -145,7 +144,8 @@ fun SettingsScreen(
                 ) },
                 modifier = Modifier.shadow(appBarElevation)
             )
-        }
+        },
+        modifier = Modifier.clip(RoundedCornerShape(12.dp))
     ) { innerPadding ->
 
         Box(
@@ -546,7 +546,9 @@ fun SettingsSelectBox(
             DropdownMenu(
                 expanded = expand,
                 onDismissRequest = {expand = false},
-                containerColor = MaterialTheme.colorScheme.background,
+                containerColor = MaterialTheme.colorScheme.surface,
+                offset = DpOffset(8.dp, 0.dp),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 options.forEach { option ->
                     DropdownMenuItem(

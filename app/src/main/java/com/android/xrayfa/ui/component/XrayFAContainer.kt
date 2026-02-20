@@ -10,8 +10,13 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +38,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -49,6 +55,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
@@ -224,6 +232,32 @@ fun XrayFAContainer(
                 backStack = navBackStack,
                 entryProvider = entryProvider,
                 onBack = {navBackStack.routeBack()},
+                predictivePopTransitionSpec = {
+                    // 1. Use the exact easing from your preferred wrapper for a smoother feel
+                    val floatAnimSpec = tween<Float>(durationMillis = 300, easing = FastOutSlowInEasing)
+                    val offsetAnimSpec = tween<IntOffset>(durationMillis = 300, easing = FastOutSlowInEasing)
+
+                    // 2. Background page coming in (slight scale up to add depth)
+                    val enter = scaleIn(
+                        initialScale = 0.95f,
+                        animationSpec = floatAnimSpec
+                    ) + fadeIn(animationSpec = floatAnimSpec)
+
+                    // 3. Current page sliding and scaling down (mimics the Wrapper's logic)
+                    val exit = scaleOut(
+                        targetScale = 0.92f, // Matches your scale = lerp(1f, 0.92f)
+                        animationSpec = floatAnimSpec
+                    ) + slideOutHorizontally(
+                        // Shift to the right by ~15% of screen width (mimics translationX = 80f)
+                        targetOffsetX = { (it * 0.15f).toInt() },
+                        animationSpec = offsetAnimSpec
+                    )
+
+                    // 4. Combine and ensure the underlying page stays at the bottom
+                    (enter togetherWith exit).apply {
+                        targetContentZIndex = -1f
+                    }
+                },
                 modifier = Modifier.hazeSource(state = hazeState)
             )
             AnimatedVisibility(
@@ -313,6 +347,8 @@ fun ConfigActionButton(
     DropdownMenu(
         expanded = expend,
         onDismissRequest = {expend = false},
+        offset = DpOffset(x = (-8).dp,y = 0.dp),
+        shape = RoundedCornerShape(12.dp),
         modifier = Modifier.background(MaterialTheme.colorScheme.surface)
     ) {
         DropdownMenuItem(
@@ -384,5 +420,4 @@ private fun NavBackStack<NavKey>.routeBack() {
     }
 
     removeLastOrNull()
-
 }

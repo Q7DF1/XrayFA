@@ -195,6 +195,7 @@ fun ConfigScreen(
         ) {
             FloatingActionButton(
                 onClick = {showSheet = true},
+                containerColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(end = 16.dp)
             ) {
                 Icon(

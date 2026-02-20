@@ -1,6 +1,8 @@
 package com.android.xrayfa.ui.component
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -25,8 +28,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,8 +41,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
@@ -51,20 +60,65 @@ fun DetailContainer(
     content: String,
     detailViewmodel: DetailViewmodel
 ) {
+
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
+        rememberTopAppBarState()
+    )
+    // Observe the overlap fraction to determine if the list is scrolled
+    val isScrolled by remember {
+        derivedStateOf { scrollBehavior.state.overlappedFraction > 0f }
+    }
+
+    // Animate the shadow elevation for a smooth transition
+    val appBarElevation by animateDpAsState(
+        targetValue = if (isScrolled) 4.dp else 0.dp,
+        label = "TopBarShadowElevation"
+    )
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Detail") },
-                modifier = Modifier.shadow(4.dp)
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surface
+                ),
+                modifier = Modifier.shadow(appBarElevation)
             )
-        }
+        },
+        modifier = Modifier.clip(RoundedCornerShape(12.dp))
     ) { innerPadding ->
-        when(protocol) {
-            Protocol.VLESS.protocolType -> VLESSConfigScreen(innerPadding, content, detailViewmodel)
-            Protocol.VMESS.protocolType -> VMESSConfigScreen(innerPadding,content,detailViewmodel)
-            Protocol.TROJAN.protocolType -> TROJANConfigScreen(innerPadding,content,detailViewmodel)
-            Protocol.SHADOW_SOCKS.protocolType -> SHADOWSOCKSConfigScreen(innerPadding,content,detailViewmodel)
-            else -> Text("Unknown protocol")
+        Box(
+            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+        ) {
+
+            when(protocol) {
+                Protocol.VLESS.protocolType -> VLESSConfigScreen(
+                    innerPadding,
+                    content,
+                    detailViewmodel,
+                    scrollBehavior
+                )
+                Protocol.VMESS.protocolType -> VMESSConfigScreen(
+                    innerPadding,
+                    content,
+                    detailViewmodel,
+                    scrollBehavior
+                )
+                Protocol.TROJAN.protocolType -> TROJANConfigScreen(
+                    innerPadding,
+                    content,
+                    detailViewmodel,
+                    scrollBehavior
+                )
+                Protocol.SHADOW_SOCKS.protocolType -> SHADOWSOCKSConfigScreen(
+                    innerPadding,
+                    content,
+                    detailViewmodel,
+                    scrollBehavior
+                )
+                else -> Text("Unknown protocol")
+            }
         }
     }
 }
@@ -128,11 +182,13 @@ fun SelectField(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VLESSConfigScreen(
     innerPadding: PaddingValues,
     content:String,
     detailViewmodel: DetailViewmodel,
+    scrollBehavior: TopAppBarScrollBehavior
 ) {
     val vlessConfig by remember { mutableStateOf(detailViewmodel.parseVLESSProtocol(content))}
     var vlessParamMapState =
@@ -160,6 +216,7 @@ fun VLESSConfigScreen(
             verticalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxWidth()
                 .padding(horizontal = 16.dp)
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
         ) {
             item {
                 OutlinedTextField(
@@ -268,11 +325,13 @@ fun ActionButton(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VMESSConfigScreen(
     innerPadding: PaddingValues,
     content:String,
     detailViewmodel: DetailViewmodel,
+    scrollBehavior: TopAppBarScrollBehavior
 ) {
     val vmess = detailViewmodel.parseVMESSProtocol(content)
     val vmessParamMap = vmess.others.asMap()
@@ -280,6 +339,7 @@ fun VMESSConfigScreen(
         modifier = Modifier.padding(innerPadding)
             .fillMaxSize()
             .padding(horizontal = 16.dp)
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
     ) {
         items(items = vmessParamMap.toList()) { (key,value) ->
             val field = value.asString
@@ -299,17 +359,20 @@ fun VMESSConfigScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TROJANConfigScreen(
     innerPadding: PaddingValues,
     content:String,
     detailViewmodel: DetailViewmodel,
+    scrollBehavior: TopAppBarScrollBehavior
 ) {
     val trojan = detailViewmodel.parseTrojanProtocol(content)
     LazyColumn(
      modifier = Modifier.padding(innerPadding)
          .fillMaxSize()
          .padding(horizontal = 16.dp)
+         .nestedScroll(scrollBehavior.nestedScrollConnection)
     ) {
 
         item {
@@ -362,17 +425,20 @@ fun TROJANConfigScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SHADOWSOCKSConfigScreen(
     innerPadding: PaddingValues,
     content:String,
     detailViewmodel: DetailViewmodel,
+    scrollBehavior: TopAppBarScrollBehavior
 ) {
     val shadowSocks = detailViewmodel.parseShadowSocks(content)
     LazyColumn(
         modifier = Modifier.padding(innerPadding)
             .fillMaxSize()
             .padding(horizontal = 16.dp)
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
     ) {
         item {
 

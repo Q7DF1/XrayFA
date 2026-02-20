@@ -41,13 +41,14 @@
         </activity>
         <activity android:name=".ui.QRCodeActivity"
             android:exported="true"/>
+       <!-- deprecated -->
         <activity android:name=".ui.DetailActivity"
             android:theme="@style/Theme.Transparent"
             android:exported="true"/>
         <activity android:name=".ui.SettingsActivity"/>
         <activity android:name=".ui.AppsActivity" />
         <activity android:name=".ui.SubscriptionActivity"/>
-
+        <!-- deprecated -->
         <service android:name=".core.XrayBaseService"
             android:exported="true"
             android:permission="android.permission.BIND_VPN_SERVICE">
