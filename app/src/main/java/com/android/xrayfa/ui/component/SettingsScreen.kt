@@ -118,6 +118,7 @@ fun SettingsScreen(
     val geoLiteDownloading by viewmodel.geoLiteDownloading.collectAsState()
     val importException by viewmodel.importException.collectAsState()
     val downloadException by viewmodel.downloadException.collectAsState()
+    val xrayFaDownloading by viewmodel.xrayFaDownloading.collectAsState()
     val ipFilePickLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
@@ -311,14 +312,14 @@ fun SettingsScreen(
                     groupName = stringResource(R.string.about_part)
                 ) {
 
-                    SettingsFieldBox(
+                    SettingsWithBtnBox(
                         title = R.string.xrayfa_version,
                         content = versionName,
-                        icon = Icons.Default.Refresh
-                    ) {
-                        // check version
+                        downloading = xrayFaDownloading,
+                        onDownloadClick = {
 
-                    }
+                        }
+                    )
 
                     SettingsFieldBox(
                         title = R.string.xray_core_version,
@@ -418,7 +419,8 @@ fun SettingsCheckBox(
 @Composable
 fun SettingsWithBtnBox(
     @StringRes title: Int,
-    @StringRes description: Int,
+    @StringRes description: Int? = null,
+    content: String = "",
     downloading: Boolean = false,
     onDownloadClick: () -> Unit = {},
     onImportClick: (() -> Unit)? = null,
@@ -451,7 +453,7 @@ fun SettingsWithBtnBox(
                 color = if (enable) MaterialTheme.colorScheme.onBackground else Color.Gray
             )
             Text(
-                text = stringResource(description),
+                text = if (description != null)stringResource(description) else content,
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (enable) MaterialTheme.colorScheme.onBackground else Color.Gray
             )
@@ -638,13 +640,12 @@ fun SettingsGroup(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp)
         ) {
             Text(
                 text = groupName,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(vertical = 8.dp)
+                modifier = Modifier.padding(vertical = 8.dp, horizontal = 8.dp)
             )
             content()
         }
