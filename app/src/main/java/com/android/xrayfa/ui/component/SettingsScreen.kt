@@ -49,8 +49,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -97,6 +95,12 @@ fun SettingsScreen(
         derivedStateOf { scrollState.value > 0 }
     }
 
+    val currentTopbarColor = if (isScrolled) {
+        MaterialTheme.colorScheme.surface
+    } else {
+        MaterialTheme.colorScheme.background
+    }
+
     // Animate the shadow elevation for a smooth transition
     val appBarElevation by animateDpAsState(
         targetValue = if (isScrolled) 4.dp else 0.dp,
@@ -138,10 +142,16 @@ fun SettingsScreen(
         topBar = {
             TopAppBar(
                 title = {Text("settings")},
-                navigationIcon = { Icon(
+                navigationIcon = {
+                    Icon(
                     imageVector = Icons.Default.Settings,
                     contentDescription = "settings"
-                ) },
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = currentTopbarColor,
+                    scrolledContainerColor = currentTopbarColor
+                ),
                 modifier = Modifier.shadow(appBarElevation)
             )
         },
