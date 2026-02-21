@@ -27,6 +27,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okio.IOException
@@ -47,6 +49,18 @@ annotation class GEOFileType {
         const val FILE_TYPE_LITE = 2
     }
 }
+
+@Serializable
+data class GithubRelease(
+    @SerialName("tag_name") val tagName: String,
+    @SerialName("body") val assets: List<GithubAsset>
+)
+
+@Serializable
+data class GithubAsset(
+    @SerialName("browser_download_url") val downloadUrl: String,
+    val name: String
+)
 class SettingsViewmodel(
     val repository: SettingsRepository,
     val okHttpClient: OkHttpClient
@@ -60,6 +74,7 @@ class SettingsViewmodel(
     val geoIPUrlTest = "https://github.com/v2fly/geoip/releases/latest/download/geoip.dat"
     val geoSiteUrlTest = "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
     val geoLiteUrlTest = "https://github.com/P3TERX/GeoLite.mmdb/raw/download/GeoLite2-Country.mmdb"
+    val xrayFaReleaseUrl = "https://api.github.com/repos/q7df1/xrayfa/releases/latest"
     private val _geoIPDownloading = MutableStateFlow(false)
     val geoIPDownloading = _geoIPDownloading.asStateFlow()
 
@@ -69,6 +84,10 @@ class SettingsViewmodel(
 
     private val _geoLiteDownloading = MutableStateFlow(false)
     val geoLiteDownloading = _geoLiteDownloading.asStateFlow()
+
+    private val _xrayFaDownloading = MutableStateFlow(false)
+    val xrayFaDownloading = _xrayFaDownloading.asStateFlow()
+
 
     private val _importException = MutableStateFlow(false)
     val importException = _importException.asStateFlow()
@@ -125,6 +144,7 @@ class SettingsViewmodel(
         }
     }
 
+    @Deprecated("not used")
     fun startAppsActivity(context: Context) {
         val intent = Intent(context, AppsActivity::class.java)
         context.startActivity(intent)
@@ -273,6 +293,9 @@ class SettingsViewmodel(
         }
         return uri.path?.substringAfterLast('/')
     }
+
+
+
 }
 
 
