@@ -9,8 +9,6 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import android.widget.RemoteViews
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.android.xrayfa.MainActivity
@@ -18,17 +16,20 @@ import com.android.xrayfa.R
 import com.android.xrayfa.common.di.qualifier.Application
 import com.android.xrayfa.common.di.qualifier.Background
 import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.core.XrayBaseService
+import com.android.xrayfa.core.XrayBaseServiceManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
+
 @Singleton
 class NotificationHelper @Inject constructor(
     val settingsRepository: SettingsRepository,
     @param:Background val backgroundScope:  CoroutineScope,
-    @param:Application val context: Context,
+    @param:Application val context: Context
 ) {
 
     companion object {
@@ -44,7 +45,10 @@ class NotificationHelper @Inject constructor(
             }else false
         }
     }
-    private var notificationView = RemoteViews("com.android.xrayfa", R.layout.notification_traffic_layout)
+    private var notificationView =
+        RemoteViews("com.android.xrayfa", R.layout.notification_traffic_layout)
+    private var bigNotificationView=
+        RemoteViews("com.android.xrayfa",R.layout.big_notification_traffic_layout)
     val pendingIntent: PendingIntent? = PendingIntent.getActivity(
     context,0, Intent(
             context,
@@ -68,8 +72,8 @@ class NotificationHelper @Inject constructor(
     val normalBuilder: NotificationCompat.Builder = NotificationCompat.Builder(context, CHANNEL_ID)
         .setContentTitle(context.resources.getString(R.string.app_label))
         .setContent(notificationView)
-        .setCustomBigContentView(notificationView)
-        .setSmallIcon(R.mipmap.ic_launcher)
+        .setCustomBigContentView(bigNotificationView)
+        .setSmallIcon(R.drawable.ic_small_notification)
         .setContentIntent(pendingIntent)
         .setPriority(NotificationManager.IMPORTANCE_LOW)
         .setSilent(true)
@@ -84,6 +88,18 @@ class NotificationHelper @Inject constructor(
                     onLiveUpdateChanged(it.liveUpdateNotification)
             }
         }
+
+        // init button
+        val intent = Intent(context, XrayBaseService::class.java).apply {
+            action = "disconnect"
+        }
+        val stopPendingIntent = PendingIntent.getService(
+            context,
+            1,  // Unique request code
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        bigNotificationView.setOnClickPendingIntent(R.id.close_service,stopPendingIntent)
     }
 
     private fun onLiveUpdateChanged(live: Boolean) {
@@ -133,6 +149,8 @@ class NotificationHelper @Inject constructor(
         } else {
              notificationView.setTextViewText(R.id.stream_up,"${String.format("%.1f",data.first)} kb/s")
              notificationView.setTextViewText(R.id.stream_down,"${String.format("%.1f",data.second)} kb/s")
+             bigNotificationView.setTextViewText(R.id.stream_up,"${String.format("%.1f",data.first)} kb/s")
+             bigNotificationView.setTextViewText(R.id.stream_down,"${String.format("%.1f",data.second)} kb/s")
             normalBuilder.build()
         }
     }
@@ -144,8 +162,5 @@ class NotificationHelper @Inject constructor(
             notify(NOTIFICATION_ID, notification)
         }
     }
-
-
-
 
 }
