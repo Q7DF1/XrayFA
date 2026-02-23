@@ -109,9 +109,9 @@ class XrayBaseService
 //        }else startForeground(NotificationHelper.NOTIFICATION_ID,notification)
         serviceScope.launch {
             notificationHelper.showNotification()
-//            xrayCoreManager.addConsumer { data->
-//                notificationHelper.updateNotification(data)
-//            }
+            xrayCoreManager.addConsumer { data->
+                notificationHelper.updateNotification(data)
+            }
             xrayCoreManager.startV2rayCore(link,protocol)
             startVpn()
             tunFd?.let {
