@@ -5,9 +5,9 @@
     <string name="stop_vpn">stop VPN</string>
     <string name="connecting">connecting</string>
     <string name="connected">connected</string>
-    <string name="home">home</string>
-    <string name="config">config</string>
-    <string name="logcat">logcat</string>
+    <string name="home">Home</string>
+    <string name="config">Config</string>
+    <string name="logcat">Logcat</string>
     <string name="add_config">add config</string>
     <string name="clipboard_import">Clipboard import</string>
     <string name="no_configuration">No configuration file</string>
