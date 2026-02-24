@@ -12,5 +12,4 @@ val ColorMap = mapOf(
     7 to Color.Gray.copy(alpha = 0.3f),
     8 to Color.Black.copy(alpha = 0.1f),
     9 to Color.White.copy(alpha = 0.4f),
-    10 to Color.LightGray.copy(alpha = 0.3f)
-).withDefault { key-> Color.Transparent }
+).withDefault { key->  Color.LightGray.copy(alpha = 0.3f)}

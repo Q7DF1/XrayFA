@@ -5,6 +5,7 @@ import android.os.Build
 import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -51,12 +52,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import com.android.xrayfa.model.protocol.protocolPrefixMap
 import com.android.xrayfa.utils.ColorMap
@@ -92,15 +95,20 @@ fun NodeCard(
         else -> Color.Red
     }
     var itemCoordinates by remember { mutableStateOf<Pair<Offset, IntSize>?>(null) }
+    val elevation by animateDpAsState(
+        targetValue = if (selected) 8.dp else 0.dp,
+        label = "elevationAnimation"
+    )
     Surface(
         color = backgroundColor,
         modifier = modifier.fillMaxWidth()
             .onGloballyPositioned { layoutCoordinates ->
                 itemCoordinates = layoutCoordinates.positionInWindow() to layoutCoordinates.size
             },
+        tonalElevation = elevation,
         shape = if (roundCorner) roundCornerShape else RectangleShape,
         onClick = {onChoose()},
-        border = if (selected) BorderStroke(width = 2.dp, color = Color(0xFF00BFFF)) else null
+        //border = if (selected) BorderStroke(width = 2.dp, color = Color(0xFF00BFFF)) else null
     ) {
         Row(
             modifier = Modifier.fillMaxWidth()
