@@ -61,7 +61,7 @@
         <service android:name=".core.QuickStartTileService"
             android:exported="true"
             android:label="@string/app_label"
-            android:icon="@drawable/ic_xrayfa_foreground"
+            android:icon="@drawable/ic_small_notification"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
