@@ -142,7 +142,7 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {Text("settings")},
+                title = {Text(stringResource(R.string.settings_title))},
                 navigationIcon = {
                     Icon(
                     imageVector = Icons.Default.Settings,
