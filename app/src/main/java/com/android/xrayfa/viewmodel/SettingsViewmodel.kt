@@ -20,6 +20,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import androidx.core.net.toUri
 import com.android.xrayfa.R
+import com.android.xrayfa.common.GEO_IP
+import com.android.xrayfa.common.GEO_LITE
+import com.android.xrayfa.common.GEO_SITE
 import com.android.xrayfa.common.di.qualifier.LongTime
 import com.android.xrayfa.common.utils.calculateFileHash
 import kotlinx.coroutines.Dispatchers
@@ -235,11 +238,11 @@ class SettingsViewmodel(
 
         when(fileType) {
             GEOFileType.FILE_TYPE_IP ->
-                download(geoIPUrlTest, "geoip.dat",_geoIPDownloading,context)
+                download(geoIPUrlTest, GEO_IP,_geoIPDownloading,context)
             GEOFileType.FILE_TYPE_SITE ->
-                download(geoSiteUrlTest,"geosite.dat",_geoSiteDownloading,context)
+                download(geoSiteUrlTest, GEO_SITE,_geoSiteDownloading,context)
             GEOFileType.FILE_TYPE_LITE ->
-                download(geoLiteUrlTest,"GeoLite2-Country.mmdb",_geoLiteDownloading,context)
+                download(geoLiteUrlTest, GEO_LITE,_geoLiteDownloading,context)
             else -> {
                 Log.e(TAG, "download: download type error")
             }
@@ -264,9 +267,7 @@ class SettingsViewmodel(
                 return@launch
             }
 
-            val targetName = if (fileType == GEOFileType.FILE_TYPE_IP)
-                "geoip.dat"
-            else "geosite.dat"
+            val targetName = if (fileType == GEOFileType.FILE_TYPE_IP) GEO_IP else GEO_SITE
             val file = File(context.filesDir,targetName)
             val calculateFileHash = calculateFileHash(file)
             Log.i(TAG, "onSelectFile: $calculateFileHash")
