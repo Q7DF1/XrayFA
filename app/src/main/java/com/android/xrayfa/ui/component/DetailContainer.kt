@@ -77,7 +77,7 @@ fun DetailContainer(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Detail") },
+                title = { Text(stringResource(R.string.detail_title)) },
                 scrollBehavior = scrollBehavior,
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
