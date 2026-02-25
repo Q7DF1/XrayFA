@@ -61,28 +61,6 @@ class XrayAppCompatFactory: AppComponentFactory(),ContextAvailableCallback {
              .bindContext(context)
              .build()
 
-         //init file
-         val fileDir = context.filesDir
-         val geoipFile = File(fileDir, "geoip.dat")
-         val geositeFile = File(fileDir, "geosite.dat")
-         xrayPATH = context.filesDir.absolutePath
-         if (!geoipFile.exists()) {
-             Log.i(TAG, "onContextAvailable: copy geoip.dat")
-             context.assets.open("geoip.dat").use { input ->
-                 FileOutputStream(geoipFile).use { output ->
-                     input.copyTo(output)
-                 }
-             }
-         }
-
-         if (!geositeFile.exists()) {
-             context.assets.open("geosite.dat").use { input ->
-                 FileOutputStream(geositeFile).use { output ->
-                     input.copyTo(output)
-                 }
-             }
-         }
-
     }
 
 
