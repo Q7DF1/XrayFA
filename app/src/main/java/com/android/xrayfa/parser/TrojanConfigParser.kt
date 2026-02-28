@@ -1,6 +1,7 @@
 package com.android.xrayfa.parser
 
 import com.android.xrayfa.XrayAppCompatFactory
+import com.android.xrayfa.common.GEO_LITE
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.dto.Link
 import com.android.xrayfa.dto.Node
@@ -118,7 +119,7 @@ class TrojanConfigParser
             remark = trojanConfig.remark,
             countryISO = if (settingsRepo.settingsFlow.first().geoLiteInstall) {
                 Device.getCountryISOFromIp(
-                    geoPath = "${XrayAppCompatFactory.xrayPATH}/GeoLite2-Country.mmdb",
+                    geoPath = "${XrayAppCompatFactory.xrayPATH}/$GEO_LITE",
                     ip = trojanConfig.host?:""
                 )
             } else ""
