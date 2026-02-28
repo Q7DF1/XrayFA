@@ -35,7 +35,6 @@ You can download the latest APK from the **[Releases Page](https://github.com/Q7
 
 To build XrayFA from source, you need Android Studio and a basic understanding of Android development.
 
-_**IMPORTANT: Ensure the build configuration is set to RELEASE; do NOT submit or deploy a DEBUG package. [moreinformation](https://medium.com/androiddevelopers/why-should-you-always-test-compose-performance-in-release-4168dd0f2c71)**_
 
 ### Prerequisites
 * Android Studio (latest stable version recommended)
@@ -68,7 +67,8 @@ _**IMPORTANT: Ensure the build configuration is set to RELEASE; do NOT submit or
 4.  **Build and Run**
     * Connect your Android device or start an emulator.
     * Click the green **Run** button (Shift + F10).
-
+> [!CAUTION]
+> 🚨 **IMPORTANCE：Ensure the build configuration is set to RELEASE。** [more informations](https://medium.com/androiddevelopers/why-should-you-always-test-compose-performance-in-release-4168dd0f2c71)
 ## 📖 Usage
 
 1.  **Import Config**:
