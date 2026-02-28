@@ -81,4 +81,10 @@
     <string name="live_update_notification_desc">Notification will pin at status bar</string>
     <string name="logcat_desc">check the logcat for more details</string>
     <string name="service_close">close</string>
+
+    <string name="notification_permission_title">Notification Permission</string>
+    <string name="notification_permission_message">need notification permission to get better experience</string>
+    <string name="notification_permission_grant_button">grant</string>
+    <string name="notification_permission_reject_button">reject</string>
+
 </resources>

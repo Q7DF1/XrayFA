@@ -5,6 +5,9 @@ import com.android.xrayfa.model.protocol.Protocol.TROJAN
 import com.android.xrayfa.model.protocol.Protocol.VLESS
 import com.android.xrayfa.model.protocol.Protocol.VMESS
 
+/**
+ * @param protocolType protocol type
+ */
 enum class Protocol(
     val protocolType: String
 ) {

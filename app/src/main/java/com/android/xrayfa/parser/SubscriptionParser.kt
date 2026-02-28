@@ -2,6 +2,10 @@ package com.android.xrayfa.parser
 
 import java.util.Base64
 
+/**
+ *
+ * Parse subscription link
+ */
 class SubscriptionParser {
 
 
