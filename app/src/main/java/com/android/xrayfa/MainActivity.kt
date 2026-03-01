@@ -50,8 +50,7 @@ class MainActivity @Inject constructor(
             detailViewmodel,
             settingsViewmodel,
             subscriptionViewmodel,
-            appViewmodel,
-            isLandscape
+            appViewmodel
         )
     }
 

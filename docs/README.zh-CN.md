@@ -12,11 +12,17 @@
 
 ## 📸  界面预览
 
+- 手机设备
 <p aligin="center">
     <img src="config_xrayFA.jpg" width="30%" />
     <img src="home_xrayFA.jpg" width="30%" />
     <img src="settings_xrayFA.jpg" width="30%" />
 </p>
+- 平板设备
+<p aligin="center">
+    <img src="tablet_scene_xrayFA.png" width="90%" />
+</p>
+
 
 ## ✨ 功能特性
 

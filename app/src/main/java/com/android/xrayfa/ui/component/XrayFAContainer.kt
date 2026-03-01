@@ -99,7 +99,6 @@ fun XrayFAContainer(
     settingsViewmodel: SettingsViewmodel,
     subscriptViewmodel: SubscriptionViewmodel,
     appViewmodel: AppsViewmodel,
-    isLandScape: Boolean,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -116,186 +115,126 @@ fun XrayFAContainer(
         Home
     )
 
-    if (isLandScape) {
-        Row(
-            modifier = Modifier.fillMaxSize()
+    val top = navBackStack.lastOrNull()
+    val hazeState = remember { HazeState() }
+    val showNavigationBar by xrayViewmodel.showNavigationBar.collectAsState()
+    val isTopLevel = top in list_navigation
+    val entryProvider: (NavKey) -> NavEntry<NavKey> = entryProvider {
+        entry<Home> { key ->
+            HomeScreen(xrayViewmodel,bottomPadding = customNavBarHeightDp) {
+                navBackStack.routeTo(Settings)
+            }
+        }
+        entry<Config>(
+            metadata = XrayFASceneStrategy.config()
         ) {
-
-            val backStack = rememberNavBackStack(
-                Home, Settings
+            ConfigScreen(xrayViewmodel, bottomPadding = customNavBarHeightDp) {
+                navBackStack.routeTo(it)
+            }
+        }
+        entry<Logcat>(
+            metadata = XrayFASceneStrategy.subscreen()
+        ) {
+            LogcatScreen(xrayViewmodel)
+        }
+        entry<Detail>(
+            metadata = XrayFASceneStrategy.detail()
+        ) { key ->
+            DetailContainer(
+                protocol = key.protocol,
+                content = key.content,
+                detailViewmodel = detailViewmodel
             )
-            val left =  backStack.first()
-            // NavigationNail
-            XraySideNavOpt(
+        }
+        entry<Settings>(
+            metadata = XrayFASceneStrategy.settings()
+        ) {
+            SettingsScreen(settingsViewmodel) {
+                navBackStack.routeTo(it)
+            }
+        }
+        entry<Subscription> {
+            SubscriptionScreen(subscriptViewmodel) {
+                navBackStack.routeTo(Config)
+            }
+        }
+        entry<Apps>(
+            metadata = XrayFASceneStrategy.subscreen()
+        ) {
+            AppsScreen(appViewmodel)
+        }
+
+    }
+    Box(
+        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+    ) {
+        NavDisplay(
+            backStack = navBackStack,
+            entryProvider = entryProvider,
+            onBack = {navBackStack.routeBack()},
+            sceneStrategy = rememberXrayFASceneStrategy(),
+            predictivePopTransitionSpec = {
+                // 1. Use the exact easing from your preferred wrapper for a smoother feel
+                val floatAnimSpec = tween<Float>(durationMillis = 300, easing = FastOutSlowInEasing)
+                val offsetAnimSpec = tween<IntOffset>(durationMillis = 300, easing = FastOutSlowInEasing)
+
+                // 2. Background page coming in (slight scale up to add depth)
+                val enter = scaleIn(
+                    initialScale = 0.95f,
+                    animationSpec = floatAnimSpec
+                ) + fadeIn(animationSpec = floatAnimSpec)
+
+                // 3. Current page sliding and scaling down (mimics the Wrapper's logic)
+                val exit = scaleOut(
+                    targetScale = 0.92f, // Matches your scale = lerp(1f, 0.92f)
+                    animationSpec = floatAnimSpec
+                ) + slideOutHorizontally(
+                    // Shift to the right by ~15% of screen width (mimics translationX = 80f)
+                    targetOffsetX = { (it * 0.15f).toInt() },
+                    animationSpec = offsetAnimSpec
+                )
+
+                // 4. Combine and ensure the underlying page stays at the bottom
+                (enter togetherWith exit).apply {
+                    targetContentZIndex = -1f
+                }
+            },
+            modifier = Modifier.hazeSource(state = hazeState)
+        )
+        AnimatedVisibility(
+            // todo try another way(#182)
+            visible = showNavigationBar && isTopLevel || top is Home,
+            enter = slideInVertically(
+                initialOffsetY = { fullHeight -> fullHeight } // Start from the bottom (offset = height)
+            ) + fadeIn(),
+            // From top to bottom
+            exit = slideOutVertically(
+                targetOffsetY = { fullHeight -> fullHeight } // Exit towards the bottom
+            ) + fadeOut(),
+            modifier = Modifier.align(Alignment.BottomCenter)
+                .onGloballyPositioned { coordinates ->
+                    // Convert measured pixel height to Dp and update state
+                    val heightPx = coordinates.size.height
+                    customNavBarHeightDp = with(density) { heightPx.toDp() }
+                }
+        ) {
+            XrayBottomNavOpt(
                 items = list_navigation,
-                currentScreen = left as NavigateDestination,
+                currentScreen = navBackStack.last() as NavigateDestination,
                 onItemSelected = { item ->
-                    backStack.addLeft(item)
+                    navBackStack.routeTo(item)
                 },
                 labelProvider = { item -> item.route },
-            )
-
-            val sceneStrategy = rememberXrayFASceneStrategy<NavKey>()
-            NavDisplay(
-                    backStack = backStack,
-                    onBack =  { backStack.removeLastOrNull() },
-                    sceneStrategy = sceneStrategy,
-                    entryProvider = entryProvider {
-                        entry<Config>(
-                            metadata = XrayFASceneStrategy.leftPane()
-                        ) {
-                            ConfigScreen(xrayViewmodel) {
-                                backStack.addRight(it)
-                            }
-                        }
-                        entry<Home>(
-                            metadata = XrayFASceneStrategy.leftPane()
-                        ) {
-                            HomeScreen(xrayViewmodel) {
-                                backStack.addRight(Settings)
-                            }
-                        }
-                        entry<Logcat>(
-                            metadata = XrayFASceneStrategy.leftPane()
-                        ) {
-                            LogcatScreen(xrayViewmodel)
-                        }
-                        entry<Detail>(
-                            metadata = XrayFASceneStrategy.rightPane()
-                        ) {
-                            DetailContainer(it.protocol, it.content, detailViewmodel)
-                        }
-                        entry<Settings>(
-                            metadata = XrayFASceneStrategy.rightPane()
-                        ) {
-                            SettingsScreen(settingsViewmodel) { }
-                        }
-                        entry<Subscription>(
-                            metadata = XrayFASceneStrategy.rightPane()
-                        ) {
-                            SubscriptionScreen(subscriptViewmodel) {
-                            }
-                        }
-                        entry<Apps>(
-                            metadata = XrayFASceneStrategy.rightPane()
-                        ) {
-                            AppsScreen(appViewmodel)
-                        }
-                    }
+                modifier = Modifier
+                    .padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .hazeEffect(state = hazeState, style = HazeMaterials.ultraThin())
+                    .padding(vertical = 3.dp)
             )
         }
-    }else {
-        val top = navBackStack.lastOrNull()
-        val hazeState = remember { HazeState() }
-        val showNavigationBar by xrayViewmodel.showNavigationBar.collectAsState()
-        val isTopLevel = top in list_navigation
-        val entryProvider: (NavKey) -> NavEntry<NavKey> = entryProvider {
-            entry<Home> { key ->
-                HomeScreen(xrayViewmodel,bottomPadding = customNavBarHeightDp) {
-                    navBackStack.routeTo(Settings)
-                }
-            }
-            entry<Config> {
-                ConfigScreen(xrayViewmodel, bottomPadding = customNavBarHeightDp) {
-                    navBackStack.routeTo(it)
-                }
-            }
-            entry<Logcat> {
-                LogcatScreen(xrayViewmodel)
-            }
-            entry<Detail> { key ->
-                DetailContainer(
-                    protocol = key.protocol,
-                    content = key.content,
-                    detailViewmodel = detailViewmodel
-                )
-            }
-            entry<Settings> {
-                SettingsScreen(settingsViewmodel) {
-                    navBackStack.routeTo(it)
-                }
-            }
-            entry<Subscription> {
-                SubscriptionScreen(subscriptViewmodel) {
-                    navBackStack.routeTo(Config)
-                }
-            }
-            entry<Apps> {
-                AppsScreen(appViewmodel)
-            }
 
-        }
-        Box(
-            modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
-        ) {
-            NavDisplay(
-                backStack = navBackStack,
-                entryProvider = entryProvider,
-                onBack = {navBackStack.routeBack()},
-                predictivePopTransitionSpec = {
-                    // 1. Use the exact easing from your preferred wrapper for a smoother feel
-                    val floatAnimSpec = tween<Float>(durationMillis = 300, easing = FastOutSlowInEasing)
-                    val offsetAnimSpec = tween<IntOffset>(durationMillis = 300, easing = FastOutSlowInEasing)
-
-                    // 2. Background page coming in (slight scale up to add depth)
-                    val enter = scaleIn(
-                        initialScale = 0.95f,
-                        animationSpec = floatAnimSpec
-                    ) + fadeIn(animationSpec = floatAnimSpec)
-
-                    // 3. Current page sliding and scaling down (mimics the Wrapper's logic)
-                    val exit = scaleOut(
-                        targetScale = 0.92f, // Matches your scale = lerp(1f, 0.92f)
-                        animationSpec = floatAnimSpec
-                    ) + slideOutHorizontally(
-                        // Shift to the right by ~15% of screen width (mimics translationX = 80f)
-                        targetOffsetX = { (it * 0.15f).toInt() },
-                        animationSpec = offsetAnimSpec
-                    )
-
-                    // 4. Combine and ensure the underlying page stays at the bottom
-                    (enter togetherWith exit).apply {
-                        targetContentZIndex = -1f
-                    }
-                },
-                modifier = Modifier.hazeSource(state = hazeState)
-            )
-            AnimatedVisibility(
-                // todo try another way(#182)
-                visible = showNavigationBar && isTopLevel || top is Home,
-                enter = slideInVertically(
-                    initialOffsetY = { fullHeight -> fullHeight } // Start from the bottom (offset = height)
-                ) + fadeIn(),
-                // From top to bottom
-                exit = slideOutVertically(
-                    targetOffsetY = { fullHeight -> fullHeight } // Exit towards the bottom
-                ) + fadeOut(),
-                modifier = Modifier.align(Alignment.BottomCenter)
-                    .onGloballyPositioned { coordinates ->
-                        // Convert measured pixel height to Dp and update state
-                        val heightPx = coordinates.size.height
-                        customNavBarHeightDp = with(density) { heightPx.toDp() }
-                    }
-            ) {
-                XrayBottomNavOpt(
-                    items = list_navigation,
-                    currentScreen = navBackStack.last() as NavigateDestination,
-                    onItemSelected = { item ->
-                        navBackStack.routeTo(item)
-                    },
-                    labelProvider = { item -> item.route },
-                    modifier = Modifier
-                        .padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .hazeEffect(state = hazeState, style = HazeMaterials.ultraThin())
-                        .padding(vertical = 3.dp)
-                )
-            }
-
-            //XrayBottomNav(modifier = Modifier.align(Alignment.BottomCenter))
-        }
+        //XrayBottomNav(modifier = Modifier.align(Alignment.BottomCenter))
     }
-
 }
 
 @Composable
@@ -401,10 +340,19 @@ private fun NavBackStack<NavKey>.addLeft(left: NavKey) {
     }
 }
 private fun NavBackStack<NavKey>.routeTo(key: NavKey) {
+    if (lastOrNull() == key) {
+        return
+    }
+
     if (key in list_navigation) {
         removeAll(this)
+    }else {
+        if (contains(key)) {
+            remove(key)
+        }
     }
     add(key)
+
 }
 
 private fun NavBackStack<NavKey>.routeBack() {
