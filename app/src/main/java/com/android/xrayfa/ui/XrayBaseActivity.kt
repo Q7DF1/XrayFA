@@ -31,13 +31,14 @@ abstract class XrayBaseActivity: ComponentActivity(){
                     else -> isSystemInDarkTheme()
                 }
             ) {
-                ShowContentWithOrientation { isLandscape -> Content(isLandscape) }
+                Content(false)
             }
         }
     }
 
 }
 
+@Deprecated("use scene instead")
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun ShowContentWithOrientation(
