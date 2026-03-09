@@ -11,6 +11,7 @@ plugins {
 android {
     namespace = "com.android.xrayfa"
     compileSdk = 36
+    ndkVersion = "27.0.12077973"
 
     defaultConfig {
         val appVersionName:String by project
@@ -22,9 +23,10 @@ android {
         versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        base {
-            archivesName.set("XrayFA")
-        }
+
+    }
+    base {
+        archivesName.set("XrayFA")
     }
     signingConfigs {
         create("release") {
