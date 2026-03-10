@@ -107,6 +107,8 @@ class XrayFASceneStrategy<T : Any>(val windowSizeClass: WindowSizeClass) : Scene
 
         internal const val SUBSCREEN_KEY = "SubScreen"
 
+        internal const val SUBSCRIPTION_KEY = "subscription"
+
         /**
          * Helper function to add metadata to a [NavEntry] indicating it can be displayed
          * as a list in the [com.android.xrayfa.ui.scene.XrayFASceneStrategy].
@@ -122,6 +124,8 @@ class XrayFASceneStrategy<T : Any>(val windowSizeClass: WindowSizeClass) : Scene
         fun settings() = mapOf(SETTINGS_KEY to true)
 
         fun subscreen() = mapOf(SUBSCREEN_KEY to true)
+
+        fun subscription() = mapOf(SUBSCRIPTION_KEY to true)
     }
 
     fun isTabletScene(): Boolean {
@@ -139,7 +143,9 @@ class XrayFASceneStrategy<T : Any>(val windowSizeClass: WindowSizeClass) : Scene
         val detailEntry =
             entries.lastOrNull()?.takeIf { it.metadata.containsKey(DETAIL_KEY) }
 
-        if (configEntry != null) {
+        val subscription =
+            entries.lastOrNull()?.takeIf { it.metadata.containsKey(SUBSCRIPTION_KEY) }
+        if (configEntry != null && subscription == null) {
             val sceneKey = configEntry.contentKey
 
             return ConfigDetailScene(

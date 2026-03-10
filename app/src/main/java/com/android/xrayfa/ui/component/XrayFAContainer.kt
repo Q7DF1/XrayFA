@@ -153,7 +153,9 @@ fun XrayFAContainer(
                 navBackStack.routeTo(it)
             }
         }
-        entry<Subscription> {
+        entry<Subscription> (
+            metadata = XrayFASceneStrategy.subscription()
+        ){
             SubscriptionScreen(subscriptViewmodel) {
                 navBackStack.routeTo(Config)
             }
@@ -313,32 +315,6 @@ fun onSettingsClick(context: Context) {
     context.startActivity(Intent(context, SettingsActivity::class.java))
 }
 
-/**
- * change right content of screen  
- */
-private fun NavBackStack<NavKey>.addRight(right: NavKey) {
-
-    // Remove any existing detail routes, then add the new detail route
-    if (size >= 2) {
-        removeLast()
-    }
-    add(right)
-}
-
-/**
- * change right content of screen  
- */
-private fun NavBackStack<NavKey>.addLeft(left: NavKey) {
-    if (lastOrNull() == left) {
-        return
-    }
-    removeAll(this)
-    add(left)
-    when(left) {
-        is Home -> add(Settings)
-        is Config -> add(Subscription)
-    }
-}
 private fun NavBackStack<NavKey>.routeTo(key: NavKey) {
     if (lastOrNull() == key) {
         return
