@@ -175,32 +175,6 @@ fun XrayFAContainer(
             entryProvider = entryProvider,
             onBack = {navBackStack.routeBack()},
             sceneStrategy = rememberXrayFASceneStrategy(),
-            predictivePopTransitionSpec = {
-                // 1. Use the exact easing from your preferred wrapper for a smoother feel
-                val floatAnimSpec = tween<Float>(durationMillis = 300, easing = FastOutSlowInEasing)
-                val offsetAnimSpec = tween<IntOffset>(durationMillis = 300, easing = FastOutSlowInEasing)
-
-                // 2. Background page coming in (slight scale up to add depth)
-                val enter = scaleIn(
-                    initialScale = 0.95f,
-                    animationSpec = floatAnimSpec
-                ) + fadeIn(animationSpec = floatAnimSpec)
-
-                // 3. Current page sliding and scaling down (mimics the Wrapper's logic)
-                val exit = scaleOut(
-                    targetScale = 0.92f, // Matches your scale = lerp(1f, 0.92f)
-                    animationSpec = floatAnimSpec
-                ) + slideOutHorizontally(
-                    // Shift to the right by ~15% of screen width (mimics translationX = 80f)
-                    targetOffsetX = { (it * 0.15f).toInt() },
-                    animationSpec = offsetAnimSpec
-                )
-
-                // 4. Combine and ensure the underlying page stays at the bottom
-                (enter togetherWith exit).apply {
-                    targetContentZIndex = -1f
-                }
-            },
             modifier = Modifier.hazeSource(state = hazeState)
         )
         AnimatedVisibility(

@@ -3,6 +3,7 @@ agp = "8.10.0"
 dagger = "2.57.1"
 datastorePreferences = "1.1.7"
 gson = "2.11.0"
+javaxAnnotationApi = "1.3.2"
 kotlin = "2.0.21"
 coreKtx = "1.17.0"
 junit = "4.13.2"
@@ -19,7 +20,10 @@ roomCompiler = "2.7.0"
 zxingAndroidEmbedded = "4.3.0"
 nav3Core = "1.0.0"
 adaptive = "1.2.0"
-material3AdaptiveNav3 = "1.3.0-alpha06"
+material3AdaptiveNav3 = "1.3.0-alpha09"
+material3 = "1.5.0-alpha15"
+haze = "1.6.10"
+maxmindGeoip2 = "4.2.0"
 
 
 [libraries]
@@ -32,6 +36,7 @@ dagger-android = { module = "com.google.dagger:dagger-android", version.ref = "d
 dagger-android-processor = { module = "com.google.dagger:dagger-android-processor", version.ref = "dagger" }
 dagger-compiler = { module = "com.google.dagger:dagger-compiler", version.ref = "dagger" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+javax-annotation-api = { module = "javax.annotation:javax.annotation-api", version.ref = "javaxAnnotationApi" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -44,7 +49,8 @@ androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
-androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3",version.ref = "material3" }
+androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
@@ -55,6 +61,9 @@ androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", vers
 androidx-material3-adaptive-navigation3 = { group = "androidx.compose.material3.adaptive", name = "adaptive-navigation3", version.ref = "material3AdaptiveNav3" }
 androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "nav3Core" }
 androidx-compose-adaptive = { group = "androidx.compose.material3.adaptive", name = "adaptive", version.ref = "adaptive" }
+maxmind-geoip2 = {group = "com.maxmind.geoip2", name = "geoip2", version.ref = "maxmindGeoip2"}
+haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze"}
+haze-materials = { group = "dev.chrisbanes.haze", name = "haze-materials", version.ref = "haze"}
 
 
 
@@ -64,4 +73,5 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-kapt = {id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin"}
+kotlin-serialization = {id = "org.jetbrains.kotlin.plugin.serialization",version.ref = "kotlin"}
 

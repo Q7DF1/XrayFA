@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.kapt)
-    id ("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -181,6 +181,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.compose.adaptive)
     kapt(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
@@ -198,14 +199,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 
 
-//    implementation("io.grpc:grpc-okhttp:1.63.0")
-//    implementation("io.grpc:grpc-protobuf:1.63.0")
-//    implementation("io.grpc:grpc-stub:1.63.0")
-    implementation("javax.annotation:javax.annotation-api:1.3.2")
-    // 在 build.gradle 中
-    implementation ("com.maxmind.geoip2:geoip2:4.2.0")
-    implementation("dev.chrisbanes.haze:haze:1.6.10")
-    implementation("dev.chrisbanes.haze:haze-materials:1.6.10")
+    implementation(libs.javax.annotation.api)
+    implementation(libs.haze)
+    implementation(libs.haze.materials)
+    implementation(libs.maxmind.geoip2)
     implementation(libs.androidx.datastore.preferences)
 
     implementation (libs.okhttp)

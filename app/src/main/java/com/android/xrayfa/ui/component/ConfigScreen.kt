@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -27,9 +29,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.ContentCut
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.QrCodeScanner
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -37,11 +49,18 @@ import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.SplitButtonDefaults
+import androidx.compose.material3.SplitButtonLayout
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -60,6 +79,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -76,7 +99,7 @@ import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ConfigScreen(
     xrayViewmodel: XrayViewmodel,
@@ -193,15 +216,90 @@ fun ConfigScreen(
             modifier = Modifier.align (BiasAlignment(1f,0.9f))
                 .padding(bottom = bottomPadding)
         ) {
-            FloatingActionButton(
-                onClick = {showSheet = true},
-                containerColor = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(end = 16.dp)
+            var checked by remember { mutableStateOf(false) }
+
+            Box(
+                modifier = Modifier.padding(end = 8.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "add config"
+                SplitButtonLayout(
+                    leadingButton = {
+                        SplitButtonDefaults.LeadingButton(onClick = { /* TODO */ }) {
+                            Icon(
+                                Icons.Filled.Edit,
+                                modifier = Modifier.size(SplitButtonDefaults.LeadingIconSize),
+                                contentDescription = "Localized description",
+                            )
+                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                            Text("Add")
+                        }
+                    },
+                    trailingButton = {
+                        val description = "Toggle Button"
+                        // Icon-only trailing button should have a tooltip for a11y.
+                        TooltipBox(
+                            positionProvider =
+                                TooltipDefaults.rememberTooltipPositionProvider(
+                                    TooltipAnchorPosition.Above
+                                ),
+                            tooltip = { PlainTooltip { Text(description) } },
+                            state = rememberTooltipState(),
+                        ) {
+                            SplitButtonDefaults.TrailingButton(
+                                checked = checked,
+                                onCheckedChange = { checked = it },
+                                modifier =
+                                    Modifier.semantics {
+                                        stateDescription = if (checked) "Expanded" else "Collapsed"
+                                        contentDescription = description
+                                    },
+                            ) {
+                                val rotation: Float by
+                                animateFloatAsState(
+                                    targetValue = if (checked) 180f else 0f,
+                                    label = "Trailing Icon Rotation",
+                                )
+                                Icon(
+                                    Icons.Filled.KeyboardArrowDown,
+                                    modifier =
+                                        Modifier.size(SplitButtonDefaults.TrailingIconSize).graphicsLayer {
+                                            this.rotationZ = rotation
+                                        },
+                                    contentDescription = "Localized description",
+                                )
+                            }
+                        }
+                    },
                 )
+
+                DropdownMenu(
+                    expanded = checked,
+                    onDismissRequest = { checked = false },
+                    containerColor = MaterialTheme.colorScheme.surface
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("from clipboard") },
+                        onClick = {
+                            xrayViewmodel.addV2rayConfigFromClipboard(context)
+                            checked = false
+                        },
+                        leadingIcon = { Icon(Icons.Outlined.ContentCut, contentDescription = null) }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("from QR code") },
+                        onClick = {
+                            barcodeLauncher.launch(scanOptions)
+                            checked = false
+                        },
+                        leadingIcon = { Icon(Icons.Outlined.QrCodeScanner, contentDescription = null) },
+                    )
+                    HorizontalDivider()
+                    DropdownMenuItem(
+                        text = { Text("stay in beta") },
+                        onClick = { /* Handle send feedback! */ },
+                        leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
+                        trailingIcon = { Text("F11", textAlign = TextAlign.Center) },
+                    )
+                }
             }
         }
 
