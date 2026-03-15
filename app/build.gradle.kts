@@ -169,8 +169,9 @@ tasks.register<Exec>("bindXrayLib") {
         "gomobile",
         "bind",
         "-v",
+        "-trimpath",
         "-androidapi", "21",
-        "-ldflags=-s -w",
+        "-ldflags=-s -w -buildid=",
         "./"
     )
     outputs.file(aarOutput)
