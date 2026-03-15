@@ -268,11 +268,13 @@ fun SettingsScreen(
                         downloading = geoIPDownloading,
                         onDownloadClick = {viewmodel.downloadGeoIP(context = context)},
                         onImportClick = {
-                            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                                 addCategory(Intent.CATEGORY_OPENABLE)
                                 type = "*/*"
                             }
-                            ipFilePickLauncher.launch(intent)
+                            val chooserIntent =
+                                Intent.createChooser(intent, "Select a file via...")
+                            ipFilePickLauncher.launch(chooserIntent)
                         }
                     )
                     SettingsWithBtnBox(
@@ -281,11 +283,13 @@ fun SettingsScreen(
                         onDownloadClick = {viewmodel.downloadGeoSite(context)},
                         downloading = geoSiteDownloading,
                         onImportClick = {
-                            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                                 addCategory(Intent.CATEGORY_OPENABLE)
                                 type = "*/*"
                             }
-                            domainFilePickLauncher.launch(intent)
+                            val chooserIntent =
+                                Intent.createChooser(intent, "Select a file via...")
+                             domainFilePickLauncher.launch(chooserIntent)
                         }
                     )
                     SettingsWithBtnBox(
