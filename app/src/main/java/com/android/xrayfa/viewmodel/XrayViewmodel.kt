@@ -35,9 +35,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import javax.inject.Inject
 import kotlin.jvm.java
@@ -62,6 +64,8 @@ class XrayViewmodel(
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _nodes = MutableStateFlow<List<Node>>(emptyList())
     val nodes: StateFlow<List<Node>> = _nodes
+
+    val allNodes: MutableList<Node> = mutableListOf()
 
     private val _upSpeed = MutableStateFlow(0.0)
     val upSpeed: StateFlow<Double> = _upSpeed.asStateFlow()
@@ -110,11 +114,32 @@ class XrayViewmodel(
         }
 
         viewModelScope.launch {
-            repository.allLinks.flowOn(Dispatchers.IO).collect { _nodes.value = it }
+            repository.allLinks.flowOn(Dispatchers.IO).collect {
+                allNodes.addAll(it)
+                _nodes.value = allNodes
+            }
         }
     }
 
 
+    suspend fun onSearch(query: String) {
+        if (query.isEmpty()) {
+            withContext(Dispatchers.Main) {
+                _nodes.value = allNodes
+            }
+            return
+        }
+
+        val filterList = nodes.value.filter {
+            return@filter (it.remark?.contains(query)?: false
+                    || it.protocolPrefix.contains(query))
+        }
+
+        withContext(Dispatchers.Main) {
+            _nodes.value = filterList
+        }
+
+    }
 
 
     fun getConfigFromClipboard(context: Context):String {

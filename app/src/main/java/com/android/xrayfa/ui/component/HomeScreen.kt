@@ -209,7 +209,7 @@ fun Dashboard(
     ) {
         Column(modifier = Modifier.fillMaxSize()){
             TopAppBar(
-                title = {Text(context.getString(Home.title))},
+                title = {Text(stringResource(Home.title))},
                 navigationIcon = {
                     Icon(
                         imageVector = Icons.Default.Home,
@@ -280,9 +280,9 @@ fun DashboardContent(
         ) {
             //upload
             Row(
-                modifier = Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.weight(1f)
             ){
                 Box(
                     modifier = Modifier

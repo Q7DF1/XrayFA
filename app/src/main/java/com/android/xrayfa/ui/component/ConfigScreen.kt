@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -25,6 +26,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
@@ -35,13 +37,16 @@ import androidx.compose.material.icons.outlined.ContentCut
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.QrCodeScanner
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Subscriptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
@@ -52,6 +57,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SplitButtonDefaults
 import androidx.compose.material3.SplitButtonLayout
 import androidx.compose.material3.Surface
@@ -62,6 +69,7 @@ import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -70,6 +78,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
@@ -81,6 +90,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -101,6 +111,7 @@ import com.android.xrayfa.ui.navigation.Subscription
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -155,7 +166,6 @@ fun ConfigScreen(
             ) {
                 TopAppBar(
                     title = {
-
                         Text(stringResource(Config.title))
                     },
                     navigationIcon = {
@@ -313,11 +323,14 @@ fun ConfigScreen(
                             roundCorner = false,
                             countryEmoji = node.countryISO
                         )
-                        HorizontalDivider(
-                            modifier = Modifier.fillMaxSize()
-                                .padding(horizontal = 48.dp),
-                            thickness = 1.dp
-                        )
+                        if(node != nodes.last()) {
+                            HorizontalDivider(
+                                modifier = Modifier.fillMaxSize()
+                                    .padding(horizontal = 48.dp),
+                                thickness = 1.dp
+                            )
+                        }
+
                     }
                 }
             }
@@ -415,6 +428,66 @@ fun ConfigScreen(
             ) {
                 xrayViewmodel.deleteNodeFromDialog()
             }
+        }
+
+        val searchBarState = rememberSearchBarState()
+        val textFieldState = rememberTextFieldState()
+        val scope = rememberCoroutineScope()
+        val inputField =
+            @Composable {
+                SearchBarDefaults.InputField(
+                    textFieldState = textFieldState,
+                    searchBarState = searchBarState,
+                    onSearch = {
+                        scope.launch {
+                            xrayViewmodel.onSearch(it)
+                            searchBarState.animateToCollapsed()
+                        }
+
+                    },
+                    placeholder = {
+                        Text(modifier = Modifier.clearAndSetSemantics {}, text = "Search")
+                    },
+                    leadingIcon = { Icon(
+                        imageVector = Icons.Outlined.Search,
+                        contentDescription = "search_lab"
+                    ) },
+                    trailingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.Mic,
+                            contentDescription = "voice_search_lab"
+                        )
+                    },
+                )
+            }
+        AnimatedVisibility(
+            visible = !listState.isAtBottom { isAtBottom ->
+                if (isAtBottom) xrayViewmodel.hideNavigationBar() else xrayViewmodel.showNavigationBar()
+            },
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.align (BiasAlignment(0f,0.9f))
+                .padding(bottom = bottomPadding)
+        ) {
+            SearchBar(
+                state = searchBarState,
+                inputField = inputField,
+                colors = SearchBarDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
+                modifier = Modifier.align(BiasAlignment(0f,0.7f))
+                    .fillMaxWidth(0.8f)
+            )
+        }
+
+        ExpandedFullScreenSearchBar(
+            state = searchBarState,
+            inputField = inputField,
+            colors = SearchBarDefaults.colors(
+                containerColor = MaterialTheme.colorScheme.background
+            )
+        ) {
+            //todo recommended search
         }
     }
 
