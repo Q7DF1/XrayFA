@@ -150,6 +150,10 @@ tasks.register<Exec>("bindXrayLib") {
     workingDir = xrayLibDir
     environment("GOFLAGS", "-buildvcs=false")
     environment("CGO_LDFLAGS", "-Wl,--build-id=none")
+
+    val currentPath = xrayLibDir.absolutePath
+    environment("CGO_CFLAGS", "-ffile-prefix-map=$currentPath=.")
+    environment("CGO_CXXFLAGS", "-ffile-prefix-map=$currentPath=.")
     commandLine(
         "gomobile",
         "bind",
