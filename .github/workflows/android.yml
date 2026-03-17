@@ -33,18 +33,11 @@ jobs:
         KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
 
-      # Dynamically extract exact Go version from go.mod
-    - name: Get Exact Go Version from go.mod
-      id: go_version
-      run: |
-        GO_VER=$(awk '/^go /{print $2}' AndroidLibXrayLite/go.mod)
-        echo "Extracted Go version: $GO_VER"
-        echo "version=$GO_VER" >> $GITHUB_OUTPUT
 
     - name: Setup Golang
       uses: actions/setup-go@v5.4.0
       with:
-        go-version: ${{ steps.go_version.outputs.version }}
+        go-version-file: './AndroidLibXrayLite/go.mod'
 
     - name: Install gomobile
       run: |
@@ -58,7 +51,7 @@ jobs:
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-      run: ./gradlew assembleRelease
+      run: ./gradlew assembleStandardRelease
 
 
     - name: Upload APK
