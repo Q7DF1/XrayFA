@@ -169,6 +169,7 @@ tasks.register<Exec>("bindXrayLib") {
     dependsOn("goMod")
     workingDir = xrayLibDir
     environment("GOFLAGS", "-buildvcs=false")
+    environment("CGO_LDFLAGS", "-Wl,--build-id=none")
     commandLine(
         "gomobile",
         "bind",
