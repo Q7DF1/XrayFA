@@ -2,6 +2,7 @@ package com.android.xrayfa
 
 import android.app.Activity
 import android.app.Service
+import android.content.BroadcastReceiver
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
@@ -15,7 +16,8 @@ import javax.inject.Singleton
 class ComponentResolver
 @Inject constructor(
     private val activityProviders: Map<Class<*>, @JvmSuppressWildcards Provider<Activity>>,
-    private val serviceProviders: Map<Class<*>, @JvmSuppressWildcards Provider<Service>>
+    private val serviceProviders: Map<Class<*>, @JvmSuppressWildcards Provider<Service>>,
+    private val resolverProviders: Map<Class<*>,@JvmSuppressWildcards Provider<BroadcastReceiver>>
 ) {
 
 
@@ -25,6 +27,10 @@ class ComponentResolver
 
     fun resolveService(className: String): Service? {
         return resolve(className, serviceProviders)
+    }
+
+    fun resolveReceiver(className: String): BroadcastReceiver? {
+        return  resolve(className,resolverProviders)
     }
 
     fun <T> resolve(className: String,creators: Map<Class<*>, Provider<T>>): T? {

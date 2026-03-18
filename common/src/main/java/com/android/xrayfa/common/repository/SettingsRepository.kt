@@ -29,7 +29,8 @@ data class SettingsState(
     val xrayCoreVersion: String = "unknown",
     val version: String = "1.0.0",
     val geoLiteInstall: Boolean = false,
-    val liveUpdateNotification: Boolean = false
+    val liveUpdateNotification: Boolean = false,
+    val bootAutoStart: Boolean = false
 )
 object SettingsKeys {
     val DARK_MODE = intPreferencesKey("dark_mode")
@@ -44,6 +45,7 @@ object SettingsKeys {
     val XRAY_CORE_VERSION = stringPreferencesKey("xray_version")
     val GEO_LITE_INSTALL = booleanPreferencesKey("geo_lite_install")
     val LIVE_UPDATE_NOTIFICATION = booleanPreferencesKey("live_update_notification")
+    val BOOT_AUTO_START = booleanPreferencesKey("boot_auto_start")
 }
 
 const val DEFAULT_DELAY_TEST_URL = "https://www.google.com"
@@ -80,7 +82,8 @@ class SettingsRepository
             version = prefs[SettingsKeys.VERSION] ?: "1.0.0",
             xrayCoreVersion = prefs[SettingsKeys.XRAY_CORE_VERSION]?:"unknown",
             geoLiteInstall = prefs[SettingsKeys.GEO_LITE_INSTALL] == true,
-            liveUpdateNotification = prefs[SettingsKeys.LIVE_UPDATE_NOTIFICATION] == true
+            liveUpdateNotification = prefs[SettingsKeys.LIVE_UPDATE_NOTIFICATION] == true,
+            bootAutoStart = prefs[SettingsKeys.BOOT_AUTO_START] == true
         )
 
     }
@@ -146,6 +149,12 @@ class SettingsRepository
     suspend fun setLiveUpdateNotification(enable: Boolean) {
         context.dataStore.edit {
             it[SettingsKeys.LIVE_UPDATE_NOTIFICATION] = enable
+        }
+    }
+
+    suspend fun setBootAutoStart(enable: Boolean) {
+        context.dataStore.edit {
+            it[SettingsKeys.BOOT_AUTO_START] = enable
         }
     }
 
