@@ -1,6 +1,8 @@
 package com.android.xrayfa.di
 
 import android.app.Service
+import android.content.BroadcastReceiver
+import com.android.xrayfa.BootBroadcastReceiver
 import com.android.xrayfa.core.QuickStartTileService
 import dagger.Binds
 import dagger.Module
@@ -26,4 +28,10 @@ abstract class ServiceModule {
     @IntoMap
     @ClassKey(QuickStartTileService::class)
     abstract fun bindTileService(service: QuickStartTileService): Service
+
+
+    @Binds
+    @IntoMap
+    @ClassKey(BootBroadcastReceiver::class)
+    abstract fun bindBootBroadcastReceiver(broadcastReceiver: BootBroadcastReceiver): BroadcastReceiver
 }

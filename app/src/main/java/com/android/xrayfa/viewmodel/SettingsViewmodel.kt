@@ -147,6 +147,12 @@ class SettingsViewmodel(
         }
     }
 
+    fun setEnableBootAutoStart(enable: Boolean) {
+        viewModelScope.launch {
+            repository.setBootAutoStart(enable)
+        }
+    }
+
     @Deprecated("not used")
     fun startAppsActivity(context: Context) {
         val intent = Intent(context, AppsActivity::class.java)

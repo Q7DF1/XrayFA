@@ -205,7 +205,17 @@ fun SettingsScreen(
                     ) {
                         onNavigate(Logcat)
                     }
+                    HorizontalDivider()
+                    SettingsCheckBox(
+                        title = R.string.boot_auto_start,
+                        description = R.string.boot_auto_start_desc,
+                        checked = settingsState.bootAutoStart,
+                        onCheckedChange = { checked ->
+                            viewmodel.setEnableBootAutoStart(checked)
+                        }
+                    )
                     if (NotificationHelper.canPostPromotionsEnabled(LocalContext.current)) {
+                        HorizontalDivider()
                         SettingsCheckBox(
                             title = R.string.live_update_notification,
                             description = R.string.live_update_notification_desc,

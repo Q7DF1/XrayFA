@@ -86,5 +86,7 @@
     <string name="notification_permission_message">need notification permission to get better experience</string>
     <string name="notification_permission_grant_button">grant</string>
     <string name="notification_permission_reject_button">reject</string>
+    <string name="boot_auto_start">Boot auto start</string>
+    <string name="boot_auto_start_desc">Allow the app to start automatically when the device boots up.</string>
 
 </resources>

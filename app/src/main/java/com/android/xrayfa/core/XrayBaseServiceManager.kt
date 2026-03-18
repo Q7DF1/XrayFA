@@ -7,7 +7,9 @@ import com.android.xrayfa.R
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_LINK
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_PROTOCOL
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -31,7 +33,9 @@ class XrayBaseServiceManager
         val first = repository.querySelectedLink().first()
         if (first == null) {
             //
-            Toast.makeText(context, R.string.config_not_ready, Toast.LENGTH_SHORT).show()
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, R.string.config_not_ready, Toast.LENGTH_SHORT).show()
+            }
             return false
         }
         val intent = Intent(context, XrayBaseService::class.java).apply {

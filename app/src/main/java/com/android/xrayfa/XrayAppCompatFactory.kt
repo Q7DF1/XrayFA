@@ -3,6 +3,7 @@ package com.android.xrayfa
 import android.app.Activity
 import android.app.Application
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -53,6 +54,16 @@ class XrayAppCompatFactory: AppComponentFactory(),ContextAvailableCallback {
         rootComponent?.inject(this@XrayAppCompatFactory)
         return resolver.resolveActivity(className)
             ?:super.instantiateActivityCompat(cl, className, intent)
+    }
+
+    override fun instantiateReceiverCompat(
+        cl: ClassLoader,
+        className: String,
+        intent: Intent?
+    ): BroadcastReceiver {
+        rootComponent?.inject(this@XrayAppCompatFactory)
+        return resolver.resolveReceiver(className)
+            ?: super.instantiateReceiverCompat(cl, className, intent)
     }
 
      override fun onContextAvailable(context: Context) {

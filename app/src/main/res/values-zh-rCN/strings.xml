@@ -76,4 +76,5 @@
     <string name="notification_permission_message">请求开启通知权限获取更好的体验</string>
     <string name="notification_permission_grant_button">同意</string>
     <string name="notification_permission_reject_button">拒绝</string>
+    <string name="boot_auto_start">开机自启</string>
 </resources>

@@ -42,7 +42,7 @@ class CoroutinesModule {
     @Singleton
     @Background
     fun backgroundCoroutineContext(): CoroutineContext {
-        return Dispatchers.IO + SupervisorJob()
+        return Dispatchers.Default + SupervisorJob()
     }
 
 
