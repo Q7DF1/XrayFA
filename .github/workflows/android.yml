@@ -61,18 +61,18 @@ jobs:
         
         cp -a . /build/build/com.android.xrayfa/
         cd /build/build/com.android.xrayfa
-        ./gradlew assembleRelease
+        ./gradlew assembleRelease --max-workers=1 --no-daemon
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: release-apk
-        path: app/build/outputs/apk/release/*.apk
+        path: /build/build/com.android.xrayfa/app/build/outputs/apk/release/*.apk
 
 # Auto-release step
     - name: Create Release
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/') # Only execute this step if triggered by a tag push
       with:
-        files: app/build/outputs/apk/release/*.apk # Directly use the path of the built APK
+        files: /build/build/com.android.xrayfa/app/build/outputs/apk/release/*.apk # Directly use the path of the built APK
         generate_release_notes: true # Automatically generate release notes from PRs/commits
