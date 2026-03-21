@@ -62,6 +62,7 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.metadata
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
@@ -90,6 +91,7 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
+import kotlin.collections.listOf
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalHazeMaterialsApi::class)
@@ -121,13 +123,25 @@ fun XrayFAContainer(
     val showNavigationBar by xrayViewmodel.showNavigationBar.collectAsState()
     val isTopLevel = top in list_navigation
     val entryProvider: (NavKey) -> NavEntry<NavKey> = entryProvider {
-        entry<Home> { key ->
+        entry<Home>(
+            metadata = metadata {
+                put(NavDisplay.TransitionKey) {
+                    slideInHorizontally{it} togetherWith slideOutHorizontally{-it}
+                }
+            }
+        ) { key ->
             HomeScreen(xrayViewmodel,bottomPadding = customNavBarHeightDp) {
                 navBackStack.routeTo(Settings)
             }
         }
         entry<Config>(
-            metadata = XrayFASceneStrategy.config()
+            metadata = XrayFASceneStrategy.config() + metadata {
+                put(NavDisplay.TransitionKey) {
+                    slideInHorizontally(
+                        initialOffsetX = { -it }
+                    ) togetherWith slideOutHorizontally { it }
+                }
+            }
         ) {
             ConfigScreen(xrayViewmodel, bottomPadding = customNavBarHeightDp) {
                 navBackStack.routeTo(it)
@@ -179,7 +193,7 @@ fun XrayFAContainer(
             backStack = navBackStack,
             entryProvider = entryProvider,
             onBack = {navBackStack.routeBack()},
-            sceneStrategy = rememberXrayFASceneStrategy(),
+            sceneStrategies = listOf(rememberXrayFASceneStrategy()),
             modifier = Modifier.hazeSource(state = hazeState)
         )
         AnimatedVisibility(

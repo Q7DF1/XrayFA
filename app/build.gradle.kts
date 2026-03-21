@@ -165,12 +165,6 @@ tasks.register<Exec>("bindXrayLib") {
     )
     outputs.file(aarOutput)
 }
-tasks.whenTaskAdded {
-    if (name.contains("ArtProfile", ignoreCase = true)
-        || name.contains("BaselineProfile", ignoreCase = true)) {
-        enabled = false
-    }
-}
 
 tasks.register<Copy>("copyXrayLib") {
     dependsOn("bindXrayLib")
