@@ -74,7 +74,7 @@ fun NodeCard(
     delete: (() -> Unit)? = null,
     onChoose: () -> Unit = {},
     onShare: (() -> Unit)? = null,
-    onEdit: ((view: View,x:Int,y:Int,width:Int,height:Int) -> Unit)? = null,
+    onSelect: (() -> Unit)? = null,
     onTest: (() -> Unit)? = null,
     delayMs: Long = -1,
     testing: Boolean = false,
@@ -191,17 +191,10 @@ fun NodeCard(
                     )
                 }
             }
-            if (onEdit != null) {
+            if (onSelect != null) {
                 IconButton(
                     onClick = {
-                        itemCoordinates?.let { (offset, size) ->
-                            onEdit.invoke(view,
-                                offset.x.toInt(),
-                                offset.y.toInt(),
-                                size.width,
-                                size.height
-                            )
-                        }
+                        onSelect.invoke()
                     },
                     Modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
                 ) {

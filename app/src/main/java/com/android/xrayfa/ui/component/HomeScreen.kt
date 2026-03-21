@@ -6,6 +6,7 @@ import android.net.VpnService
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -33,6 +34,7 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -65,9 +67,11 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.R
 import com.android.xrayfa.dto.Node
 import com.android.xrayfa.ui.navigation.Home
+import com.android.xrayfa.ui.navigation.Settings
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -77,6 +81,7 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     xrayViewmodel: XrayViewmodel,
     bottomPadding: Dp = 0.dp,
+    sharedTransitionScope: SharedTransitionScope,
     onSettingsClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -89,6 +94,7 @@ fun HomeScreen(
             xrayViewmodel = xrayViewmodel,
             node = selectedNode,
             onSettingsClick = onSettingsClick,
+            sharedTransitionScope = sharedTransitionScope,
             showError = notConfig
         )
         //Dashboard(xrayViewmodel,modifier = Modifier.align(Alignment.TopCenter))
@@ -193,6 +199,7 @@ fun Dashboard(
     xrayViewmodel: XrayViewmodel,
     node: Node?,
     onSettingsClick: () -> Unit = {},
+    sharedTransitionScope: SharedTransitionScope,
     showError: Boolean = false
 ) {
     val context = LocalContext.current
@@ -216,7 +223,18 @@ fun Dashboard(
                         contentDescription = ""
                     )
                 },
-                actions = {HomeActionButton(onSettingsClick)},
+                actions = {
+                    with(sharedTransitionScope) {
+                        HomeActionButton(
+                            onSettingsClick = onSettingsClick,
+                            modifier = Modifier.sharedElement(
+                                sharedTransitionScope.rememberSharedContentState(key = Settings.route),
+                                animatedVisibilityScope = LocalNavAnimatedContentScope.current,
+                                )
+                            )
+                    }
+
+                },
                 colors = TopAppBarDefaults.topAppBarColors(MaterialTheme.colorScheme.primary),
                 modifier = Modifier.zIndex(1f)
                 )
@@ -349,6 +367,23 @@ fun DashboardContent(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun HomeActionButton(
+    onSettingsClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    IconButton(
+        onClick = {onSettingsClick()}
+    ) {
+        Icon(
+            imageVector = Icons.Default.Settings,
+            contentDescription = "",
+            modifier = modifier
+        )
     }
 }
 

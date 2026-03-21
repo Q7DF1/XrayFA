@@ -17,6 +17,6 @@ class AppsActivity
     override fun Content(isLandScape: Boolean) {
 
         val viewmodel = ViewModelProvider.create(this,viewmodelFactory)[AppsViewmodel::class.java]
-        AppsScreen(viewmodel)
+//        AppsScreen(viewmodel)
     }
 }

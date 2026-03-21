@@ -1,6 +1,5 @@
 package com.android.xrayfa.ui
 
-import android.R.attr.progress
 import android.graphics.Color
 import android.graphics.Outline
 import android.graphics.drawable.ColorDrawable
@@ -14,11 +13,10 @@ import android.view.ViewOutlineProvider
 import android.view.animation.DecelerateInterpolator
 import androidx.activity.BackEventCompat
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModelProvider
-import com.android.xrayfa.ui.component.DetailContainer
+import com.android.xrayfa.ui.component.DetailScreen
 import com.android.xrayfa.viewmodel.DetailViewmodel
 import com.android.xrayfa.viewmodel.DetailViewmodelFactory
 import com.android.xrayfa.viewmodel.XrayViewmodel
@@ -133,11 +131,11 @@ class DetailActivity
         val content = intent.getStringExtra(XrayViewmodel.EXTRA_LINK)
         val viewmodel =
             ViewModelProvider.create(this,detailViewmodelFactory)[DetailViewmodel::class.java]
-        DetailContainer(
-            protocol = protocol!!,
-            content = content!!,
-            detailViewmodel = viewmodel
-        )
+//        DetailScreen(
+//            protocol = protocol!!,
+//            content = content!!,
+//            detailViewmodel = viewmodel
+//        )
     }
 
     private fun initAnimationParams() {

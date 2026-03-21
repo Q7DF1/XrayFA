@@ -2,16 +2,12 @@ package com.android.xrayfa.ui.component
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
@@ -19,10 +15,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -37,8 +30,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -56,7 +47,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
@@ -64,7 +54,6 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.metadata
 import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.scene.DialogSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import com.android.xrayfa.ui.navigation.Logcat
 import com.android.xrayfa.ui.navigation.Config
@@ -122,80 +111,110 @@ fun XrayFAContainer(
     val hazeState = remember { HazeState() }
     val showNavigationBar by xrayViewmodel.showNavigationBar.collectAsState()
     val isTopLevel = top in list_navigation
-    val entryProvider: (NavKey) -> NavEntry<NavKey> = entryProvider {
-        entry<Home>(
-            metadata = metadata {
-                put(NavDisplay.TransitionKey) {
-                    slideInHorizontally{it} togetherWith slideOutHorizontally{-it}
-                }
-            }
-        ) { key ->
-            HomeScreen(xrayViewmodel,bottomPadding = customNavBarHeightDp) {
-                navBackStack.routeTo(Settings)
-            }
-        }
-        entry<Config>(
-            metadata = XrayFASceneStrategy.config() + metadata {
-                put(NavDisplay.TransitionKey) {
-                    slideInHorizontally(
-                        initialOffsetX = { -it }
-                    ) togetherWith slideOutHorizontally { it }
-                }
-            }
-        ) {
-            ConfigScreen(xrayViewmodel, bottomPadding = customNavBarHeightDp) {
-                navBackStack.routeTo(it)
-            }
-        }
-        entry<Logcat>(
-            metadata = XrayFASceneStrategy.subscreen()
-        ) {
-            LogcatScreen(xrayViewmodel)
-        }
-        entry<Detail>(
-            metadata = XrayFASceneStrategy.detail()
-        ) { key ->
-            DetailContainer(
-                protocol = key.protocol,
-                content = key.content,
-                detailViewmodel = detailViewmodel
-            )
-        }
-        entry<Settings>(
-            metadata = XrayFASceneStrategy.settings()
-        ) {
-            SettingsScreen(settingsViewmodel) {
-                navBackStack.routeTo(it)
-            }
-        }
-        entry<Subscription> (
-            metadata = XrayFASceneStrategy.subscription()
-        ){
-            SubscriptionScreen(subscriptViewmodel) {
-                navBackStack.routeTo(Config)
-            }
-        }
-        entry<Apps>(
-            metadata = XrayFASceneStrategy.subscreen()
-        ) {
-            AppsScreen(appViewmodel)
-        }
-
-        entry<Edit> {
-            EditScreen()
-        }
-
-    }
     Box(
         modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
     ) {
-        NavDisplay(
-            backStack = navBackStack,
-            entryProvider = entryProvider,
-            onBack = {navBackStack.routeBack()},
-            sceneStrategies = listOf(rememberXrayFASceneStrategy()),
-            modifier = Modifier.hazeSource(state = hazeState)
-        )
+        SharedTransitionLayout {
+            NavDisplay(
+                backStack = navBackStack,
+                onBack = {navBackStack.routeBack()},
+                sceneStrategies = listOf(rememberXrayFASceneStrategy()),
+                modifier = Modifier.hazeSource(state = hazeState),
+                sharedTransitionScope = this,
+                entryProvider = { key ->
+                    when(key) {
+                        is Home -> NavEntry(
+                            key = key,
+                            metadata = metadata {
+                                put(NavDisplay.TransitionKey) {
+                                    slideInHorizontally{it} togetherWith slideOutHorizontally{-it}
+                                }
+                            }
+                        ){
+                            HomeScreen(
+                                xrayViewmodel = xrayViewmodel,
+                                bottomPadding = customNavBarHeightDp,
+                                sharedTransitionScope = this@SharedTransitionLayout
+                            ) { navBackStack.routeTo(Settings) }
+                        }
+
+                        is Config -> NavEntry(
+                            key = key,
+                            metadata = XrayFASceneStrategy.config() + metadata {
+                                put(NavDisplay.TransitionKey) {
+                                    slideInHorizontally(
+                                        initialOffsetX = { -it }
+                                    ) togetherWith slideOutHorizontally { it }
+                                }
+                            }
+                        ) {
+                            ConfigScreen(
+                                xrayViewmodel = xrayViewmodel,
+                                bottomPadding = customNavBarHeightDp,
+                                sharedTransitionScope = this@SharedTransitionLayout
+                            ) { navBackStack.routeTo(it) }
+                        }
+                        is Apps -> NavEntry(
+                            key = key,
+                            metadata = XrayFASceneStrategy.subscreen()
+                        ) {
+                            AppsScreen(
+                            viewmodel = appViewmodel,
+                            sharedTransitionScope = this@SharedTransitionLayout
+                            )
+                        }
+
+                        is Settings -> NavEntry(
+                            key = key,
+                            metadata = XrayFASceneStrategy.settings()
+                        ) {
+                            SettingsScreen(
+                                viewmodel = settingsViewmodel,
+                                sharedTransitionScope = this@SharedTransitionLayout,
+                            ) { navBackStack.routeTo(it) }
+                        }
+                        is Logcat -> NavEntry(
+                            key = key,
+                            metadata = XrayFASceneStrategy.subscreen()
+                        ) {
+                            LogcatScreen(
+                                viewmodel = xrayViewmodel,
+                                sharedTransitionScope = this@SharedTransitionLayout
+                            )
+                        }
+
+                        is Subscription -> NavEntry(
+                            key = key,
+                            metadata = XrayFASceneStrategy.subscription()
+                        ) {
+                            SubscriptionScreen(subscriptViewmodel) {
+                                navBackStack.routeTo(Config)
+                            }
+                        }
+                        is Edit -> NavEntry(key) { EditScreen() }
+                        is Detail -> NavEntry(
+                            key = key,
+                            metadata = XrayFASceneStrategy.detail()
+                        ) {
+                            DetailScreen(
+                                id = key.id,
+                                remark = key.remark,
+                                protocol = key.protocol,
+                                content = key.content,
+                                sharedTransitionScope = this@SharedTransitionLayout,
+                                detailViewmodel = detailViewmodel
+                            )
+                        }
+                        else -> NavEntry(key) { Text("Unknown route") }
+                    }
+                },
+                predictivePopTransitionSpec = { _ ->
+                    //todo Link Predictive Back Animation with Standard Back Animation #222
+                    EnterTransition.None togetherWith ExitTransition.None
+                }
+            )
+        }
+
         AnimatedVisibility(
             // todo try another way(#182)
             visible = showNavigationBar && isTopLevel || top is Home,
@@ -232,20 +251,7 @@ fun XrayFAContainer(
     }
 }
 
-@Composable
-fun HomeActionButton(
-    onSettingsClick: () -> Unit
-) {
-    val context = LocalContext.current
-    IconButton(
-        onClick = {onSettingsClick()}
-    ) {
-        Icon(
-            imageVector = Icons.Default.Settings,
-            contentDescription = ""
-        )
-    }
-}
+
 
 @Composable
 fun LogcatActionButton(

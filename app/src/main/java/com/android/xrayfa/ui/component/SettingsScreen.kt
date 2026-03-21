@@ -6,6 +6,8 @@ import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
@@ -73,11 +75,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
+import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.common.repository.SettingsKeys
 import com.android.xrayfa.helper.NotificationHelper
 import com.android.xrayfa.ui.navigation.Apps
 import com.android.xrayfa.ui.navigation.Logcat
 import com.android.xrayfa.ui.navigation.NavigateDestination
+import com.android.xrayfa.ui.navigation.Settings
 import com.android.xrayfa.viewmodel.GEOFileType
 import com.android.xrayfa.viewmodel.GEOFileType.Companion.FILE_TYPE_IP
 
@@ -85,6 +89,7 @@ import com.android.xrayfa.viewmodel.GEOFileType.Companion.FILE_TYPE_IP
 @Composable
 fun SettingsScreen(
     viewmodel: SettingsViewmodel,
+    sharedTransitionScope: SharedTransitionScope,
     onNavigate: (NavigateDestination) -> Unit,
 ) {
 
@@ -142,12 +147,21 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {Text(stringResource(R.string.settings_title))},
+                title = {
+                    Text(stringResource(R.string.settings_title))
+                },
                 navigationIcon = {
-                    Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "settings"
-                    )
+                    with(sharedTransitionScope) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "settings",
+                            modifier = Modifier.sharedElement(
+                                sharedTransitionScope.rememberSharedContentState(key = Settings.route),
+                                animatedVisibilityScope = LocalNavAnimatedContentScope.current,
+                                )
+                        )
+                    }
+
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = currentTopbarColor,
@@ -190,21 +204,34 @@ fun SettingsScreen(
                         )
                     )
                     HorizontalDivider()
-                    SettingsFieldBox(
-                        title = R.string.allow_app_settings,
-                        content = stringResource(R.string.select_app_settings)
-                    ) {
-                        //viewmodel.startAppsActivity(context)
-                        onNavigate(Apps)
+                    with(sharedTransitionScope) {
+                        SettingsFieldBox(
+                            title = R.string.allow_app_settings,
+                            content = stringResource(R.string.select_app_settings),
+                            modifier = Modifier.sharedElement(
+                                sharedTransitionScope.rememberSharedContentState(key = Apps.route),
+                                animatedVisibilityScope = LocalNavAnimatedContentScope.current,
+                            )
+                        ) {
+                            //viewmodel.startAppsActivity(context)
+                            onNavigate(Apps)
+                        }
                     }
 
                     HorizontalDivider()
-                    SettingsFieldBox(
-                        title = R.string.logcat,
-                        content = stringResource(R.string.logcat_desc)
-                    ) {
-                        onNavigate(Logcat)
+                    with(sharedTransitionScope) {
+                        SettingsFieldBox(
+                            title = R.string.logcat,
+                            content = stringResource(R.string.logcat_desc),
+                            modifier = Modifier.sharedElement(
+                                sharedTransitionScope.rememberSharedContentState(key = Logcat.route),
+                                animatedVisibilityScope = LocalNavAnimatedContentScope.current
+                            )
+                        ) {
+                            onNavigate(Logcat)
+                        }
                     }
+
                     HorizontalDivider()
                     SettingsCheckBox(
                         title = R.string.boot_auto_start,
@@ -603,10 +630,11 @@ fun SettingsFieldBox(
     content: String,
     enable: Boolean = true,
     icon: ImageVector? = null,
+    modifier: Modifier = Modifier,
     onClick: () ->Unit
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(
                 enabled = enable

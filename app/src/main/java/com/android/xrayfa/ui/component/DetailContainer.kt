@@ -1,6 +1,7 @@
 package com.android.xrayfa.ui.component
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -49,16 +50,21 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.R
 import com.android.xrayfa.model.protocol.Protocol
+import com.android.xrayfa.ui.navigation.Apps
 import com.android.xrayfa.viewmodel.DetailViewmodel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DetailContainer(
+fun DetailScreen(
+    id: Int,
+    remark: String?,
     protocol: String,
     content: String,
-    detailViewmodel: DetailViewmodel
+    detailViewmodel: DetailViewmodel,
+    sharedTransitionScope: SharedTransitionScope,
 ) {
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
@@ -74,53 +80,60 @@ fun DetailContainer(
         targetValue = if (isScrolled) 4.dp else 0.dp,
         label = "TopBarShadowElevation"
     )
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.detail_title)) },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                ),
-                modifier = Modifier.shadow(appBarElevation)
-            )
-        },
-        modifier = Modifier.clip(RoundedCornerShape(12.dp))
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
-        ) {
+    with(sharedTransitionScope) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(text = remark?:stringResource(R.string.detail_title)) },
+                    scrollBehavior = scrollBehavior,
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    modifier = Modifier.shadow(appBarElevation)
+                )
+            },
+            modifier = Modifier.clip(RoundedCornerShape(12.dp))
+                .sharedElement(
+                    sharedTransitionScope.rememberSharedContentState(key = id),
+                    animatedVisibilityScope = LocalNavAnimatedContentScope.current,
+                )
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+            ) {
 
-            when(protocol) {
-                Protocol.VLESS.protocolType -> VLESSConfigScreen(
-                    innerPadding,
-                    content,
-                    detailViewmodel,
-                    scrollBehavior
-                )
-                Protocol.VMESS.protocolType -> VMESSConfigScreen(
-                    innerPadding,
-                    content,
-                    detailViewmodel,
-                    scrollBehavior
-                )
-                Protocol.TROJAN.protocolType -> TROJANConfigScreen(
-                    innerPadding,
-                    content,
-                    detailViewmodel,
-                    scrollBehavior
-                )
-                Protocol.SHADOW_SOCKS.protocolType -> SHADOWSOCKSConfigScreen(
-                    innerPadding,
-                    content,
-                    detailViewmodel,
-                    scrollBehavior
-                )
-                else -> Text("Unknown protocol")
+                when(protocol) {
+                    Protocol.VLESS.protocolType -> VLESSConfigScreen(
+                        innerPadding,
+                        content,
+                        detailViewmodel,
+                        scrollBehavior
+                    )
+                    Protocol.VMESS.protocolType -> VMESSConfigScreen(
+                        innerPadding,
+                        content,
+                        detailViewmodel,
+                        scrollBehavior
+                    )
+                    Protocol.TROJAN.protocolType -> TROJANConfigScreen(
+                        innerPadding,
+                        content,
+                        detailViewmodel,
+                        scrollBehavior
+                    )
+                    Protocol.SHADOW_SOCKS.protocolType -> SHADOWSOCKSConfigScreen(
+                        innerPadding,
+                        content,
+                        detailViewmodel,
+                        scrollBehavior
+                    )
+                    else -> Text("Unknown protocol")
+                }
             }
         }
     }
+
 }
 
 

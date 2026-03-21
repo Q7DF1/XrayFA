@@ -3,6 +3,7 @@ package com.android.xrayfa.ui.component
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
@@ -100,8 +101,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.zIndex
+import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.R
 import com.android.xrayfa.ui.QRCodeActivity
+import com.android.xrayfa.ui.navigation.Apps
 import com.android.xrayfa.ui.navigation.Config
 import com.android.xrayfa.ui.navigation.Detail
 import com.android.xrayfa.ui.navigation.Edit
@@ -118,6 +121,7 @@ import kotlinx.coroutines.launch
 fun ConfigScreen(
     xrayViewmodel: XrayViewmodel,
     bottomPadding: Dp = 0.dp,
+    sharedTransitionScope: SharedTransitionScope,
     onNavigate: (NavigateDestination) -> Unit
 ) {
     val nodes by xrayViewmodel.nodes.collectAsState()
@@ -303,26 +307,40 @@ fun ConfigScreen(
                     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
                 ) {
                     items(nodes, key = {it.id}) {node ->
-                        NodeCard(
-                            node = node,
-                            delete = {
-                                xrayViewmodel.showDeleteDialog(node.id)
-                            },
-                            onChoose = {
-                                xrayViewmodel.setSelectedNode(node.id)
-                                onNavigate(Home)
-                            },
-                            onShare = {
-                                xrayViewmodel.generateQRCode(node.id)
-                            },
-                            onEdit = { view,x,y,width,height ->
-                                //xrayViewmodel.startDetailActivity(context = context,id = node.id,x,y,width,height,view)
-                                onNavigate(Detail(node.protocolPrefix,node.url))
-                            },
-                            selected =node.selected,
-                            roundCorner = false,
-                            countryEmoji = node.countryISO
-                        )
+                        with(sharedTransitionScope) {
+                            NodeCard(
+                                node = node,
+                                delete = {
+                                    xrayViewmodel.showDeleteDialog(node.id)
+                                },
+                                onChoose = {
+
+                                    onNavigate(
+                                        Detail (
+                                            id = node.id,
+                                            remark = node.remark,
+                                            protocol = node.protocolPrefix,
+                                            content = node.url,
+                                        )
+                                    )
+                                },
+                                onShare = {
+                                    xrayViewmodel.generateQRCode(node.id)
+                                },
+                                onSelect = {
+                                    xrayViewmodel.setSelectedNode(node.id)
+                                    onNavigate(Home)
+                                },
+                                selected =node.selected,
+                                roundCorner = false,
+                                countryEmoji = node.countryISO,
+                                modifier = Modifier.sharedElement(
+                                    sharedTransitionScope.rememberSharedContentState(key = node.id),
+                                    animatedVisibilityScope = LocalNavAnimatedContentScope.current,
+                                )
+                            )
+                        }
+
                         if(node != nodes.last()) {
                             HorizontalDivider(
                                 modifier = Modifier.fillMaxSize()

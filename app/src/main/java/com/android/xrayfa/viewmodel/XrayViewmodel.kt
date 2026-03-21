@@ -32,11 +32,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -60,9 +63,27 @@ class XrayViewmodel(
         const val DELETE_NONE = -1
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val _nodes = MutableStateFlow<List<Node>>(emptyList())
-    val nodes: StateFlow<List<Node>> = _nodes
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    val nodes: StateFlow<List<Node>> = combine(
+        repository.allLinks,
+        _searchQuery
+    ) { allNodes, query ->
+        if (query.isBlank()) {
+            allNodes
+        } else {
+            allNodes.filter { node ->
+                node.remark?.contains(query, ignoreCase = true)?: false ||
+                        node.url.contains(query, ignoreCase = true)
+            }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     val allNodes: MutableList<Node> = mutableListOf()
 
@@ -111,33 +132,11 @@ class XrayViewmodel(
                 _isServiceRunning.value = it
             }
         }
-
-        viewModelScope.launch {
-            repository.allLinks.flowOn(Dispatchers.IO).collect {
-                allNodes.addAll(it)
-                _nodes.value = allNodes
-            }
-        }
     }
 
 
     suspend fun onSearch(query: String) {
-        if (query.isEmpty()) {
-            withContext(Dispatchers.Main) {
-                _nodes.value = allNodes
-            }
-            return
-        }
-
-        val filterList = nodes.value.filter {
-            return@filter (it.remark?.contains(query)?: false
-                    || it.protocolPrefix.contains(query))
-        }
-
-        withContext(Dispatchers.Main) {
-            _nodes.value = filterList
-        }
-
+        _searchQuery.value = query
     }
 
 

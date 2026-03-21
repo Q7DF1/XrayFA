@@ -1,5 +1,6 @@
 package com.android.xrayfa.ui.component
 
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -61,7 +62,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
+import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.R
+import com.android.xrayfa.ui.navigation.Apps
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -70,7 +73,8 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppsScreen(
-    viewmodel: AppsViewmodel
+    viewmodel: AppsViewmodel,
+    sharedTransitionScope: SharedTransitionScope,
 ) {
 
     val listState = rememberLazyListState()
@@ -89,144 +93,149 @@ fun AppsScreen(
         label = "TopBarShadowElevation"
     )
     val context = LocalContext.current
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-//                    Text(stringResource(R.string.all_app_settings))
-                    val searchBarState = rememberSearchBarState()
-                    val textFieldState = rememberTextFieldState()
-                    LaunchedEffect(searchBarState.targetValue) {
-                        if (searchBarState.targetValue == SearchBarValue.Collapsed
-                            && textFieldState.text.isEmpty()) {
-                            viewmodel.onSearch(textFieldState.text.toString())     // Trigger logic
+    with(sharedTransitionScope) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        val searchBarState = rememberSearchBarState()
+                        val textFieldState = rememberTextFieldState()
+                        LaunchedEffect(searchBarState.targetValue) {
+                            if (searchBarState.targetValue == SearchBarValue.Collapsed
+                                && textFieldState.text.isEmpty()) {
+                                viewmodel.onSearch(textFieldState.text.toString())     // Trigger logic
+                            }
                         }
-                    }
 
-                    val scope = rememberCoroutineScope()
-                    val inputField =
-                        @Composable {
-                            SearchBarDefaults.InputField(
-                                textFieldState = textFieldState,
-                                searchBarState = searchBarState,
-                                onSearch = {
-                                    scope.launch {
-                                        if (searchAppInfoCompleted) {
-                                            searchBarState.animateToCollapsed()
-                                            viewmodel.onSearch(it)
+                        val scope = rememberCoroutineScope()
+                        val inputField =
+                            @Composable {
+                                SearchBarDefaults.InputField(
+                                    textFieldState = textFieldState,
+                                    searchBarState = searchBarState,
+                                    onSearch = {
+                                        scope.launch {
+                                            if (searchAppInfoCompleted) {
+                                                searchBarState.animateToCollapsed()
+                                                viewmodel.onSearch(it)
+                                            }
                                         }
-                                    }
 
-                                },
-                                placeholder = {
-                                    Text(modifier = Modifier.clearAndSetSemantics {}, text = "Search")
-                                },
-                                leadingIcon = { Icon(
-                                    imageVector = Icons.Outlined.Search,
-                                    contentDescription = "search_lab"
-                                ) },
-                                trailingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Mic,
-                                        contentDescription = "voice_search_lab"
-                                    )
-                                },
-                            )
-                        }
-                    SearchBar(
-                        state = searchBarState,
-                        inputField = inputField,
-                        colors = SearchBarDefaults.colors(
-                            containerColor = MaterialTheme.colorScheme.background
-                        ),
-                    )
-                    ExpandedFullScreenSearchBar(
-                        state = searchBarState,
-                        inputField = inputField,
-                        colors = SearchBarDefaults.colors(
-                            containerColor = MaterialTheme.colorScheme.background
+                                    },
+                                    placeholder = {
+                                        Text(modifier = Modifier.clearAndSetSemantics {}, text = "Search")
+                                    },
+                                    leadingIcon = { Icon(
+                                        imageVector = Icons.Outlined.Search,
+                                        contentDescription = "search_lab"
+                                    ) },
+                                    trailingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Outlined.Mic,
+                                            contentDescription = "voice_search_lab"
+                                        )
+                                    },
+                                )
+                            }
+                        SearchBar(
+                            state = searchBarState,
+                            inputField = inputField,
+                            colors = SearchBarDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.background
+                            ),
                         )
-                    ) {
-                        //todo recommended search
-                    }
-                },
+                        ExpandedFullScreenSearchBar(
+                            state = searchBarState,
+                            inputField = inputField,
+                            colors = SearchBarDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.background
+                            )
+                        ) {
+                            //todo recommended search
+                        }
+                    },
 //                navigationIcon = {
 //                    Icon(
 //                        imageVector = Icons.Default.Settings,
 //                        contentDescription = "all_app_settings_lab"
 //                    )
 //                },
-                actions = {
-                    IconButton(
-                        onClick = {
-                            viewmodel.setAllowedPackages(emptyList()) {
-                                viewmodel.getInstalledPackages(context)
+                    actions = {
+                        IconButton(
+                            onClick = {
+                                viewmodel.setAllowedPackages(emptyList()) {
+                                    viewmodel.getInstalledPackages(context)
+                                }
                             }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.ClearAll,
+                                contentDescription = "unselect all app"
+                            )
                         }
-                    ) {
-                    Icon(
-                        imageVector = Icons.Outlined.ClearAll,
-                        contentDescription = "unselect all app"
-                    )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface
-                ),
-                scrollBehavior = scrollBehavior,
-                modifier = Modifier
-                    .shadow(appBarElevation)
-            )
-        },
-        modifier = Modifier.clip(RoundedCornerShape(12.dp))
-    ) { paddingValue ->
-
-
-        LaunchedEffect(Unit) {
-            withContext(Dispatchers.IO) {
-                viewmodel.getInstalledPackages(context)
-            }
-        }
-        Box(
-            modifier = Modifier.fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
-                .padding(top = paddingValue.calculateTopPadding())
-        ) {
-
-            if (!searchAppInfoCompleted) {
-                LoadingIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                        .size(68.dp)
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    scrollBehavior = scrollBehavior,
+                    modifier = Modifier
+                        .shadow(appBarElevation)
                 )
-            }else {
-                val appInfos by viewmodel.appInfos.collectAsState()
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
-                ) {
-                    items(appInfos) { appInfo ->
-                        ApkInfoItem(
-                            appName = appInfo.appName,
-                            painter = appInfo.icon,
-                            initChecked = appInfo.allow,
-                            onCheck = { checked ->
-                                if (checked) viewmodel.addAllowPackage(appInfo.packageName)
-                                else viewmodel.removeAllowPackage(appInfo.packageName)
-                            }
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 48.dp, end = 48.dp),
-                            thickness = 1.dp
-                        )
+            },
+            modifier = Modifier.clip(RoundedCornerShape(12.dp))
+                .sharedElement(
+                    sharedTransitionScope.rememberSharedContentState(key = Apps.route),
+                    animatedVisibilityScope = LocalNavAnimatedContentScope.current,
+                )
+        ) { paddingValue ->
+
+
+            LaunchedEffect(Unit) {
+                withContext(Dispatchers.IO) {
+                    viewmodel.getInstalledPackages(context)
+                }
+            }
+            Box(
+                modifier = Modifier.fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(top = paddingValue.calculateTopPadding())
+            ) {
+
+                if (!searchAppInfoCompleted) {
+                    LoadingIndicator(
+                        modifier = Modifier.align(Alignment.Center)
+                            .size(68.dp)
+                    )
+                }else {
+                    val appInfos by viewmodel.appInfos.collectAsState()
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+                    ) {
+                        items(appInfos) { appInfo ->
+                            ApkInfoItem(
+                                appName = appInfo.appName,
+                                painter = appInfo.icon,
+                                initChecked = appInfo.allow,
+                                onCheck = { checked ->
+                                    if (checked) viewmodel.addAllowPackage(appInfo.packageName)
+                                    else viewmodel.removeAllowPackage(appInfo.packageName)
+                                }
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 48.dp, end = 48.dp),
+                                thickness = 1.dp
+                            )
+                        }
                     }
                 }
             }
         }
     }
+
 }
 
 @Composable

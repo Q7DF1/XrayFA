@@ -1,5 +1,7 @@
 package com.android.xrayfa.ui.component
 
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +28,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.R
 import com.android.xrayfa.ui.navigation.Config
 import com.android.xrayfa.ui.navigation.Home
@@ -34,52 +37,61 @@ import com.android.xrayfa.ui.navigation.Logcat
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LogcatScreen(
-    viewmodel: XrayViewmodel
+    viewmodel: XrayViewmodel,
+    sharedTransitionScope: SharedTransitionScope,
 ) {
     val logList by viewmodel.logList.collectAsState()
     val context = LocalContext.current
     LaunchedEffect(Unit) {
         viewmodel.getLogcatContent()
     }
+    with(sharedTransitionScope) {
         Box(
             modifier = Modifier.fillMaxSize()
                 .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.background)
+                .sharedElement(
+                    sharedTransitionScope.rememberSharedContentState(key = Logcat.route),
+                    animatedVisibilityScope = LocalNavAnimatedContentScope.current,
+                )
         ) {
-           Column(modifier = Modifier.fillMaxSize()) {
-               TopAppBar(
-                   title = {Text(stringResource(Logcat.title))},
-                   navigationIcon = {
-                       Icon(
-                           imageVector = Icons.Default.Warning,
-                           contentDescription = ""
-                       )
-                   },
-                   actions = { LogcatActionButton(viewmodel)},
-                   modifier = Modifier.shadow(4.dp)
-               )
-               if (logList.size <= 1) {
-                   Box(
-                       modifier = Modifier.fillMaxSize()
-                   ) {
-                       Text(
-                           text = stringResource(R.string.no_log_text),
-                           style = MaterialTheme.typography.headlineMedium,
-                           modifier = Modifier.align(Alignment.Center)
-                       )
-                   }
-               }else {
-                   LazyColumn(
-                       modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 4.dp)
-                   ) {
-                       items(items = logList) { logLine->
-                           Text(
-                               text = logLine,
-                               style = MaterialTheme.typography.bodySmall
-                           )
-                       }
-                   }
-               }
-           }
+            Column(modifier = Modifier.fillMaxSize()) {
+                TopAppBar(
+                    title = {Text(stringResource(Logcat.title))},
+                    navigationIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = ""
+                        )
+                    },
+                    actions = { LogcatActionButton(viewmodel)},
+                    modifier = Modifier.shadow(4.dp)
+                )
+                if (logList.size <= 1) {
+                    Box(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Text(
+                            text = stringResource(R.string.no_log_text),
+                            style = MaterialTheme.typography.headlineMedium,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
+                }else {
+                    LazyColumn(
+                        modifier = Modifier.padding(start = 4.dp, end = 4.dp, top = 4.dp)
+                    ) {
+                        items(items = logList) { logLine->
+                            Text(
+                                text = logLine,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+            }
         }
+    }
+
 
 }

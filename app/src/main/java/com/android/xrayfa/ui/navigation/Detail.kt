@@ -5,6 +5,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Detail(
+    val id: Int,
+    val remark: String?,
     val protocol: String,
     val content: String
 ): NavigateDestination{
