@@ -77,4 +77,8 @@
     <string name="notification_permission_grant_button">同意</string>
     <string name="notification_permission_reject_button">拒绝</string>
     <string name="boot_auto_start">开机自启</string>
+    <string name="boot_auto_start_desc">开机后自动启动服务</string>
+    <string name="scan_qr_title">扫码</string>
+    <string name="scan_qr_permission_desc">请授予相机权限以使用扫码功能</string>
+    <string name="decode_qr_failed">解析二维码失败</string>
 </resources>

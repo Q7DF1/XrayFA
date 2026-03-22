@@ -59,8 +59,6 @@ import com.android.xrayfa.ui.QRCodeActivity
 import com.android.xrayfa.ui.component.NodeCard
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.android.xrayfa.R
-import com.journeyapps.barcodescanner.ScanContract
-import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.serialization.Serializable
 
 @Serializable

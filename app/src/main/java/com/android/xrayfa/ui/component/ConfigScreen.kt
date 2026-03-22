@@ -1,7 +1,9 @@
 package com.android.xrayfa.ui.component
 
+import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateDpAsState
@@ -104,6 +106,7 @@ import androidx.compose.ui.zIndex
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.R
 import com.android.xrayfa.ui.QRCodeActivity
+import com.android.xrayfa.ui.ScanQRResultContract
 import com.android.xrayfa.ui.navigation.Apps
 import com.android.xrayfa.ui.navigation.Config
 import com.android.xrayfa.ui.navigation.Detail
@@ -112,8 +115,6 @@ import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.ui.navigation.NavigateDestination
 import com.android.xrayfa.ui.navigation.Subscription
 import com.android.xrayfa.viewmodel.XrayViewmodel
-import com.journeyapps.barcodescanner.ScanContract
-import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -132,11 +133,6 @@ fun ConfigScreen(
     var showSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
-    val scanOptions = ScanOptions()
-    scanOptions.setOrientationLocked(true)
-    scanOptions.captureActivity = QRCodeActivity::class.java
-    scanOptions.setBeepEnabled(false)
-
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
         rememberTopAppBarState()
     )
@@ -150,12 +146,12 @@ fun ConfigScreen(
         targetValue = if (isScrolled) 4.dp else 0.dp,
         label = "TopBarShadowElevation"
     )
-    val barcodeLauncher = rememberLauncherForActivityResult(ScanContract()) {
+    val barcodeLauncher = rememberLauncherForActivityResult(ScanQRResultContract()) {
             result->
-        if (result.contents == null) {
+        if (result.isEmpty()) {
             Toast.makeText(context, "Cancelled", Toast.LENGTH_LONG).show();
         }else {
-            xrayViewmodel.addLink(result.contents)
+            xrayViewmodel.addLink(result)
         }
     }
 
@@ -252,7 +248,8 @@ fun ConfigScreen(
                                 DropdownMenuItem(
                                     text = { Text("from QR code") },
                                     onClick = {
-                                        barcodeLauncher.launch(scanOptions)
+                                        val intent = Intent(context, QRCodeActivity::class.java)
+                                        barcodeLauncher.launch(intent)
                                         checked = false
                                     },
                                     leadingIcon = { Icon(Icons.Outlined.QrCodeScanner, contentDescription = null) },
@@ -349,60 +346,6 @@ fun ConfigScreen(
                             )
                         }
 
-                    }
-                }
-            }
-        }
-
-        if (showSheet) {
-            ModalBottomSheet(
-                onDismissRequest = {showSheet = false},
-                containerColor = MaterialTheme.colorScheme.surface,
-                sheetState = sheetState
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.weight(1f)
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() }
-                            ) {
-                                xrayViewmodel.addV2rayConfigFromClipboard(context)
-                                showSheet = false
-                            }
-                            .clip(CircleShape)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = ""
-                        )
-                        Text(
-                            text = stringResource(R.string.clipboard_import),
-                        )
-                    }
-
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.weight(1f)
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() }
-                            ) {
-                                barcodeLauncher.launch(scanOptions)
-                                showSheet = false
-                            }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = ""
-                        )
-                        Text(
-                            text = stringResource(R.string.qrcode_import)
-                        )
                     }
                 }
             }

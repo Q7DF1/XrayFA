@@ -88,5 +88,7 @@
     <string name="notification_permission_reject_button">reject</string>
     <string name="boot_auto_start">Boot auto start</string>
     <string name="boot_auto_start_desc">Allow the app to start automatically when the device boots up.</string>
-
+    <string name="scan_qr_title">Scan QR code</string>
+    <string name="scan_qr_permission_desc">Please grant camera permissions to use the scanning feature.</string>
+    <string name="decode_qr_failed">decode QR failed</string>
 </resources>

@@ -15,9 +15,9 @@ import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.repository.SubscriptionRepository
+import com.android.xrayfa.utils.BarcodeUtils
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.TAG
 import com.google.zxing.BarcodeFormat
-import com.journeyapps.barcodescanner.BarcodeEncoder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -138,8 +138,7 @@ class SubscriptionViewmodel(
         viewModelScope.launch {
             shareUrl = repository.getSubscriptionById(id).first().url
             shareUrl?.let {
-                val barcodeEncoder = BarcodeEncoder()
-                val bitmap = barcodeEncoder.encodeBitmap(it, BarcodeFormat.QR_CODE,400,400)
+                val bitmap = BarcodeUtils.encodeBitmap(it, BarcodeFormat.QR_CODE,400,400)
                 _qrcodeBitmap.value = bitmap
             }
         }

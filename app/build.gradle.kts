@@ -112,27 +112,6 @@ tasks.register<Exec>("buildGoMobile") {
     commandLine("go","install","golang.org/x/mobile/cmd/gomobile@latest")
 }
 
-//protobuf {
-//    protoc {
-//        artifact = "com.google.protobuf:protoc:3.25.1"
-//    }
-//    plugins {
-//        id("grpc") {
-//            artifact = "io.grpc:protoc-gen-grpc-java:1.63.0"
-//        }
-//    }
-//    generateProtoTasks {
-//        all().forEach { task ->
-//            task.plugins {
-//                id("grpc")
-//            }
-//            task.builtins {
-//                id("java")
-//            }
-//        }
-//    }
-//}
-
 tasks.register<Exec>("initGoMobile") {
     //dependsOn("buildGoMobile")
     workingDir = xrayLibDir
@@ -198,15 +177,19 @@ dependencies {
     kapt(libs.dagger.compiler)
     implementation (libs.dagger.android)
     kapt(libs.dagger.android.processor)
-    implementation(libs.zxing.android.embedded)
+    // Zxing
+    implementation(libs.zxing.core)
+    // CameraX Essential
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.compose)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+
     implementation(libs.gson)
-
-
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.material3.adaptive.navigation3)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
-
 
     implementation(libs.javax.annotation.api)
     implementation(libs.haze)
