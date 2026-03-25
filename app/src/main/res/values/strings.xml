@@ -3,8 +3,8 @@
     <string name="app_label" translatable="false">xrayFA</string>
     <string name="start_vpn">start VPN</string>
     <string name="stop_vpn">stop VPN</string>
-    <string name="connecting">connecting</string>
-    <string name="connected">connected</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="connected">Connected</string>
     <string name="home">Home</string>
     <string name="config">Config</string>
     <string name="logcat">Logcat</string>
@@ -91,4 +91,5 @@
     <string name="scan_qr_title">Scan QR code</string>
     <string name="scan_qr_permission_desc">Please grant camera permissions to use the scanning feature.</string>
     <string name="decode_qr_failed">decode QR failed</string>
+    <string name="connection_detail">Connection Details</string>
 </resources>

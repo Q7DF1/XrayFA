@@ -166,7 +166,7 @@ fun ConfigScreen(
         Column(modifier = Modifier.fillMaxSize()){
             Surface(
                 shadowElevation = appBarElevation,
-                color = MaterialTheme.colorScheme.surface,
+                    color = MaterialTheme.colorScheme.background,
                 modifier = Modifier.zIndex(1f)
             ) {
                 TopAppBar(

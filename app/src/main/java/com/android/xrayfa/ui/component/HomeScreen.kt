@@ -1,49 +1,45 @@
 package com.android.xrayfa.ui.component
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.net.VpnService
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -52,22 +48,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.type
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
+import androidx.window.core.layout.WindowWidthSizeClass
 import com.android.xrayfa.R
 import com.android.xrayfa.dto.Node
 import com.android.xrayfa.ui.navigation.Home
@@ -84,61 +77,255 @@ fun HomeScreen(
     sharedTransitionScope: SharedTransitionScope,
     onSettingsClick: () -> Unit = {}
 ) {
-    val context = LocalContext.current
-    val selectedNode by xrayViewmodel.getSelectedNode().collectAsState(null)
-    var notConfig by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
+    val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+    val isExpanded = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED
+    val isMedium = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.MEDIUM
+    var showError by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxSize()){
-        Dashboard(
-            xrayViewmodel = xrayViewmodel,
-            node = selectedNode,
-            onSettingsClick = onSettingsClick,
-            sharedTransitionScope = sharedTransitionScope,
-            showError = notConfig
-        )
-        //Dashboard(xrayViewmodel,modifier = Modifier.align(Alignment.TopCenter))
-
-        V2rayStarter(
-            xrayViewmodel,
-            modifier = Modifier.align(BiasAlignment(
-                0f,
-                if (bottomPadding == 0.dp)0.8f else 0.9f)
-            ).padding(bottom = bottomPadding)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(Home.title), fontWeight = FontWeight.Bold) },
+                actions = {
+                    with(sharedTransitionScope) {
+                        IconButton(
+                            onClick = onSettingsClick
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = "Settings",
+                                modifier = Modifier.sharedElement(
+                                    sharedTransitionScope.rememberSharedContentState(key = Settings.route),
+                                    animatedVisibilityScope = LocalNavAnimatedContentScope.current,
+                                )
+                            )
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surface
+                )
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(bottom = bottomPadding)
         ) {
-            if (selectedNode == null) {
-                coroutineScope.launch {
-                    notConfig = true
-                    delay(2000L)
-                    notConfig = false
-                }
-                false
-            }else {
-                true
+            if (isExpanded || isMedium) {
+                ExpandedHomeContent(xrayViewmodel)
+            } else {
+                CompactHomeContent(xrayViewmodel) { showError = it }
             }
-        }
 
+            ExceptionMessage(
+                shown = showError,
+                msg = stringResource(R.string.config_not_ready),
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
+        }
     }
 }
 
 @Composable
-fun V2rayStarter(
+fun CompactHomeContent(
     xrayViewmodel: XrayViewmodel,
-    modifier: Modifier,
+    onShowError: (Boolean) -> Unit
+) {
+    val selectedNode by xrayViewmodel.getSelectedNode().collectAsState(null)
+    val isRunning by xrayViewmodel.isServiceRunning.collectAsState()
+    val upSpeed by xrayViewmodel.upSpeed.collectAsState()
+    val downSpeed by xrayViewmodel.downSpeed.collectAsState()
+    val delayMs by xrayViewmodel.delay.collectAsState()
+    val testing by xrayViewmodel.testing.collectAsState()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        StatusCard(isRunning, upSpeed, downSpeed)
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        V2rayStarterLarge(xrayViewmodel) {
+            if (selectedNode == null) {
+                coroutineScope.launch {
+                    onShowError(true)
+                    delay(2000L)
+                    onShowError(false)
+                }
+                false
+            } else true
+        }
+
+        Text(
+            text = stringResource(if (isRunning) R.string.connected else R.string.disconnect),
+            style = MaterialTheme.typography.titleMedium,
+            color = if (isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        selectedNode?.let { node ->
+            Text(
+                text = "Connection Details",
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.align(Alignment.Start)
+            )
+            NodeCard(
+                node = node,
+                onTest = { xrayViewmodel.measureDelay(context) },
+                delayMs = delayMs,
+                testing = testing,
+                roundCorner = true,
+                enableTest = isRunning,
+//                backgroundColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            )
+        } ?: ElevatedCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp)
+        ) {
+            Box(Modifier.padding(24.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Text(stringResource(R.string.select_configuration_notify), style = MaterialTheme.typography.bodyLarge)
+            }
+        }
+    }
+}
+
+@Composable
+fun ExpandedHomeContent(
+    xrayViewmodel: XrayViewmodel
+) {
+    val selectedNode by xrayViewmodel.getSelectedNode().collectAsState(null)
+    val isRunning by xrayViewmodel.isServiceRunning.collectAsState()
+    val upSpeed by xrayViewmodel.upSpeed.collectAsState()
+    val downSpeed by xrayViewmodel.downSpeed.collectAsState()
+    val delayMs by xrayViewmodel.delay.collectAsState()
+    val testing by xrayViewmodel.testing.collectAsState()
+    val context = LocalContext.current
+
+    Row(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        horizontalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        Column(
+            modifier = Modifier.weight(1f).fillMaxHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            V2rayStarterLarge(xrayViewmodel) { selectedNode != null }
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = stringResource(if (isRunning) R.string.connected else R.string.disconnect),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = if (isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+            StatusCard(isRunning, upSpeed, downSpeed)
+        }
+
+        Column(
+            modifier = Modifier.weight(1.2f).fillMaxHeight(),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Connection Details",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            selectedNode?.let { node ->
+                NodeCard(
+                    node = node,
+                    onTest = { xrayViewmodel.measureDelay(context) },
+                    delayMs = delayMs,
+                    testing = testing,
+                    roundCorner = true,
+                    enableTest = isRunning,
+//                    backgroundColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                )
+            } ?: ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp)
+            ) {
+                Box(Modifier.padding(48.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text("No Node Selected", style = MaterialTheme.typography.bodyLarge)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun StatusCard(isRunning: Boolean, upSpeed: Double, downSpeed: Double) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+    ) {
+        Row(
+            modifier = Modifier.padding(20.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SpeedItem(
+                label = stringResource(R.string.upload_data),
+                speed = upSpeed,
+                icon = Icons.Default.KeyboardArrowUp,
+                color = MaterialTheme.colorScheme.primary
+            )
+            VerticalDivider(modifier = Modifier.height(40.dp).width(1.dp))
+            SpeedItem(
+                label = stringResource(R.string.download_data),
+                speed = downSpeed,
+                icon = Icons.Default.KeyboardArrowDown,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
+    }
+}
+
+@Composable
+fun SpeedItem(label: String, speed: Double, icon: ImageVector, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(4.dp))
+            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Text(
+            text = "${String.format("%.1f", speed)} KB/s",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+fun V2rayStarterLarge(
+    xrayViewmodel: XrayViewmodel,
     onCheck: () -> Boolean
 ) {
-    val toggle by xrayViewmodel.isServiceRunning.collectAsState()
+    val isRunning by xrayViewmodel.isServiceRunning.collectAsState()
     val context = LocalContext.current
+
     val color by animateColorAsState(
-        targetValue = if (toggle) MaterialTheme.colorScheme.primary else Color.Gray,
-        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
-        label = "iconColorAnim"
+        targetValue = if (isRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+        animationSpec = tween(durationMillis = 500),
+        label = "color"
     )
-    val scale by animateFloatAsState(
-        targetValue = if (toggle) 1.3f else 1f,
-        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
-        label = "iconScaleAnim"
-    )
+
+    val shadowColor = if (isRunning) MaterialTheme.colorScheme.primary.copy(alpha = 0.3f) else Color.Transparent
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -148,242 +335,38 @@ fun V2rayStarter(
         }
     }
 
-    AnimatedContent(
-        targetState = toggle,
-        transitionSpec = {
-            (fadeIn(tween(300)) + scaleIn(initialScale = 0.6f, animationSpec = tween(300))) togetherWith
-                    (fadeOut(tween(300)) + scaleOut(targetScale = 1.4f, animationSpec = tween(300)))
-        },
-        label = "iconSwitchAnim",
-        modifier = modifier
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(160.dp)
+            .shadow(
+                elevation = if (isRunning) 20.dp else 0.dp,
+                shape = CircleShape,
+                spotColor = shadowColor,
+                ambientColor = shadowColor
+            )
             .clip(CircleShape)
             .background(color)
-            .size(64.dp)
-            .graphicsLayer(
-                scaleX = scale,
-                scaleY = scale
-            )
-    ){ state ->
+    ) {
         IconButton(
             onClick = {
-                if (!onCheck()) {
-                    return@IconButton
-                }
-                if (!toggle) {
+                if (!onCheck()) return@IconButton
+                if (!isRunning) {
                     val prepare = VpnService.prepare(context)
-                    if (prepare != null) {
-                        launcher.launch(prepare)
-                    }else {
-                        xrayViewmodel.startV2rayService(context)
-                    }
-                }else{
+                    if (prepare != null) launcher.launch(prepare)
+                    else xrayViewmodel.startV2rayService(context)
+                } else {
                     xrayViewmodel.stopV2rayService(context)
                 }
-            }
+            },
+            modifier = Modifier.fillMaxSize()
         ) {
             Icon(
-                imageVector = if (state) Icons.Filled.Done
-                else ImageVector.vectorResource(R.drawable.ic_power),
-                contentDescription = "",
-                tint = Color.White,
-                modifier = Modifier.size(36.dp)
+                imageVector = if (isRunning) Icons.Default.Done else ImageVector.vectorResource(R.drawable.ic_power),
+                contentDescription = "Toggle Service",
+                tint = if (isRunning) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(64.dp)
             )
         }
     }
 }
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun Dashboard(
-    xrayViewmodel: XrayViewmodel,
-    node: Node?,
-    onSettingsClick: () -> Unit = {},
-    sharedTransitionScope: SharedTransitionScope,
-    showError: Boolean = false
-) {
-    val context = LocalContext.current
-    val delay by xrayViewmodel.delay.collectAsState()
-    val test by xrayViewmodel.testing.collectAsState()
-    val isRunning by xrayViewmodel.isServiceRunning.collectAsState()
-    Surface(
-        color = MaterialTheme.colorScheme.primary,
-        tonalElevation = 8.dp,
-        shadowElevation = 8.dp,
-        shape = ArcBottomShape(arcHeight = 80f),
-        modifier = Modifier.fillMaxWidth()
-            .fillMaxHeight(0.5f)
-    ) {
-        Column(modifier = Modifier.fillMaxSize()){
-            TopAppBar(
-                title = {Text(stringResource(Home.title))},
-                navigationIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Home,
-                        contentDescription = ""
-                    )
-                },
-                actions = {
-                    with(sharedTransitionScope) {
-                        HomeActionButton(
-                            onSettingsClick = onSettingsClick,
-                            modifier = Modifier.sharedElement(
-                                sharedTransitionScope.rememberSharedContentState(key = Settings.route),
-                                animatedVisibilityScope = LocalNavAnimatedContentScope.current,
-                                )
-                            )
-                    }
-
-                },
-                colors = TopAppBarDefaults.topAppBarColors(MaterialTheme.colorScheme.primary),
-                modifier = Modifier.zIndex(1f)
-                )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            ) {
-                node?.let {
-                    NodeCard(
-                        node = node,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                            .align(BiasAlignment(0f,-0.5f)),
-                        onTest = {xrayViewmodel.measureDelay(context = context)},
-                        delayMs = delay,
-                        testing = test,
-                        roundCorner = true,
-                        enableTest = isRunning
-                    )
-                }?: Text(
-                    //TODO more beautiful
-                    text = stringResource(R.string.select_configuration_notify),
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.align(BiasAlignment(0f,-0.5f))
-                )
-                DashboardContent(
-                    xrayViewmodel = xrayViewmodel,
-                    modifier = Modifier.align(BiasAlignment(0f,0.7f))
-                )
-                ExceptionMessage(
-                    shown = showError,
-                    msg = stringResource(R.string.config_not_ready),
-                    modifier = Modifier.zIndex(0f)) // hide in appTopBar
-            }
-        }
-
-    }
-}
-
-@SuppressLint("ConfigurationScreenWidthHeight", "DefaultLocale")
-@Composable
-fun DashboardContent(
-    xrayViewmodel: XrayViewmodel,
-    modifier: Modifier = Modifier
-) {
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp
-    val upSpeed by xrayViewmodel.upSpeed.collectAsState()
-    val downSpeed by xrayViewmodel.downSpeed.collectAsState()
-    Surface(
-        color = Color.Transparent,
-        shape = RoundedCornerShape(16.dp),
-        modifier = modifier.padding(horizontal = 8.dp)
-            .fillMaxWidth()
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.
-            padding(horizontal = 8.dp, vertical = 8.dp)
-
-        ) {
-            //upload
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.weight(1f)
-            ){
-                Box(
-                    modifier = Modifier
-                        .size((screenWidth*0.08).dp.coerceIn(24.dp,48.dp)) // 整体大小
-                        .clip(CircleShape) // 裁剪成圆形
-                        .background(MaterialTheme.colorScheme.surface),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(imageVector = Icons.Filled.KeyboardArrowUp,
-                        contentDescription = "upload icon",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = stringResource(R.string.upload_data),
-                        style = MaterialTheme.typography.labelMedium,
-                    )
-                    Text(
-                        text = "${String.format("%.1f",upSpeed)} KB/s",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-            VerticalDivider(
-                modifier = Modifier.height((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
-            )
-            //download
-            Row(
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
-                    .padding(start = 8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size((screenWidth*0.08).dp.coerceIn(24.dp,48.dp)) // 整体大小
-                        .clip(CircleShape) // 裁剪成圆形
-                        .background(MaterialTheme.colorScheme.surface), // 背景色
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowDown,
-                        contentDescription = "download icon",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                Column(
-                    modifier = Modifier.padding(start = 8.dp)
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = stringResource(R.string.download_data),
-                        style = MaterialTheme.typography.labelMedium,
-                    )
-                    Text(
-                        text = "${String.format("%.1f",downSpeed)} KB/s",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun HomeActionButton(
-    onSettingsClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val context = LocalContext.current
-    IconButton(
-        onClick = {onSettingsClick()}
-    ) {
-        Icon(
-            imageVector = Icons.Default.Settings,
-            contentDescription = "",
-            modifier = modifier
-        )
-    }
-}
-

@@ -1,16 +1,12 @@
 package com.android.xrayfa.ui.component
 
 import android.annotation.SuppressLint
-import android.os.Build
-import android.view.View
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
@@ -32,39 +28,27 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.dto.Node
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInWindow
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntSize
 import com.android.xrayfa.model.protocol.protocolPrefixMap
 import com.android.xrayfa.utils.ColorMap
 
-@RequiresApi(Build.VERSION_CODES.Q)
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun NodeCard(
@@ -83,156 +67,126 @@ fun NodeCard(
     roundCorner: Boolean = false,
     countryEmoji: String = ""
 ) {
-    val view = LocalView.current
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp
-    val roundCornerShape = RoundedCornerShape(32.dp)
     val context = LocalContext.current
     val delayColor = when {
         delayMs < 0 -> Color.Transparent
-        delayMs < 300 -> Color.Green
-        delayMs < 900 -> Color(0xFFFFAA00)
-        else -> Color.Red
+        delayMs < 300 -> Color(0xFF4CAF50)
+        delayMs < 900 -> Color(0xFFFFA000)
+        else -> Color(0xFFF44336)
     }
-    var itemCoordinates by remember { mutableStateOf<Pair<Offset, IntSize>?>(null) }
+    
     val elevation by animateDpAsState(
-        targetValue = if (selected) 8.dp else 0.dp,
-        label = "elevationAnimation"
+        targetValue = if (selected) 8.dp else 2.dp,
+        label = "elevation"
     )
-    Surface(
-        color = backgroundColor,
-        modifier = modifier.fillMaxWidth()
-            .onGloballyPositioned { layoutCoordinates ->
-                itemCoordinates = layoutCoordinates.positionInWindow() to layoutCoordinates.size
-            },
-        tonalElevation = elevation,
-        shape = if (roundCorner) roundCornerShape else RectangleShape,
-        onClick = {onChoose()},
-        //border = if (selected) BorderStroke(width = 2.dp, color = Color(0xFF00BFFF)) else null
+
+    ElevatedCard(
+        onClick = onChoose,
+        modifier = modifier.fillMaxWidth(),
+        shape = if (roundCorner) RoundedCornerShape(24.dp) else RoundedCornerShape(12.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else backgroundColor
+        )
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth()
-                .padding(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+            // Node Icon / Emoji
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(ColorMap.getValue(node.subscriptionId).copy(alpha = 0.8f)),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
-                        .clip(CircleShape)
-                        .background(ColorMap.getValue(node.subscriptionId)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (countryEmoji.isNotEmpty()) {
-                        Text(
-                            text = countryEmoji
-                        )
-                    }else {
+                if (countryEmoji.isNotEmpty()) {
+                    Text(text = countryEmoji, style = MaterialTheme.typography.titleLarge)
+                } else {
                     Icon(
                         imageVector = Icons.Default.Star,
-                        contentDescription = "",
+                        contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(24.dp)
                     )
-                    }
                 }
-                Spacer(Modifier.width(8.dp))
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
+            }
+
+            Spacer(Modifier.width(16.dp))
+
+            // Node Info
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = node.remark ?: node.address,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    modifier = Modifier.basicMarquee()
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = node.remark?:node.address,
-                        fontWeight = FontWeight.Bold,
+                        text = protocolPrefixMap[node.protocolPrefix]?.protocolType ?: "Unknown",
                         style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.basicMarquee()
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Row {
-                        Text(
-                            text = protocolPrefixMap[node.protocolPrefix]!!.protocolType,
-                            fontWeight = FontWeight.Medium,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        if (delayMs > 0 ) {
+                    if (delayMs > 0) {
+                        Spacer(Modifier.width(8.dp))
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(delayColor.copy(alpha = 0.1f))
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
+                        ) {
                             Text(
-                                text = delayMs.toString(),
-                                fontWeight = FontWeight.Normal,
-                                style = MaterialTheme.typography.bodyMedium,
+                                text = "${delayMs}ms",
+                                style = MaterialTheme.typography.labelSmall,
                                 color = delayColor,
-                                modifier = Modifier.padding(horizontal = 8.dp)
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }
                 }
             }
-            if (onShare != null) {
-                IconButton(
-                    onClick = onShare,
-                    modifier = Modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Share,
-                        contentDescription = "share"
-                    )
-                }
-            }
-            if (delete != null) {
-                IconButton(
-                    onClick = {
-                        delete()
-                    } ,
-                    Modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "delete"
-                    )
-                }
-            }
-            if (onSelect != null) {
-                IconButton(
-                    onClick = {
-                        onSelect.invoke()
-                    },
-                    Modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Default.ArrowForward,
-                        contentDescription = "",
-                        modifier = Modifier.fillMaxSize(0.5f)
-                    )
-                }
-            }
 
-            if (onTest != null) {
-                val infiniteTransition = rememberInfiniteTransition()
-                val angle by infiniteTransition.animateFloat(
-                    initialValue = 0f,
-                    targetValue = if (testing) 360f else 0f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(1000, easing = LinearEasing)
+            // Actions
+            Row {
+                if (onTest != null) {
+                    val infiniteTransition = rememberInfiniteTransition(label = "rotate")
+                    val angle by infiniteTransition.animateFloat(
+                        initialValue = 0f,
+                        targetValue = if (testing) 360f else 0f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(1000, easing = LinearEasing)
+                        ),
+                        label = "angle"
                     )
-                )
-                IconButton(
-                    onClick = {
-                        onTest.invoke()
-                    },
-                    enabled = enableTest,
-                    modifier = Modifier.size((screenWidth*0.1).dp.coerceIn(24.dp,48.dp))
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "",
-                        tint = if (enableTest) MaterialTheme.colorScheme.onBackground
-                        else Color.Gray,
-                        modifier = Modifier.fillMaxSize(0.5f)
-                            .rotate(angle)
-                    )
+                    IconButton(onClick = onTest, enabled = enableTest) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Test",
+                            modifier = Modifier.rotate(angle),
+                            tint = if (enableTest) MaterialTheme.colorScheme.primary else Color.Gray
+                        )
+                    }
+                }
+                if (onShare != null) {
+                    IconButton(onClick = onShare) {
+                        Icon(Icons.Default.Share, contentDescription = "Share")
+                    }
+                }
+                if (delete != null) {
+                    IconButton(onClick = delete) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete")
+                    }
+                }
+                if (onSelect != null) {
+                    IconButton(onClick = onSelect) {
+                        Icon(Icons.AutoMirrored.Default.ArrowForward, contentDescription = "Select")
+                    }
                 }
             }
-
         }
     }
 }
@@ -241,16 +195,17 @@ fun NodeCard(
 @Composable
 fun DashboardCard() {
     Card(
-        shape = RoundedCornerShape(32),
+        shape = RoundedCornerShape(24.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().padding(16.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Star,
                 contentDescription = "star"
             )
+            Spacer(Modifier.width(8.dp))
             Text(
                 text = countryCodeToFlagEmoji("SG")
             )

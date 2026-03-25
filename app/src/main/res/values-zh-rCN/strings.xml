@@ -1,7 +1,7 @@
 <resources>
     <string name="start_vpn">开启VPN</string>
     <string name="stop_vpn">停止VPN</string>
-    <string name="connecting">连接中</string>
+    <string name="disconnect">已断开</string>
     <string name="connected">已连接</string>
     <string name="home">主页</string>
     <string name="config">配置</string>
@@ -81,4 +81,5 @@
     <string name="scan_qr_title">扫码</string>
     <string name="scan_qr_permission_desc">请授予相机权限以使用扫码功能</string>
     <string name="decode_qr_failed">解析二维码失败</string>
+    <string name="connection_detail">连接详情</string>
 </resources>
