@@ -8,21 +8,6 @@
 ![GitHub license](https://img.shields.io/github/license/Q7DF1/XrayFA)
 ![GitHub top language](https://img.shields.io/github/languages/top/Q7DF1/XrayFA)
 
-##  📸  Screenshots
-- Phone machine
-<p aligin="center">
-    <img src="docs/config_xrayFA.jpg" width="30%" />
-    <img src="docs/home_xrayFA.jpg" width="30%" />
-    <img src="docs/settings_xrayFA.jpg" width="30%" />
-</p>
-
-- Tablet machine
-<p aligin="center">
-    <img src="docs/tablet_scene_xrayFA.png" width="90%" />
-</p>
-
-
-
 ## ✨ Features
 
 * **Multi-Protocol Support**: Full support for VLESS, VMESS, SHADOWSOCKS, and TROJAN.
