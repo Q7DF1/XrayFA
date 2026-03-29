@@ -203,7 +203,10 @@ fun SettingsScreen(
                             2 to stringResource(R.string.auto_mode)
                         )
                     )
-                    HorizontalDivider()
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
                     with(sharedTransitionScope) {
                         SettingsFieldBox(
                             title = R.string.allow_app_settings,
@@ -218,7 +221,10 @@ fun SettingsScreen(
                         }
                     }
 
-                    HorizontalDivider()
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
                     with(sharedTransitionScope) {
                         SettingsFieldBox(
                             title = R.string.logcat,
@@ -232,7 +238,10 @@ fun SettingsScreen(
                         }
                     }
 
-                    HorizontalDivider()
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
                     SettingsCheckBox(
                         title = R.string.boot_auto_start,
                         description = R.string.boot_auto_start_desc,
@@ -242,7 +251,10 @@ fun SettingsScreen(
                         }
                     )
                     if (NotificationHelper.canPostPromotionsEnabled(LocalContext.current)) {
-                        HorizontalDivider()
+                        HorizontalDivider(
+                            thickness = 1.dp,
+                            modifier = Modifier.padding(horizontal = 24.dp)
+                        )
                         SettingsCheckBox(
                             title = R.string.live_update_notification,
                             description = R.string.live_update_notification_desc,
@@ -636,6 +648,7 @@ fun SettingsFieldBox(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
             .clickable(
                 enabled = enable
             ) { onClick() },
