@@ -34,13 +34,13 @@ class QuickStartTileService
     override fun onClick() {
         if (!XrayBaseService.statusFlow.value) {
             serviceScope.launch {
-                if (!xrayBaseServiceManager.startXrayBaseService(applicationContext)) {
+                if (!xrayBaseServiceManager.startXrayBaseService()) {
                     Toast.makeText(applicationContext, R.string.config_not_ready,Toast.LENGTH_SHORT)
                         .show()
                 }
             }
         }else {
-            xrayBaseServiceManager.stopXrayBaseService(applicationContext)
+            xrayBaseServiceManager.stopXrayBaseService()
         }
 
         // stop Service

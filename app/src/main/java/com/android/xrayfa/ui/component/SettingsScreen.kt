@@ -71,6 +71,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -148,7 +149,7 @@ fun SettingsScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(stringResource(R.string.settings_title))
+                    Text(stringResource(R.string.settings_title), fontWeight = FontWeight.Bold)
                 },
                 navigationIcon = {
                     with(sharedTransitionScope) {

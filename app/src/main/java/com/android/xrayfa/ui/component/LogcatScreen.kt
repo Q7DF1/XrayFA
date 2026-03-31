@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.R
@@ -57,7 +58,7 @@ fun LogcatScreen(
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 TopAppBar(
-                    title = {Text(stringResource(Logcat.title))},
+                    title = {Text(stringResource(Logcat.title), fontWeight = FontWeight.Bold)},
                     navigationIcon = {
                         Icon(
                             imageVector = Icons.Default.Warning,

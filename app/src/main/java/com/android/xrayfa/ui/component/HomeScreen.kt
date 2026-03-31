@@ -4,12 +4,10 @@ import android.app.Activity
 import android.net.VpnService
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -66,11 +64,9 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import androidx.window.core.layout.WindowWidthSizeClass
 import com.android.xrayfa.R
-import com.android.xrayfa.dto.Node
 import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.ui.navigation.Settings
 import com.android.xrayfa.viewmodel.XrayViewmodel
@@ -339,7 +335,7 @@ fun V2rayStarterLarge(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            xrayViewmodel.startV2rayService(context)
+            xrayViewmodel.startXrayService(context)
         }
     }
     val scale = remember { Animatable(1.0f) }
@@ -380,9 +376,9 @@ fun V2rayStarterLarge(
                 if (!isRunning) {
                     val prepare = VpnService.prepare(context)
                     if (prepare != null) launcher.launch(prepare)
-                    else xrayViewmodel.startV2rayService(context)
+                    else xrayViewmodel.startXrayService(context)
                 } else {
-                    xrayViewmodel.stopV2rayService(context)
+                    xrayViewmodel.stopXrayService(context)
                 }
             },
             modifier = Modifier.fillMaxSize()

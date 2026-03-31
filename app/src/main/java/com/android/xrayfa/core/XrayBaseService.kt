@@ -1,9 +1,11 @@
 package com.android.xrayfa.core
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.VpnService
 import android.os.ParcelFileDescriptor
 import android.util.Log
+import android.widget.Toast
 import com.android.xrayfa.R
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.helper.NotificationHelper
@@ -18,8 +20,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+@SuppressLint("VpnServicePolicy")
 class XrayBaseService
 @Inject constructor(
     private val tun2SocksService: Tun2SocksService,
@@ -31,6 +35,12 @@ class XrayBaseService
     companion object {
 
         const val TAG = "XrayBaseService"
+
+        const val CONNECT = "connect"
+
+        const val DISCONNECT = "disconnect"
+
+        const val RESTART = "restart"
 
         private val _statusFlow = MutableStateFlow(false)
         val statusFlow = _statusFlow.asStateFlow()
@@ -48,19 +58,45 @@ class XrayBaseService
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
-        if (intent?.action == "disconnect") {
+        val action = intent?.action
+        return when(action) {
+            DISCONNECT -> {
+                Log.i(TAG, "onStartCommand: stop...")
+                serviceScope.launch {
+                    stopXrayCoreService()
+                    updateStatus(false)
+                    stopSelf()
+                    notificationHelper.hideNotification()
+                }
 
-            Log.i(TAG, "onStartCommand: stop...")
-            stopV2rayCoreService()
-            updateStatus(false)
-            return  START_NOT_STICKY
-        }else {
-            Log.i(TAG, "onStartCommand: start...")
-            val link = intent?.getStringExtra(EXTRA_LINK)
-            val protocol = intent?.getStringExtra(EXTRA_PROTOCOL)
-            startV2rayCoreService(link!!,protocol!!)
-            updateStatus(true)
-            return START_STICKY
+                START_NOT_STICKY
+            }
+            CONNECT -> {
+                Log.i(TAG, "onStartCommand: start...")
+                val link = intent.getStringExtra(EXTRA_LINK)
+                val protocol = intent.getStringExtra(EXTRA_PROTOCOL)
+                serviceScope.launch {
+                    notificationHelper.showNotification()
+                    xrayCoreManager.addConsumer { data->
+                        notificationHelper.updateNotification(data)
+                    }
+                    startXrayCoreService(link!!,protocol!!)
+                    updateStatus(true)
+                }
+                START_STICKY
+            }
+            RESTART -> {
+                Log.i(TAG, "onStartCommand: restart...")
+                serviceScope.launch {
+                    val link = intent.getStringExtra(EXTRA_LINK)
+                    val protocol = intent.getStringExtra(EXTRA_PROTOCOL)
+                    stopXrayCoreService()
+                    startXrayCoreService(link!!,protocol!!)
+                    restartToast()
+                }
+                START_STICKY
+            }
+            else -> { START_NOT_STICKY }
         }
     }
 
@@ -101,47 +137,33 @@ class XrayBaseService
         tunFd = null
     }
 
-
-
-    private fun startV2rayCoreService(link: String,protocol: String) {
-//        val notification = notificationHelper.makeNotification(Pair(0.0,0.0))
-//        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//            startForeground(
-//                NotificationHelper.NOTIFICATION_ID,
-//                notification,
-//                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
-//            )
-//        }else startForeground(NotificationHelper.NOTIFICATION_ID,notification)
-        serviceScope.launch {
-            val settingState = settingsRepo.settingsFlow.first()
-            notificationHelper.showNotification()
-            xrayCoreManager.addConsumer { data->
-                notificationHelper.updateNotification(data)
-            }
-            startVpn()
-            if (settingState.hexTunEnable) {
-                xrayCoreManager.startV2rayCore(link,protocol,0)
-                tunFd?.let {
-                    tun2SocksService.startTun2Socks(it.fd)
-                }
-            }else {
-                xrayCoreManager.startV2rayCore(link,protocol,tunFd?.fd)
-            }
-
-
+    @SuppressLint("ShowToast")
+    private suspend fun restartToast() {
+        withContext(Dispatchers.Main) {
+            Toast.makeText(
+                applicationContext,
+                R.string.service_restart_toast,
+                Toast.LENGTH_SHORT
+            ).show()
         }
-
-        
+    }
+    private suspend fun startXrayCoreService(link: String, protocol: String) {
+        val settingState = settingsRepo.settingsFlow.first()
+        startVpn()
+        if (settingState.hexTunEnable) {
+            xrayCoreManager.startXrayCore(link,protocol,0)
+            tunFd?.let {
+                tun2SocksService.startTun2Socks(it.fd)
+            }
+        }else {
+            xrayCoreManager.startXrayCore(link,protocol,tunFd?.fd)
+        }
     }
 
-    private fun stopV2rayCoreService() {
-        serviceScope.launch {
-            if (tun2SocksService.isRunning()) tun2SocksService.stopTun2Socks()
-        }
+    private suspend fun stopXrayCoreService() {
+        if (tun2SocksService.isRunning()) tun2SocksService.stopTun2Socks()
         stopVPN()
-        xrayCoreManager.stopV2rayCore()
-        stopSelf()
-        notificationHelper.hideNotification()
+        xrayCoreManager.stopXrayCore()
     }
 
 }

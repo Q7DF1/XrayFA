@@ -113,7 +113,7 @@ class XrayCoreManager
         return delay
     }
 
-    suspend fun startV2rayCore(link: String,protocol: String,tunFd: Int?) {
+    suspend fun startXrayCore(link: String, protocol: String, tunFd: Int?) {
         startOrClose = true
         try {
             tunFd?.let {
@@ -125,7 +125,7 @@ class XrayCoreManager
         }
     }
 
-    fun stopV2rayCore() {
+    fun stopXrayCore() {
         startOrClose = false
         coreController?.stopLoop()
     }

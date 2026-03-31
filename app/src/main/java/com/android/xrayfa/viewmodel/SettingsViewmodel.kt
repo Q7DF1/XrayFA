@@ -25,6 +25,7 @@ import com.android.xrayfa.common.GEO_LITE
 import com.android.xrayfa.common.GEO_SITE
 import com.android.xrayfa.common.di.qualifier.LongTime
 import com.android.xrayfa.common.utils.calculateFileHash
+import com.android.xrayfa.core.XrayBaseServiceManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -66,7 +67,8 @@ data class GithubAsset(
 )
 class SettingsViewmodel(
     val repository: SettingsRepository,
-    val okHttpClient: OkHttpClient
+    val okHttpClient: OkHttpClient,
+    val xrayBaseServiceManager: XrayBaseServiceManager
 ): ViewModel() {
 
     companion object {
@@ -120,18 +122,21 @@ class SettingsViewmodel(
     fun setSocksPort(port: Int) {
         viewModelScope.launch {
             repository.setSocksPort(port)
+            onConfigSettingsChanged()
         }
     }
 
     fun setDnsIpV4(dns: String) {
         viewModelScope.launch {
             repository.setDnsIPv4(dns)
+            onConfigSettingsChanged()
         }
     }
 
     fun setDnsIpV6(dns: String) {
         viewModelScope.launch {
             repository.setDnsIPv6(dns)
+            onConfigSettingsChanged()
         }
     }
 
@@ -156,7 +161,12 @@ class SettingsViewmodel(
     fun setHexTunEnable(enable: Boolean) {
         viewModelScope.launch {
             repository.setHexTunState(enable)
+            onConfigSettingsChanged()
         }
+    }
+
+    suspend fun onConfigSettingsChanged() {
+        xrayBaseServiceManager.restartXrayBaseServiceIfNeed()
     }
 
     @Deprecated("not used")
@@ -315,12 +325,13 @@ class SettingsViewmodel(
 class SettingsViewmodelFactory
 @Inject constructor(
     val repository: SettingsRepository,
-    @LongTime val okHttpClient : OkHttpClient
+    @LongTime val okHttpClient : OkHttpClient,
+    val xrayBaseServiceManager: XrayBaseServiceManager
 ): ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SettingsViewmodel::class.java)) {
-            return SettingsViewmodel(repository,okHttpClient) as T
+            return SettingsViewmodel(repository,okHttpClient,xrayBaseServiceManager) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -27,7 +27,7 @@ class NodeRepository @Inject constructor(
         return nodeDao.clearSelection()
     }
 
-     fun querySelectedLink(): Flow<Node?> {
+     fun querySelectedNode(): Flow<Node?> {
         return nodeDao.querySelectedNode()
     }
 

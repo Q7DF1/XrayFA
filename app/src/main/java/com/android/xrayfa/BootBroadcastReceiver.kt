@@ -40,7 +40,7 @@ class BootBroadcastReceiver
                         val enable = settingsRepository.settingsFlow.first().bootAutoStart;
                         Log.d(TAG, "onReceive: Boot auto start enable: $enable")
                         if (enable) {
-                            manager.startXrayBaseService(it)
+                            manager.startXrayBaseService()
                         }
 
                     }
@@ -51,7 +51,7 @@ class BootBroadcastReceiver
                 Log.d("DeviceEvent", "Device Shutting Down!")
                 context?.let {
                     coroutineScope.launch {
-                        manager.stopXrayBaseService(it)
+                        manager.stopXrayBaseService()
                     }
                 }
             }

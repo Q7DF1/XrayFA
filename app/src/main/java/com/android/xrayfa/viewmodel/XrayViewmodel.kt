@@ -149,7 +149,7 @@ class XrayViewmodel(
         }
     }
 
-    fun addV2rayConfigFromClipboard(context: Context) {
+    fun addXrayConfigFromClipboard(context: Context) {
 
         val link = getConfigFromClipboard(context)
         if (link == "") {
@@ -161,15 +161,14 @@ class XrayViewmodel(
     }
 
 
-    fun startV2rayService(context: Context) {
+    fun startXrayService(context: Context) {
         viewModelScope.launch {
-            xrayBaseServiceManager.startXrayBaseService(context)
+            xrayBaseServiceManager.startXrayBaseService()
         }
     }
 
-    fun stopV2rayService(context: Context) {
-
-        xrayBaseServiceManager.stopXrayBaseService(context)
+    fun stopXrayService(context: Context) {
+        xrayBaseServiceManager.stopXrayBaseService()
     }
 
 
@@ -245,20 +244,23 @@ class XrayViewmodel(
     }
 
     fun getSelectedNode(): Flow<Node?> {
-        return repository.querySelectedLink()
+        return repository.querySelectedNode()
     }
 
 
 
     fun setSelectedNode(id: Int) {
         viewModelScope.launch {
-
+            if (id == repository.querySelectedNode().first()?.id) return@launch
             repository.clearSelection()
             repository.updateLinkById(id,true)
+            onConfigChanged()
         }
     }
 
-
+    suspend fun onConfigChanged() {
+        xrayBaseServiceManager.restartXrayBaseServiceIfNeed()
+    }
 
 
     fun deleteNode(id: Int) = if (id == DELETE_ALL) deleteAllNodes() else deleteNodeById(id)
