@@ -18,6 +18,7 @@ import com.android.xrayfa.model.stream.RawSettings
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
+import com.android.xrayfa.model.stream.XHttpSettings
 import com.android.xrayfa.utils.Device
 import kotlinx.coroutines.flow.first
 import java.net.URLDecoder
@@ -128,6 +129,14 @@ class VLESSConfigParser
                 ) else null,
                 tlsSettings = if (security == "tls") {
                     TlsSettings(serverName = queryParams["host"]?:"" )
+                } else null,
+                xhttpSettings = if (network == "xhttp") {
+                    XHttpSettings(
+                        mode = queryParams["mode"],
+                        host = queryParams["host"],
+                        path = queryParams["path"],
+                        extra = null // todo
+                    )
                 } else null
             ),
             mux = MuxObject(concurrency = -1, enable = false, xudpConcurrency = 8, xudpProxyUDP443 = ""),

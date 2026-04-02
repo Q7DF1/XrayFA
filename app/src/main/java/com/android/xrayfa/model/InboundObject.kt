@@ -19,6 +19,7 @@ data class SniffingObject(
     val enabled: Boolean = false,
     val destOverride: List<String> = emptyList(),
     val metadataOnly: Boolean = false,
+    val domainsExcluded: List<String>? = null, // 新增: 排除嗅探的域名列表
     val routeOnly: Boolean = false
 )
 
@@ -38,8 +39,8 @@ abstract class AbsInboundConfigurationObject {
 
 data class VLESSInboundConfigurationObject(
     val clients: List<ClientObject>? = null,
-    val description: String? = null,
-    val fallbacks: List<FallbackObject>
+    val decryption: String = "none", // 新增: 解密方式
+    val fallbacks: List<FallbackObject>? = null
 ): AbsInboundConfigurationObject()
 
 data class SocksInboundConfigurationObject(
@@ -47,7 +48,6 @@ data class SocksInboundConfigurationObject(
     val userLevel: Int? = null,
     val udp: Boolean? = null,
     val ip: String? = null,
-    //val accounts: AcctountObject? = null,
 ): AbsInboundConfigurationObject()
 
 data class TunnelInboundConfigurationObject( //dokodemo-door
@@ -65,6 +65,18 @@ data class TunInboundConfigurationObject(
     val userLevel: Int?
 ): AbsInboundConfigurationObject()
 
+data class WireGuardInboundConfigurationObject( // 新增: WireGuard 入站
+    val secretKey: String,
+    val peers: List<WireGuardInboundPeer>,
+    val mtu: Int = 1420,
+    val kernelMode: Boolean = false
+): AbsInboundConfigurationObject()
+
+data class WireGuardInboundPeer(
+    val publicKey: String,
+    val allowedIPs: List<String>
+)
+
 data class ClientObject(
     val id: String,
     val level: Int? = null,
@@ -76,7 +88,7 @@ data class FallbackObject(
     val name: String? = null,
     val alpn: String? = null,
     val path: String? = null,
-    val dest: Int? = null,
+    val dest: String? = null, // 修正: dest 可以是数字或字符串 "80" 或 "127.0.0.1:80"
     val xver: Int? = null,
 )
 

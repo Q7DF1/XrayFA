@@ -22,7 +22,7 @@ data class DnsServerObject(
     val unexpectedIps: List<String>? = null,
     val skipFallback: Boolean? = null,
     val clientIp: String? = null,
-    val queryStrategy: String? = null,
+    val queryStrategy: String? = null, // "UseIP" | "UseIPv4" | "UseIPv6"
     val timeoutMs: Int? = null,
     val disableCache: Boolean? = null,
     val finalQuery: Boolean? = null

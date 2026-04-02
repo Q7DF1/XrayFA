@@ -31,6 +31,23 @@ data class ShadowSocksOutboundConfigurationObject(
     val servers: List<ShadowSocksServerObject>
 ): AbsOutboundConfigurationObject()
 
+data class WireGuardOutboundConfigurationObject( // 新增: WireGuard 出站
+    val secretKey: String,
+    val address: List<String>,
+    val peers: List<WireGuardOutboundPeer>,
+    val mtu: Int = 1420,
+    val reserved: List<Int>? = null,
+    val workers: Int? = null,
+    val domainStrategy: String? = "ForceIP"
+): AbsOutboundConfigurationObject()
+
+data class WireGuardOutboundPeer(
+    val publicKey: String,
+    val endpoint: String,
+    val allowedIPs: List<String>? = null,
+    val keepAlive: Int? = null
+)
+
 data class ServerObject(
     val address: String,
     val port: Int,
@@ -53,7 +70,8 @@ data class ShadowSocksServerObject(
     val password: String,
     val uot: Boolean = false,
     val UotVersion:Int? = null,
-    val level: Int? = null
+    val level: Int? = null,
+    val ivCheck: Boolean? = null // 新增: 兼容性字段
 )
 
 data class UserObject(
