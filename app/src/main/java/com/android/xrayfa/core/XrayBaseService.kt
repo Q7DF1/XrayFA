@@ -113,6 +113,14 @@ class XrayBaseService
     private suspend fun startVpn() {
         val prefs  = NetPreferences(this)
         val builder = Builder()
+        val settings = settingsRepo.settingsFlow.first()
+        val dnsServers = settings.dnsIPv4.split(",").filter { it.isNotBlank() }
+
+        if (dnsServers.isNotEmpty()) {
+            dnsServers.forEach { builder.addDnsServer(it.trim()) }
+        } else {
+            builder.addDnsServer("8.8.8.8")
+        }
         val allowedPackages = settingsRepo.getAllowedPackages()
         if (!allowedPackages.isEmpty()) {
             allowedPackages.forEach {
@@ -121,7 +129,7 @@ class XrayBaseService
         }else {
             builder.addDisallowedApplication(applicationContext.packageName)
         }
-        if (settingsRepo.settingsFlow.first().ipV6Enable) {
+        if (settings.ipV6Enable) {
             builder.addAddress(prefs.tunnelIpv6Address,prefs.tunnelIpv6Prefix)
         }
         tunFd = builder.setSession(resources.getString(R.string.app_label))
