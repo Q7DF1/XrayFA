@@ -14,14 +14,14 @@
 
 - 手机
 <p aligin="center">
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="30%" />
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="30%" />
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="30%" />
+    <img src="../fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="30%" />
+    <img src="../fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="30%" />
+    <img src="../fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="30%" />
 </p>
 
 - 平板
 <p aligin="center">
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="90%" />
+    <img src="../fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="90%" />
 </p>
 
 
