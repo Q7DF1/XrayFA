@@ -6,6 +6,8 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
+import android.os.Build
 import android.util.Log
 import android.view.View
 import androidx.lifecycle.ViewModel
@@ -39,8 +41,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
+import java.net.URLEncoder
 import javax.inject.Inject
 import kotlin.jvm.java
+import androidx.core.net.toUri
+import com.android.xrayfa.BuildConfig
 
 class XrayViewmodel(
     private val repository: NodeRepository,
@@ -376,6 +381,36 @@ class XrayViewmodel(
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText("log",log)
         clipboard.setPrimaryClip(clip)
+    }
+
+    /**
+     * @description: Bug report function
+     * @param context context from Activity or Application
+     */
+    fun bugReport(context: Context) {
+        val appVersion = BuildConfig.VERSION_NAME
+        val androidVersion = Build.VERSION.RELEASE
+        val deviceModel = Build.MODEL
+        val issueBody = """
+        ### Describe the bug
+        ### Environment
+        - **App Version:** $appVersion
+        - **Android Version:** $androidVersion
+        - **Device Model:** $deviceModel
+        
+        ### Additional Context(Bug description)
+        """.trimIndent()
+
+        try {
+            val encodedBody = URLEncoder.encode(issueBody, "UTF-8")
+            val repoUrl = "https://github.com/Q7DF1/XrayFA/issues/new"
+            val fullUrl = "$repoUrl?title=[Bug]%20&body=$encodedBody&labels=bug"
+            val intent = Intent(Intent.ACTION_VIEW, fullUrl.toUri())
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+        }catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }
 

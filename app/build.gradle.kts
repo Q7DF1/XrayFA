@@ -23,7 +23,6 @@ android {
         versionName = VERSION_NAME
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
     }
     base {
         archivesName.set("XrayFA")
@@ -70,6 +69,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
 
