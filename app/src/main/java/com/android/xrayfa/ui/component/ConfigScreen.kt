@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.ContentCut
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Mic
@@ -82,6 +83,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -247,6 +249,20 @@ fun ConfigScreen(
                                         xrayViewmodel.showDeleteDialog(/*delete all*/)
                                     },
                                     leadingIcon = {Icon(Icons.Outlined.DeleteForever, contentDescription = null)}
+                                )
+                                HorizontalDivider()
+                                DropdownMenuItem(
+                                    text = { Text("Bug Report") },
+                                    onClick = {
+                                        checked = false
+                                        xrayViewmodel.bugReport(context)
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Outlined.BugReport,
+                                            contentDescription = null
+                                        )
+                                    }
                                 )
                             }
                         }
