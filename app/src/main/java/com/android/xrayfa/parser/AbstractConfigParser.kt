@@ -30,13 +30,16 @@ import kotlinx.coroutines.flow.first
  *
  */
 
-abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject> {
+abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P> {
 
     private var apiEnable: Boolean = false
 
     abstract val settingsRepo: SettingsRepository
 
 
+    abstract fun decodeProtocol(url: String): P
+
+    abstract fun encodeProtocol(protocol: P): String
     suspend fun getBaseInboundConfig(): InboundObject {
         val settingsState = settingsRepo.settingsFlow.first()
         return InboundObject(
@@ -210,7 +213,7 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject> {
     }
 
     @Throws(Exception::class)
-    abstract fun parseOutbound(link: String): OutboundObject<T>
+    abstract fun parseOutbound(url: String): OutboundObject<T>
     @Throws(Exception::class)
     abstract suspend fun preParse(link: Link): Node
 }

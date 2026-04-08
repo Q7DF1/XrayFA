@@ -3,7 +3,6 @@ package com.android.xrayfa.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.android.xrayfa.dto.Node
 import com.android.xrayfa.dto.VLESSConfig
 import com.android.xrayfa.dto.VMESSConfig
 import com.android.xrayfa.dto.ShadowSocksConfig
@@ -14,7 +13,6 @@ import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.parser.ShadowSocksConfigParser
 import com.android.xrayfa.parser.TrojanConfigParser
-import com.android.xrayfa.parser.VLESSConfigParser
 import com.android.xrayfa.parser.VMESSConfigParser
 import com.android.xrayfa.repository.NodeRepository
 import com.google.gson.JsonObject
@@ -36,18 +34,18 @@ class DetailViewmodel(
     }
 
     fun parseVLESSProtocol(content: String): VLESSConfig {
-        return VLESSConfigParser.decodeVLESS(content)
+        return parserFactory.vlessConfigParser.decodeProtocol(content)
     }
 
     fun parseVMESSProtocol(content: String): VMESSConfig {
-        return VMESSConfigParser.decodeVMESS(content)
+        return parserFactory.vmessConfigParser.decodeProtocol(content)
     }
 
     fun parseTrojanProtocol(content:String): TrojanConfig {
-        return TrojanConfigParser.decodeTrojan(content)
+        return parserFactory.trojanConfigParser.decodeProtocol(content)
     }
     fun parseShadowSocks(content:String): ShadowSocksConfig {
-        return ShadowSocksConfigParser.decodeShadowSocks(content)
+        return parserFactory.shadowSocksConfigParser.decodeProtocol(content)
     }
 
     fun saveNode(
@@ -94,7 +92,7 @@ class DetailViewmodel(
                         params["sid"] = shortId
                     }
                     
-                    VLESSConfigParser.encodeVLESS(VLESSConfig(
+                    parserFactory.vlessConfigParser.encodeProtocol(VLESSConfig(
                         remark = remarks,
                         uuid = id,
                         server = address,
@@ -119,7 +117,7 @@ class DetailViewmodel(
                         addProperty("sni", sni)
                         addProperty("fp", fingerprint)
                     }
-                    VMESSConfigParser.encodeVMESS(VMESSConfig(
+                    parserFactory.vmessConfigParser.encodeProtocol(VMESSConfig(
                         uuid = id,
                         tls = if (transportSecurity == "none") "" else transportSecurity,
                         host = wsHost,
@@ -129,7 +127,7 @@ class DetailViewmodel(
                     ))
                 }
                 Protocol.SHADOW_SOCKS -> {
-                    ShadowSocksConfigParser.encodeShadowSocks(ShadowSocksConfig(
+                    parserFactory.shadowSocksConfigParser.encodeProtocol(ShadowSocksConfig(
                         method = ssMethod,
                         password = id,
                         server = address,
@@ -151,7 +149,7 @@ class DetailViewmodel(
                     if (transportSecurity == "tls" || transportSecurity == "reality") {
                         params["sni"] = sni
                     }
-                    TrojanConfigParser.encodeTrojan(TrojanConfig(
+                    parserFactory.trojanConfigParser.encodeProtocol(TrojanConfig(
                         scheme = "trojan",
                         password = id,
                         host = address,
@@ -160,6 +158,10 @@ class DetailViewmodel(
                         remark = remarks,
                         original = ""
                     ))
+                }
+
+                Protocol.HYSTERIA2 -> {
+                    "todo"
                 }
             }
             

@@ -39,3 +39,12 @@ data class TrojanConfig(
     val remark: String?,
     val original: String
 )
+
+data class Hysteria2Config(
+    val remark: String?,
+    val address: String,
+    val port: Int,
+    val version:Int = 2,
+    val auth: String,
+    val param: Map<String, String>
+)

@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
@@ -128,6 +129,19 @@ fun DetailScreen(
                         detailViewmodel,
                         scrollBehavior
                     )
+
+                    Protocol.HYSTERIA2.protocolType ->
+                        Box(
+                            modifier = Modifier.fillMaxWidth()
+                                .padding(innerPadding)
+                        ) {
+                            Text(
+                                text = "Not support yet",
+                                modifier = Modifier.fillMaxWidth(),
+                                fontWeight = FontWeight.Bold
+                            ) //todo
+                        }
+
                     else -> Text("Unknown protocol")
                 }
             }

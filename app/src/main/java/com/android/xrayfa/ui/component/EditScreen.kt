@@ -69,6 +69,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.text.font.FontWeight
 
 
 import com.android.xrayfa.viewmodel.DetailViewmodel
@@ -221,6 +222,14 @@ fun EditScreen(
                 }
                 Protocol.TROJAN -> {
                     EditTextField(id, { id = it }, "Password")
+                }
+                Protocol.HYSTERIA2 -> {
+                    //todo
+                    Text(
+                        text = "Not support yet",
+                        modifier = Modifier.fillMaxWidth(),
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
             

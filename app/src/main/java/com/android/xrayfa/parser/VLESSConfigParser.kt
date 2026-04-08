@@ -11,7 +11,6 @@ import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.ServerObject
 import com.android.xrayfa.model.UserObject
 import com.android.xrayfa.model.VLESSOutboundConfigurationObject
-import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.model.stream.GrpcSettings
 import com.android.xrayfa.model.stream.RealitySettings
 import com.android.xrayfa.model.stream.RawSettings
@@ -30,58 +29,57 @@ import javax.inject.Singleton
 class VLESSConfigParser
 @Inject constructor(
     override val settingsRepo: SettingsRepository
-): AbstractConfigParser<VLESSOutboundConfigurationObject>(){
-
-    companion object {
-        const val TAG = "VLESSConfigParser"
-
-        fun decodeVLESS(url: String): VLESSConfig {
-            val decode = URLDecoder.decode(url, "UTF-8")
-            val withoutProtocol = decode.removePrefix("vless://")
-            val (mainPart, remark) = withoutProtocol.split("#").let {
-                it[0] to if (it.size > 1) it[1] else ""
-            }
-            val (userAndServer, query) = mainPart.split("?").let {
-                it[0] to if (it.size > 1) it[1] else ""
-            }
-            val (uuid, serverAndPort) = userAndServer.split("@")
-            val (server, portStr) = serverAndPort.split(":")
-            val port = portStr.toIntOrNull() ?: 0
-            val queryParams = query.split("&").mapNotNull {
-                val kv = it.split("=")
-                if (kv.size == 2) kv[0] to kv[1] else null
-            }.toMap()
-
-            return VLESSConfig(
-                remark = remark,
-                uuid = uuid,
-                server = server,
-                port = port,
-                param = queryParams
-            )
+): AbstractConfigParser<VLESSOutboundConfigurationObject, VLESSConfig>(){
+    override fun decodeProtocol(url: String): VLESSConfig {
+        val decode = URLDecoder.decode(url, "UTF-8")
+        val withoutProtocol = decode.removePrefix("vless://")
+        val (mainPart, remark) = withoutProtocol.split("#").let {
+            it[0] to if (it.size > 1) it[1] else ""
         }
+        val (userAndServer, query) = mainPart.split("?").let {
+            it[0] to if (it.size > 1) it[1] else ""
+        }
+        val (uuid, serverAndPort) = userAndServer.split("@")
+        val (server, portStr) = serverAndPort.split(":")
+        val port = portStr.toIntOrNull() ?: 0
+        val queryParams = query.split("&").mapNotNull {
+            val kv = it.split("=")
+            if (kv.size == 2) kv[0] to kv[1] else null
+        }.toMap()
 
-        fun encodeVLESS(config: VLESSConfig):String {
-            val mainPart = "${config.uuid}@${config.server}:${config.port}"
-            val query = config.param.entries.joinToString("&") { "${it.key}=${it.value}" }
-            val remarkEncoded = config.remark?.let { URLEncoder.encode(it, "UTF-8") } ?: ""
-            return buildString {
-                append("vless://")
-                append(mainPart)
-                if (query.isNotEmpty()) {
-                    append("?")
-                    append(query)
-                }
-                if (remarkEncoded.isNotEmpty()) {
-                    append("#")
-                    append(remarkEncoded)
-                }
+        return VLESSConfig(
+            remark = remark,
+            uuid = uuid,
+            server = server,
+            port = port,
+            param = queryParams
+        )
+    }
+
+    override fun encodeProtocol(protocol: VLESSConfig): String {
+        val mainPart = "${protocol.uuid}@${protocol.server}:${protocol.port}"
+        val query = protocol.param.entries.joinToString("&") { "${it.key}=${it.value}" }
+        val remarkEncoded = protocol.remark?.let { URLEncoder.encode(it, "UTF-8") } ?: ""
+        return buildString {
+            append("vless://")
+            append(mainPart)
+            if (query.isNotEmpty()) {
+                append("?")
+                append(query)
+            }
+            if (remarkEncoded.isNotEmpty()) {
+                append("#")
+                append(remarkEncoded)
             }
         }
     }
 
+    companion object {
+        const val TAG = "VLESSConfigParser"
+    }
+
     override fun parseOutbound(url: String): OutboundObject<VLESSOutboundConfigurationObject> {
-        val parseVLESS = decodeVLESS(url)
+        val parseVLESS = decodeProtocol(url)
         val queryParams = parseVLESS.param
         val network = queryParams["type"] ?: "raw"
         val security = queryParams["security"] ?: "none"
@@ -145,7 +143,7 @@ class VLESSConfigParser
     }
 
     override suspend fun preParse(link: Link): Node {
-        val vlessConfig = decodeVLESS(link.content)
+        val vlessConfig = decodeProtocol(link.content)
         return Node(
             id = link.id,
             url = link.content,

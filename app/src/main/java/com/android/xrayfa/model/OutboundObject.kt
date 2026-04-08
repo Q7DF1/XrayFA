@@ -39,14 +39,21 @@ data class WireGuardOutboundConfigurationObject( // 新增: WireGuard 出站
     val reserved: List<Int>? = null,
     val workers: Int? = null,
     val domainStrategy: String? = "ForceIP"
-): AbsOutboundConfigurationObject()
+): AbsOutboundConfigurationObject() {
 
-data class WireGuardOutboundPeer(
-    val publicKey: String,
-    val endpoint: String,
-    val allowedIPs: List<String>? = null,
-    val keepAlive: Int? = null
-)
+    data class WireGuardOutboundPeer(
+        val publicKey: String,
+        val endpoint: String,
+        val allowedIPs: List<String>? = null,
+        val keepAlive: Int? = null
+    )
+}
+
+data class Hysteria2OutboundConfigurationObject(
+    val version: Int = 2,
+    val address: String,
+    val port: Int
+): AbsOutboundConfigurationObject()
 
 data class ServerObject(
     val address: String,

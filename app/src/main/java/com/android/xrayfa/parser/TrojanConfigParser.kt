@@ -26,7 +26,57 @@ import javax.inject.Singleton
 class TrojanConfigParser
 @Inject constructor(
     override val settingsRepo: SettingsRepository
-): AbstractConfigParser<TrojanOutboundConfigurationObject>() {
+): AbstractConfigParser<TrojanOutboundConfigurationObject, TrojanConfig>() {
+    override fun decodeProtocol(url: String): TrojanConfig {
+        val uri = URI(url)
+        val scheme = uri.scheme ?: "trojan"
+        val password = percentDecode(uri.userInfo ?: "")
+        val host = uri.host
+        val port = if (uri.port == -1) null else uri.port
+        val remark = if (uri.fragment.isNullOrEmpty()) null else percentDecode(uri.fragment)
+
+        val params = mutableMapOf<String, String>()
+        uri.query?.split("&")?.forEach { pair ->
+            val kv = pair.split("=", limit = 2)
+            if (kv.size == 2) {
+                params[percentDecode(kv[0])] = percentDecode(kv[1])
+            } else if (kv.size == 1) {
+                params[percentDecode(kv[0])] = ""
+            }
+        }
+
+        return TrojanConfig(
+            scheme = scheme,
+            password = password,
+            host = host,
+            port = port,
+            params = params,
+            remark = remark,
+            original = url
+        )
+    }
+
+    override fun encodeProtocol(protocol: TrojanConfig): String {
+        val userInfo = URLEncoder.encode(protocol.password, StandardCharsets.UTF_8.name())
+        val query = protocol.params.entries.joinToString("&") {
+            "${URLEncoder.encode(it.key, StandardCharsets.UTF_8.name())}=${URLEncoder.encode(it.value, StandardCharsets.UTF_8.name())}"
+        }
+        val fragment = protocol.remark?.let { "#${URLEncoder.encode(it, StandardCharsets.UTF_8.name())}" } ?: ""
+
+        return buildString {
+            append("trojan://")
+            append(userInfo)
+            append("@")
+            append(protocol.host)
+            append(":")
+            append(protocol.port)
+            if (query.isNotEmpty()) {
+                append("?")
+                append(query)
+            }
+            append(fragment)
+        }
+    }
 
     companion object {
         private fun percentDecode(s: String?): String {
@@ -37,61 +87,10 @@ class TrojanConfigParser
                 s
             }
         }
-
-        fun decodeTrojan(url: String): TrojanConfig {
-            val uri = URI(url)
-            val scheme = uri.scheme ?: "trojan"
-            val password = percentDecode(uri.userInfo ?: "")
-            val host = uri.host
-            val port = if (uri.port == -1) null else uri.port
-            val remark = if (uri.fragment.isNullOrEmpty()) null else percentDecode(uri.fragment)
-
-            val params = mutableMapOf<String, String>()
-            uri.query?.split("&")?.forEach { pair ->
-                val kv = pair.split("=", limit = 2)
-                if (kv.size == 2) {
-                    params[percentDecode(kv[0])] = percentDecode(kv[1])
-                } else if (kv.size == 1) {
-                    params[percentDecode(kv[0])] = ""
-                }
-            }
-
-            return TrojanConfig(
-                scheme = scheme,
-                password = password,
-                host = host,
-                port = port,
-                params = params,
-                remark = remark,
-                original = url
-            )
-        }
-
-        fun encodeTrojan(config: TrojanConfig): String {
-            val userInfo = URLEncoder.encode(config.password, StandardCharsets.UTF_8.name())
-            val query = config.params.entries.joinToString("&") { 
-                "${URLEncoder.encode(it.key, StandardCharsets.UTF_8.name())}=${URLEncoder.encode(it.value, StandardCharsets.UTF_8.name())}" 
-            }
-            val fragment = config.remark?.let { "#${URLEncoder.encode(it, StandardCharsets.UTF_8.name())}" } ?: ""
-            
-            return buildString {
-                append("trojan://")
-                append(userInfo)
-                append("@")
-                append(config.host)
-                append(":")
-                append(config.port)
-                if (query.isNotEmpty()) {
-                    append("?")
-                    append(query)
-                }
-                append(fragment)
-            }
-        }
     }
 
     override fun parseOutbound(url: String): OutboundObject<TrojanOutboundConfigurationObject> {
-        val trojanConfig = decodeTrojan(url)
+        val trojanConfig = decodeProtocol(url)
         val network = trojanConfig.params.getOrDefault("type", "tcp")
         return OutboundObject(
             tag = "proxy",
@@ -119,7 +118,7 @@ class TrojanConfigParser
     }
 
     override suspend fun preParse(link: Link): Node {
-        val trojanConfig = decodeTrojan(link.content)
+        val trojanConfig = decodeProtocol(link.content)
         return Node(
             id = link.id,
             url = link.content,

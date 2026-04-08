@@ -12,6 +12,8 @@ data class StreamSettingsObject(
     val grpcSettings: GrpcSettings? = null,
     val wsSettings: WsSettings? = null,
     val httpUpgradeSettings: HttpUpgradeSettings? = null,
+    val hysteriaSettings: HysteriaSettings? = null,
+    val finalMask:FinalMask? =null,
     val sockopt: Sockopt? = null,
 
     @Deprecated("QUIC has been removed in Xray v24.9.7")
@@ -36,4 +38,28 @@ data class HttpUpgradeSettings(
     val path: String = "/",
     val host: String = "",
     val headers: Map<String, String>? = null
+)
+
+data class HysteriaSettings(
+    val version: Int = 2,
+    val auth: String,
+    val udpIdleTimeout: Int = 60,
+    val masquerade: MasqueradeConfig = MasqueradeConfig()
+)
+
+data class MasqueradeConfig(
+    val type: String = "",
+    val dir: String = "",
+    val url: String = "",
+    val rewriteHost: Boolean = false,
+    val insecure: Boolean = false,
+    val content: String = "",
+    val headers: Map<String, String> = mapOf("key" to "value"),
+    val statusCode: Int = 0
+)
+
+data class FinalMask(
+    val tcp: List<Any>? = null,
+    val udp: List<Any>? = null,
+    val quicParams: Any? = null
 )
