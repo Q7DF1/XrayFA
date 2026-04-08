@@ -502,6 +502,7 @@ fun ConfigScreen(
                     xrayViewmodel.onSearch(query)
                 }
         }
+
         ExpandedFullScreenSearchBar(
             state = searchBarState,
             inputField = inputField,
