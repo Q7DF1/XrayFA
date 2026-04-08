@@ -75,13 +75,29 @@ class XrayViewmodel(
         _searchQuery
     ) { allNodes, query ->
         if (query.isBlank()) {
-            allNodes
+            allNodes.reversed()
         } else {
-            allNodes.filter { node ->
+            allNodes.reversed().filter { node ->
                 node.remark?.contains(query, ignoreCase = true)?: false ||
                         node.url.contains(query, ignoreCase = true)
             }
         }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    val queryNodes: StateFlow<List<Node>> = combine(
+        repository.allLinks,
+        _searchQuery
+    ) { allNodes, query ->
+        if (!query.isBlank()) {
+            allNodes.reversed().filter { node ->
+                node.remark?.contains(query, ignoreCase = true)?: false ||
+                        node.url.contains(query, ignoreCase = true)
+            }
+        } else emptyList()
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),

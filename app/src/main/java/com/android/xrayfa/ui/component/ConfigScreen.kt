@@ -5,11 +5,14 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +25,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -32,6 +36,7 @@ import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.outlined.Subscriptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -61,21 +66,33 @@ import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -83,7 +100,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -99,7 +115,11 @@ import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.ui.navigation.NavigateDestination
 import com.android.xrayfa.ui.navigation.Subscription
 import com.android.xrayfa.viewmodel.XrayViewmodel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -111,13 +131,12 @@ fun ConfigScreen(
     onNavigate: (NavigateDestination) -> Unit
 ) {
     val nodes by xrayViewmodel.nodes.collectAsState()
+    val queryNodes by xrayViewmodel.queryNodes.collectAsState()
     val qrBitMap by xrayViewmodel.qrBitmap.collectAsState()
     val deleteDialog by xrayViewmodel.deleteDialog.collectAsState()
     val context = LocalContext.current
     val listState = rememberLazyListState()
-    var showSheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
-
+    val scope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
         rememberTopAppBarState()
     )
@@ -137,6 +156,24 @@ fun ConfigScreen(
             Toast.makeText(context, "Cancelled", Toast.LENGTH_LONG).show();
         }else {
             xrayViewmodel.addLink(result)
+        }
+    }
+
+    // Function to locate and scroll to a specific item by ID
+    suspend fun scrollToItemById(id: Int) {
+        val index = nodes.indexOfFirst { it.id == id }
+        if (index != -1) {
+            // Animate scroll to the found index
+            listState.animateScrollToItem(index)
+        }
+    }
+
+    // Function to locate and scroll to the selected item
+    suspend fun scrollToSelected() {
+        val index = nodes.indexOfFirst { it.selected }
+        if (index != -1) {
+            // Scroll to the selected item
+            listState.animateScrollToItem(index)
         }
     }
 
@@ -217,7 +254,7 @@ fun ConfigScreen(
                                 containerColor = MaterialTheme.colorScheme.surface
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text("from clipboard") },
+                                    text = { Text(stringResource(R.string.clipboard_import)) },
                                     onClick = {
                                         xrayViewmodel.addXrayConfigFromClipboard(context)
                                         checked = false
@@ -225,7 +262,7 @@ fun ConfigScreen(
                                     leadingIcon = { Icon(Icons.Outlined.ContentCut, contentDescription = null) }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("from QR code") },
+                                    text = { Text(stringResource(R.string.qrcode_import)) },
                                     onClick = {
                                         val intent = Intent(context, QRCodeActivity::class.java)
                                         barcodeLauncher.launch(intent)
@@ -241,6 +278,14 @@ fun ConfigScreen(
                                         //xrayViewmodel.startSubscriptionActivity(context)
                                     },
                                     leadingIcon = {Icon(Icons.Outlined.Subscriptions, contentDescription = null)}
+                                )
+                                DropdownMenuItem(
+                                    text = {Text(stringResource(R.string.locate_selected_node))},
+                                    onClick = {
+                                        checked = false
+                                        scope.launch { scrollToSelected() }
+                                    },
+                                    leadingIcon = {Icon(Icons.Outlined.Star, contentDescription = null)}
                                 )
                                 DropdownMenuItem(
                                     text = {Text(stringResource(R.string.menu_delete_all))},
@@ -288,50 +333,52 @@ fun ConfigScreen(
                 LazyColumn(
                     state = listState,
                     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+                        .columnVerticalScrollbar(listState,4.dp)
                 ) {
-                    items(nodes, key = {it.id}) {node ->
-                        with(sharedTransitionScope) {
-                            NodeCard(
-                                node = node,
-                                delete = {
-                                    xrayViewmodel.showDeleteDialog(node.id)
-                                },
-                                onChoose = {
+                    items(nodes, key = {it.id}) { node ->
+                        Column(modifier = Modifier.animateItem()) {
+                            with(sharedTransitionScope) {
+                                NodeCard(
+                                    node = node,
+                                    delete = {
+                                        xrayViewmodel.showDeleteDialog(node.id)
+                                    },
+                                    onChoose = {
 
-                                    onNavigate(
-                                        Detail (
-                                            id = node.id,
-                                            remark = node.remark,
-                                            protocol = node.protocolPrefix,
-                                            content = node.url,
+                                        onNavigate(
+                                            Detail (
+                                                id = node.id,
+                                                remark = node.remark,
+                                                protocol = node.protocolPrefix,
+                                                content = node.url,
+                                            )
                                         )
+                                    },
+                                    onShare = {
+                                        xrayViewmodel.generateQRCode(node.id)
+                                    },
+                                    onSelect = {
+                                        xrayViewmodel.setSelectedNode(node.id)
+                                        onNavigate(Home)
+                                    },
+                                    selected =node.selected,
+                                    roundCorner = false,
+                                    countryEmoji = node.countryISO,
+                                    modifier = Modifier.sharedElement(
+                                        sharedTransitionScope.rememberSharedContentState(key = node.id),
+                                        animatedVisibilityScope = LocalNavAnimatedContentScope.current,
                                     )
-                                },
-                                onShare = {
-                                    xrayViewmodel.generateQRCode(node.id)
-                                },
-                                onSelect = {
-                                    xrayViewmodel.setSelectedNode(node.id)
-                                    onNavigate(Home)
-                                },
-                                selected =node.selected,
-                                roundCorner = false,
-                                countryEmoji = node.countryISO,
-                                modifier = Modifier.sharedElement(
-                                    sharedTransitionScope.rememberSharedContentState(key = node.id),
-                                    animatedVisibilityScope = LocalNavAnimatedContentScope.current,
                                 )
-                            )
-                        }
+                            }
 
-                        if(node != nodes.last()) {
-                            HorizontalDivider(
-                                modifier = Modifier.fillMaxSize()
-                                    .padding(horizontal = 48.dp),
-                                thickness = 1.dp
-                            )
+                            if(node != nodes.last()) {
+                                HorizontalDivider(
+                                    modifier = Modifier.fillMaxSize()
+                                        .padding(horizontal = 48.dp),
+                                    thickness = 1.dp
+                                )
+                            }
                         }
-
                     }
                 }
             }
@@ -379,7 +426,6 @@ fun ConfigScreen(
 
         val searchBarState = rememberSearchBarState()
         val textFieldState = rememberTextFieldState()
-        val scope = rememberCoroutineScope()
         // Add FocusManager and KeyboardController
         val focusManager = LocalFocusManager.current
         val keyboardController = LocalSoftwareKeyboardController.current
@@ -446,6 +492,17 @@ fun ConfigScreen(
                 shape = CircleShape
             )
         }
+        @OptIn(FlowPreview::class)
+        LaunchedEffect(textFieldState) {
+            // Convert the text state into a Flow
+            snapshotFlow { textFieldState.text.toString() }
+                .debounce(300L) // Wait for 300ms pause in typing before emitting
+                .distinctUntilChanged() // Ignore if the text hasn't actually changed
+                .collectLatest { query ->
+                    xrayViewmodel.onSearch(query)
+                }
+        }
+
         ExpandedFullScreenSearchBar(
             state = searchBarState,
             inputField = inputField,
@@ -453,7 +510,31 @@ fun ConfigScreen(
                 containerColor = MaterialTheme.colorScheme.background
             )
         ) {
-            //todo recommended search
+            LazyColumn {
+                items(queryNodes, key = { it.id }) { node ->
+                    NodeCard(
+                        node = node,
+                        onChoose = {
+                            scope.launch {
+                                textFieldState.clearText()
+                                searchBarState.animateToCollapsed()
+                                scrollToItemById(node.id)
+                            }
+
+                        },
+                        selected =node.selected,
+                        roundCorner = false,
+                        countryEmoji = node.countryISO
+                    )
+                        if(node != nodes.last()) {
+                            HorizontalDivider(
+                                modifier = Modifier.fillMaxSize()
+                                    .padding(horizontal = 48.dp),
+                                thickness = 1.dp
+                            )
+                        }
+                }
+            }
         }
     }
 
@@ -479,4 +560,78 @@ fun LazyListState.isAtBottom(callBack: (Boolean)-> Unit): Boolean{
             lastVisible.offset + lastVisible.size <= viewportHeight
     callBack(isAtBottom)
     return isAtBottom
+}
+/**
+ * A highly optimized, flicker-free vertical scrollbar modifier for LazyColumn.
+ */
+fun Modifier.columnVerticalScrollbar(
+    state: LazyListState,
+    width: Dp = 4.dp,
+    color: Color = Color.Gray,
+    rightPadding: Dp = 2.dp,
+    minThumbHeight: Dp = 20.dp // Prevent the scrollbar from disappearing on huge lists
+): Modifier = composed {
+    // 1. Use Animatable for smooth alpha transitions without triggering layout recompositions
+    val alpha = remember { Animatable(0f) }
+
+    LaunchedEffect(state.isScrollInProgress) {
+        if (state.isScrollInProgress) {
+            alpha.animateTo(1f, tween(durationMillis = 150))
+        } else {
+            alpha.animateTo(0f, tween(durationMillis = 500))
+        }
+    }
+
+    drawWithContent {
+        drawContent()
+
+        val currentAlpha = alpha.value
+        // Return early if fully transparent
+        if (currentAlpha == 0f) return@drawWithContent
+
+        val layoutInfo = state.layoutInfo
+        val visibleItemsInfo = layoutInfo.visibleItemsInfo
+        val totalItemsCount = layoutInfo.totalItemsCount
+
+        if (totalItemsCount == 0 || visibleItemsInfo.isEmpty()) return@drawWithContent
+
+        // 2. Core Fix: Calculate average item size to prevent jitter when visible items count changes
+        val averageItemSize = visibleItemsInfo.sumOf { it.size }.toFloat() / visibleItemsInfo.size
+        val viewportHeight = size.height
+        // Estimate the total height of all items combined
+        val estimatedTotalSize = averageItemSize * totalItemsCount
+
+        // No need for a scrollbar if all content fits the screen
+        if (estimatedTotalSize <= viewportHeight) return@drawWithContent
+
+        // 3. Calculate Thumb Height
+        val heightProportion = (viewportHeight / estimatedTotalSize).coerceIn(0f, 1f)
+        val minHeightPx = minThumbHeight.toPx()
+        // Ensure the scrollbar doesn't become too small to see
+        val thumbHeight = (viewportHeight * heightProportion).coerceAtLeast(minHeightPx)
+
+        // 4. Calculate Scroll Progress (Fraction between 0.0 and 1.0)
+        val firstItem = visibleItemsInfo.first()
+        // offset is usually negative when scrolled down, so we invert it
+        val firstItemOffset = -firstItem.offset.toFloat()
+        val estimatedScrollOffset = (firstItem.index * averageItemSize) + firstItemOffset
+        val maxEstimatedScrollOffset = (estimatedTotalSize - viewportHeight).coerceAtLeast(1f)
+
+        val scrollProgress = (estimatedScrollOffset / maxEstimatedScrollOffset).coerceIn(0f, 1f)
+
+        // 5. Calculate final Y coordinate
+        val scrollbarOffsetY = scrollProgress * (viewportHeight - thumbHeight)
+
+        // 6. Draw the rounded scrollbar thumb
+        drawRoundRect(
+            color = color,
+            topLeft = Offset(
+                x = size.width - width.toPx() - rightPadding.toPx(),
+                y = scrollbarOffsetY
+            ),
+            size = Size(width.toPx(), thumbHeight),
+            alpha = currentAlpha,
+            cornerRadius = CornerRadius(width.toPx() / 2, width.toPx() / 2)
+        )
+    }
 }

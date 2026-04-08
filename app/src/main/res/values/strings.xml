@@ -15,7 +15,7 @@
     <string name="upload_data">upload</string>
     <string name="download_data">download</string>
     <string name="config_not_ready">config not ready</string>
-    <string name="qrcode_import">qrcode import</string>
+    <string name="qrcode_import">QR code import</string>
     <string name="close_window">close</string>
     <string name="confirm_delete">Confirm deletion</string>
     <string name="cancel" tools:ignore="ButtonCase">cancel</string>
@@ -96,4 +96,5 @@
     <string name="enable_hex_tun_desc">enable hex tun as third part tool</string>
     <string name="service_start_toast">Service Started</string>
     <string name="service_restart_toast">Service Restarted</string>
+    <string name="locate_selected_node">Locate selected node</string>
 </resources>

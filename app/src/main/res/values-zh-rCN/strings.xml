@@ -84,4 +84,7 @@
     <string name="connection_detail">连接详情</string>
     <string name="enable_hextun_title">开启hex tun</string>
     <string name="enable_hex_tun_desc">开启三方工具hex tun</string>
+    <string name="service_restart_toast">服务已重启</string>
+    <string name="locate_selected_node">定位到已选择节点</string>
+    <string name="service_start_toast">服务已启动</string>
 </resources>

@@ -120,7 +120,7 @@ fun NodeCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = node.remark ?: node.address,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     modifier = Modifier.basicMarquee()
