@@ -187,20 +187,22 @@ fun XrayFAContainer(
                         is Edit -> NavEntry(key) { 
                             EditScreen(
                                 detailViewmodel = detailViewmodel,
-                                onBack = { navBackStack.routeBack() }
+                                onBack = { navBackStack.routeBack() },
+                                sharedTransitionScope = this@SharedTransitionLayout
                             ) 
                         }
                         is Detail -> NavEntry(
                             key = key,
                             metadata = XrayFASceneStrategy.detail()
                         ) {
-                            DetailScreen(
-                                id = key.id,
+                            EditScreen(
+                                nodeId = key.id,
                                 remark = key.remark,
                                 protocol = key.protocol,
-                                content = key.content,
+                                initialContent = key.content,
+                                detailViewmodel = detailViewmodel,
                                 sharedTransitionScope = this@SharedTransitionLayout,
-                                detailViewmodel = detailViewmodel
+                                onBack = { navBackStack.routeBack() }
                             )
                         }
                         else -> NavEntry(key) { Text("Unknown route") }

@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.ClearAll
+import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Checkbox
@@ -181,7 +182,7 @@ fun AppsScreen(
                             }
                         ) {
                             Icon(
-                                imageVector = Icons.Outlined.ClearAll,
+                                imageVector = Icons.Outlined.DeleteSweep,
                                 contentDescription = "unselect all app"
                             )
                         }

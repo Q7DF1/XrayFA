@@ -350,7 +350,7 @@ fun ConfigScreen(
                                                 id = node.id,
                                                 remark = node.remark,
                                                 protocol = node.protocolPrefix,
-                                                content = node.url,
+                                                content = node.url
                                             )
                                         )
                                     },

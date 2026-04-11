@@ -174,14 +174,14 @@ fun NodeCard(
                         Icon(Icons.Default.Share, contentDescription = "Share")
                     }
                 }
-                if (delete != null) {
-                    IconButton(onClick = delete) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete")
-                    }
-                }
                 if (onEdit != null) {
                     IconButton(onClick = onEdit) {
                         Icon(Icons.Filled.Edit, contentDescription = "Edit")
+                    }
+                }
+                if (delete != null) {
+                    IconButton(onClick = delete) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete")
                     }
                 }
             }
