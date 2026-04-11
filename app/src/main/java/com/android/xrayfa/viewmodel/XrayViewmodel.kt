@@ -49,8 +49,17 @@ import androidx.core.net.toUri
 import com.android.xrayfa.BuildConfig
 import kotlinx.coroutines.withContext
 
+import com.android.xrayfa.repository.SubscriptionRepository
+import com.android.xrayfa.dto.Subscription
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
+
 class XrayViewmodel(
     private val repository: NodeRepository,
+    private val subscriptionRepository: SubscriptionRepository,
     private val xrayBaseServiceManager: XrayBaseServiceManager,
     private val xrayCoreManager: XrayCoreManager,
     private val parserFactory: ParserFactory,
@@ -64,20 +73,41 @@ class XrayViewmodel(
         const val EXTRA_PROTOCOL = "com.android.xrayFA.EXTRA_PROTOCOL"
         const val DELETE_ALL = -2
         const val DELETE_NONE = -1
+
+        const val SUB_ALL = 0
+        const val SUB_MANUAL = -1
     }
 
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
+    private val _selectedSubscriptionId = MutableStateFlow(SUB_ALL)
+    val selectedSubscriptionId: StateFlow<Int> = _selectedSubscriptionId.asStateFlow()
+
+    var measureJob: Job? = null
+    val subscriptions: StateFlow<List<Subscription>> = subscriptionRepository.allSubscriptions
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     val nodes: StateFlow<List<Node>> = combine(
         repository.allLinks,
-        _searchQuery
-    ) { allNodes, query ->
-        if (query.isBlank()) {
-            allNodes.reversed()
+        _searchQuery,
+        _selectedSubscriptionId
+    ) { allNodes, query, subId ->
+        val filteredBySub = if (subId == SUB_ALL) {
+            allNodes
         } else {
-            allNodes.reversed().filter { node ->
+            allNodes.filter { it.subscriptionId == subId }
+        }
+
+        if (query.isBlank()) {
+            filteredBySub.reversed()
+        } else {
+            filteredBySub.reversed().filter { node ->
                 node.remark?.contains(query, ignoreCase = true)?: false ||
                         node.url.contains(query, ignoreCase = true)
             }
@@ -90,10 +120,16 @@ class XrayViewmodel(
 
     val queryNodes: StateFlow<List<Node>> = combine(
         repository.allLinks,
-        _searchQuery
-    ) { allNodes, query ->
+        _searchQuery,
+        _selectedSubscriptionId
+    ) { allNodes, query, subId ->
         if (!query.isBlank()) {
-            allNodes.reversed().filter { node ->
+            val filteredBySub = if (subId == SUB_ALL) {
+                allNodes
+            } else {
+                allNodes.filter { it.subscriptionId == subId }
+            }
+            filteredBySub.reversed().filter { node ->
                 node.remark?.contains(query, ignoreCase = true)?: false ||
                         node.url.contains(query, ignoreCase = true)
             }
@@ -156,6 +192,10 @@ class XrayViewmodel(
 
     suspend fun onSearch(query: String) {
         _searchQuery.value = query
+    }
+
+    fun selectSubscription(id: Int) {
+        _selectedSubscriptionId.value = id
     }
 
 
@@ -246,12 +286,12 @@ class XrayViewmodel(
         // pre parse
         viewModelScope.launch {
             val protocolPrefix = link.substringBefore("://").lowercase()
-            Log.i(TAG, "addLink: $protocolPrefix")
+            Log.i(TAG, "addLink: ${protocolPrefix}")
             if (protocolsPrefix.contains(protocolPrefix)) {
-                val link0 =  Link(protocolPrefix = protocolPrefix, content = link, subscriptionId = 0)
+                val link0 =  Link(protocolPrefix = protocolPrefix, content = link, subscriptionId = SUB_MANUAL)
                 val node = parserFactory.getParser(protocolPrefix).preParse(link0)
                 viewModelScope.launch {
-                    Log.i(TAG, "addLink: $link0")
+                    Log.i(TAG, "addLink: ${link0}")
                     repository.addNode(node)
                 }
             }else {
@@ -354,15 +394,37 @@ class XrayViewmodel(
     }
 
     fun measureDelay(context: Context) {
-        if (isServiceRunning()) {
-            _testing.value = true
-            viewModelScope.launch(Dispatchers.IO) {
-            val url =
-                context.dataStore.data.first()[SettingsKeys.DELAY_TEST_URL]?: DEFAULT_DELAY_TEST_URL
-                _delay.value = xrayCoreManager.measureDelaySync(url)
-                _testing.value = false
-                Log.i(TAG, "measureDelay: ${_delay.value}")
+        if (!isServiceRunning()) return
+        
+        measureJob?.cancel()
+        _testing.value = true
+        _delay.value = -1L // Reset display
+        
+        measureJob = viewModelScope.launch {
+            val url = context.dataStore.data.first()[SettingsKeys.DELAY_TEST_URL] ?: DEFAULT_DELAY_TEST_URL
+            val resultDeferred = CompletableDeferred<Long>()
+
+            // 1. Start the actual test job
+            val testJob = launch(Dispatchers.IO) {
+                val res = try { xrayCoreManager.measureDelaySync(url) } catch (e: Exception) { -1L }
+                resultDeferred.complete(res)
             }
+
+            // 2. Start the 5s timer job
+            val timeoutJob = launch {
+                delay(5000L)
+                resultDeferred.complete(-2L) // Force timeout result
+            }
+
+            // 3. Wait for the winner (first one to call complete())
+            val finalResult = resultDeferred.await()
+            
+            // Clean up both jobs
+            timeoutJob.cancel()
+            testJob.cancel()
+
+            _testing.value = false
+            _delay.value = if (finalResult <= 0L) -2L else finalResult
         }
     }
 
@@ -452,6 +514,7 @@ class XrayViewmodel(
 class XrayViewmodelFactory
 @Inject constructor(
     private val repository: NodeRepository,
+    private val subscriptionRepository: SubscriptionRepository,
     private val xrayBaseServiceManager: XrayBaseServiceManager,
     private val xrayCoreManager: XrayCoreManager,
     private val parserFactory: ParserFactory,
@@ -463,6 +526,7 @@ class XrayViewmodelFactory
             @Suppress("UNCHECKED_CAST")
             return XrayViewmodel(
                 repository,
+                subscriptionRepository,
                 xrayBaseServiceManager,
                 xrayCoreManager,
                 parserFactory,

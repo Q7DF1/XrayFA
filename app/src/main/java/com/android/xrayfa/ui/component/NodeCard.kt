@@ -47,6 +47,9 @@ import com.android.xrayfa.dto.Node
 import com.android.xrayfa.model.protocol.protocolPrefixMap
 import com.android.xrayfa.utils.ColorMap
 
+import androidx.compose.material.icons.outlined.Speed
+import androidx.compose.ui.draw.scale
+
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun NodeCard(
@@ -67,6 +70,7 @@ fun NodeCard(
 ) {
     val context = LocalContext.current
     val delayColor = when {
+        delayMs == -2L -> MaterialTheme.colorScheme.error
         delayMs < 0 -> Color.Transparent
         delayMs < 300 -> Color(0xFF4CAF50)
         delayMs < 900 -> Color(0xFFFFA000)
@@ -129,7 +133,8 @@ fun NodeCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    if (delayMs > 0) {
+                    if (delayMs > 0 || delayMs == -2L) {
+                        val displayText = if (delayMs == -2L) "Timeout" else "${delayMs}ms"
                         Spacer(Modifier.width(8.dp))
                         Box(
                             modifier = Modifier
@@ -138,7 +143,7 @@ fun NodeCard(
                                 .padding(horizontal = 4.dp, vertical = 2.dp)
                         ) {
                             Text(
-                                text = "${delayMs}ms",
+                                text = displayText,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = delayColor,
                                 fontWeight = FontWeight.Bold
@@ -151,21 +156,38 @@ fun NodeCard(
             // Actions
             Row {
                 if (onTest != null) {
-                    val infiniteTransition = rememberInfiniteTransition(label = "rotate")
-                    val angle by infiniteTransition.animateFloat(
-                        initialValue = 0f,
-                        targetValue = if (testing) 360f else 0f,
+                    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+                    
+                    // Pulsing scale animation
+                    val scale by infiniteTransition.animateFloat(
+                        initialValue = 1f,
+                        targetValue = if (testing) 1.2f else 1f,
                         animationSpec = infiniteRepeatable(
-                            animation = tween(1000, easing = LinearEasing)
+                            animation = tween(800, easing = LinearEasing),
+                            repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
                         ),
-                        label = "angle"
+                        label = "scale"
                     )
+                    
+                    // Subtle alpha blinking
+                    val alpha by infiniteTransition.animateFloat(
+                        initialValue = 1f,
+                        targetValue = if (testing) 0.4f else 1f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(800, easing = LinearEasing),
+                            repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
+                        ),
+                        label = "alpha"
+                    )
+
                     IconButton(onClick = onTest, enabled = enableTest) {
                         Icon(
-                            imageVector = Icons.Default.Refresh,
+                            imageVector = Icons.Outlined.Speed,
                             contentDescription = "Test",
-                            modifier = Modifier.rotate(angle),
-                            tint = if (enableTest) MaterialTheme.colorScheme.primary else Color.Gray
+                            modifier = Modifier.scale(scale),
+                            tint = if (enableTest) {
+                                MaterialTheme.colorScheme.primary.copy(alpha = alpha)
+                            } else Color.Gray
                         )
                     }
                 }
