@@ -54,11 +54,12 @@ class DetailViewmodel(
     }
 
     fun saveNode(
+        nodeId: Int = -1,
         protocol: Protocol,
         remarks: String,
         address: String,
         port: Int,
-        id: String,
+        uuidOrPassword: String,
         flow: String = "",
         vlessEncryption: String = "none",
         vmessSecurity: String = "auto",
@@ -103,7 +104,7 @@ class DetailViewmodel(
                     
                     parserFactory.vlessConfigParser.encodeProtocol(VLESSConfig(
                         remark = remarks,
-                        uuid = id,
+                        uuid = uuidOrPassword,
                         server = address,
                         port = port,
                         param = params
@@ -115,7 +116,7 @@ class DetailViewmodel(
                         addProperty("ps", remarks)
                         addProperty("add", address)
                         addProperty("port", port)
-                        addProperty("id", id)
+                        addProperty("id", uuidOrPassword)
                         addProperty("aid", "0")
                         addProperty("scy", vmessSecurity)
                         addProperty("net", network)
@@ -127,7 +128,7 @@ class DetailViewmodel(
                         addProperty("fp", fingerprint)
                     }
                     parserFactory.vmessConfigParser.encodeProtocol(VMESSConfig(
-                        uuid = id,
+                        uuid = uuidOrPassword,
                         tls = if (transportSecurity == "none") "" else transportSecurity,
                         host = wsHost,
                         network = network,
@@ -138,7 +139,7 @@ class DetailViewmodel(
                 Protocol.SHADOW_SOCKS -> {
                     parserFactory.shadowSocksConfigParser.encodeProtocol(ShadowSocksConfig(
                         method = ssMethod,
-                        password = id,
+                        password = uuidOrPassword,
                         server = address,
                         port = port,
                         tag = remarks
@@ -160,7 +161,7 @@ class DetailViewmodel(
                     }
                     parserFactory.trojanConfigParser.encodeProtocol(TrojanConfig(
                         scheme = "trojan",
-                        password = id,
+                        password = uuidOrPassword,
                         host = address,
                         port = port,
                         params = params,
@@ -191,22 +192,27 @@ class DetailViewmodel(
                             remark = remarks,
                             address = address,
                             port = port,
-                            auth = id,
+                            auth = uuidOrPassword,
                             param = params
                         )
                     )
                 }
             }
             
-            val node = Node(
-                protocolPrefix = protocol.protocolType,
-                address = address,
-                port = port,
-                remark = remarks,
-                subscriptionId = -1, // Manual added
-                url = url
-            )
-            nodeRepository.addNode(node)
+            if (nodeId > 0) {
+                nodeRepository.updateNodeUrlAndPort(nodeId, url, port)
+            } else {
+                val node = Node(
+                    id = 0,
+                    protocolPrefix = protocol.protocolType,
+                    address = address,
+                    port = port,
+                    remark = remarks,
+                    subscriptionId = -1, // Manual added
+                    url = url
+                )
+                nodeRepository.addNode(node)
+            }
         }
     }
 

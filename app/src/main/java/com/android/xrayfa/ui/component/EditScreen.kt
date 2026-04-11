@@ -1,5 +1,6 @@
 package com.android.xrayfa.ui.component
 
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -67,9 +68,11 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
+import androidx.navigation3.ui.LocalNavAnimatedContentScope
 
 
 import com.android.xrayfa.viewmodel.DetailViewmodel
@@ -78,13 +81,18 @@ import com.android.xrayfa.viewmodel.DetailViewmodel
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun EditScreen(
+    nodeId: Int = 0,
+    remark: String? = null,
+    protocol: String? = null,
+    initialContent: String? = null,
     detailViewmodel: DetailViewmodel,
+    sharedTransitionScope: SharedTransitionScope,
     onBack: () -> Unit = {}
 ) {
     var selectedProtocol by remember { mutableStateOf(Protocol.VLESS) }
     
     // --- Form States ---
-    var remarks by remember { mutableStateOf("") }
+    var remarks by remember { mutableStateOf(remark ?: "") }
     var address by remember { mutableStateOf("") }
     var port by remember { mutableStateOf("") }
     
@@ -118,6 +126,84 @@ fun EditScreen(
     var hysteria2Alpn by remember { mutableStateOf("") }
     var hysteria2AllowInsecure by remember { mutableStateOf(false) }
 
+    // Initialize from content if provided
+    LaunchedEffect(initialContent) {
+        if (!initialContent.isNullOrBlank()) {
+            try {
+                when (protocol) {
+                    Protocol.VLESS.protocolType -> {
+                        selectedProtocol = Protocol.VLESS
+                        val config = detailViewmodel.parseVLESSProtocol(initialContent)
+                        address = config.server
+                        port = config.port.toString()
+                        id = config.uuid
+                        flow = config.param["flow"] ?: ""
+                        vlessEncryption = config.param["encryption"] ?: "none"
+                        network = config.param["type"] ?: "tcp"
+                        transportSecurity = config.param["security"] ?: "none"
+                        wsPath = config.param["path"] ?: "/"
+                        wsHost = config.param["host"] ?: ""
+                        grpcServiceName = config.param["serviceName"] ?: ""
+                        sni = config.param["sni"] ?: ""
+                        fingerprint = config.param["fp"] ?: "chrome"
+                        publicKey = config.param["pbk"] ?: ""
+                        shortId = config.param["sid"] ?: ""
+                    }
+                    Protocol.VMESS.protocolType -> {
+                        selectedProtocol = Protocol.VMESS
+                        val config = detailViewmodel.parseVMESSProtocol(initialContent)
+                        address = config.address
+                        val others = config.others
+                        port = if (others.has("port")) others.get("port").asString else ""
+                        id = config.uuid
+                        vmessSecurity = if (others.has("scy")) others.get("scy").asString else "auto"
+                        network = config.network
+                        transportSecurity = config.tls
+                        wsHost = config.host
+                        wsPath = if (others.has("path")) others.get("path").asString else "/"
+                        sni = if (others.has("sni")) others.get("sni").asString else ""
+                        fingerprint = if (others.has("fp")) others.get("fp").asString else "chrome"
+                    }
+                    Protocol.TROJAN.protocolType -> {
+                        selectedProtocol = Protocol.TROJAN
+                        val config = detailViewmodel.parseTrojanProtocol(initialContent)
+                        address = config.host ?: ""
+                        port = config.port?.toString() ?: ""
+                        id = config.password
+                        network = config.params["type"] ?: "tcp"
+                        transportSecurity = config.params["security"] ?: "none"
+                        wsPath = config.params["path"] ?: "/"
+                        wsHost = config.params["host"] ?: ""
+                        grpcServiceName = config.params["serviceName"] ?: ""
+                        sni = config.params["sni"] ?: ""
+                    }
+                    Protocol.SHADOW_SOCKS.protocolType -> {
+                        selectedProtocol = Protocol.SHADOW_SOCKS
+                        val config = detailViewmodel.parseShadowSocks(initialContent)
+                        address = config.server
+                        port = config.port.toString()
+                        id = config.password
+                        ssMethod = config.method
+                    }
+                    Protocol.HYSTERIA2.protocolType -> {
+                        selectedProtocol = Protocol.HYSTERIA2
+                        val config = detailViewmodel.parseHysteria2Protocol(initialContent)
+                        address = config.address
+                        port = config.port.toString()
+                        id = config.auth
+                        sni = config.param["sni"] ?: ""
+                        hysteria2Alpn = config.param["alpn"] ?: ""
+                        hysteria2Obfs = config.param["obfs"] ?: ""
+                        hysteria2ObfsPassword = config.param["obfs-password"] ?: ""
+                        hysteria2AllowInsecure = config.param["allowInsecure"] == "1"
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
         rememberTopAppBarState()
     )
@@ -131,166 +217,174 @@ fun EditScreen(
         targetValue = if (isScrolled) 4.dp else 0.dp,
         label = "TopBarShadowElevation"
     )
-    
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    val options = Protocol.entries
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(text = "Edit")
-                        LazyRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
-                            items(items = options, key = { it }) { label ->
-                                val isFirst = label == options.first()
-                                val isLast = label == options.last()
-                                ToggleButton(
-                                    checked = selectedProtocol == label,
-                                    onCheckedChange = { selectedProtocol = label },
-                                    shapes = when {
-                                        isFirst -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                                        isLast -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+    with(sharedTransitionScope) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        val options = Protocol.entries
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(text = if (nodeId > 0) "Edit" else "Add")
+                            LazyRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
+                                items(items = options, key = { it }) { label ->
+                                    val isFirst = label == options.first()
+                                    val isLast = label == options.last()
+                                    ToggleButton(
+                                        checked = selectedProtocol == label,
+                                        onCheckedChange = { selectedProtocol = label },
+                                        enabled = nodeId <= 0, // Protocol usually fixed for existing nodes
+                                        shapes = when {
+                                            isFirst -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                            isLast -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                        }
+                                    ) {
+                                        Text(label.name.lowercase())
                                     }
-                                ) {
-                                    Text(label.name.lowercase())
                                 }
                             }
                         }
-                    }
-                },
-                actions = {
-                    FloatingActionButton(
-                        onClick = { 
-                            detailViewmodel.saveNode(
-                                protocol = selectedProtocol,
-                                remarks = remarks,
-                                address = address,
-                                port = port.toIntOrNull() ?: 0,
-                                id = id,
-                                flow = flow,
-                                vlessEncryption = vlessEncryption,
-                                vmessSecurity = vmessSecurity,
-                                ssMethod = ssMethod,
-                                network = network,
-                                transportSecurity = transportSecurity,
-                                wsPath = wsPath,
-                                wsHost = wsHost,
-                                grpcServiceName = grpcServiceName,
-                                sni = sni,
-                                fingerprint = fingerprint,
-                                publicKey = publicKey,
-                                shortId = shortId,
-                                hysteria2Obfs = hysteria2Obfs,
-                                hysteria2ObfsPassword = hysteria2ObfsPassword,
-                                hysteria2Alpn = hysteria2Alpn,
-                                hysteria2AllowInsecure = hysteria2AllowInsecure
-                            )
-                            onBack()
-                        }, 
-                        shape = IconButtonDefaults.extraSmallRoundShape, 
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        modifier = Modifier.size(48.dp)
-                            .padding(4.dp)
-                    ) {
-                        Icon(Icons.Filled.Done, "save")
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-                modifier = Modifier.shadow(appBarElevation)
+                    },
+                    actions = {
+                        FloatingActionButton(
+                            onClick = {
+                                detailViewmodel.saveNode(
+                                    nodeId = nodeId,
+                                    protocol = selectedProtocol,
+                                    remarks = remarks,
+                                    address = address,
+                                    port = port.toIntOrNull() ?: 0,
+                                    uuidOrPassword = id,
+                                    flow = flow,
+                                    vlessEncryption = vlessEncryption,
+                                    vmessSecurity = vmessSecurity,
+                                    ssMethod = ssMethod,
+                                    network = network,
+                                    transportSecurity = transportSecurity,
+                                    wsPath = wsPath,
+                                    wsHost = wsHost,
+                                    grpcServiceName = grpcServiceName,
+                                    sni = sni,
+                                    fingerprint = fingerprint,
+                                    publicKey = publicKey,
+                                    shortId = shortId,
+                                    hysteria2Obfs = hysteria2Obfs,
+                                    hysteria2ObfsPassword = hysteria2ObfsPassword,
+                                    hysteria2Alpn = hysteria2Alpn,
+                                    hysteria2AllowInsecure = hysteria2AllowInsecure
+                                )
+                                onBack()
+                            },
+                            shape = IconButtonDefaults.extraSmallRoundShape,
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            modifier = Modifier.size(48.dp)
+                                .padding(4.dp)
+                        ) {
+                            Icon(Icons.Filled.Done, "save")
+                        }
+                    },
+                    scrollBehavior = scrollBehavior,
+                    modifier = Modifier.shadow(appBarElevation)
+                )
+            },
+            modifier = Modifier.sharedElement(
+                sharedContentState = sharedTransitionScope.rememberSharedContentState(key = nodeId),
+                animatedVisibilityScope = LocalNavAnimatedContentScope.current
             )
-        }
-    ) { paddingValue ->
-        Column(
-            modifier = Modifier.fillMaxSize()
-                .padding(paddingValue)
-                .background(MaterialTheme.colorScheme.surface)
-                .verticalScroll(scrollState)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // 1. Basic Settings
-            Text("Basic Settings", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-            EditTextField(remarks, { remarks = it }, "Remarks")
-            EditTextField(address, { address = it }, "Address")
-            EditTextField(port, { if (it.all { c -> c.isDigit() }) port = it }, "Port")
+        ) { paddingValue ->
+            Column(
+                modifier = Modifier.fillMaxSize()
+                    .padding(paddingValue)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .verticalScroll(scrollState)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // 1. Basic Settings
+                Text("Basic Settings", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                EditTextField(remarks, { remarks = it }, "Remarks")
+                EditTextField(address, { address = it }, "Address")
+                EditTextField(port, { if (it.all { c -> c.isDigit() }) port = it }, "Port")
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-            // 2. Protocol Settings
-            Text("${selectedProtocol.name} Settings", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-            when (selectedProtocol) {
-                Protocol.VLESS -> {
-                    EditTextField(id, { id = it }, "UUID")
-                    EditTextField(vlessEncryption, { vlessEncryption = it }, "Encryption (default: none)")
-                    EditDropdownField(flow, { flow = it }, "Flow", listOf("", "xtls-rprx-vision"))
-                }
-                Protocol.VMESS -> {
-                    EditTextField(id, { id = it }, "UUID")
-                    EditDropdownField(vmessSecurity, { vmessSecurity = it }, "Security", listOf("auto", "aes-128-gcm", "chacha20-poly1305", "none"))
-                }
-                Protocol.SHADOW_SOCKS -> {
-                    EditTextField(id, { id = it }, "Password")
-                    EditDropdownField(ssMethod, { ssMethod = it }, "Method", listOf("aes-256-gcm", "aes-128-gcm", "chacha20-ietf-poly1305", "2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm"))
-                }
-                Protocol.TROJAN -> {
-                    EditTextField(id, { id = it }, "Password")
-                }
-                Protocol.HYSTERIA2 -> {
-                    EditTextField(id, { id = it }, "Auth")
-                    EditTextField(sni, { sni = it }, "SNI")
-                    EditTextField(hysteria2Alpn, { hysteria2Alpn = it }, "ALPN")
-                    EditDropdownField(
-                        hysteria2Obfs,
-                        { hysteria2Obfs = it },
-                        "Obfuscation",
-                        listOf("", "salamander")
-                    )
-                    if (hysteria2Obfs.isNotBlank()) {
-                        EditTextField(
-                            hysteria2ObfsPassword,
-                            { hysteria2ObfsPassword = it },
-                            "Obfuscation Password"
-                        )
-                    }
-                    EditDropdownField(
-                        if (hysteria2AllowInsecure) "true" else "false",
-                        { hysteria2AllowInsecure = it == "true" },
-                        "Allow Insecure",
-                        listOf("false", "true")
-                    )
-                }
-            }
-
-            if (selectedProtocol != Protocol.HYSTERIA2) {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-                // 3. Transport Settings
-                Text("Transport Settings", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-                EditDropdownField(network, { network = it }, "Network", listOf("tcp", "ws", "grpc", "h2", "quic"))
-
-                if (network == "ws") {
-                    EditTextField(wsPath, { wsPath = it }, "WS Path")
-                    EditTextField(wsHost, { wsHost = it }, "WS Host")
-                } else if (network == "grpc") {
-                    EditTextField(grpcServiceName, { grpcServiceName = it }, "gRPC Service Name")
+                // 2. Protocol Settings
+                Text("${selectedProtocol.name} Settings", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                when (selectedProtocol) {
+                    Protocol.VLESS -> {
+                        EditTextField(id, { id = it }, "UUID")
+                        EditTextField(vlessEncryption, { vlessEncryption = it }, "Encryption (default: none)")
+                        EditDropdownField(flow, { flow = it }, "Flow", listOf("", "xtls-rprx-vision"))
+                    }
+                    Protocol.VMESS -> {
+                        EditTextField(id, { id = it }, "UUID")
+                        EditDropdownField(vmessSecurity, { vmessSecurity = it }, "Security", listOf("auto", "aes-128-gcm", "chacha20-poly1305", "none"))
+                    }
+                    Protocol.SHADOW_SOCKS -> {
+                        EditTextField(id, { id = it }, "Password")
+                        EditDropdownField(ssMethod, { ssMethod = it }, "Method", listOf("aes-256-gcm", "aes-128-gcm", "chacha20-ietf-poly1305", "2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm"))
+                    }
+                    Protocol.TROJAN -> {
+                        EditTextField(id, { id = it }, "Password")
+                    }
+                    Protocol.HYSTERIA2 -> {
+                        EditTextField(id, { id = it }, "Auth")
+                        EditTextField(sni, { sni = it }, "SNI")
+                        EditTextField(hysteria2Alpn, { hysteria2Alpn = it }, "ALPN")
+                        EditDropdownField(
+                            hysteria2Obfs,
+                            { hysteria2Obfs = it },
+                            "Obfuscation",
+                            listOf("", "salamander")
+                        )
+                        if (hysteria2Obfs.isNotBlank()) {
+                            EditTextField(
+                                hysteria2ObfsPassword,
+                                { hysteria2ObfsPassword = it },
+                                "Obfuscation Password"
+                            )
+                        }
+                        EditDropdownField(
+                            if (hysteria2AllowInsecure) "true" else "false",
+                            { hysteria2AllowInsecure = it == "true" },
+                            "Allow Insecure",
+                            listOf("false", "true")
+                        )
+                    }
                 }
 
-                HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
+                if (selectedProtocol != Protocol.HYSTERIA2) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-                EditDropdownField(transportSecurity, { transportSecurity = it }, "Security", listOf("none", "tls", "reality"))
+                    // 3. Transport Settings
+                    Text("Transport Settings", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                    EditDropdownField(network, { network = it }, "Network", listOf("tcp", "ws", "grpc", "h2", "quic"))
 
-                if (transportSecurity == "tls" || transportSecurity == "reality") {
-                    EditTextField(sni, { sni = it }, "SNI (Server Name Indication)")
-                    EditDropdownField(fingerprint, { fingerprint = it }, "Fingerprint", listOf("chrome", "firefox", "safari", "edge", "android", "ios", "random", "randomized"))
+                    if (network == "ws") {
+                        EditTextField(wsPath, { wsPath = it }, "WS Path")
+                        EditTextField(wsHost, { wsHost = it }, "WS Host")
+                    } else if (network == "grpc") {
+                        EditTextField(grpcServiceName, { grpcServiceName = it }, "gRPC Service Name")
+                    }
 
-                    if (transportSecurity == "reality") {
-                        EditTextField(publicKey, { publicKey = it }, "Public Key")
-                        EditTextField(shortId, { shortId = it }, "Short ID")
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 2.dp))
+
+                    EditDropdownField(transportSecurity, { transportSecurity = it }, "Security", listOf("none", "tls", "reality"))
+
+                    if (transportSecurity == "tls" || transportSecurity == "reality") {
+                        EditTextField(sni, { sni = it }, "SNI (Server Name Indication)")
+                        EditDropdownField(fingerprint, { fingerprint = it }, "Fingerprint", listOf("chrome", "firefox", "safari", "edge", "android", "ios", "random", "randomized"))
+
+                        if (transportSecurity == "reality") {
+                            EditTextField(publicKey, { publicKey = it }, "Public Key")
+                            EditTextField(shortId, { shortId = it }, "Short ID")
+                        }
                     }
                 }
             }
         }
     }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

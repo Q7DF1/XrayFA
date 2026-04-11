@@ -60,7 +60,6 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.rememberTopAppBarState
@@ -69,7 +68,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -86,12 +84,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -343,22 +338,21 @@ fun ConfigScreen(
                                         xrayViewmodel.showDeleteDialog(node.id)
                                     },
                                     onChoose = {
-
+                                        xrayViewmodel.setSelectedNode(node.id)
+                                        onNavigate(Home)
+                                    },
+                                    onShare = {
+                                        xrayViewmodel.generateQRCode(node.id)
+                                    },
+                                    onEdit = {
                                         onNavigate(
                                             Detail (
                                                 id = node.id,
                                                 remark = node.remark,
                                                 protocol = node.protocolPrefix,
-                                                content = node.url,
+                                                content = node.url
                                             )
                                         )
-                                    },
-                                    onShare = {
-                                        xrayViewmodel.generateQRCode(node.id)
-                                    },
-                                    onSelect = {
-                                        xrayViewmodel.setSelectedNode(node.id)
-                                        onNavigate(Home)
                                     },
                                     selected =node.selected,
                                     roundCorner = false,
@@ -397,7 +391,7 @@ fun ConfigScreen(
                         Image(
                             bitmap = qrBitMap!!.asImageBitmap(),
                             contentDescription = "qrcode",
-                            modifier = Modifier.size(200.dp)
+                            modifier = Modifier.size(250.dp)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
 

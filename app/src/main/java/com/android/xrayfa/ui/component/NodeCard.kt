@@ -9,12 +9,10 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,8 +20,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
@@ -58,7 +56,7 @@ fun NodeCard(
     delete: (() -> Unit)? = null,
     onChoose: () -> Unit = {},
     onShare: (() -> Unit)? = null,
-    onSelect: (() -> Unit)? = null,
+    onEdit: (() -> Unit)? = null,
     onTest: (() -> Unit)? = null,
     delayMs: Long = -1,
     testing: Boolean = false,
@@ -176,14 +174,14 @@ fun NodeCard(
                         Icon(Icons.Default.Share, contentDescription = "Share")
                     }
                 }
+                if (onEdit != null) {
+                    IconButton(onClick = onEdit) {
+                        Icon(Icons.Filled.Edit, contentDescription = "Edit")
+                    }
+                }
                 if (delete != null) {
                     IconButton(onClick = delete) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete")
-                    }
-                }
-                if (onSelect != null) {
-                    IconButton(onClick = onSelect) {
-                        Icon(Icons.AutoMirrored.Default.ArrowForward, contentDescription = "Select")
                     }
                 }
             }
