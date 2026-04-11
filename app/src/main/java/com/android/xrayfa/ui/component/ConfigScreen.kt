@@ -118,6 +118,13 @@ import kotlinx.coroutines.launch
 
 import androidx.compose.animation.AnimatedVisibilityScope
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ConfigScreen(
@@ -131,6 +138,9 @@ fun ConfigScreen(
     val queryNodes by xrayViewmodel.queryNodes.collectAsState()
     val qrBitMap by xrayViewmodel.qrBitmap.collectAsState()
     val deleteDialog by xrayViewmodel.deleteDialog.collectAsState()
+    val subscriptions by xrayViewmodel.subscriptions.collectAsState()
+    val selectedSubId by xrayViewmodel.selectedSubscriptionId.collectAsState()
+
     val context = LocalContext.current
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -147,6 +157,18 @@ fun ConfigScreen(
         targetValue = if (isScrolled) 4.dp else 0.dp,
         label = "TopBarShadowElevation"
     )
+    
+    // Build filter list
+    val filters = remember(subscriptions) {
+        val list = mutableListOf<Pair<Int, String>>()
+        list.add(XrayViewmodel.SUB_ALL to "All")
+        list.add(XrayViewmodel.SUB_MANUAL to "Manual")
+        subscriptions.forEach { 
+            list.add(it.id to it.mark)
+        }
+        list
+    }
+
     val barcodeLauncher = rememberLauncherForActivityResult(ScanQRResultContract()) {
             result->
         if (result.isEmpty()) {
@@ -180,141 +202,171 @@ fun ConfigScreen(
         Column(modifier = Modifier.fillMaxSize()){
             Surface(
                 shadowElevation = appBarElevation,
-                    color = MaterialTheme.colorScheme.background,
+                color = MaterialTheme.colorScheme.surface, // Use surface instead of background
                 modifier = Modifier.zIndex(1f)
             ) {
-                TopAppBar(
-                    title = {
-                        Text(stringResource(Config.title), fontWeight = FontWeight.Bold)
-                    },
-                    actions = {
-                        var checked by remember { mutableStateOf(false) }
+                Column {
+                    TopAppBar(
+                        title = {
+                            Text(stringResource(Config.title), fontWeight = FontWeight.Bold)
+                        },
+                        actions = {
+                            var checked by remember { mutableStateOf(false) }
 
-                        Box(
-                            modifier = Modifier.padding(end = 8.dp)
-                        ) {
-                            SplitButtonLayout(
-                                leadingButton = {
-                                    SplitButtonDefaults.LeadingButton(onClick = {
-                                        onNavigate(Edit)
-                                    }) {
-                                        Icon(
-                                            Icons.Filled.Edit,
-                                            modifier = Modifier.size(SplitButtonDefaults.LeadingIconSize),
-                                            contentDescription = "Localized description",
-                                        )
-                                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                        Text("Add")
-                                    }
-                                },
-                                trailingButton = {
-                                    val description = "Toggle Button"
-                                    // Icon-only trailing button should have a tooltip for a11y.
-                                    TooltipBox(
-                                        positionProvider =
-                                            TooltipDefaults.rememberTooltipPositionProvider(
-                                                TooltipAnchorPosition.Above
-                                            ),
-                                        tooltip = { PlainTooltip { Text(description) } },
-                                        state = rememberTooltipState(),
-                                    ) {
-                                        SplitButtonDefaults.TrailingButton(
-                                            checked = checked,
-                                            onCheckedChange = { checked = it },
-                                            modifier =
-                                                Modifier.semantics {
-                                                    stateDescription = if (checked) "Expanded" else "Collapsed"
-                                                    contentDescription = description
-                                                },
-                                        ) {
-                                            val rotation: Float by
-                                            animateFloatAsState(
-                                                targetValue = if (checked) 180f else 0f,
-                                                label = "Trailing Icon Rotation",
-                                            )
+                            Box(
+                                modifier = Modifier.padding(end = 8.dp)
+                            ) {
+                                SplitButtonLayout(
+                                    leadingButton = {
+                                        SplitButtonDefaults.LeadingButton(onClick = {
+                                            onNavigate(Edit)
+                                        }) {
                                             Icon(
-                                                Icons.Filled.KeyboardArrowDown,
-                                                modifier =
-                                                    Modifier.size(SplitButtonDefaults.TrailingIconSize).graphicsLayer {
-                                                        this.rotationZ = rotation
-                                                    },
+                                                Icons.Filled.Edit,
+                                                modifier = Modifier.size(SplitButtonDefaults.LeadingIconSize),
                                                 contentDescription = "Localized description",
                                             )
+                                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                            Text("Add")
                                         }
-                                    }
-                                },
-                            )
+                                    },
+                                    trailingButton = {
+                                        val description = "Toggle Button"
+                                        // Icon-only trailing button should have a tooltip for a11y.
+                                        TooltipBox(
+                                            positionProvider =
+                                                TooltipDefaults.rememberTooltipPositionProvider(
+                                                    TooltipAnchorPosition.Above
+                                                ),
+                                            tooltip = { PlainTooltip { Text(description) } },
+                                            state = rememberTooltipState(),
+                                        ) {
+                                            SplitButtonDefaults.TrailingButton(
+                                                checked = checked,
+                                                onCheckedChange = { checked = it },
+                                                modifier =
+                                                    Modifier.semantics {
+                                                        stateDescription = if (checked) "Expanded" else "Collapsed"
+                                                        contentDescription = description
+                                                    },
+                                            ) {
+                                                val rotation: Float by
+                                                animateFloatAsState(
+                                                    targetValue = if (checked) 180f else 0f,
+                                                    label = "Trailing Icon Rotation",
+                                                )
+                                                Icon(
+                                                    Icons.Filled.KeyboardArrowDown,
+                                                    modifier =
+                                                        Modifier.size(SplitButtonDefaults.TrailingIconSize).graphicsLayer {
+                                                            this.rotationZ = rotation
+                                                        },
+                                                    contentDescription = "Localized description",
+                                                )
+                                            }
+                                        }
+                                    },
+                                )
 
-                            DropdownMenu(
-                                expanded = checked,
-                                onDismissRequest = { checked = false },
-                                containerColor = MaterialTheme.colorScheme.surface
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.clipboard_import)) },
-                                    onClick = {
-                                        xrayViewmodel.addXrayConfigFromClipboard(context)
-                                        checked = false
-                                    },
-                                    leadingIcon = { Icon(Icons.Outlined.ContentCut, contentDescription = null) }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.qrcode_import)) },
-                                    onClick = {
-                                        val intent = Intent(context, QRCodeActivity::class.java)
-                                        barcodeLauncher.launch(intent)
-                                        checked = false
-                                    },
-                                    leadingIcon = { Icon(Icons.Outlined.QrCodeScanner, contentDescription = null) },
-                                )
-                                DropdownMenuItem(
-                                    text = {Text(stringResource(R.string.menu_subscription))},
-                                    onClick = {
-                                        checked = false
-                                        onNavigate(Subscription)
-                                        //xrayViewmodel.startSubscriptionActivity(context)
-                                    },
-                                    leadingIcon = {Icon(Icons.Outlined.Subscriptions, contentDescription = null)}
-                                )
-                                DropdownMenuItem(
-                                    text = {Text(stringResource(R.string.locate_selected_node))},
-                                    onClick = {
-                                        checked = false
-                                        scope.launch { scrollToSelected() }
-                                    },
-                                    leadingIcon = {Icon(Icons.Outlined.Star, contentDescription = null)}
-                                )
-                                DropdownMenuItem(
-                                    text = {Text(stringResource(R.string.menu_delete_all))},
-                                    onClick = {
-                                        checked = false
-                                        xrayViewmodel.showDeleteDialog(/*delete all*/)
-                                    },
-                                    leadingIcon = {Icon(Icons.Outlined.DeleteForever, contentDescription = null)}
-                                )
-                                HorizontalDivider()
-                                DropdownMenuItem(
-                                    text = { Text("Bug Report") },
-                                    onClick = {
-                                        checked = false
-                                        xrayViewmodel.bugReport(context)
-                                    },
-                                    leadingIcon = {
-                                        Icon(
-                                            Icons.Outlined.BugReport,
-                                            contentDescription = null
-                                        )
-                                    }
+                                DropdownMenu(
+                                    expanded = checked,
+                                    onDismissRequest = { checked = false },
+                                    containerColor = MaterialTheme.colorScheme.surface
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.clipboard_import)) },
+                                        onClick = {
+                                            xrayViewmodel.addXrayConfigFromClipboard(context)
+                                            checked = false
+                                        },
+                                        leadingIcon = { Icon(Icons.Outlined.ContentCut, contentDescription = null) }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text(stringResource(R.string.qrcode_import)) },
+                                        onClick = {
+                                            val intent = Intent(context, QRCodeActivity::class.java)
+                                            barcodeLauncher.launch(intent)
+                                            checked = false
+                                        },
+                                        leadingIcon = { Icon(Icons.Outlined.QrCodeScanner, contentDescription = null) },
+                                    )
+                                    DropdownMenuItem(
+                                        text = {Text(stringResource(R.string.menu_subscription))},
+                                        onClick = {
+                                            checked = false
+                                            onNavigate(Subscription)
+                                            //xrayViewmodel.startSubscriptionActivity(context)
+                                        },
+                                        leadingIcon = {Icon(Icons.Outlined.Subscriptions, contentDescription = null)}
+                                    )
+                                    DropdownMenuItem(
+                                        text = {Text(stringResource(R.string.locate_selected_node))},
+                                        onClick = {
+                                            checked = false
+                                            scope.launch { scrollToSelected() }
+                                        },
+                                        leadingIcon = {Icon(Icons.Outlined.Star, contentDescription = null)}
+                                    )
+                                    DropdownMenuItem(
+                                        text = {Text(stringResource(R.string.menu_delete_all))},
+                                        onClick = {
+                                            checked = false
+                                            xrayViewmodel.showDeleteDialog(/*delete all*/)
+                                        },
+                                        leadingIcon = {Icon(Icons.Outlined.DeleteForever, contentDescription = null)}
+                                    )
+                                    HorizontalDivider()
+                                    DropdownMenuItem(
+                                        text = { Text("Bug Report") },
+                                        onClick = {
+                                            checked = false
+                                            xrayViewmodel.bugReport(context)
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Outlined.BugReport,
+                                                contentDescription = null
+                                            )
+                                        }
+                                    )
+                                }
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color.Transparent, // Transparent to show Surface color
+                            scrolledContainerColor = Color.Transparent
+                        ),
+                        scrollBehavior = scrollBehavior,
+                    )
+                    
+                    // Filter Chips Row
+                    if (subscriptions.isNotEmpty()) {
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 4.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            items(filters.size) { index ->
+                                val (id, label) = filters[index]
+                                FilterChip(
+                                    selected = selectedSubId == id,
+                                    onClick = { xrayViewmodel.selectSubscription(id) },
+                                    label = { Text(label) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    ),
+                                    border = FilterChipDefaults.filterChipBorder(
+                                        enabled = true,
+                                        selected = selectedSubId == id,
+                                        borderColor = MaterialTheme.colorScheme.outlineVariant,
+                                        selectedBorderColor = Color.Transparent
+                                    )
                                 )
                             }
                         }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    scrollBehavior = scrollBehavior,
-                )
+                    }
+                }
             }
             if (nodes.isEmpty()) {
                 Box(
