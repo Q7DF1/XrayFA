@@ -124,15 +124,15 @@ fun XraySideNavOpt(
         val contentHeightPx = (itemSizePx * itemCount) + (spacingPx * (itemCount - 1))
         val topOffsetPx = (maxHeightPx - contentHeightPx) / 2f
 
-        // --- 3. 背景球动画 (保持 LowBouncy 回弹效果) ---
+        // --- 3. 背景球动画 (恢复丝滑回弹效果) ---
         LaunchedEffect(selectedIndex, topOffsetPx) {
             val targetY = topOffsetPx + (selectedIndex * (itemSizePx + spacingPx))
 
             animOffsetY.animateTo(
                 targetValue = targetY,
                 animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioLowBouncy, // 果冻回弹
-                    stiffness = Spring.StiffnessLow
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessMediumLow
                 )
             )
         }
@@ -286,7 +286,7 @@ fun XrayBottomNavOpt(
         LaunchedEffect(selectedIndex) {
             animOffsetX.animateTo(
                 targetValue = (selectedIndex * itemWidthPx).toFloat(),
-                animationSpec = spring(Spring.DampingRatioLowBouncy, Spring.StiffnessLow)
+                animationSpec = spring(Spring.DampingRatioLowBouncy, Spring.StiffnessMediumLow)
             )
         }
         // 背景放大镜
@@ -503,7 +503,7 @@ fun XrayModernFloatingNav(
                         targetValue = selectedIndex * itemWidthPx,
                         animationSpec = spring(
                             dampingRatio = Spring.DampingRatioLowBouncy,
-                            stiffness = Spring.StiffnessLow
+                            stiffness = Spring.StiffnessMediumLow
                         )
                     )
                 }

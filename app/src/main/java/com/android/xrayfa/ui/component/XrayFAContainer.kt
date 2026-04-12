@@ -6,6 +6,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -19,6 +21,8 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -76,10 +80,10 @@ import com.android.xrayfa.viewmodel.SubscriptionViewmodel
 import kotlin.collections.listOf
 
 
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,6 +97,7 @@ fun XrayFAContainer(
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
+    val scope = rememberCoroutineScope()
     var customNavBarHeightDp by remember { mutableStateOf(0.dp) }
 
     val navBackStack = rememberNavBackStack(
@@ -109,19 +114,19 @@ fun XrayFAContainer(
         pageCount = { list_navigation.size }
     )
 
-    // 2. Sync Pager -> NavBackStack (Only on settle to avoid fighting)
-    LaunchedEffect(pagerState.settledPage) {
-        val targetDestination = list_navigation[pagerState.settledPage]
-        if (top in list_navigation && top != targetDestination) {
-            navBackStack.routeTo(targetDestination)
+    // Sync Pager -> NavBackStack for instant gesture feedback
+    LaunchedEffect(pagerState.currentPage) {
+        val target = list_navigation[pagerState.currentPage]
+        if (top in list_navigation && top != target) {
+            navBackStack.routeTo(target)
         }
     }
 
-    // 3. Sync NavBackStack -> Pager (when clicking bottom nav)
+    // Sync NavBackStack -> Pager for click navigation
     LaunchedEffect(top) {
         if (top in list_navigation) {
             val targetPage = list_navigation.indexOf(top)
-            if (pagerState.currentPage != targetPage && targetPage != -1) {
+            if (targetPage != -1 && pagerState.currentPage != targetPage) {
                 pagerState.animateScrollToPage(targetPage)
             }
         }
@@ -139,9 +144,6 @@ fun XrayFAContainer(
                 entryProvider = { key ->
                     when(key) {
                         in list_navigation -> NavEntry(
-                            // IMPORTANT: Use Home as a stable NavKey for ALL top-level screens.
-                            // This tells NavDisplay the entry is PERSISTENT, preventing
-                            // recreation and flicker when switching between Home and Config.
                             key = Home,
                             metadata = metadata {
                                 put(NavDisplay.TransitionKey) {
@@ -240,35 +242,38 @@ fun XrayFAContainer(
         }
 
         AnimatedVisibility(
-            // todo try another way(#182)
             visible = showNavigationBar && isTopLevel || top is Home,
             enter = slideInVertically(
-                initialOffsetY = { fullHeight -> fullHeight } // Start from the bottom (offset = height)
+                initialOffsetY = { fullHeight -> fullHeight }
             ) + fadeIn(),
-            // From top to bottom
             exit = slideOutVertically(
-                targetOffsetY = { fullHeight -> fullHeight } // Exit towards the bottom
+                targetOffsetY = { fullHeight -> fullHeight }
             ) + fadeOut(),
             modifier = Modifier.align(Alignment.BottomCenter)
                 .onGloballyPositioned { coordinates ->
-                    // Convert measured pixel height to Dp and update state
-                    val heightPx = coordinates.size.height
-                    customNavBarHeightDp = with(density) { heightPx.toDp() }
+                    customNavBarHeightDp = with(density) { coordinates.size.height.toDp() }
                 }
         ) {
-            // Calculate current destination in real-time
-            // If we are at top level, trust the Pager's current page for the highlight
             val currentDestination = if (isTopLevel) {
                 list_navigation[pagerState.currentPage]
             } else {
-                top as NavigateDestination
+                (top as? NavigateDestination) ?: list_navigation[pagerState.currentPage]
             }
 
             XrayModernFloatingNav(
                 items = list_navigation,
                 currentScreen = currentDestination,
                 onItemSelected = { item ->
-                    navBackStack.routeTo(item)
+                    if (pagerState.isScrollInProgress) return@XrayModernFloatingNav
+                    
+                    if (navBackStack.lastOrNull() == item) {
+                        val targetPage = list_navigation.indexOf(item)
+                        if (targetPage != -1 && pagerState.currentPage != targetPage) {
+                            scope.launch { pagerState.animateScrollToPage(targetPage) }
+                        }
+                    } else {
+                        navBackStack.routeTo(item)
+                    }
                 },
                 labelProvider = { item -> item.route },
                 modifier = Modifier
