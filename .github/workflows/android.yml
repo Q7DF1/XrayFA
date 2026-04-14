@@ -59,7 +59,7 @@ jobs:
 
     # Update dat files before gomobile binds them into the AAR
     - name: Update GeoIP and GeoSite for AndroidLibXrayLite
-      working-directory: /home/vagrant/build/com.android.xrayfa
+      working-directory: /build/build/com.android.xrayfa
       run: |
         # Extract versions from gradle.properties
         GEO_IP_VERSION=$(grep "^GEO_IP_VERSION=" gradle.properties | cut -d'=' -f2 | tr -d '\r')
