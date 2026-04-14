@@ -53,12 +53,12 @@ jobs:
 
     - name: Initialize Build Directory
       run: |
-        sudo mkdir -p /home/vagrant/build/com.android.xrayfa
-        sudo chown -R $USER:$USER /home/vagrant
-        cp -a . /home/vagrant/build/com.android.xrayfa/
+        sudo mkdir -p /build/build/com.android.xrayfa
+        sudo chown -R $USER:$USER /build
+        cp -a . /build/build/com.android.xrayfa/
 
     - name: Prepare AAR
-      working-directory: /home/vagrant/build/com.android.xrayfa
+      working-directory: /build/build/com.android.xrayfa
       env:
         ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
         GOFLAGS: -buildvcs=false
@@ -79,10 +79,10 @@ jobs:
         mkdir -p ../app/libs
         cp libv2ray.aar ../app/libs/
     - name: Grant execute permission for gradlew
-      working-directory: /home/vagrant/build/com.android.xrayfa
+      working-directory: /build/build/com.android.xrayfa
       run: chmod +x gradlew
     - name: Build with Gradle
-      working-directory: /home/vagrant/build/com.android.xrayfa
+      working-directory: /build/build/com.android.xrayfa
       env:
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -94,12 +94,12 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: release-apk
-        path: /home/vagrant/build/com.android.xrayfa/app/build/outputs/apk/release/*.apk
+        path: /build/build/com.android.xrayfa/app/build/outputs/apk/release/*.apk
 
 # Auto-release step
     - name: Create Release
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/') # Only execute this step if triggered by a tag push
       with:
-        files: /home/vagrant/build/com.android.xrayfa/app/build/outputs/apk/release/*.apk # Directly use the path of the built APK
+        files: /build/build/com.android.xrayfa/app/build/outputs/apk/release/*.apk # Directly use the path of the built APK
         generate_release_notes: true # Automatically generate release notes from PRs/commits
