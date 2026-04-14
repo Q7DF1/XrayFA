@@ -1,1 +1,1 @@
-XrayFA is a powerful and user-friendly Android client for Xray-core.
+XrayFA is a fast, secure, and user-friendly Android client for Xray-core.

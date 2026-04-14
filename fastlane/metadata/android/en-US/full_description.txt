@@ -1,3 +1,10 @@
-XrayFA is a powerful and user-friendly Android client for Xray-core.
-It provides a secure and fast proxy experience on Android devices,
-supporting multiple protocols including VLESS, VMESS, Shadowsocks, and Trojan.
+XrayFA is a powerful and user-friendly Android client for Xray-core. It provides a secure and fast proxy experience on Android devices, supporting multiple protocols including VLESS, VMESS, Shadowsocks, Trojan, Hysteria2, and Reality.
+
+Key Features:
+- Support for multiple protocols: VLESS, VMESS, Shadowsocks, Trojan, Hysteria2, and Reality.
+- High performance: Built with the latest Xray-core for low latency and high speed.
+- Easy to use: Import configurations via QR code or subscription links.
+- Custom Routing: Flexibly bypass or proxy traffic based on rules.
+- Modern UI: Simple and clean interface for an effortless user experience.
+
+XrayFA ensures your internet privacy and security by encrypting your traffic and bypassing local restrictions. Experience the power of Xray on your Android device with XrayFA!
