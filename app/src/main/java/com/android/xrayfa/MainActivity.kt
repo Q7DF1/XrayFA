@@ -2,13 +2,18 @@ package com.android.xrayfa
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
+import com.android.xrayfa.ui.QRCodeActivity
+import com.android.xrayfa.ui.ScanQRResultContract
 import com.android.xrayfa.ui.component.XrayFAContainer
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.android.xrayfa.ui.XrayBaseActivity
@@ -30,10 +35,12 @@ class MainActivity @Inject constructor(
     val subscriptionViewmodelFactory: SubscriptionViewmodelFactory,
     val appViewmodelFactory: AppsViewmodelFactory
 ) : XrayBaseActivity() {
+
+    lateinit var xrayViewmodel: XrayViewmodel
     @SuppressLint("SourceLockedOrientationActivity")
     @Composable
     override fun Content(isLandscape: Boolean) {
-        val viewmodel =
+        xrayViewmodel =
             ViewModelProvider(this, xrayViewmodelFactory)[XrayViewmodel::class.java]
         val detailViewmodel =
             ViewModelProvider.create(this,detailViewmodelFactory)[DetailViewmodel::class.java]
@@ -46,7 +53,7 @@ class MainActivity @Inject constructor(
 
         checkNotificationPermission()
         XrayFAContainer(
-            viewmodel,
+            xrayViewmodel,
             detailViewmodel,
             settingsViewmodel,
             subscriptionViewmodel,
@@ -58,6 +65,11 @@ class MainActivity @Inject constructor(
         const val TAG = "MainActivity"
     }
 
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        handleShortcutIntent(intent)
+    }
 
 
     private val requestPermissionLauncher =
@@ -94,6 +106,29 @@ class MainActivity @Inject constructor(
             }
         } else {
             //todo migrate to before click the start button
+        }
+    }
+
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleShortcutIntent(intent)
+    }
+
+    private fun handleShortcutIntent(intent: Intent) {
+        // Retrieve the extra defined in shortcuts.xml
+        val action = intent.getStringExtra("shortcut_action")
+        Log.d(TAG, "handleShortcutIntent: start QR scan")
+        if (action == "open_scan") {
+            val barcodeLauncher = registerForActivityResult(ScanQRResultContract()) { result ->
+                if (result.isEmpty()) {
+                    Toast.makeText(this, "Cancelled", Toast.LENGTH_LONG).show()
+                } else {
+                    xrayViewmodel.addLink(result)
+                }
+            }
+            val intent = Intent(this, QRCodeActivity::class.java)
+            barcodeLauncher.launch(intent)
         }
     }
 

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:shortcutId="shortcut_scan"
+        android:enabled="true"
+        android:icon="@drawable/ic_scan"
+        android:shortcutShortLabel="@string/scan_qr_title"
+        android:shortcutLongLabel="@string/scan_qr_permission_desc">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.android.xrayfa"
+            android:targetClass="com.android.xrayfa.MainActivity">
+            <extra
+                android:name="shortcut_action"
+                android:value="open_scan" />
+        </intent>
+
+    </shortcut>
+
+</shortcuts>
