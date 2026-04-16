@@ -31,7 +31,8 @@ data class SettingsState(
     val geoLiteInstall: Boolean = false,
     val liveUpdateNotification: Boolean = false,
     val bootAutoStart: Boolean = false,
-    val hexTunEnable: Boolean = true
+    val hexTunEnable: Boolean = true,
+    val hideFromRecents: Boolean = false,
 )
 object SettingsKeys {
     val DARK_MODE = intPreferencesKey("dark_mode")
@@ -49,6 +50,8 @@ object SettingsKeys {
     val BOOT_AUTO_START = booleanPreferencesKey("boot_auto_start")
 
     val HEX_TUN_ENABLE = booleanPreferencesKey("hex_tun_open")
+
+    val HIDE_FROM_RECENTS = booleanPreferencesKey("hide_from_recents")
 }
 
 const val DEFAULT_DELAY_TEST_URL = "https://www.google.com"
@@ -87,7 +90,8 @@ class SettingsRepository
             geoLiteInstall = prefs[SettingsKeys.GEO_LITE_INSTALL] == true,
             liveUpdateNotification = prefs[SettingsKeys.LIVE_UPDATE_NOTIFICATION] == true,
             bootAutoStart = prefs[SettingsKeys.BOOT_AUTO_START] == true,
-            hexTunEnable =  prefs[SettingsKeys.HEX_TUN_ENABLE]?:true
+            hexTunEnable =  prefs[SettingsKeys.HEX_TUN_ENABLE]?:true,
+            hideFromRecents = prefs[SettingsKeys.HIDE_FROM_RECENTS] == true
         )
 
     }
@@ -165,6 +169,12 @@ class SettingsRepository
     suspend fun setHexTunState(enable: Boolean) {
         context.dataStore.edit {
             it[SettingsKeys.HEX_TUN_ENABLE] = enable
+        }
+    }
+
+    suspend fun setHideFromRecentsState(enable: Boolean) {
+        context.dataStore.edit {
+            it[SettingsKeys.HIDE_FROM_RECENTS] = enable
         }
     }
 

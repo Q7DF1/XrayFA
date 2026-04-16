@@ -251,6 +251,18 @@ fun SettingsScreen(
                             viewmodel.setEnableBootAutoStart(checked)
                         }
                     )
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+                    SettingsCheckBox(
+                        title = R.string.hide_from_recents_title,
+                        description = R.string.hide_from_recents_desc,
+                        checked = settingsState.hideFromRecents,
+                        onCheckedChange = { checked ->
+                            viewmodel.setHideFromRecents(checked)
+                        }
+                    )
                     if (NotificationHelper.canPostPromotionsEnabled(LocalContext.current)) {
                         HorizontalDivider(
                             thickness = 1.dp,

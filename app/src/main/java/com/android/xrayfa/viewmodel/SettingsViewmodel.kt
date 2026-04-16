@@ -165,6 +165,12 @@ class SettingsViewmodel(
         }
     }
 
+    fun setHideFromRecents(enable: Boolean) {
+        viewModelScope.launch {
+            repository.setHideFromRecentsState(enable)
+        }
+    }
+
     suspend fun onConfigSettingsChanged() {
         xrayBaseServiceManager.restartXrayBaseServiceIfNeed()
     }
