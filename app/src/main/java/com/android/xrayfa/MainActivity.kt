@@ -1,6 +1,7 @@
 package com.android.xrayfa
 
 import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -11,7 +12,11 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.android.xrayfa.ui.QRCodeActivity
 import com.android.xrayfa.ui.ScanQRResultContract
 import com.android.xrayfa.ui.component.XrayFAContainer
@@ -26,6 +31,9 @@ import com.android.xrayfa.viewmodel.SettingsViewmodelFactory
 import com.android.xrayfa.viewmodel.SubscriptionViewmodel
 import com.android.xrayfa.viewmodel.SubscriptionViewmodelFactory
 import com.android.xrayfa.viewmodel.XrayViewmodelFactory
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class MainActivity @Inject constructor(
@@ -37,6 +45,8 @@ class MainActivity @Inject constructor(
 ) : XrayBaseActivity() {
 
     private lateinit var xrayViewmodel: XrayViewmodel
+
+    private lateinit var settingsViewmodel: SettingsViewmodel
 
     private val barcodeLauncher = registerForActivityResult(ScanQRResultContract()) { result ->
         if (result.isEmpty()) {
@@ -51,8 +61,6 @@ class MainActivity @Inject constructor(
 
         val detailViewmodel =
             ViewModelProvider.create(this,detailViewmodelFactory)[DetailViewmodel::class.java]
-        val settingsViewmodel = ViewModelProvider
-            .create(this, settingsViewmodelFactory)[SettingsViewmodel::class.java]
         val subscriptionViewmodel = ViewModelProvider
             .create(this, subscriptionViewmodelFactory)[SubscriptionViewmodel::class.java]
         val appViewmodel =
@@ -81,7 +89,29 @@ class MainActivity @Inject constructor(
         super.onCreate(savedInstanceState)
         xrayViewmodel =
             ViewModelProvider(this, xrayViewmodelFactory)[XrayViewmodel::class.java]
+        settingsViewmodel = ViewModelProvider
+            .create(this, settingsViewmodelFactory)[SettingsViewmodel::class.java]
         handleShortcutIntent(intent)
+        lifecycleScope.launch {
+            settingsViewmodel.settingsState.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                .collect { state ->
+                    val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+                    activityManager.appTasks.forEach {
+                        val taskInfo = it.taskInfo
+                        val currentTaskId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            taskInfo.taskId
+                        } else {
+                            @Suppress("DEPRECATION")
+                            taskInfo.id
+                        }
+                        if (currentTaskId == taskId) {
+                            //set flag: Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+                            it.setExcludeFromRecents(state.hideFromRecents)
+                        }
+                    }
+                }
+
+        }
     }
 
 

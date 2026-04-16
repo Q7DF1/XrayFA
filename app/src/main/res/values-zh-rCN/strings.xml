@@ -87,4 +87,6 @@
     <string name="service_restart_toast">服务已重启</string>
     <string name="locate_selected_node">定位到已选择节点</string>
     <string name="service_start_toast">服务已启动</string>
+    <string name="hide_from_recents_title">在最近任务中隐藏</string>
+    <string name="hide_from_recents_desc">在最近任务列表中排除此应用 (可能需要重启应用)</string>
 </resources>

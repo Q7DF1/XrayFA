@@ -97,4 +97,6 @@
     <string name="service_start_toast">Service Started</string>
     <string name="service_restart_toast">Service Restarted</string>
     <string name="locate_selected_node">Locate selected node</string>
+    <string name="hide_from_recents_title">Hide from recent tasks</string>
+    <string name="hide_from_recents_desc">Exclude the app from the recent tasks list (may need to restart the app)</string>
 </resources>
