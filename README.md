@@ -1,115 +1,118 @@
-# 🚀 [XrayFA](https://github.com/Q7DF1/XrayFA)
+<div align="center">
 
-**XrayFA** is a powerful and user-friendly Android client for [Xray-core](https://github.com/XTLS/Xray-core). It provides a secure and fast proxy experience on Android devices, supporting multiple protocols including VLESS, VMESS, Shadowsocks, and Trojan.
+# 🚀 XrayFA
 
-**English|[简体中文](docs/README.zh-CN.md)**。
+**A modern, powerful, and user-friendly Android client for [Xray-core](https://github.com/XTLS/Xray-core).**
 
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/Q7DF1/XrayFA)
-![GitHub license](https://img.shields.io/github/license/Q7DF1/XrayFA)
-![GitHub top language](https://img.shields.io/github/languages/top/Q7DF1/XrayFA)
+XrayFA provides a secure, high-speed proxy experience with a focus on simplicity and performance.
+
+<p align="center">
+  <b>English</b> | <a href="docs/README.zh-CN.md">简体中文</a>
+</p>
+
+[![GitHub release](https://img.shields.io/github/v/release/Q7DF1/XrayFA?style=flat-square&color=blue)](https://github.com/Q7DF1/XrayFA/releases)
+[![GitHub license](https://img.shields.io/github/license/Q7DF1/XrayFA?style=flat-square)](https://github.com/Q7DF1/XrayFA/blob/main/LICENSE)
+[![GitHub top language](https://img.shields.io/github/languages/top/Q7DF1/XrayFA?style=flat-square)](https://github.com/Q7DF1/XrayFA)
+[![GitHub stars](https://img.shields.io/github/stars/Q7DF1/XrayFA?style=flat-square)](https://github.com/Q7DF1/XrayFA/stargazers)
+
+</div>
+
 ---
 
-## 📸  Screenshot
+## 📸 Screenshots
 
-- Phone
-<p aligin="center">
+<div align="center">
+    <h3>Phone UI</h3>
     <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="30%" />
     <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="30%" />
     <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="30%" />
-</p> 
+    <br><br>
+    <h3>Tablet / Foldable UI</h3>
+    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="85%" />
+</div>
 
-- Pad
-<p aligin="center">
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="90%" />
-</p>
+---
 
 ## ✨ Features
 
-* **Multi-Protocol Support**: Full support for VLESS, VMESS, SHADOWSOCKS, TROJAN and HYSTERIA2.
-* **Subscription Management**: Easily manage and update subscription links.
-* **Intuitive Dashboard**: A simple, clean dashboard to view connection status and traffic.
-* **Rich Configuration**: Advanced settings for power users to fine-tune the connection.
-* **Smooth UI**: Modern Material Design with rich animations.
-* **Core Powered**: Built on top of the robust Xray-core.
+### 📡 Protocol Support
+| VLESS | VMESS | Shadowsocks | Trojan | Hysteria2 |
+| :---: | :---: | :---: | :---: | :---: |
+| ✅ | ✅ | ✅ | ✅ | ✅ |
+
+### 🛠️ Core Capabilities
+*   **Subscription Management**: Easily import, manage, and batch-update subscription links.
+*   **Intuitive Dashboard**: Clean real-time monitoring of connection status, speed, and traffic.
+*   **Rich Configuration**: Advanced routing rules and DNS settings for power users.
+*   **Smooth UX**: Modern Material Design 3 interface with fluid animations and Dark Mode support.
+*   **Stable Engine**: Built on the latest **Xray-core** for maximum compatibility and security.
+
+---
 
 ## 📥 Download
 
-You can download the latest APK from the **[Releases Page](https://github.com/Q7DF1/XrayFA/releases)**.
+Ready to get started? 
+👉 **[Download the latest APK from Releases](https://github.com/Q7DF1/XrayFA/releases)**
 
-## 🛠️ Build from Source
+---
 
-To build XrayFA from source, you need Android Studio and a basic understanding of Android development.
-
+## 🔨 Build from Source
 
 ### Prerequisites
-* Android Studio (latest stable version recommended)
-* **JDK 11 or higher**
-* **Go (Golang) environment** (Version 1.21 or higher is recommended for Xray-core compilation)
-* Git
+* **Android Studio**: Latest stable version.
+* **JDK**: 11 or higher.
+* **Go (Golang)**: 1.21+ (Required for Xray-core compilation).
+* **Git**: For cloning submodules.
 
-### Steps
+### Build Steps
 
-1.  **Clone the repository**
-    Make sure to clone with submodules to include the necessary libraries (like `AndroidLibXrayLite` and `tun2socks`).
-    ```bash
+1.  **Clone the repository** (with submodules):
+    `ash
     git clone --recursive https://github.com/Q7DF1/XrayFA.git
     cd XrayFA
-    ```
+    `
+    *If you missed submodules:* `git submodule update --init --recursive`
 
-    *If you already cloned without submodules, run:*
-    ```bash
-    git submodule update --init --recursive
-    ```
+2.  **Open in Android Studio**:
+    Select the `XrayFA` folder and wait for Gradle sync.
 
-2.  **Open in Android Studio**
-    * Open Android Studio.
-    * Select "Open an existing project".
-    * Navigate to the `XrayFA` folder and select it.
+3.  **Build and Run**:
+    Connect your device and press **Shift + F10**.
 
-3.  **Sync Gradle**
-    * Wait for Android Studio to download dependencies and sync the project.
-
-4.  **Build and Run**
-    * Connect your Android device or start an emulator.
-    * Click the green **Run** button (Shift + F10).
 > [!CAUTION]
-> 🚨 **IMPORTANCE：Ensure the build configuration is set to RELEASE。** [more informations](https://medium.com/androiddevelopers/why-should-you-always-test-compose-performance-in-release-4168dd0f2c71)
-## 📖 Usage
+> 🚨 **IMPORTANT**: For accurate performance testing, ensure the build configuration is set to **RELEASE**. [Learn more about Compose performance](https://medium.com/androiddevelopers/why-should-you-always-test-compose-performance-in-release-4168dd0f2c71).
 
-1.  **Import Config**:
-    * Copy your `vless://`, `vmess://`, etc., link.
-    * Open XrayFA and click the **+** (Add) button or Import from Clipboard.
-    * Alternatively, scan a QR code.
-2.  **Add Subscription**:
-    * Go to the Subscription settings.
-    * Paste your subscription URL and update.
+---
+
+## 📖 Quick Start
+
+1.  **Import Configuration**:
+    *   Click the **+** button to import from Clipboard (`vless://`, `vmess://`, etc.).
+    *   Or scan a **QR Code**.
+2.  **Manage Subscriptions**:
+    *   Navigate to **Subscription Settings** to add provider URLs.
 3.  **Connect**:
-    * Select your desired profile from the list.
-    * Tap the **Connect** (Floating Action Button) to start the VPN service.
-    * Grant the necessary VPN permissions when prompted.
+    *   Select a node and tap the **Floating Action Button**.
+    *   Accept the VPN permission request.
 
-## 🤝 Contributing
-
-Contributions are welcome! If you find a bug or have a feature request, please open an issue.
-
-1.  Fork the Project
-2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4.  Push to the Branch (`git push origin feature/AmazingFeature`)
-5.  Open a Pull Request
+---
 
 ## 🔗 Credits & Acknowledgements
 
-This project wouldn't be possible without the following open-source projects:
-
-* **[Xray-core](https://github.com/XTLS/Xray-core)**: The core network engine.
-* **[AndroidLibXrayLite](https://github.com/2dust/AndroidLibXrayLite)**
-* **[hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel)**
+Special thanks to these projects that make XrayFA possible:
+*   [Xray-core](https://github.com/XTLS/Xray-core) - The core network engine.
+*   [AndroidLibXrayLite](https://github.com/2dust/AndroidLibXrayLite)
+*   [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel)
 
 ## 📄 License
 
-Distributed under the Apache-2.0 License. See `LICENSE` for more information.
+Distributed under the **Apache-2.0 License**. See [LICENSE](LICENSE) for details.
 
-## 🌟 Star History
+---
+<div align="center">
 
-[![Star History Chart](https://api.star-history.com/svg?repos=q7df1/xrayFA&type=Date)](https://star-history.com/q7df1/xrayFA&Date)
+### 🌟 Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=q7df1/xrayFA&type=Date)](https://star-history.com/q7df1/xrayFA)
+
+</div>
