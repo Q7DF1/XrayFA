@@ -85,8 +85,8 @@ class XrayBaseService
                 val protocol = intent.getStringExtra(EXTRA_PROTOCOL)
                 serviceScope.launch {
                     notificationHelper.showNotification()
-                    xrayCoreManager.addConsumer { data->
-                        notificationHelper.updateNotification(data)
+                    xrayCoreManager.addConsumer { data ->
+                        notificationHelper.updateNotificationIfNeeded(data)
                     }
                     startXrayCoreService(link!!,protocol!!)
                     updateStatus(true)

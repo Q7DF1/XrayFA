@@ -1,23 +1,28 @@
 package com.android.xrayfa.helper
 
+import android.Manifest
+import android.app.Activity
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import android.widget.RemoteViews
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.android.xrayfa.MainActivity
 import com.android.xrayfa.R
 import com.android.xrayfa.common.di.qualifier.Application
 import com.android.xrayfa.common.di.qualifier.Background
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.core.XrayBaseService
-import com.android.xrayfa.core.XrayBaseServiceManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -42,7 +47,7 @@ class NotificationHelper @Inject constructor(
                 with(NotificationManagerCompat.from(context)) {
                     canPostPromotedNotifications()
                 }
-            }else false
+            } else false
         }
     }
     private var notificationView =
@@ -79,6 +84,9 @@ class NotificationHelper @Inject constructor(
         .setSilent(true)
 
     var liveUpdate = false
+
+    var preData: Pair<Double,Double>? = null
+
     init {
 
         backgroundScope.launch {
@@ -106,9 +114,7 @@ class NotificationHelper @Inject constructor(
         Log.d(TAG, "onLiveUpdateChanged: $liveUpdate")
         liveUpdate = live
         val notification = makeNotification(Pair(0.0, 0.0))
-        with(NotificationManagerCompat.from(context)) {
-            notify(NOTIFICATION_ID, notification)
-        }
+        updateNotificationChecked(notification)
     }
     private fun createNotificationChannel() {
         val serviceChannel = NotificationChannel(
@@ -125,9 +131,7 @@ class NotificationHelper @Inject constructor(
     fun showNotification() {
         createNotificationChannel()
         val notification = makeNotification(Pair(0.0,0.0))
-        with(NotificationManagerCompat.from(context)) {
-            notify(NOTIFICATION_ID, notification)
-        }
+        updateNotificationChecked(notification)
     }
 
     fun hideNotification() {
@@ -156,10 +160,35 @@ class NotificationHelper @Inject constructor(
     }
 
 
-    fun updateNotification(data: Pair<Double,Double>) {
+    /**
+     * update the notification, it will shows on *SystemUI* notification panel
+     * @param: data upload and download traffic data
+     */
+    fun updateNotificationIfNeeded(data: Pair<Double,Double>) {
         val notification = makeNotification(data)
+        if (preData?.first != data.first && preData?.second != data.second) {
+            updateNotificationChecked(notification)
+            preData = data
+        }
+    }
+
+
+    /**
+     * internal system call of update notification which need permission if api over than SDK 33
+     * the permission request is at [MainActivity.checkNotificationPermission]
+     */
+    private fun updateNotificationChecked(notification: Notification) {
         with(NotificationManagerCompat.from(context)) {
-            notify(NOTIFICATION_ID, notification)
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                notify(NOTIFICATION_ID, notification)
+            } else {
+                // Handle the case where permission is not granted
+                // e.g., log the error or request permission from the user
+            }
         }
     }
 
