@@ -201,6 +201,7 @@ fun ConfigScreen(
 
     Box(
         modifier = Modifier.fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()){
             Surface(

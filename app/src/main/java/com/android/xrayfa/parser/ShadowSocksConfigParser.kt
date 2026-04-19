@@ -24,9 +24,18 @@ class ShadowSocksConfigParser
     override fun decodeProtocol(url: String): ShadowSocksConfig {
         require(url.startsWith("ss://")) { "Not a valid Shadowsocks URL" }
         val content = url.removePrefix("ss://")
+
+        // 1. Split the fragment (tag)
         val parts = content.split("#", limit = 2)
-        val mainPart = parts[0]
+        var mainPart = parts[0]
         val tag = if (parts.size > 1) java.net.URLDecoder.decode(parts[1], "UTF-8") else null
+
+        // 2. Remove query parameters (e.g., ?plugin=...) to prevent port parsing errors
+        val queryParts = mainPart.split("?", limit = 2)
+        mainPart = queryParts[0]
+
+        // 3. Remove trailing slash if present (handles cases like server:port/)
+        mainPart = mainPart.trimEnd('/')
 
         val (base64Part, serverPart) = if (mainPart.contains("@")) {
             val lastAtIndex = mainPart.lastIndexOf("@")
@@ -57,7 +66,7 @@ class ShadowSocksConfigParser
             method = method,
             password = password,
             server = server,
-            port = portStr.toInt(),
+            port = portStr.toInt(), // The port is now guaranteed to be pure digits
             tag = tag
         )
     }
