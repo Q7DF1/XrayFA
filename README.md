@@ -52,7 +52,15 @@ XrayFA provides a secure, high-speed proxy experience with a focus on simplicity
 ## 📥 Download
 
 Ready to get started? 
-👉 **[Download the latest APK from Releases](https://github.com/Q7DF1/XrayFA/releases)**
+
+<div style="display: flex; gap: 10px; align-items: center;">
+    <a href="https://github.com/Q7DF1/XrayFA/releases">
+        <img src="https://raw.githubusercontent.com/rubenpgrady/get-it-on-github/refs/heads/main/get-it-on-github.png" alt="Get it on GitHub" height="60">
+    </a>
+    <a href="https://f-droid.org/en/packages/com.android.xrayfa/">
+        <img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" height="60">
+    </a>
+</div>
 
 ---
 
