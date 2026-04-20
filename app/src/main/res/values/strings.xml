@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name" translatable="false">xrayFA</string>
-    <string name="app_label" translatable="false">xrayFA</string>
+    <string name="app_name" translatable="false">XrayFA</string>
+    <string name="app_label" translatable="false">XrayFA</string>
     <string name="start">start</string>
     <string name="stop">stop</string>
     <string name="disconnect">Disconnect</string>
