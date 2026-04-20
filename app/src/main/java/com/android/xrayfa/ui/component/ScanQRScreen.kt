@@ -1,14 +1,10 @@
-package com.android.xrayfa.ui
+package com.android.xrayfa.ui.component
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.compose.CameraXViewfinder
 import androidx.camera.core.Camera
@@ -55,34 +51,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.android.xrayfa.R
-import com.android.xrayfa.ui.ScanQRResultContract.Companion.SCAN_QR_EXTRA_RESULT
 import com.android.xrayfa.utils.BarcodeUtils
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.DecodeHintType
 import com.google.zxing.MultiFormatReader
 import java.util.EnumMap
 import java.util.concurrent.Executors
-import javax.inject.Inject
-
-class QRCodeActivity @Inject constructor() : ComponentActivity() {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
-        super.onCreate(savedInstanceState)
-        setContent {
-            MaterialTheme {
-                QRCodeScannerScreen(
-                    onBack = { finish() },
-                    onResult = { result ->
-                        val data = Intent().apply { putExtra(SCAN_QR_EXTRA_RESULT, result) }
-                        setResult(RESULT_OK, data)
-                        finish()
-                    }
-                )
-            }
-        }
-    }
-}
+import kotlin.collections.set
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,6 +70,9 @@ fun QRCodeScannerScreen(onBack: () -> Unit, onResult: (String) -> Unit) {
                 Manifest.permission.CAMERA
             ) == PackageManager.PERMISSION_GRANTED
         )
+    }
+    BackHandler() {
+        onBack()
     }
 
     var isTorchOn by remember { mutableStateOf(false) }
@@ -259,6 +237,7 @@ fun CameraPreview(onResult: (String) -> Unit, isTorchOn: Boolean) {
     surfaceRequest?.let { request ->
         CameraXViewfinder(
             surfaceRequest = request,
+            implementationMode = androidx.camera.viewfinder.core.ImplementationMode.EMBEDDED,
             modifier = Modifier.fillMaxSize()
         )
     }

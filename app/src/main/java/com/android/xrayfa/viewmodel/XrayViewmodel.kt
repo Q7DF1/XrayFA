@@ -7,7 +7,6 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.view.View
@@ -27,8 +26,6 @@ import com.android.xrayfa.common.repository.SettingsKeys
 import com.android.xrayfa.common.repository.dataStore
 import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.repository.NodeRepository
-import com.android.xrayfa.ui.DetailActivity
-import com.android.xrayfa.ui.SubscriptionActivity
 import com.android.xrayfa.utils.BarcodeUtils
 import com.google.zxing.BarcodeFormat
 import kotlinx.coroutines.Dispatchers
@@ -51,11 +48,10 @@ import kotlinx.coroutines.withContext
 
 import com.android.xrayfa.repository.SubscriptionRepository
 import com.android.xrayfa.dto.Subscription
+import com.android.xrayfa.ui.navigation.NavigateDestination
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withTimeoutOrNull
 
 class XrayViewmodel(
     private val repository: NodeRepository,
@@ -84,6 +80,9 @@ class XrayViewmodel(
 
     private val _selectedSubscriptionId = MutableStateFlow(SUB_ALL)
     val selectedSubscriptionId: StateFlow<Int> = _selectedSubscriptionId.asStateFlow()
+
+    private val _pendingRoute: MutableStateFlow<NavigateDestination?> = MutableStateFlow(null)
+    val pendingRoute = _pendingRoute.asStateFlow()
 
     var measureJob: Job? = null
     val subscriptions: StateFlow<List<Subscription>> = subscriptionRepository.allSubscriptions
@@ -237,41 +236,6 @@ class XrayViewmodel(
 
     fun isServiceRunning(): Boolean {
         return XrayBaseService.statusFlow.value
-    }
-    @Deprecated("single Activity")
-    fun startDetailActivity(
-        context: Context,
-        id: Int,
-        x: Int,
-        y: Int,
-        width: Int,
-        height: Int,
-        view: View) {
-        viewModelScope.launch {
-            val link = repository.loadLinksById(id).first()
-            val intent = Intent(context, DetailActivity::class.java).apply {
-                putExtra("ANIM_SOURCE_X", x)
-                putExtra("ANIM_SOURCE_Y", y)
-                putExtra("ANIM_SOURCE_W", width)
-                putExtra("ANIM_SOURCE_H", height)
-
-                putExtra(EXTRA_LINK, link.url)
-                putExtra(EXTRA_PROTOCOL,link.protocolPrefix)
-            }
-            val options = ActivityOptions.makeScaleUpAnimation(
-                view,
-                x,
-                y,
-                width,
-                height
-            )
-            context.startActivity(intent,options.toBundle())
-        }
-    }
-
-    fun startSubscriptionActivity(context: Context) {
-        val intent = Intent(context, SubscriptionActivity::class.java)
-        context.startActivity(intent)
     }
 
 
@@ -478,6 +442,10 @@ class XrayViewmodel(
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText("log",log)
         clipboard.setPrimaryClip(clip)
+    }
+
+    fun setPaddingRoute(navigation: NavigateDestination?) {
+        _pendingRoute.value = navigation
     }
 
     /**

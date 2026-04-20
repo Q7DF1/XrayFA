@@ -16,12 +16,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import com.android.xrayfa.ui.QRCodeActivity
-import com.android.xrayfa.ui.ScanQRResultContract
 import com.android.xrayfa.ui.component.XrayFAContainer
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.android.xrayfa.ui.XrayBaseActivity
+import com.android.xrayfa.ui.navigation.ScanQR
 import com.android.xrayfa.viewmodel.AppsViewmodel
 import com.android.xrayfa.viewmodel.AppsViewmodelFactory
 import com.android.xrayfa.viewmodel.DetailViewmodel
@@ -47,14 +45,6 @@ class MainActivity @Inject constructor(
     private lateinit var xrayViewmodel: XrayViewmodel
 
     private lateinit var settingsViewmodel: SettingsViewmodel
-
-    private val barcodeLauncher = registerForActivityResult(ScanQRResultContract()) { result ->
-        if (result.isEmpty()) {
-            Toast.makeText(this, "Cancelled", Toast.LENGTH_LONG).show()
-        } else {
-            xrayViewmodel.addLink(result)
-        }
-    }
     @SuppressLint("SourceLockedOrientationActivity")
     @Composable
     override fun Content(isLandscape: Boolean) {
@@ -163,8 +153,13 @@ class MainActivity @Inject constructor(
         val action = intent.getStringExtra("shortcut_action")
         when(action) {
             ACTION_OPEN_SCAN -> {
-                val intent = Intent(this, QRCodeActivity::class.java)
-                barcodeLauncher.launch(intent)
+                xrayViewmodel.setPaddingRoute(ScanQR { result ->
+                    if (result.isEmpty()) {
+                        Toast.makeText(this, "Cancelled", Toast.LENGTH_LONG).show();
+                    }else {
+                        xrayViewmodel.addLink(result)
+                    }
+                })
             }
             ACTION_START_SERVICE -> {
                 if (!xrayViewmodel.isServiceRunning()) {

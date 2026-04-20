@@ -6,11 +6,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
@@ -53,7 +53,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.metadata
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
@@ -63,8 +62,6 @@ import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.ui.navigation.list_navigation
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.android.xrayfa.R
-
-import com.android.xrayfa.ui.SettingsActivity
 import com.android.xrayfa.ui.navigation.Apps
 import com.android.xrayfa.ui.navigation.Detail
 import com.android.xrayfa.ui.navigation.Edit
@@ -83,6 +80,7 @@ import kotlin.collections.listOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
+import com.android.xrayfa.ui.navigation.ScanQR
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -107,6 +105,14 @@ fun XrayFAContainer(
     val top = navBackStack.lastOrNull()
     val showNavigationBar by xrayViewmodel.showNavigationBar.collectAsState()
     val isTopLevel = top in list_navigation
+    val pendingRoute by xrayViewmodel.pendingRoute.collectAsState()
+
+    LaunchedEffect(pendingRoute) {
+        pendingRoute?.let { route ->
+            navBackStack.routeTo(route)
+            xrayViewmodel.setPaddingRoute(null) // Reset after navigation
+        }
+    }
 
     // 1. Pager State for Top Level Navigation
     val pagerState = rememberPagerState(
@@ -232,6 +238,26 @@ fun XrayFAContainer(
                                 onBack = { navBackStack.routeBack() }
                             )
                         }
+                        is ScanQR -> NavEntry(
+                            key = key,
+                            metadata = metadata {
+                                put(NavDisplay.TransitionKey) {
+                                    slideInHorizontally {it} togetherWith slideOutHorizontally {-it}
+                                }
+                                // Transition when navigating AWAY from this screen (Popping back)
+                                put(NavDisplay.PopTransitionKey) {
+                                    slideInHorizontally {-it} togetherWith slideOutHorizontally {it}
+                                }
+                            }
+                        ) {
+                            QRCodeScannerScreen(
+                                onBack = {navBackStack.routeBack()},
+                                onResult = { code ->
+                                    key.onResult(code)
+                                    navBackStack.routeBack()
+                                }
+                            )
+                        }
                         else -> NavEntry(key) { Text("Unknown route") }
                     }
                 },
@@ -249,7 +275,8 @@ fun XrayFAContainer(
             exit = slideOutVertically(
                 targetOffsetY = { fullHeight -> fullHeight }
             ) + fadeOut(),
-            modifier = Modifier.align(Alignment.BottomCenter)
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
                 .onGloballyPositioned { coordinates ->
                     customNavBarHeightDp = with(density) { coordinates.size.height.toDp() }
                 }
@@ -346,10 +373,6 @@ fun ConfigActionButton(
     }
 }
 
-@Deprecated("single Activity")
-fun onSettingsClick(context: Context) {
-    context.startActivity(Intent(context, SettingsActivity::class.java))
-}
 
 private fun NavBackStack<NavKey>.routeTo(key: NavKey) {
     if (lastOrNull() == key) {

@@ -100,8 +100,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.R
-import com.android.xrayfa.ui.QRCodeActivity
-import com.android.xrayfa.ui.ScanQRResultContract
 import com.android.xrayfa.ui.navigation.Config
 import com.android.xrayfa.ui.navigation.Detail
 import com.android.xrayfa.ui.navigation.Edit
@@ -127,6 +125,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.ui.text.style.TextAlign
+import com.android.xrayfa.ui.navigation.ScanQR
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -170,15 +169,6 @@ fun ConfigScreen(
             list.add(it.id to it.mark)
         }
         list
-    }
-
-    val barcodeLauncher = rememberLauncherForActivityResult(ScanQRResultContract()) {
-            result->
-        if (result.isEmpty()) {
-            Toast.makeText(context, "Cancelled", Toast.LENGTH_LONG).show();
-        }else {
-            xrayViewmodel.addLink(result)
-        }
     }
 
     // Function to locate and scroll to a specific item by ID
@@ -288,8 +278,13 @@ fun ConfigScreen(
                                     DropdownMenuItem(
                                         text = { Text(stringResource(R.string.qrcode_import)) },
                                         onClick = {
-                                            val intent = Intent(context, QRCodeActivity::class.java)
-                                            barcodeLauncher.launch(intent)
+                                            onNavigate(ScanQR { result ->
+                                                if (result.isEmpty()) {
+                                                    Toast.makeText(context, "Cancelled", Toast.LENGTH_LONG).show();
+                                                }else {
+                                                    xrayViewmodel.addLink(result)
+                                                }
+                                            })
                                             checked = false
                                         },
                                         leadingIcon = { Icon(Icons.Outlined.QrCodeScanner, contentDescription = null) },
