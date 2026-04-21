@@ -1,0 +1,112 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name" translatable="false">XrayFA</string>
+    <string name="app_label" translatable="false">XrayFA</string>
+    <string name="start">Запустить</string>
+    <string name="stop">Остановить</string>
+    <string name="disconnect">Отключить</string>
+    <string name="connected">Подключено</string>
+    <string name="home">Главная</string>
+    <string name="config">Конфигурация</string>
+    <string name="logcat">Логи</string>
+    <string name="add_config">Добавить конфиг</string>
+    <string name="clipboard_import">Импорт из буфера обмена</string>
+    <string name="no_configuration">Нет конфигурационного файла</string>
+    <string name="no_configuration_hint">Импортируйте конфигурацию из буфера обмена или QR‑кода, чтобы начать работу.</string>
+    <string name="create_a_config">Создать первый конфиг</string>
+    <string name="select_configuration_notify">Сначала выберите конфигурацию</string>
+    <string name="upload_data">Отправить</string>
+    <string name="download_data">Загрузить</string>
+    <string name="config_not_ready">Конфиг не готов</string>
+    <string name="qrcode_import">Импорт QR‑кода</string>
+    <string name="close_window">Закрыть</string>
+    <string name="confirm_delete">Подтвердить удаление</string>
+    <string name="cancel" tools:ignore="ButtonCase">Отмена</string>
+    <string name="delete">Удалить</string>
+    <string name="delete_notify">Эта операция необратима. Вы уверены, что хотите удалить?</string>
+    <string name="save">Сохранить</string>
+    <string name="enable_ipv6">Включить IPv6</string>
+    <string name="enable_ipv6_description">Нажмите, чтобы включить прокси IPv6</string>
+    <string name="theme_select">Тема</string>
+    <string name="dark_mode">Тёмная</string>
+    <string name="light_mode">Светлая</string>
+    <string name="auto_mode">Авто</string>
+    <string name="dark_mode_description">Выберите, чтобы включить тёмную тему</string>
+    <string name="dns_ipv4" translatable="false">DNS IPv4</string>
+    <string name="dns_ipv6" translatable="false">DNS IPv6</string>
+    <string name="socks_port" translatable="false">SOCKS порт</string>
+    <string name="allow_app_settings">Открыть настройки прокси приложения</string>
+    <string name="select_app_settings">Выбрать отдельное приложение для настройки прокси</string>
+    <string name="all_app_settings" translatable="false">Приложения</string>
+    <string name="repo_site">Репозиторий</string>
+    <string name="no_log_text">Логи не выводятся</string>
+    <string name="clipboard_export">Экспорт в буфер обмена</string>
+    <string name="nick_name">Имя</string>
+    <string name="subscription_url">Ссылка подписки</string>
+    <string name="confirm">Подтвердить</string>
+    <string name="subscribe_failed">Не удалось подключиться по подписке</string>
+    <string name="repo_description">Исходный код</string>
+    <string name="geo_ip" translatable="false">geoip</string>
+    <string name="geo_site" translatable="false">geosite</string>
+    <string name="geo_ip_description">Таблица соответствия IP</string>
+    <string name="geo_site_description">Таблица соответствия сайтов</string>
+    <string name="import_geo_failed">Не удалось импортировать geo‑файл</string>
+    <string name="download_geo_failed">Не удалось загрузить geo‑файл</string>
+    <string name="edit">Изменить</string>
+    <string name="can_not_be_empty">Поле не может быть пустым</string>
+    <string name="geo_import_try_later">Идёт загрузка, попробуйте позже.</string>
+
+    <string name="err_ipv4_empty">Введите хотя бы один IPv4‑адрес</string>
+    <string name="err_ipv4_item_empty">Запись №%1$d пуста, проверьте запятые или пробелы</string>
+    <string name="err_ipv4_invalid">Запись №%1$d «%2$s» не является корректным IPv4‑адресом</string>
+    <string name="err_ipv4_duplicate">Запись №%1$d «%2$s» дублируется</string>
+
+    <string name="err_ipv6_empty">Введите хотя бы один IPv6‑адрес</string>
+    <string name="err_ipv6_item_empty">IPv6‑адрес №%d пуст, проверьте</string>
+    <string name="err_ipv6_invalid">IPv6‑адрес №%d недопустим: %s</string>
+    <string name="err_ipv6_duplicate">IPv6‑адрес №%d повторяется: %s</string>
+
+    <string name="xrayfa_version">Версия</string>
+    <string name="xray_core_version">Версия Xray‑core</string>
+    <string name="general_part">Основное</string>
+    <string name="network_part">Сеть</string>
+    <string name="about_part">Дополнительно</string>
+    <string name="geo_lite_title" translatable="false">Geo_ip_lite</string>
+    <string name="geo_ip_lite_description">IP‑адреса и соответствующая информация о странах</string>
+    <string name="test_url">Тестовый URL</string>
+    <string name="default_speed">000.0 КБ/с</string>
+    <string name="detail_title">Подробности</string>
+    <string name="settings_title">Настройки</string>
+    <string name="subscription_title">Подписка</string>
+    <string name="menu_subscription">Подписка</string>
+    <string name="menu_delete_all">Удалить всё</string>
+    <string name="live_update_notification">Уведомления о обновлениях в реальном времени</string>
+    <string name="live_update_notification_desc">Уведомление будет закреплено в строке состояния</string>
+    <string name="logcat_desc">Смотрите логи для получения подробной информации</string>
+    <string name="service_close">Закрыть</string>
+
+    <string name="notification_permission_title">Разрешение на уведомления</string>
+    <string name="notification_permission_message">Требуется разрешение на уведомления для лучшего опыта использования</string>
+    <string name="notification_permission_grant_button">Разрешить</string>
+    <string name="notification_permission_reject_button">Отклонить</string>
+    <string name="boot_auto_start">Запуск при включении</string>
+    <string name="boot_auto_start_desc">Разрешить приложению автоматически запускаться при включении устройства.</string>
+    <string name="scan_qr_title">Сканирование QR‑кода</string>
+    <string name="scan_qr_permission_desc">Пожалуйста, разрешите доступ к камере для использования сканирования.</string>
+    <string name="decode_qr_failed">Не удалось распознать QR‑код</string>
+    <string name="connection_detail">Детали подключения</string>
+    <string name="enable_hextun_title">Включить HexTun</string>
+    <string name="enable_hex_tun_desc">Включить HexTun как сторонний инструмент</string>
+    <string name="service_start_toast">Сервис запущен</string>
+    <string name="service_restart_toast">Сервис перезапущен</string>
+    <string name="locate_selected_node">Перейти к выбранному узлу</string>
+    <string name="hide_from_recents_title">Скрыть из списка задач</string>
+    <string name="hide_from_recents_desc">Исключить приложение из списка недавних задач (может потребоваться перезапуск)</string>
+    <string name="socks_username_title">Имя пользователя SOCKS</string>
+    <string name="socks_password_title">Пароль SOCKS</string>
+    <string name="err_socks_pass_empty">Пароль не может быть пустым!</string>
+    <string name="err_socks_user_empty">Имя пользователя не может быть пустым!</string>
+    <string name="err_socks_length_exceeded">Длина не должна превышать 255 байт</string>
+    <string name="err_socks_invalid_chars">Содержатся недопустимые символы</string>
+    <string name="socks_address_listen_title">Адрес прослушивания</string>
+    <string name="socks_address_listen_desc">Адрес прослушивания (127.0.0.1 по умолчанию)</string>
+</resources>
