@@ -7,7 +7,7 @@
 XrayFA provides a secure, high-speed proxy experience with a focus on simplicity and performance.
 
 <p align="center">
-  <b>English</b> | <a href="docs/README.zh-CN.md">简体中文</a>
+  <b>English</b> | <a href="docs/README.zh-CN.md">简体中文</a> | <a href="README_RU.md">Русский</a>
 </p>
 
 [![GitHub release](https://img.shields.io/github/v/release/Q7DF1/XrayFA?style=flat-square&color=blue)](https://github.com/Q7DF1/XrayFA/releases)
