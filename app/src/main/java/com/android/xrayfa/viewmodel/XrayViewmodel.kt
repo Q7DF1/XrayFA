@@ -213,12 +213,20 @@ class XrayViewmodel(
 
     fun addXrayConfigFromClipboard(context: Context) {
 
-        val link = getConfigFromClipboard(context)
-        if (link == "") {
+        val clipboardText  = getConfigFromClipboard(context)
+        if (clipboardText.isBlank()) {
             return
         }
-        Log.i(TAG, "addV2rayConfigFromClipboard: $link")
-        addLink(link)
+        Log.i(TAG, "addV2rayConfigFromClipboard: $clipboardText")
+        // Split the text by comma or any whitespace (including spaces and newlines).
+        // The Regex "[,\s]+" matches one or more commas or whitespace characters.
+        // The filter function removes any empty strings from the resulting list.
+        val urls = clipboardText.split(Regex("[,\\s]+")).filter { it.isNotBlank() }
+        // Iterate through the valid links and add them individually
+        for (url in urls) {
+            Log.i(TAG, "addXrayConfigFromClipboard processing link: $url")
+            addLink(url)
+        }
 
     }
 
