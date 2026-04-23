@@ -43,7 +43,9 @@ import java.net.URLEncoder
 import javax.inject.Inject
 import kotlin.jvm.java
 import androidx.core.net.toUri
+import android.widget.Toast
 import com.android.xrayfa.BuildConfig
+import com.android.xrayfa.R
 import kotlinx.coroutines.withContext
 
 import com.android.xrayfa.repository.SubscriptionRepository
@@ -171,6 +173,64 @@ class XrayViewmodel(
 
     private val _logList = MutableStateFlow<List<String>>(emptyList())
     val logList = _logList.asStateFlow()
+
+    private val _isLogcatRecording = MutableStateFlow(false)
+    val isLogcatRecording = _isLogcatRecording.asStateFlow()
+
+    private val _logcatDuration = MutableStateFlow(30L) // default 30s
+    val logcatDuration = _logcatDuration.asStateFlow()
+
+    private val _logcatCountdown = MutableStateFlow(0L)
+    val logcatCountdown = _logcatCountdown.asStateFlow()
+
+    private var logcatJob: Job? = null
+    private var logcatProcess: Process? = null
+
+    // Pre-compiled regex for log sanitization
+    private val ipv4Pattern = Regex("\\b(?:[0-9]{1,3}\\.){3}[0-9]{1,3}\\b")
+    private val ipv6Pattern = Regex("\\b(?:[A-Fa-f0-9]{1,4}:){7}[A-Fa-f0-9]{1,4}\\b")
+    private val uuidPattern = Regex("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
+
+    // Enhanced pattern for JSON and connection info:
+    // Matches keys like "address", "pass", "user", "publicKey", "serverName", "id", "host", etc.
+    // Handles both quoted ("key":"value") and unquoted (key: value) formats.
+    private val sensitivePattern = Regex("(?i)\"?(address|pass|user|id|publicKey|serverName|host|dest|connecting to|vnext|servers)\"?[\\s:]+[\"\\[\\s]*([^\"\\s,\\]{}]+)[\"\\s]*", RegexOption.IGNORE_CASE)
+
+    private fun sanitizeLog(line: String): String {
+        var sanitized = line
+
+        // 1. Mask Sensitive Key-Value pairs (especially for JSON config dumps)
+        sanitized = sensitivePattern.replace(sanitized) { match ->
+            val key = match.groupValues[1]
+            val value = match.groupValues[2]
+
+            // Whitelist for common local/system values
+            if (value == "127.0.0.1" || value == "0.0.0.0" || value == "localhost" || 
+                value.startsWith("com.android.xrayfa") || value.startsWith("android.") ||
+                key.lowercase() == "vnext" // keep the key but value will be handled by nested patterns if needed
+            ) {
+                match.value
+            } else {
+                // Reconstruct the masked part preserving quotes if possible
+                match.value.replace(value, "***.***.***")
+            }
+        }
+
+        // 2. Mask IPv4 (excluding localhost) - catch any IP missed by key-value matching
+        sanitized = ipv4Pattern.replace(sanitized) { match ->
+            if (match.value == "127.0.0.1" || match.value == "0.0.0.0") match.value 
+            else "***.***.***.***"
+        }
+        // 3. Mask IPv6
+        sanitized = ipv6Pattern.replace(sanitized) { match ->
+            if (match.value == "0:0:0:0:0:0:0:1" || match.value == "::1") match.value 
+            else "****:****:****:****:****:****:****:****"
+        }
+        // 4. Mask UUIDs (Xray keys)
+        sanitized = uuidPattern.replace(sanitized, "[REDACTED-UUID]")
+
+        return sanitized
+    }
 
     var shareUrl = ""
 
@@ -403,10 +463,16 @@ class XrayViewmodel(
     /**
      * Logcat
      */
-    fun getLogcatContent(context: Context) {
-        viewModelScope.launch(Dispatchers.IO) {
+    fun startLogcatRecording(context: Context) {
+        if (_isLogcatRecording.value) return
+        _isLogcatRecording.value = true
+        _logList.value = emptyList()
+
+        logcatJob = viewModelScope.launch(Dispatchers.IO) {
+            val currentLogs = mutableListOf<String>()
+            var lastUpdate = System.currentTimeMillis()
+
             try {
-                val lst = LinkedHashSet<String>()
                 val packageName = "com.android.xrayfa"
                 val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
                 val runningProcesses = am.runningAppProcesses
@@ -419,30 +485,82 @@ class XrayViewmodel(
                         }
                     }
                 }
-                lst.add("logcat")
-                lst.add("-d")
-                lst.add("-v")
-                lst.add("time")
+
+                val lst = mutableListOf("logcat", "-v", "time")
                 if (targetPid != null) {
                     lst.add("--pid")
                     lst.add(targetPid.toString())
                 }
-                lst.add("-s")
-                lst.add("GoLog,tun2socks,AndroidRuntime,System.err,Exception")
+                // Removed restrictive tag filtering (-s) to ensure all app logs are captured
+                
                 val process = Runtime.getRuntime().exec(lst.toTypedArray())
-                val log = process.inputStream.bufferedReader().readText().lines()
-                val error = process.errorStream.bufferedReader().readText()
-                if (error.isNotEmpty()) {
-                    Log.e(TAG, "Logcat error: $error")
+                logcatProcess = process
+                val reader = process.inputStream.bufferedReader()
+
+                val duration = _logcatDuration.value
+                var timerJob: Job? = null
+                if (duration > 0) {
+                    timerJob = launch {
+                        for (i in duration downTo 1) {
+                            _logcatCountdown.value = i
+                            delay(1000)
+                        }
+                        stopLogcatRecording()
+                    }
                 }
-                Log.i(TAG, "getLogcatContent: ${log.size} ${log[0]}")
-                withContext(Dispatchers.Main) {
-                    _logList.value = log
+
+                try {
+                    reader.useLines { lines ->
+                        lines.forEach { line ->
+                            val sanitizedLine = sanitizeLog(line)
+                            currentLogs.add(sanitizedLine)
+                            if (currentLogs.size > 2000) currentLogs.removeAt(0)
+                            
+                            // Batch updates every 500ms to save CPU/UI
+                            val now = System.currentTimeMillis()
+                            if (now - lastUpdate > 500) {
+                                val batch = currentLogs.toList()
+                                withContext(Dispatchers.Main) {
+                                    _logList.value = batch
+                                }
+                                lastUpdate = now
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Stream closed
+                } finally {
+                    timerJob?.cancel()
                 }
             } catch (e: Exception) {
-                Log.i(TAG, "getLogcatContent: ${e.message}")
+                Log.e(TAG, "Logcat recording error: ${e.message}")
+            } finally {
+                withContext(Dispatchers.Main) {
+                    _logList.value = currentLogs.toList()
+                    _isLogcatRecording.value = false
+                    _logcatCountdown.value = 0
+                    logcatProcess?.destroy()
+                    logcatProcess = null
+                }
             }
         }
+    }
+
+    fun stopLogcatRecording() {
+        _isLogcatRecording.value = false
+        logcatProcess?.destroy()
+        logcatProcess = null
+        logcatJob?.cancel()
+        logcatJob = null
+    }
+
+    fun setLogcatDuration(duration: Long) {
+        _logcatDuration.value = duration
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopLogcatRecording()
     }
 
     fun exportLogcatToClipboard(context: Context) {
@@ -450,6 +568,7 @@ class XrayViewmodel(
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText("log",log)
         clipboard.setPrimaryClip(clip)
+        Toast.makeText(context, context.getString(R.string.copied), Toast.LENGTH_SHORT).show()
     }
 
     fun setPaddingRoute(navigation: NavigateDestination?) {

@@ -109,4 +109,14 @@
     <string name="err_socks_invalid_chars">contains invalid chars</string>
     <string name="socks_address_listen_title">listen</string>
     <string name="socks_address_listen_desc">listen address(127.0.0.1 default)</string>
+
+    <string name="logcat_start">Start</string>
+    <string name="logcat_stop">Stop</string>
+    <string name="logcat_duration">Duration</string>
+    <string name="logcat_duration_30s">30s</string>
+    <string name="logcat_duration_1m">1m</string>
+    <string name="logcat_duration_5m">5m</string>
+    <string name="logcat_duration_infinite">Always</string>
+    <string name="logcat_recording">Recording... %1$ds</string>
+    <string name="copied">Copied to clipboard</string>
 </resources>
