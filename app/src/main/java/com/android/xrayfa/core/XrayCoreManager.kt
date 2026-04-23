@@ -49,7 +49,7 @@ class XrayCoreManager
 ): TrafficDetector {
 
     companion object {
-        const val TAG = "V2rayCoreManager"
+        const val TAG = "XrayCoreManager"
     }
     private var coreController: CoreController? = null
     private var job: Job? = null

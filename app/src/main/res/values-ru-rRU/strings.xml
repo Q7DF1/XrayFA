@@ -109,4 +109,14 @@
     <string name="err_socks_invalid_chars">Содержатся недопустимые символы</string>
     <string name="socks_address_listen_title">Адрес прослушивания</string>
     <string name="socks_address_listen_desc">Адрес прослушивания (127.0.0.1 по умолчанию)</string>
+
+    <string name="logcat_start">Начать запись</string>
+    <string name="logcat_stop">Остановить запись</string>
+    <string name="logcat_duration">Длительность</string>
+    <string name="logcat_duration_30s">30с</string>
+    <string name="logcat_duration_1m">1м</string>
+    <string name="logcat_duration_5m">5м</string>
+    <string name="logcat_duration_infinite">Всегда</string>
+    <string name="logcat_recording">Запись... Осталось %1$dс</string>
+    <string name="copied">Скопировано в буфер обмена</string>
 </resources>

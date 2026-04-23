@@ -99,4 +99,14 @@
     <string name="err_socks_invalid_chars">包含特殊非法字符</string>
     <string name="socks_address_listen_title">监听地址</string>
     <string name="socks_address_listen_desc">默认本地回环地址127.0.0.1</string>
+
+    <string name="logcat_start">开始记录</string>
+    <string name="logcat_stop">停止记录</string>
+    <string name="logcat_duration">记录时长</string>
+    <string name="logcat_duration_30s">30秒</string>
+    <string name="logcat_duration_1m">1分钟</string>
+    <string name="logcat_duration_5m">5分钟</string>
+    <string name="logcat_duration_infinite">一直记录</string>
+    <string name="logcat_recording">正在记录... 剩余 %1$d秒</string>
+    <string name="copied">已复制到剪切板</string>
 </resources>
