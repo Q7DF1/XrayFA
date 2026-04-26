@@ -19,8 +19,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -31,10 +33,12 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.DataUsage
 import androidx.compose.material.icons.outlined.Dns
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.NetworkCheck
@@ -54,6 +58,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -131,8 +136,11 @@ fun SettingsScreen(
     var editType: Preferences.Key<*> by remember { mutableStateOf(SettingsKeys.SOCKS_PORT) }
     var validator : (String)->String? by remember { mutableStateOf({null}) }
     val geoIPDownloading by viewmodel.geoIPDownloading.collectAsState()
+    val geoIPProgress by viewmodel.geoIPProgress.collectAsState()
     val geoSiteDownloading by viewmodel.geoSiteDownloading.collectAsState()
+    val geoSiteProgress by viewmodel.geoSiteProgress.collectAsState()
     val geoLiteDownloading by viewmodel.geoLiteDownloading.collectAsState()
+    val geoLiteProgress by viewmodel.geoLiteProgress.collectAsState()
     val importException by viewmodel.importException.collectAsState()
     val downloadException by viewmodel.downloadException.collectAsState()
     val xrayFaDownloading by viewmodel.xrayFaDownloading.collectAsState()
@@ -362,6 +370,7 @@ fun SettingsScreen(
                         description = R.string.geo_ip_description,
                         icon = Icons.Outlined.Language,
                         downloading = geoIPDownloading,
+                        progress = geoIPProgress,
                         onDownloadClick = {viewmodel.downloadGeoIP(context = context)},
                         onImportClick = {
                             val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
@@ -379,6 +388,7 @@ fun SettingsScreen(
                         icon = Icons.Outlined.Public,
                         onDownloadClick = {viewmodel.downloadGeoSite(context)},
                         downloading = geoSiteDownloading,
+                        progress = geoSiteProgress,
                         onImportClick = {
                             val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                                 addCategory(Intent.CATEGORY_OPENABLE)
@@ -395,6 +405,7 @@ fun SettingsScreen(
                         icon = Icons.Outlined.DataUsage,
                         onDownloadClick = {viewmodel.downloadGeoLite(context)},
                         downloading = geoLiteDownloading,
+                        progress = geoLiteProgress,
                         enable = settingsState.geoLiteInstall
                     )
                     SettingsCheckBox(
@@ -531,6 +542,7 @@ fun SettingsWithBtnBox(
     content: String = "",
     icon: ImageVector? = null,
     downloading: Boolean = false,
+    progress: Float = 0f,
     onDownloadClick: () -> Unit = {},
     onImportClick: (() -> Unit)? = null,
     enable: Boolean = true
@@ -553,10 +565,19 @@ fun SettingsWithBtnBox(
             )
         },
         supportingContent = {
-            Text(
-                text = if (description != null)stringResource(description) else content,
-                color = if (enable) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-            )
+            Column {
+                Text(
+                    text = if (description != null)stringResource(description) else content,
+                    color = if (enable) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                )
+                if (downloading) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
         },
         leadingContent = icon?.let { {
             Icon(
@@ -570,11 +591,10 @@ fun SettingsWithBtnBox(
             Row {
                 IconButton(
                     onClick = onDownloadClick,
-                    enabled = enable
                 ) {
                     Icon(
                         imageVector = if (!downloading)
-                            ImageVector.vectorResource(R.drawable.ic_download)
+                            Icons.Outlined.Download
                         else
                             Icons.Default.Refresh,
                         contentDescription = "download",
@@ -589,7 +609,7 @@ fun SettingsWithBtnBox(
                         enabled = enable
                     ) {
                         Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.ic_import),
+                            imageVector = Icons.Filled.UploadFile,
                             contentDescription = "import",
                             modifier = Modifier.size(24.dp)
                         )

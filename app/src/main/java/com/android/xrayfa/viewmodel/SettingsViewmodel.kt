@@ -82,12 +82,20 @@ class SettingsViewmodel(
     private val _geoIPDownloading = MutableStateFlow(false)
     val geoIPDownloading = _geoIPDownloading.asStateFlow()
 
+    private val _geoIPProgress = MutableStateFlow(0f)
+    val geoIPProgress = _geoIPProgress.asStateFlow()
+
     private val _geoSiteDownloading = MutableStateFlow(false)
     val geoSiteDownloading = _geoSiteDownloading.asStateFlow()
 
+    private val _geoSiteProgress = MutableStateFlow(0f)
+    val geoSiteProgress = _geoSiteProgress.asStateFlow()
 
     private val _geoLiteDownloading = MutableStateFlow(false)
     val geoLiteDownloading = _geoLiteDownloading.asStateFlow()
+
+    private val _geoLiteProgress = MutableStateFlow(0f)
+    val geoLiteProgress = _geoLiteProgress.asStateFlow()
 
     private val _xrayFaDownloading = MutableStateFlow(false)
     val xrayFaDownloading = _xrayFaDownloading.asStateFlow()
@@ -203,7 +211,7 @@ class SettingsViewmodel(
 
 
     fun downloadGeoSite(context: Context) {
-        if (_geoSiteDownloading.value || _geoIPDownloading.value) {
+        if (_geoSiteDownloading.value || _geoIPDownloading.value || _geoLiteDownloading.value) {
             return
         }
         viewModelScope.launch(Dispatchers.IO) {
@@ -229,7 +237,7 @@ class SettingsViewmodel(
 
     fun downloadGeoIP(context: Context) {
 
-        if (_geoSiteDownloading.value || _geoIPDownloading.value) {
+        if (_geoSiteDownloading.value || _geoIPDownloading.value || _geoLiteDownloading.value) {
             return
         }
         viewModelScope.launch(Dispatchers.IO) {
@@ -243,7 +251,8 @@ class SettingsViewmodel(
     private suspend fun download(
         url: String,
         target:String,
-        flow: MutableStateFlow<Boolean>,
+        statusFlow: MutableStateFlow<Boolean>,
+        progressFlow: MutableStateFlow<Float>,
         context: Context
     ) = withContext(Dispatchers.IO) {
 
@@ -257,21 +266,35 @@ class SettingsViewmodel(
                 if (!res.isSuccessful) throw IOException("Unexpected code $res")
 
                 res.body?.let { body ->
-                    val file =
-                        File(context.filesDir,target)
-                    file.sink().buffer().use { sink ->
-                        sink.writeAll(body.source())
+                    val contentLength = body.contentLength()
+                    val file = File(context.filesDir,target)
+                    var totalRead = 0L
+                    val buffer = ByteArray(8192)
+
+                    body.byteStream().use { inputStream ->
+                        file.outputStream().use { outputStream ->
+                            var read: Int
+                            while (inputStream.read(buffer).also { read = it } != -1) {
+                                outputStream.write(buffer, 0, read)
+                                totalRead += read
+                                if (contentLength > 0) {
+                                    progressFlow.value = totalRead.toFloat() / contentLength
+                                }
+                            }
+                        }
                     }
                 }
             }
         }catch (e: Exception) {
-            flow.value = false
+            statusFlow.value = false
             launch {
                 _downloadException.value = true
                 delay(2000L)
                 _downloadException.value = false
             }
             Log.e(TAG, "download: exception $e")
+        } finally {
+            progressFlow.value = 0f
         }
     }
     private suspend fun download(
@@ -281,11 +304,11 @@ class SettingsViewmodel(
 
         when(fileType) {
             GEOFileType.FILE_TYPE_IP ->
-                download(geoIPUrlTest, GEO_IP,_geoIPDownloading,context)
+                download(geoIPUrlTest, GEO_IP,_geoIPDownloading, _geoIPProgress, context)
             GEOFileType.FILE_TYPE_SITE ->
-                download(geoSiteUrlTest, GEO_SITE,_geoSiteDownloading,context)
+                download(geoSiteUrlTest, GEO_SITE,_geoSiteDownloading, _geoSiteProgress, context)
             GEOFileType.FILE_TYPE_LITE ->
-                download(geoLiteUrlTest, GEO_LITE,_geoLiteDownloading,context)
+                download(geoLiteUrlTest, GEO_LITE,_geoLiteDownloading, _geoLiteProgress, context)
             else -> {
                 Log.e(TAG, "download: download type error")
             }
