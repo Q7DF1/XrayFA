@@ -9,6 +9,8 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,9 +24,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -34,6 +38,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,11 +69,14 @@ fun NodeCard(
     delayMs: Long = -1,
     testing: Boolean = false,
     selected: Boolean = false,
+    favorite: Boolean = false,
+    onFavorite: (() -> Unit)? = null,
     enableTest: Boolean = false,
     roundCorner: Boolean = false,
     countryEmoji: String = ""
 ) {
     val context = LocalContext.current
+    val interactionSource = remember { MutableInteractionSource() }
     val delayColor = when {
         delayMs == -2L -> MaterialTheme.colorScheme.error
         delayMs < 0 -> Color.Transparent
@@ -88,7 +96,8 @@ fun NodeCard(
         shape = if (roundCorner) RoundedCornerShape(24.dp) else RoundedCornerShape(12.dp),
         colors = CardDefaults.elevatedCardColors(
             containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else backgroundColor
-        )
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation)
     ) {
         Row(
             modifier = Modifier
@@ -133,6 +142,29 @@ fun NodeCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    
+                    if (onFavorite != null) {
+                        Box(
+                            modifier = Modifier
+                                .padding(start = 4.dp)
+                                .size(40.dp)
+                                .clickable(
+                                    interactionSource = interactionSource,
+                                    indication = null
+                                ) {
+                                    onFavorite.invoke()
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = if (favorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                                contentDescription = if (favorite) "Remove from favorites" else "Add to favorites",
+                                tint = if (favorite) Color.Red else Color.Gray,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+
                     if (delayMs > 0 || delayMs == -2L) {
                         val displayText = if (delayMs == -2L) "Timeout" else "${delayMs}ms"
                         Spacer(Modifier.width(8.dp))

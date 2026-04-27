@@ -14,6 +14,8 @@ data class Node(
     val selected: Boolean = false,
     val remark: String? = null,
     val subscriptionId: Int,
+    val favorite: Boolean = false,
+    val jsonData: String? = null, //todo: full json config data
     val url: String,
     val countryISO: String = ""
 )

@@ -12,6 +12,8 @@ class NodeRepository @Inject constructor(
 ){
     val allLinks = nodeDao.getAllNodes()
 
+    val favorites = nodeDao.getNodesSelectByFavorite(true)
+
     suspend fun addNode(vararg links: Node) {
         nodeDao.addNode(*links)
     }
@@ -35,8 +37,12 @@ class NodeRepository @Inject constructor(
         return  nodeDao.updateNodeUrlAndPort(id,url,port)
     }
 
-    suspend fun updateLinkById(id: Int, selected: Boolean) {
-        return nodeDao.updateNodeById(id,selected)
+    suspend fun updateSelectById(id: Int, selected: Boolean) {
+        return nodeDao.updateSelectById(id,selected)
+    }
+
+    suspend fun updateFavoriteById(id: Int, favorite: Boolean) {
+        return nodeDao.updateFavoriteById(id,favorite)
     }
 
     suspend fun deleteLinkById(id: Int) {

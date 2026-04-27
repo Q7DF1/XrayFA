@@ -10,7 +10,7 @@ import com.android.xrayfa.dto.Node
 import com.android.xrayfa.dto.Subscription
 
 
-@Database(entities = [Subscription::class, Node::class], version = 2)
+@Database(entities = [Subscription::class, Node::class], version = 3)
 abstract class XrayFADatabase: RoomDatabase() {
 
 
@@ -30,6 +30,7 @@ abstract class XrayFADatabase: RoomDatabase() {
                     XrayFADatabase::class.java,
                     "xrayfa_database"
                 ).addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_2_3)
                     .build()
                 INSTANCE = instance
                 instance
@@ -54,5 +55,22 @@ val MIGRATION_1_2 = object: Migration(1,2) {
                 countryISO TEXT NOT NULL
             )
         """.trimIndent())
+    }
+}
+
+// Migration logic from database version 2 to 3
+val MIGRATION_2_3 = object: Migration(2,3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // The 'Link' table was already dropped in MIGRATION_1_2,
+        // but keeping this line is harmless if you want to be defensive.
+        db.execSQL("DROP TABLE IF EXISTS Link")
+
+        // Add the 'favorite' column.
+        // Since it is NOT NULL (Boolean), we MUST provide a DEFAULT value (0 for false).
+        db.execSQL("ALTER TABLE Node ADD COLUMN favorite INTEGER NOT NULL DEFAULT 0")
+
+        // Add the 'jsonData' column.
+        // Since it is nullable (String?), no default value is required.
+        db.execSQL("ALTER TABLE Node ADD COLUMN jsonData TEXT")
     }
 }

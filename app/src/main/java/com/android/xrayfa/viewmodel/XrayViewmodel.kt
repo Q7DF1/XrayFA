@@ -1,7 +1,6 @@
 package com.android.xrayfa.viewmodel
 
 import android.app.ActivityManager
-import android.app.ActivityOptions
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -9,7 +8,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Build
 import android.util.Log
-import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -44,6 +42,7 @@ import javax.inject.Inject
 import kotlin.jvm.java
 import androidx.core.net.toUri
 import android.widget.Toast
+import androidx.compose.runtime.collectAsState
 import com.android.xrayfa.BuildConfig
 import com.android.xrayfa.R
 import kotlinx.coroutines.withContext
@@ -74,6 +73,7 @@ class XrayViewmodel(
 
         const val SUB_ALL = 0
         const val SUB_MANUAL = -1
+        const val FAVORITE = -2
     }
 
 
@@ -97,13 +97,14 @@ class XrayViewmodel(
     val nodes: StateFlow<List<Node>> = combine(
         repository.allLinks,
         _searchQuery,
-        _selectedSubscriptionId
-    ) { allNodes, query, subId ->
+        _selectedSubscriptionId,
+        repository.favorites
+    ) { allNodes, query, subId,favorites ->
         val filteredBySub = if (subId == SUB_ALL) {
             allNodes
-        } else {
-            allNodes.filter { it.subscriptionId == subId }
-        }
+        } else if (subId == FAVORITE) {
+            favorites
+        } else allNodes.filter { it.subscriptionId == subId }
 
         if (query.isBlank()) {
             filteredBySub.reversed()
@@ -334,7 +335,13 @@ class XrayViewmodel(
 
     fun updateLinkById(id: Int, selected: Boolean) {
         viewModelScope.launch {
-            repository.updateLinkById(id,selected)
+            repository.updateSelectById(id,selected)
+        }
+    }
+
+    fun updateFavoriteById(id: Int, favorite: Boolean) {
+        viewModelScope.launch {
+            repository.updateFavoriteById(id, favorite)
         }
     }
 
@@ -348,7 +355,7 @@ class XrayViewmodel(
         viewModelScope.launch {
             if (id == repository.querySelectedNode().first()?.id) return@launch
             repository.clearSelection()
-            repository.updateLinkById(id,true)
+            repository.updateSelectById(id,true)
             onConfigChanged()
         }
     }
