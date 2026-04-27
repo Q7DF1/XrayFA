@@ -4,7 +4,6 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
-import androidx.room.Update
 import com.android.xrayfa.dto.Node
 import kotlinx.coroutines.flow.Flow
 
@@ -15,6 +14,8 @@ interface NodeDao {
     @Query("SELECT * FROM node")
     fun getAllNodes(): Flow<List<Node>>
 
+    @Query("SELECT * FROM node WHERE favorite = :favorite")
+    fun getNodesSelectByFavorite(favorite: Boolean):Flow<List<Node>>
 
     @Query("SELECT * FROM node WHERE id = :id")
     fun loadNodeById(id: Int): Flow<Node>
@@ -35,7 +36,10 @@ interface NodeDao {
     fun querySelectedNode(): Flow<Node?>
 
     @Query("UPDATE node SET selected = :selected WHERE id = :id")
-    suspend fun updateNodeById(id: Int, selected: Boolean)
+    suspend fun updateSelectById(id: Int, selected: Boolean)
+
+    @Query("UPDATE node SET favorite = :favorite WHERE id = :id")
+    suspend fun updateFavoriteById(id:Int, favorite: Boolean)
 
 
     @Query("UPDATE node SET selected = 0 WHERE selected = 1")
