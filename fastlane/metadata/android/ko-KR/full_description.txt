@@ -1,0 +1,10 @@
+XrayFA는 Xray-core를 위한 강력하고 사용하기 쉬운 Android 클라이언트 입니다. Android 기기에서 안전하고 빠른 프록시 환경을 제공하며 VLESS, VMESS, Shadowsocks, Trojan, Hysteria2, Reality 등 다양한 프로토콜을 지원합니다
+
+주요 기능:
+- 다양한 프로토콜 지원: VLESS, VMESS, Shadowsocks, Trojan, Hysteria2, Reality
+- 고성능: 최신 Xray-core를 기반으로 구축되어 지연 시간이 짧고 속도가 빠릅니다.
+- 간편한 사용: QR 코드 또는 구독 링크를 통해 설정을 가져올 수 있습니다.
+- 사용자 지정 라우팅: 규칙에 따라 트래픽을 우회하거나 프록시할 수 있습니다.
+- 모던한 UI: 간편하고 깔끔한 인터페이스로 사용하기 쉽습니다.
+
+XrayFA는 트래픽을 암호화하고 지역 제한을 우회하여 인터넷 개인정보 보호 및 보안을 강화합니다. XrayFA로 안드로이드 기기에서 Xray의 강력한 기능을 경험해 보세요!
