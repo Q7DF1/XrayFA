@@ -73,6 +73,7 @@ class XrayViewmodel(
 
         const val SUB_ALL = 0
         const val SUB_MANUAL = -1
+        const val FAVORITE = -2
     }
 
 
@@ -96,13 +97,14 @@ class XrayViewmodel(
     val nodes: StateFlow<List<Node>> = combine(
         repository.allLinks,
         _searchQuery,
-        _selectedSubscriptionId
-    ) { allNodes, query, subId ->
+        _selectedSubscriptionId,
+        repository.favorites
+    ) { allNodes, query, subId,favorites ->
         val filteredBySub = if (subId == SUB_ALL) {
             allNodes
-        } else {
-            allNodes.filter { it.subscriptionId == subId }
-        }
+        } else if (subId == FAVORITE) {
+            favorites
+        } else allNodes.filter { it.subscriptionId == subId }
 
         if (query.isBlank()) {
             filteredBySub.reversed()
@@ -135,12 +137,6 @@ class XrayViewmodel(
             }
         } else emptyList()
     }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
-
-    val favorites: StateFlow<List<Node>> = repository.favorites.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
@@ -340,6 +336,12 @@ class XrayViewmodel(
     fun updateLinkById(id: Int, selected: Boolean) {
         viewModelScope.launch {
             repository.updateSelectById(id,selected)
+        }
+    }
+
+    fun updateFavoriteById(id: Int, favorite: Boolean) {
+        viewModelScope.launch {
+            repository.updateFavoriteById(id, favorite)
         }
     }
 

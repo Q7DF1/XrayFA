@@ -163,8 +163,11 @@ fun ConfigScreen(
     // Build filter list
     val filters = remember(subscriptions) {
         val list = mutableListOf<Pair<Int, String>>()
+        if (subscriptions.isNotEmpty()) {
+            list.add(XrayViewmodel.SUB_MANUAL to "Manual")
+        }
         list.add(XrayViewmodel.SUB_ALL to "All")
-        list.add(XrayViewmodel.SUB_MANUAL to "Manual")
+        list.add(XrayViewmodel.FAVORITE to "Favorite")
         subscriptions.forEach { 
             list.add(it.id to it.mark)
         }
@@ -339,7 +342,6 @@ fun ConfigScreen(
                     )
                     
                     // Filter Chips Row
-                    if (subscriptions.isNotEmpty()) {
                         LazyRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 4.dp),
@@ -364,7 +366,6 @@ fun ConfigScreen(
                                 )
                             }
                         }
-                    }
                 }
             }
             if (nodes.isEmpty()) {
@@ -405,6 +406,10 @@ fun ConfigScreen(
                                         )
                                     },
                                     selected =node.selected,
+                                    favorite = node.favorite,
+                                    onFavorite = {
+                                        xrayViewmodel.updateFavoriteById(node.id, !node.favorite)
+                                    },
                                     roundCorner = false,
                                     countryEmoji = node.countryISO,
                                     modifier = Modifier.sharedElement(
@@ -555,27 +560,33 @@ fun ConfigScreen(
         ) {
             LazyColumn {
                 items(queryNodes, key = { it.id }) { node ->
-                    NodeCard(
-                        node = node,
-                        onChoose = {
-                            scope.launch {
-                                textFieldState.clearText()
-                                searchBarState.animateToCollapsed()
-                                scrollToItemById(node.id)
-                            }
+                    Column {
+                        NodeCard(
+                            node = node,
+                            onChoose = {
+                                scope.launch {
+                                    textFieldState.clearText()
+                                    searchBarState.animateToCollapsed()
+                                    scrollToItemById(node.id)
+                                }
 
-                        },
-                        selected =node.selected,
-                        roundCorner = false,
-                        countryEmoji = node.countryISO
-                    )
-                        if(node != nodes.last()) {
+                            },
+                            selected =node.selected,
+                            favorite = node.favorite,
+                            onFavorite = {
+                                xrayViewmodel.updateFavoriteById(node.id, !node.favorite)
+                            },
+                            roundCorner = false,
+                            countryEmoji = node.countryISO
+                        )
+                        if (node != queryNodes.last()) {
                             HorizontalDivider(
                                 modifier = Modifier.fillMaxSize()
                                     .padding(horizontal = 48.dp),
                                 thickness = 1.dp
                             )
                         }
+                    }
                 }
             }
         }
