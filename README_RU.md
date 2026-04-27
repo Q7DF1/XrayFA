@@ -7,7 +7,7 @@
 XrayFA обеспечивает безопасное и быстрое прокси‑подключение с акцентом на простоту и производительность.
 
 <p align="center">
-   <a href="README.md">English</a> | <a href="README_zh-CN.md">简体中文</a> | <b>Русский</b> 
+   <a href="README.md">English</a> | <a href="README_zh-CN.md">简体中文</a> | <b>Русский</b> | <a href="README_KR.md">한글</a>
 </p>
 
 [![GitHub release](https://img.shields.io/github/v/release/Q7DF1/XrayFA?style=flat-square&color=blue)](https://github.com/Q7DF1/XrayFA/releases)
