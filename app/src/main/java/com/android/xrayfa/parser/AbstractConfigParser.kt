@@ -154,6 +154,11 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P> {
                     ),
                     RuleObject(
                         type = "field",
+                        outboundTag = "proxy",
+                        domain = listOf("geosite:google")
+                    ),
+                    RuleObject(
+                        type = "field",
                         outboundTag = "direct",
                         domain = listOf("geosite:geolocation-cn")
                     ),
