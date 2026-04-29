@@ -88,9 +88,9 @@ class XrayBaseService
                     xrayCoreManager.addConsumer { data ->
                         notificationHelper.updateNotificationIfNeeded(data)
                     }
-                    startXrayCoreService(link!!,protocol!!)
-                    updateStatus(true)
-                    updateToggleShortcut(true)
+                    val start = startXrayCoreService(link!!,protocol!!)
+                    updateStatus(start)
+                    updateToggleShortcut(start)
                 }
                 START_STICKY
             }
@@ -164,17 +164,24 @@ class XrayBaseService
             ).show()
         }
     }
-    private suspend fun startXrayCoreService(link: String, protocol: String) {
+    private suspend fun startXrayCoreService(link: String, protocol: String): Boolean {
         val settingState = settingsRepo.settingsFlow.first()
         startVpn()
+        var start: Boolean
         if (settingState.hexTunEnable) {
-            xrayCoreManager.startXrayCore(link,protocol,0)
-            tunFd?.let {
-                tun2SocksService.startTun2Socks(it.fd)
+            start = xrayCoreManager.startXrayCore(link,protocol,0)
+            if (start) {
+                tunFd?.let {
+                    tun2SocksService.startTun2Socks(it.fd)
+                }
             }
         }else {
-            xrayCoreManager.startXrayCore(link,protocol,tunFd?.fd)
+            start = xrayCoreManager.startXrayCore(link,protocol,tunFd?.fd)
         }
+        if (!start) {
+            stopVPN()
+        }
+        return start
     }
 
     private suspend fun stopXrayCoreService() {

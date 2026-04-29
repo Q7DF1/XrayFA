@@ -2,7 +2,9 @@ package com.android.xrayfa.core
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.StringDef
+import com.android.xrayfa.R
 import com.android.xrayfa.common.di.qualifier.Application
 import com.android.xrayfa.common.di.qualifier.Background
 import com.android.xrayfa.common.repository.SettingsRepository
@@ -15,6 +17,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import libv2ray.CoreCallbackHandler
 import libv2ray.CoreController
 import libv2ray.Libv2ray
@@ -113,15 +116,20 @@ class XrayCoreManager
         return delay
     }
 
-    suspend fun startXrayCore(link: String, protocol: String, tunFd: Int?) {
-        startOrClose = true
+    suspend fun startXrayCore(link: String, protocol: String, tunFd: Int?): Boolean {
         try {
             tunFd?.let {
                 coreController?.startLoop(parserFactory.getParser(protocol).parse(link),tunFd)
             }
-
+            startOrClose = true
+            return true
         }catch (e: Exception) {
-            Log.e(TAG, "startV2rayCore failed: ${e.message}")
+            Log.e(TAG, "startXrayCore failed: ${e.message}")
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context,R.string.core_start_failed, Toast.LENGTH_SHORT).show()
+            }
+
+            return false
         }
     }
 
