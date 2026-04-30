@@ -216,7 +216,8 @@ class SettingsViewmodel(
         }
         viewModelScope.launch(Dispatchers.IO) {
             _geoSiteDownloading.value = true
-            download(GEOFileType.FILE_TYPE_SITE,context)
+            val downloaded = download(GEOFileType.FILE_TYPE_SITE,context)
+            if (downloaded) onConfigChanged()
             _geoSiteDownloading.value = false
         }
     }
@@ -225,7 +226,7 @@ class SettingsViewmodel(
         if (_geoSiteDownloading.value || _geoIPDownloading.value || _geoLiteDownloading.value) {
             return
         }
-        viewModelScope.launch(Dispatchers.IO){ 
+        viewModelScope.launch(Dispatchers.IO) {
             _geoLiteDownloading.value = true
             download(GEOFileType.FILE_TYPE_LITE,context)
             _geoLiteDownloading.value = false
@@ -242,9 +243,14 @@ class SettingsViewmodel(
         }
         viewModelScope.launch(Dispatchers.IO) {
             _geoIPDownloading.value = true
-            download(GEOFileType.FILE_TYPE_IP,context)
+            val downloaded = download(GEOFileType.FILE_TYPE_IP,context)
+            if (downloaded) onConfigChanged()
             _geoIPDownloading.value = false
         }
+    }
+
+    suspend fun onConfigChanged() {
+        xrayBaseServiceManager.restartXrayBaseServiceIfNeed()
     }
 
 
@@ -254,7 +260,7 @@ class SettingsViewmodel(
         statusFlow: MutableStateFlow<Boolean>,
         progressFlow: MutableStateFlow<Float>,
         context: Context
-    ) = withContext(Dispatchers.IO) {
+    ): Boolean = withContext(Dispatchers.IO) {
 
 
         val request = Request.Builder()
@@ -285,6 +291,7 @@ class SettingsViewmodel(
                     }
                 }
             }
+            return@withContext true
         }catch (e: Exception) {
             statusFlow.value = false
             launch {
@@ -293,6 +300,7 @@ class SettingsViewmodel(
                 _downloadException.value = false
             }
             Log.e(TAG, "download: exception $e")
+            return@withContext false
         } finally {
             progressFlow.value = 0f
         }
@@ -300,9 +308,9 @@ class SettingsViewmodel(
     private suspend fun download(
         @GEOFileType fileType: Int,
         context: Context
-    ) {
+    ):Boolean {
 
-        when(fileType) {
+        return when(fileType) {
             GEOFileType.FILE_TYPE_IP ->
                 download(geoIPUrlTest, GEO_IP,_geoIPDownloading, _geoIPProgress, context)
             GEOFileType.FILE_TYPE_SITE ->
@@ -311,6 +319,7 @@ class SettingsViewmodel(
                 download(geoLiteUrlTest, GEO_LITE,_geoLiteDownloading, _geoLiteProgress, context)
             else -> {
                 Log.e(TAG, "download: download type error")
+                false
             }
         }
 

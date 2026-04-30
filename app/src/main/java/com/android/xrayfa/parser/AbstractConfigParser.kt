@@ -135,44 +135,38 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P> {
     fun getBaseRoutingObject(): RoutingObject {
 
         return RoutingObject(
-                domainStrategy = "IPIfNonMatch",
-                rules = listOf(
-                    RuleObject(
-                        type = "field",
-                        outboundTag = "proxy",
-                        domain = listOf("geosite:telegram"),
-                    ),
-                    RuleObject(
-                        type = "field",
-                        outboundTag = "proxy",
-                        ip = listOf("geoip:telegram")
-                    ),
-                    RuleObject(
-                        type = "field",
-                        outboundTag = "proxy",
-                        domain = listOf("geosite:geolocation-!cn")
-                    ),
-                    RuleObject(
-                        type = "field",
-                        outboundTag = "proxy",
-                        domain = listOf("geosite:google")
-                    ),
-                    RuleObject(
-                        type = "field",
-                        outboundTag = "direct",
-                        domain = listOf("geosite:geolocation-cn")
-                    ),
-                    RuleObject(
-                        inboundTag = listOf("api"),
-                        outboundTag = "api",
-                        type = "field"
-                    ),
-                    RuleObject(
-                        inboundTag = arrayListOf("tun"),
-                        outboundTag = "dns-out",
-                        port = "53"
-                    )
+            domainStrategy = "IPIfNonMatch",
+            rules = listOf(
+                // 1. High Priority: Internal traffic & DNS (First match)
+                RuleObject(
+                    type = "field",
+                    inboundTag = listOf("api"),
+                    outboundTag = "api"
+                ),
+                RuleObject(
+                    type = "field",
+                    inboundTag = listOf("tun"),
+                    outboundTag = "dns-out",
+                    port = "53"
+                ),
+
+                // 2. Specialized Services: Telegram & Google (Optional but good for clarity)
+                RuleObject(
+                    type = "field",
+                    outboundTag = "proxy",
+                    domain = listOf("geosite:telegram", "geosite:google")
+                ),
+
+                // 3. Regional Routing: China traffic goes DIRECT
+                RuleObject(
+                    type = "field",
+                    outboundTag = "direct",
+                    domain = listOf("geosite:cn", "geosite:geolocation-cn"),
+                    ip = listOf("geoip:cn")
                 )
+                // Note: No need for geosite:geolocation-!cn rule anymore 
+                // because proxy is now the first outbound (default route).
+            )
         )
     }
 
@@ -211,8 +205,18 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P> {
                 getTunInboundConfig()
             ),
             outbounds = listOf(
-                getBaseOutboundConfig(),
-                parseOutbound(link)
+                parseOutbound(link),     // Index 0: Proxy is now the DEFAULT outbound
+                getBaseOutboundConfig(),  // Index 1: tag: direct
+                OutboundObject(
+                    protocol = "dns",
+                    tag = "dns-out",
+                    settings = NoneOutboundConfigurationObject()
+                ),
+                OutboundObject(
+                    protocol = "freedom",
+                    tag = "api",
+                    settings = NoneOutboundConfigurationObject()
+                )
             ),
             routing = getBaseRoutingObject(),
         )
