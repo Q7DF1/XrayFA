@@ -94,6 +94,7 @@ import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.common.repository.SettingsKeys
+import com.android.xrayfa.core.XrayBaseService
 import com.android.xrayfa.helper.NotificationHelper
 import com.android.xrayfa.ui.navigation.Apps
 import com.android.xrayfa.ui.navigation.Logcat
@@ -372,6 +373,7 @@ fun SettingsScreen(
                         downloading = geoIPDownloading,
                         progress = geoIPProgress,
                         onDownloadClick = {viewmodel.downloadGeoIP(context = context)},
+                        downloadEnable = XrayBaseService.statusFlow.collectAsState().value,
                         onImportClick = {
                             val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                                 addCategory(Intent.CATEGORY_OPENABLE)
@@ -389,6 +391,7 @@ fun SettingsScreen(
                         onDownloadClick = {viewmodel.downloadGeoSite(context)},
                         downloading = geoSiteDownloading,
                         progress = geoSiteProgress,
+                        downloadEnable = XrayBaseService.statusFlow.collectAsState().value,
                         onImportClick = {
                             val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                                 addCategory(Intent.CATEGORY_OPENABLE)
@@ -545,7 +548,8 @@ fun SettingsWithBtnBox(
     progress: Float = 0f,
     onDownloadClick: () -> Unit = {},
     onImportClick: (() -> Unit)? = null,
-    enable: Boolean = true
+    enable: Boolean = true,
+    downloadEnable: Boolean = true
 ) {
 
     val infiniteTransition = rememberInfiniteTransition()
@@ -591,6 +595,7 @@ fun SettingsWithBtnBox(
             Row {
                 IconButton(
                     onClick = onDownloadClick,
+                    enabled = downloadEnable
                 ) {
                     Icon(
                         imageVector = if (!downloading)
