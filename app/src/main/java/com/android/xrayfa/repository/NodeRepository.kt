@@ -10,7 +10,7 @@ import javax.inject.Singleton
 class NodeRepository @Inject constructor(
     private val nodeDao: NodeDao
 ){
-    val allLinks = nodeDao.getAllNodes()
+    val allNodes = nodeDao.getAllNodes()
 
     val favorites = nodeDao.getNodesSelectByFavorite(true)
 
@@ -22,7 +22,7 @@ class NodeRepository @Inject constructor(
         nodeDao.deleteNode(link)
     }
 
-    fun loadLinksById(id: Int): Flow<Node> {
+    fun loadLinksById(id: Int): Flow<Node?> {
         return nodeDao.loadNodeById(id)
     }
     suspend fun clearSelection() {
@@ -31,6 +31,14 @@ class NodeRepository @Inject constructor(
 
      fun querySelectedNode(): Flow<Node?> {
         return nodeDao.querySelectedNode()
+     }
+
+    fun queryPreNode(): Flow<Node?> {
+        return nodeDao.queryPreNode()
+    }
+
+    fun queryNextNode(): Flow<Node?> {
+        return nodeDao.queryNextNode()
     }
 
     suspend fun updateNodeUrlAndPort(id: Int,url: String,port: Int) {

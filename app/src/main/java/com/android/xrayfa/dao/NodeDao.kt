@@ -18,7 +18,7 @@ interface NodeDao {
     fun getNodesSelectByFavorite(favorite: Boolean):Flow<List<Node>>
 
     @Query("SELECT * FROM node WHERE id = :id")
-    fun loadNodeById(id: Int): Flow<Node>
+    fun loadNodeById(id: Int): Flow<Node?>
 
     @Insert
     suspend fun addNode(vararg nodes: Node)
@@ -34,6 +34,12 @@ interface NodeDao {
 
     @Query("SELECT * FROM node WHERE selected = 1 LIMIT 1")
     fun querySelectedNode(): Flow<Node?>
+
+    @Query("SELECT * FROM node WHERE isPreNode = 1 LIMIT 1")
+    fun queryPreNode(): Flow<Node?>
+
+    @Query("SELECT * FROM node WHERE isNextNode = 1 LIMIT 1")
+    fun queryNextNode(): Flow<Node?>
 
     @Query("UPDATE node SET selected = :selected WHERE id = :id")
     suspend fun updateSelectById(id: Int, selected: Boolean)

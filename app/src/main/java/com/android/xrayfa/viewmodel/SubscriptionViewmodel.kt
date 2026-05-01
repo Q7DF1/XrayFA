@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.xrayfa.common.di.qualifier.ShortTime
 import com.android.xrayfa.dto.Link
+import com.android.xrayfa.dto.Node
 import com.android.xrayfa.dto.Subscription
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.parser.SubscriptionParser
@@ -20,6 +21,7 @@ import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.TAG
 import com.google.zxing.BarcodeFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,7 +32,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import javax.inject.Inject
 
-val emptySubscription = Subscription(0,"","")
+val emptySubscription = Subscription(0,"","",-1,-1,false)
 
 
 class SubscriptionViewmodel(
@@ -47,6 +49,9 @@ class SubscriptionViewmodel(
 
     private val _selectSubscription = MutableStateFlow<Subscription>(emptySubscription)
     val selectSubscription = _selectSubscription.asStateFlow()
+
+    private val _nodes: MutableStateFlow<Flow<List<Node>>> = MutableStateFlow(nodeRepository.allNodes)
+    val nodes: StateFlow<Flow<List<Node>>> = _nodes.asStateFlow()
 
     private val _deleteDialog = MutableStateFlow(false)
     val deleteDialog: StateFlow<Boolean> = _deleteDialog.asStateFlow()
@@ -112,17 +117,11 @@ class SubscriptionViewmodel(
         }
     }
 
-    fun getSubscriptionById(id: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _selectSubscription.value = repository.getSubscriptionById(id).first()
-        }
-    }
-
     fun getSubscriptionByIdWithCallback(id: Int, callback: () -> Unit) {
 
         viewModelScope.launch(Dispatchers.IO) {
             val subscription = repository.getSubscriptionById(id).first()
-            _selectSubscription.value = subscription
+            _selectSubscription.value = subscription?:emptySubscription
             withContext(Dispatchers.Main) {
                 callback()
             }
@@ -136,7 +135,7 @@ class SubscriptionViewmodel(
 
     fun generateQRCode(id: Int) {
         viewModelScope.launch {
-            shareUrl = repository.getSubscriptionById(id).first().url
+            shareUrl = repository.getSubscriptionById(id).first()?.url
             shareUrl?.let {
                 val bitmap = BarcodeUtils.encodeBitmap(it, BarcodeFormat.QR_CODE,400,400)
                 _qrcodeBitmap.value = bitmap
@@ -187,7 +186,7 @@ class SubscriptionViewmodel(
                                 subscriptionId = subscriptionId,
                             )
                             val node =
-                                parserFactory.getParser(link.protocolPrefix).preParse(link)
+                                parserFactory.getParser(link.content).preParse(link)
                             Log.i(TAG, "getSubscriptionWithCallback: $node")
                             node
                         }

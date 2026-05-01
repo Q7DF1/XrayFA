@@ -27,7 +27,7 @@ class SubscriptionRepository
         subscriptionDao.updateSubscription(subscription)
     }
 
-    fun getSubscriptionById(id: Int): Flow<Subscription> {
+    fun getSubscriptionById(id: Int): Flow<Subscription?> {
         return subscriptionDao.selectSubscriptionById(id)
     }
 }

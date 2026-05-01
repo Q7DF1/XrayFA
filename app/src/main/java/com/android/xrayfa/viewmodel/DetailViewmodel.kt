@@ -27,14 +27,6 @@ class DetailViewmodel(
     val nodeRepository: NodeRepository,
 ): ViewModel() {
 
-    private fun <T: AbsOutboundConfigurationObject> parseProtocol(
-        protocol: String,
-        content: String
-    ): OutboundObject<T> {
-        @Suppress("UNCHECKED_CAST")
-        return  parserFactory.getParser(protocol).parseOutbound(content) as OutboundObject<T>
-    }
-
     fun parseVLESSProtocol(content: String): VLESSConfig {
         return parserFactory.vlessConfigParser.decodeProtocol(content)
     }

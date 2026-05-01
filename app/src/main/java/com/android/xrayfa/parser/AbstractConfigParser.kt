@@ -1,6 +1,7 @@
 package com.android.xrayfa.parser
 
 import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.core.StartOptions
 import com.android.xrayfa.model.AbsOutboundConfigurationObject
 import com.android.xrayfa.model.ApiObject
 import com.android.xrayfa.model.DnsObject
@@ -11,9 +12,11 @@ import com.android.xrayfa.dto.Node
 import com.android.xrayfa.model.NoneOutboundConfigurationObject
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.PolicyObject
+import com.android.xrayfa.model.ProxySettingsObject
 import com.android.xrayfa.model.RoutingObject
 import com.android.xrayfa.model.RuleObject
 import com.android.xrayfa.model.SniffingObject
+import com.android.xrayfa.model.Sockopt
 import com.android.xrayfa.model.SocksInboundConfigurationObject
 import com.android.xrayfa.model.SystemPolicyObject
 import com.android.xrayfa.model.TunInboundConfigurationObject
@@ -30,12 +33,15 @@ import kotlinx.coroutines.flow.first
  *
  */
 
-abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P> {
+abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
+
+) {
 
     private var apiEnable: Boolean = false
 
     abstract val settingsRepo: SettingsRepository
 
+    var otherProtocolParser: ((String) -> OutboundObject<*>)? = null
 
     abstract fun decodeProtocol(url: String): P
 
@@ -191,9 +197,38 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P> {
         )
     }
 
-    suspend fun parse(link: String):String {
+    suspend fun parse(startOptions: StartOptions):String {
+        val outbound = parseOutbound(startOptions.url)
+        val outbounds = mutableListOf<OutboundObject<*>>()
 
-        val vlessConfig = XrayConfiguration(
+        val pre = parsePreNodeIfNeeded(startOptions)
+        val next = parseNextNodeIfNeeded(startOptions)
+        if (pre != null) {
+            //pre.proxySettings = ProxySettingsObject(tag = outbound.tag)
+            outbound.streamSettings?.sockopt = Sockopt(dialerProxy = pre.tag)
+            outbounds.add(pre)
+        }
+        outbounds.add(outbound)
+        if (next != null) {
+            //outbound.proxySettings = ProxySettingsObject(tag = next.tag)
+            next.streamSettings?.sockopt = Sockopt(dialerProxy = outbound.tag)
+            outbounds.add(next)
+        }
+        outbounds.add(getBaseOutboundConfig())
+        outbounds.add(
+            OutboundObject(
+            protocol = "dns",
+            tag = "dns-out",
+            settings = NoneOutboundConfigurationObject()
+        ))
+        outbounds.add(
+            OutboundObject(
+                protocol = "freedom",
+                tag = "api",
+                settings = NoneOutboundConfigurationObject()
+            )
+        )
+        val xrayConfig = XrayConfiguration(
             stats = emptyMap(), // enable
             api = getBaseAPIObject(),
             dns = getBaseDnsConfig(),
@@ -204,25 +239,28 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P> {
                 getAPIInboundConfig(),
                 getTunInboundConfig()
             ),
-            outbounds = listOf(
-                parseOutbound(link),     // Index 0: Proxy is now the DEFAULT outbound
-                getBaseOutboundConfig(),  // Index 1: tag: direct
-                OutboundObject(
-                    protocol = "dns",
-                    tag = "dns-out",
-                    settings = NoneOutboundConfigurationObject()
-                ),
-                OutboundObject(
-                    protocol = "freedom",
-                    tag = "api",
-                    settings = NoneOutboundConfigurationObject()
-                )
-            ),
+            outbounds = outbounds,
             routing = getBaseRoutingObject(),
         )
-        val config = Gson().toJson(vlessConfig)
+        val config = Gson().toJson(xrayConfig)
         println(config)
         return config
+    }
+
+    fun parsePreNodeIfNeeded(startOptions: StartOptions): OutboundObject<*>? {
+        val outbound = startOptions.preUrl?.let {
+            otherProtocolParser?.invoke(it)
+        }
+        outbound?.tag = "pre-node"
+        return outbound
+    }
+
+    fun parseNextNodeIfNeeded(startOptions: StartOptions): OutboundObject<*>? {
+        val outbound = startOptions.nextUrl?.let {
+            otherProtocolParser?.invoke(it)
+        }
+        outbound?.tag = "next-node"
+        return outbound
     }
 
     @Throws(Exception::class)

@@ -116,10 +116,10 @@ class XrayCoreManager
         return delay
     }
 
-    suspend fun startXrayCore(link: String, protocol: String, tunFd: Int?): Boolean {
+    suspend fun startXrayCore(startOptions: StartOptions, tunFd: Int?): Boolean {
         try {
             tunFd?.let {
-                coreController?.startLoop(parserFactory.getParser(protocol).parse(link),tunFd)
+                coreController?.startLoop(parserFactory.getParser(startOptions.url).parse(startOptions),tunFd)
             }
             startOrClose = true
             return true

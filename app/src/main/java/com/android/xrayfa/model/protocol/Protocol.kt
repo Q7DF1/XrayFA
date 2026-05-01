@@ -7,7 +7,7 @@ import com.android.xrayfa.model.protocol.Protocol.VMESS
 import com.android.xrayfa.model.protocol.Protocol.HYSTERIA2
 
 /**
- * @param protocolType protocol type
+ * @param protocolType protocol type == protocolPrefix
  */
 enum class Protocol(
     val protocolType: String

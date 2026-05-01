@@ -12,6 +12,8 @@ data class Node(
     val address: String,  // IP or domain
     val port: Int,
     val selected: Boolean = false,
+    val isPreNode: Boolean = false,
+    val isNextNode: Boolean = false,
     val remark: String? = null,
     val subscriptionId: Int,
     val favorite: Boolean = false,
