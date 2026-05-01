@@ -14,7 +14,7 @@ data class StreamSettingsObject(
     val httpUpgradeSettings: HttpUpgradeSettings? = null,
     val hysteriaSettings: HysteriaSettings? = null,
     val finalMask:FinalMask? =null,
-    val sockopt: Sockopt? = null,
+    var sockopt: Sockopt? = null,
 
     @Deprecated("QUIC has been removed in Xray v24.9.7")
     val quicSettings: Any? = null,

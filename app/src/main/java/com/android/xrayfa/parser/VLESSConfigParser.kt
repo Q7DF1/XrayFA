@@ -111,6 +111,7 @@ class VLESSConfigParser
                         publicKey = queryParams["pbk"]?:"",
                         serverName = queryParams["sni"]?:"",
                         spiderX = "",
+                        shortId = queryParams["sid"]?:"",
                         show = false,
                     )
                 } else null,

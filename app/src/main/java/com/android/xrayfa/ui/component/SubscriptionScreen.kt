@@ -40,6 +40,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.android.xrayfa.R
+import com.android.xrayfa.dto.Node
 import com.android.xrayfa.dto.Subscription
 import com.android.xrayfa.viewmodel.SubscriptionViewmodel
 import java.net.URI
@@ -57,6 +58,8 @@ fun SubscriptionScreen(
     val subscription by viewmodel.selectSubscription.collectAsState()
     var nickName by remember(subscription) { mutableStateOf(subscription.mark) }
     var url by remember(subscription) { mutableStateOf(subscription.url) }
+    var preNodeId by remember(subscription) { mutableStateOf(subscription.preNodeId) }
+    var nextNodeId by remember(subscription) { mutableStateOf(subscription.nextNodeId) }
     var nickNameIsNull by remember { mutableStateOf(false) }
     var urlIsNullOrInvalid by remember { mutableStateOf(false) }
 
@@ -64,6 +67,8 @@ fun SubscriptionScreen(
     val requesting by viewmodel.requesting.collectAsState()
     val subscribeError by viewmodel.subscribeError.collectAsState()
     val qrBitMap by viewmodel.qrBitmap.collectAsState()
+    val nodesFlow by viewmodel.nodes.collectAsState()
+    val allNodes by nodesFlow.collectAsState(initial = emptyList())
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
         rememberTopAppBarState()
@@ -263,6 +268,20 @@ fun SubscriptionScreen(
                             shape = RoundedCornerShape(12.dp)
                         )
 
+                        NodeSelector(
+                            label = "Pre Node",
+                            selectedNodeId = preNodeId,
+                            nodes = allNodes,
+                            onNodeSelected = { preNodeId = it }
+                        )
+
+                        NodeSelector(
+                            label = "Next Node",
+                            selectedNodeId = nextNodeId,
+                            nodes = allNodes,
+                            onNodeSelected = { nextNodeId = it }
+                        )
+
                         Row(
                             horizontalArrangement = Arrangement.End,
                             modifier = Modifier.fillMaxWidth(),
@@ -280,6 +299,8 @@ fun SubscriptionScreen(
                                                 id = subscription.id,
                                                 mark = nickName,
                                                 url = url,
+                                                preNodeId = preNodeId,
+                                                nextNodeId = nextNodeId,
                                                 isAutoUpdate = subscription.isAutoUpdate
                                             )
                                         )
@@ -352,6 +373,56 @@ fun SubscriptionScreen(
                 }
             }
             ExceptionMessage(subscribeError, stringResource(R.string.subscribe_failed))
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NodeSelector(
+    label: String,
+    selectedNodeId: Int,
+    nodes: List<Node>,
+    onNodeSelected: (Int) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val selectedNode = nodes.find { it.id == selectedNodeId }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        OutlinedTextField(
+            value = selectedNode?.remark ?: selectedNode?.address ?: "None",
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier.menuAnchor().fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("None") },
+                onClick = {
+                    onNodeSelected(-1)
+                    expanded = false
+                }
+            )
+            nodes.forEach { node ->
+                DropdownMenuItem(
+                    text = { Text(node.remark ?: node.address) },
+                    onClick = {
+                        onNodeSelected(node.id)
+                        expanded = false
+                    }
+                )
+            }
         }
     }
 }

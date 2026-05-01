@@ -3,6 +3,7 @@ package com.android.xrayfa.core
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.VpnService
+import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import android.widget.Toast
@@ -14,9 +15,8 @@ import com.android.xrayfa.MainActivity.Companion.ACTION_START_SERVICE
 import com.android.xrayfa.MainActivity.Companion.ACTION_STOP_SERVICE
 import com.android.xrayfa.R
 import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.core.StartOptions.Companion.EXTRA_START_OPTIONS
 import com.android.xrayfa.helper.NotificationHelper
-import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_LINK
-import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.EXTRA_PROTOCOL
 import xrayfa.tun2socks.utils.NetPreferences
 import xrayfa.tun2socks.Tun2SocksService
 import kotlinx.coroutines.CoroutineScope
@@ -81,14 +81,19 @@ class XrayBaseService
             }
             CONNECT -> {
                 Log.i(TAG, "onStartCommand: start...")
-                val link = intent.getStringExtra(EXTRA_LINK)
-                val protocol = intent.getStringExtra(EXTRA_PROTOCOL)
+                val options = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra(EXTRA_START_OPTIONS,
+                        StartOptions::class.java)
+                } else {
+                    intent.getParcelableExtra<StartOptions>(EXTRA_START_OPTIONS)
+                }
+
                 serviceScope.launch {
                     notificationHelper.showNotification()
                     xrayCoreManager.addConsumer { data ->
                         notificationHelper.updateNotificationIfNeeded(data)
                     }
-                    val start = startXrayCoreService(link!!,protocol!!)
+                    val start = startXrayCoreService(startOptions = options!!)
                     updateStatus(start)
                     updateToggleShortcut(start)
                 }
@@ -97,10 +102,14 @@ class XrayBaseService
             RESTART -> {
                 Log.i(TAG, "onStartCommand: restart...")
                 serviceScope.launch {
-                    val link = intent.getStringExtra(EXTRA_LINK)
-                    val protocol = intent.getStringExtra(EXTRA_PROTOCOL)
+                    val options = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU) {
+                        intent.getParcelableExtra(EXTRA_START_OPTIONS,
+                            StartOptions::class.java)
+                    } else {
+                        intent.getParcelableExtra<StartOptions>(EXTRA_START_OPTIONS)
+                    }
                     stopXrayCoreService()
-                    startXrayCoreService(link!!,protocol!!)
+                    startXrayCoreService(options!!)
                     restartToast()
                 }
                 START_STICKY
@@ -164,19 +173,19 @@ class XrayBaseService
             ).show()
         }
     }
-    private suspend fun startXrayCoreService(link: String, protocol: String): Boolean {
+    private suspend fun startXrayCoreService(startOptions: StartOptions): Boolean {
         val settingState = settingsRepo.settingsFlow.first()
         startVpn()
         var start: Boolean
         if (settingState.hexTunEnable) {
-            start = xrayCoreManager.startXrayCore(link,protocol,0)
+            start = xrayCoreManager.startXrayCore(startOptions,0)
             if (start) {
                 tunFd?.let {
                     tun2SocksService.startTun2Socks(it.fd)
                 }
             }
         }else {
-            start = xrayCoreManager.startXrayCore(link,protocol,tunFd?.fd)
+            start = xrayCoreManager.startXrayCore(startOptions,tunFd?.fd)
         }
         if (!start) {
             stopVPN()

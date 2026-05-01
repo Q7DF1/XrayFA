@@ -42,7 +42,6 @@ import javax.inject.Inject
 import kotlin.jvm.java
 import androidx.core.net.toUri
 import android.widget.Toast
-import androidx.compose.runtime.collectAsState
 import com.android.xrayfa.BuildConfig
 import com.android.xrayfa.R
 import kotlinx.coroutines.withContext
@@ -66,7 +65,11 @@ class XrayViewmodel(
 
     companion object {
         const val TAG = "XrayViewmodel"
-        const val EXTRA_LINK = "com.android.xrayFA.EXTRA_LINK"
+        const val EXTRA_URL = "com.android.xrayFA.EXTRA_URL"
+        const val EXTRA_PRE_URL = "com.android.xrayFA.EXTRA_PRE_URL"
+        const val EXTRA_NEXT_URL = "com.android.xrayFA.EXTRA_NEXT_URL"
+
+        @Deprecated("parse url instead")
         const val EXTRA_PROTOCOL = "com.android.xrayFA.EXTRA_PROTOCOL"
         const val DELETE_ALL = -2
         const val DELETE_NONE = -1
@@ -95,7 +98,7 @@ class XrayViewmodel(
         )
 
     val nodes: StateFlow<List<Node>> = combine(
-        repository.allLinks,
+        repository.allNodes,
         _searchQuery,
         _selectedSubscriptionId,
         repository.favorites
@@ -121,7 +124,7 @@ class XrayViewmodel(
     )
 
     val queryNodes: StateFlow<List<Node>> = combine(
-        repository.allLinks,
+        repository.allNodes,
         _searchQuery,
         _selectedSubscriptionId
     ) { allNodes, query, subId ->
@@ -312,7 +315,7 @@ class XrayViewmodel(
     //link
 
     fun getAllLinks(): Flow<List<Node>> {
-        return repository.allLinks
+        return repository.allNodes
     }
 
     fun addLink(link: String) {
@@ -322,7 +325,7 @@ class XrayViewmodel(
             Log.i(TAG, "addLink: ${protocolPrefix}")
             if (protocolsPrefix.contains(protocolPrefix)) {
                 val link0 =  Link(protocolPrefix = protocolPrefix, content = link, subscriptionId = SUB_MANUAL)
-                val node = parserFactory.getParser(protocolPrefix).preParse(link0)
+                val node = parserFactory.getParser(link).preParse(link0)
                 viewModelScope.launch {
                     Log.i(TAG, "addLink: ${link0}")
                     repository.addNode(node)
@@ -386,7 +389,7 @@ class XrayViewmodel(
     fun generateQRCode(id: Int) {
         viewModelScope.launch {
             val node = repository.loadLinksById(id).first()
-            shareUrl = node.url
+            shareUrl = node?.url ?: ""
             val bitmap = BarcodeUtils.encodeBitmap(shareUrl, BarcodeFormat.QR_CODE,400,400)
             _qrcodeBitmap.value = bitmap
         }

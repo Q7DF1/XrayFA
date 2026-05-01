@@ -28,5 +28,5 @@ interface SubscriptionDao {
 
 
     @Query("SELECT * FROM subscription WHERE id = :id")
-    fun selectSubscriptionById(id: Int): Flow<Subscription>
+    fun selectSubscriptionById(id: Int): Flow<Subscription?>
 }

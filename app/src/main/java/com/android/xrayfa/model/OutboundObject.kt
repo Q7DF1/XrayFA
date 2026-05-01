@@ -7,9 +7,9 @@ data class OutboundObject<T: AbsOutboundConfigurationObject>(
     val sendThrough: String = "0.0.0.0",
     val protocol: String? = null,
     var settings: T? = null,
-    val tag: String,
+    var tag: String,
     val streamSettings: StreamSettingsObject? = null,
-    val proxySettings: ProxySettingsObject? = null,
+    var proxySettings: ProxySettingsObject? = null,
     val mux: MuxObject? = null
 )
 
@@ -90,7 +90,7 @@ data class UserObject(
 )
 
 data class ProxySettingsObject(
-    val tag: String? = null
+    var tag: String? = null
 )
 
 data class MuxObject(
