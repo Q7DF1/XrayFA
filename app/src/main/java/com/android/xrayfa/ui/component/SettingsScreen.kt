@@ -49,6 +49,7 @@ import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PowerSettingsNew
 import androidx.compose.material.icons.outlined.Public
+import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Router
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Speed
@@ -99,6 +100,7 @@ import com.android.xrayfa.helper.NotificationHelper
 import com.android.xrayfa.ui.navigation.Apps
 import com.android.xrayfa.ui.navigation.Logcat
 import com.android.xrayfa.ui.navigation.NavigateDestination
+import com.android.xrayfa.ui.navigation.RouteSettings
 import com.android.xrayfa.ui.navigation.Settings
 import com.android.xrayfa.viewmodel.GEOFileType
 import com.android.xrayfa.viewmodel.GEOFileType.Companion.FILE_TYPE_IP
@@ -366,6 +368,19 @@ fun SettingsScreen(
                             }
                         }
                     )
+                    with(sharedTransitionScope) {
+                        SettingsFieldBox(
+                            title = R.string.route_settings_title,
+                            content = stringResource(R.string.route_settings_desc),
+                            icon = Icons.Outlined.Route,
+                            modifier = Modifier.sharedElement(
+                                sharedTransitionScope.rememberSharedContentState(key = RouteSettings.route),
+                                animatedVisibilityScope = LocalNavAnimatedContentScope.current,
+                            )
+                        ) {
+                            onNavigate(RouteSettings)
+                        }
+                    }
                     SettingsWithBtnBox(
                         title = R.string.geo_ip,
                         description = R.string.geo_ip_description,

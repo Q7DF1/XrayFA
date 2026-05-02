@@ -80,6 +80,7 @@ import kotlin.collections.listOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
+import com.android.xrayfa.ui.navigation.RouteSettings
 import com.android.xrayfa.ui.navigation.ScanQR
 import kotlinx.coroutines.launch
 
@@ -257,6 +258,12 @@ fun XrayFAContainer(
                                     navBackStack.routeBack()
                                 }
                             )
+                        }
+                        is RouteSettings -> NavEntry(
+                            key = key,
+                            metadata = XrayFASceneStrategy.subscreen()
+                        ) {
+                            RouteSettingsScreen(sharedTransitionScope = this@SharedTransitionLayout)
                         }
                         else -> NavEntry(key) { Text("Unknown route") }
                     }
