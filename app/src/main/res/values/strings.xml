@@ -120,4 +120,9 @@
     <string name="logcat_recording">Recording... %1$ds</string>
     <string name="copied">Copied to clipboard</string>
     <string name="core_start_failed">Xray-core start failed</string>
+    <string name="route_settings_title">Route settings</string>
+    <string name="route_settings_desc">custom route settings</string>
+    <string name="routing_mode_label">Routing Mode</string>
+    <string name="routing_mode_global">Global Mode</string>
+    <string name="routing_mode_route">Route Mode</string>
 </resources>

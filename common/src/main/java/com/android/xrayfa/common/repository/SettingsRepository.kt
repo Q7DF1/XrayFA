@@ -10,7 +10,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.android.xrayfa.common.utils.SocksConfigGenerator
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.first
@@ -20,6 +19,67 @@ import javax.inject.Singleton
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
+data class Rule(
+    val domain:      List<String>? = null,
+    val ip:          List<String>? = null,
+    val port:        String? = null,
+    val sourcePort:  String? = null,
+    val localPort:   String? = null,
+    val network:     String? = null,
+    val source:      List<String>? = null, // 新增: 替代 sourceIP
+    val sourceIP:    List<String>? = null, // 标记过时: 建议使用 source
+    val user:        List<String>? = null,
+    val vlessRoute:  String? = null,
+    val inboundTag:  List<String>? = null,
+    val protocol:    List<String>? = null,
+    val attrs:       Map<String, String>? = null, // 修正: 应为键值对 Map
+    val outboundTag: String? = null,
+    val balancerTag: String? = null,
+    val ruleTag:     String? = null,
+    val domainMatcher: String? = null, // 新增: 覆盖全局配置
+    val type: String? = "field"
+)
+
+val defaultRoutes = Gson().toJson(listOf(
+    Rule(
+        type = "field",
+        inboundTag = listOf("api"),
+        outboundTag = "api",
+        ruleTag = "API Traffic"
+    ),
+    Rule(
+        type = "field",
+        inboundTag = listOf("tun"),
+        outboundTag = "dns-out",
+        port = "53",
+        ruleTag = "DNS Traffic"
+    ),
+    Rule(
+        type = "field",
+        outboundTag = "proxy",
+        domain = listOf("geosite:telegram", "geosite:google"),
+        ruleTag = "Proxy Telegram & Google"
+    ),
+    Rule(
+        type = "field",
+        outboundTag = "direct",
+        domain = listOf("geosite:cn", "geosite:geolocation-cn"),
+        ip = listOf("geoip:cn"),
+        ruleTag = "Bypass Mainland China"
+    ),
+    Rule(
+        type = "field",
+        outboundTag = "block",
+        domain = listOf("geosite:category-ads-all"),
+        ruleTag = "Ad Block"
+    )
+))
+
+/**
+ * Due to module dependencies, we cannot directly use the `com.android.xrayfa.model.RuleObject` object here.
+ * Therefore, we can only define an identical one, serialize it into JSON,
+ * and then deserialize it back into `RuleObject` when needed.
+ */
 data class SettingsState(
     val darkMode: Int = 0,
     val ipV6Enable: Boolean = false,
@@ -37,6 +97,9 @@ data class SettingsState(
     val bootAutoStart: Boolean = false,
     val hexTunEnable: Boolean = true,
     val hideFromRecents: Boolean = false,
+    val domainStrategy: Int = DomainStrategy.IP_IF_NON_MATCH,
+    val routingRules: String = defaultRoutes,
+    val routingMode: Int = RoutingMode.ROUTE
 )
 object SettingsKeys {
     val DARK_MODE = intPreferencesKey("dark_mode")
@@ -59,6 +122,9 @@ object SettingsKeys {
     val HEX_TUN_ENABLE = booleanPreferencesKey("hex_tun_open")
 
     val HIDE_FROM_RECENTS = booleanPreferencesKey("hide_from_recents")
+    val DOMAIN_STRATEGY = intPreferencesKey("DOMAIN_STRATEGY")
+    val ROUTING_RULES = stringPreferencesKey("ROUTING_RULES")
+    val ROUTING_MODE = intPreferencesKey("routing_mode")
 }
 
 const val DEFAULT_DELAY_TEST_URL = "https://www.google.com"
@@ -79,10 +145,39 @@ annotation class Theme {
     }
 }
 
+@IntDef(value = [
+    RoutingMode.GLOBAL,
+    RoutingMode.ROUTE
+])
+@Retention(AnnotationRetention.SOURCE)
+annotation class RoutingMode {
+    companion object {
+        const val GLOBAL = 0
+        const val ROUTE = 1
+    }
+}
+
+@IntDef(value = [
+    DomainStrategy.ASIS,
+    DomainStrategy.IP_IF_NON_MATCH,
+    DomainStrategy.IP_ON_DEMAND
+])
+@Retention(AnnotationRetention.SOURCE)
+annotation class DomainStrategy {
+    companion object {
+        const val ASIS = 0
+        const val IP_IF_NON_MATCH = 1
+        const val IP_ON_DEMAND = 2
+    }
+}
+
 
 @Singleton
 class SettingsRepository
-@Inject constructor(private val context: Context) {
+@Inject constructor(
+    private val context: Context,
+    private val gson: Gson
+) {
 
     val settingsFlow = context.dataStore.data.map { prefs ->
         SettingsState(
@@ -101,7 +196,10 @@ class SettingsRepository
             liveUpdateNotification = prefs[SettingsKeys.LIVE_UPDATE_NOTIFICATION] == true,
             bootAutoStart = prefs[SettingsKeys.BOOT_AUTO_START] == true,
             hexTunEnable =  prefs[SettingsKeys.HEX_TUN_ENABLE]?:true,
-            hideFromRecents = prefs[SettingsKeys.HIDE_FROM_RECENTS] == true
+            hideFromRecents = prefs[SettingsKeys.HIDE_FROM_RECENTS] == true,
+            domainStrategy = prefs[SettingsKeys.DOMAIN_STRATEGY]?: DomainStrategy.IP_IF_NON_MATCH,
+            routingRules = prefs[SettingsKeys.ROUTING_RULES]?: defaultRoutes,
+            routingMode = prefs[SettingsKeys.ROUTING_MODE] ?: RoutingMode.ROUTE
         )
 
     }
@@ -110,12 +208,30 @@ class SettingsRepository
         Gson().fromJson<MutableList<String>>(prefs[SettingsKeys.ALLOW_PACKAGES], listType) ?: emptyList()
     }
 
+    suspend fun setRoutingMode(@RoutingMode mode: Int) {
+        context.dataStore.edit {
+            it[SettingsKeys.ROUTING_MODE] = mode
+        }
+    }
+
     suspend fun setDarkMode(@Theme darkMode: Int) {
         context.dataStore.edit {
             it[SettingsKeys.DARK_MODE] = darkMode
         }
     }
 
+    suspend fun setDomainStrategy(@DomainStrategy domainStrategy: Int) {
+        context.dataStore.edit {
+            it[SettingsKeys.DOMAIN_STRATEGY] = domainStrategy
+        }
+    }
+
+    suspend fun setRoutingRules(rules: List<Rule>) {
+        val rulesString = gson.toJson(rules)
+        context.dataStore.edit {
+            it[SettingsKeys.ROUTING_RULES] = rulesString
+        }
+    }
     suspend fun setIpV6Enable(enable: Boolean) {
         context.dataStore.edit {
             it[SettingsKeys.IPV6_ENABLE] = enable

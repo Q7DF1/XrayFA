@@ -29,6 +29,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
@@ -49,6 +50,7 @@ import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PowerSettingsNew
 import androidx.compose.material.icons.outlined.Public
+import androidx.compose.material.icons.outlined.Route
 import androidx.compose.material.icons.outlined.Router
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Speed
@@ -99,6 +101,7 @@ import com.android.xrayfa.helper.NotificationHelper
 import com.android.xrayfa.ui.navigation.Apps
 import com.android.xrayfa.ui.navigation.Logcat
 import com.android.xrayfa.ui.navigation.NavigateDestination
+import com.android.xrayfa.ui.navigation.RouteSettings
 import com.android.xrayfa.ui.navigation.Settings
 import com.android.xrayfa.viewmodel.GEOFileType
 import com.android.xrayfa.viewmodel.GEOFileType.Companion.FILE_TYPE_IP
@@ -226,6 +229,7 @@ fun SettingsScreen(
                             title = R.string.allow_app_settings,
                             content = stringResource(R.string.select_app_settings),
                             icon = Icons.Outlined.Apps,
+                            trailingIcon = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
                             modifier = Modifier.sharedElement(
                                 sharedTransitionScope.rememberSharedContentState(key = Apps.route),
                                 animatedVisibilityScope = LocalNavAnimatedContentScope.current,
@@ -241,6 +245,7 @@ fun SettingsScreen(
                             title = R.string.logcat,
                             content = stringResource(R.string.logcat_desc),
                             icon = Icons.Outlined.BugReport,
+                            trailingIcon = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
                             modifier = Modifier.sharedElement(
                                 sharedTransitionScope.rememberSharedContentState(key = Logcat.route),
                                 animatedVisibilityScope = LocalNavAnimatedContentScope.current
@@ -366,6 +371,20 @@ fun SettingsScreen(
                             }
                         }
                     )
+                    with(sharedTransitionScope) {
+                        SettingsFieldBox(
+                            title = R.string.route_settings_title,
+                            content = stringResource(R.string.route_settings_desc),
+                            icon = Icons.Outlined.Route,
+                            trailingIcon = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                            modifier = Modifier.sharedElement(
+                                sharedTransitionScope.rememberSharedContentState(key = RouteSettings.route),
+                                animatedVisibilityScope = LocalNavAnimatedContentScope.current,
+                            )
+                        ) {
+                            onNavigate(RouteSettings)
+                        }
+                    }
                     SettingsWithBtnBox(
                         title = R.string.geo_ip,
                         description = R.string.geo_ip_description,
@@ -408,6 +427,7 @@ fun SettingsScreen(
                         icon = Icons.Outlined.DataUsage,
                         onDownloadClick = {viewmodel.downloadGeoLite(context)},
                         downloading = geoLiteDownloading,
+                        downloadEnable = XrayBaseService.statusFlow.collectAsState().value,
                         progress = geoLiteProgress,
                         enable = settingsState.geoLiteInstall
                     )

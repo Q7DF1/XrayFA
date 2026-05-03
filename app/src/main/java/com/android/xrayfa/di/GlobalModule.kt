@@ -10,6 +10,7 @@ import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.common.di.qualifier.Background
 import com.android.xrayfa.common.di.qualifier.Main
 import com.android.xrayfa.dao.NodeDao
+import com.google.gson.Gson
 import xrayfa.tun2socks.utils.NetPreferences
 import dagger.Binds
 import dagger.Module
@@ -83,6 +84,12 @@ abstract class GlobalModule {
      @Singleton
      fun provideBase64Parser(): SubscriptionParser {
          return SubscriptionParser()
+     }
+
+     @Provides
+     @Singleton
+     fun provideGson(): Gson {
+         return Gson()
      }
  }
 

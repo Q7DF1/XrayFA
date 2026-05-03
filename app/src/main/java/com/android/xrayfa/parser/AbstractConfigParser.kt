@@ -1,18 +1,21 @@
 package com.android.xrayfa.parser
 
+import com.android.xrayfa.common.repository.DomainStrategy
+import com.android.xrayfa.common.repository.RoutingMode
+import com.android.xrayfa.common.repository.Rule
 import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.common.repository.SettingsState
 import com.android.xrayfa.core.StartOptions
+import com.android.xrayfa.dto.Link
+import com.android.xrayfa.dto.Node
 import com.android.xrayfa.model.AbsOutboundConfigurationObject
 import com.android.xrayfa.model.ApiObject
 import com.android.xrayfa.model.DnsObject
 import com.android.xrayfa.model.InboundObject
-import com.android.xrayfa.dto.Link
 import com.android.xrayfa.model.LogObject
-import com.android.xrayfa.dto.Node
 import com.android.xrayfa.model.NoneOutboundConfigurationObject
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.PolicyObject
-import com.android.xrayfa.model.ProxySettingsObject
 import com.android.xrayfa.model.RoutingObject
 import com.android.xrayfa.model.RuleObject
 import com.android.xrayfa.model.SniffingObject
@@ -23,7 +26,9 @@ import com.android.xrayfa.model.TunInboundConfigurationObject
 import com.android.xrayfa.model.TunnelInboundConfigurationObject
 import com.android.xrayfa.model.XrayConfiguration
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.first
+
 
 /**
  *
@@ -34,20 +39,20 @@ import kotlinx.coroutines.flow.first
  */
 
 abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
-
 ) {
 
     private var apiEnable: Boolean = false
 
     abstract val settingsRepo: SettingsRepository
 
+    abstract val gson: Gson
+
     var otherProtocolParser: ((String) -> OutboundObject<*>)? = null
 
     abstract fun decodeProtocol(url: String): P
 
     abstract fun encodeProtocol(protocol: P): String
-    suspend fun getBaseInboundConfig(): InboundObject {
-        val settingsState = settingsRepo.settingsFlow.first()
+    fun getBaseInboundConfig(settingsState: SettingsState): InboundObject {
         return InboundObject(
             listen = settingsState.socksListen,
             port = settingsState.socksPort,
@@ -138,40 +143,52 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
     }
 
 
-    fun getBaseRoutingObject(): RoutingObject {
-
+    fun getBaseRoutingObject(settingsState: SettingsState): RoutingObject {
+        val rules = if (settingsState.routingMode == RoutingMode.GLOBAL) {
+            getGlobalRules()
+        }else {
+            val targetType = object : TypeToken<List<RuleObject?>?>() {}.type
+            gson.fromJson(settingsState.routingRules, targetType)
+        }
         return RoutingObject(
-            domainStrategy = "IPIfNonMatch",
-            rules = listOf(
-                // 1. High Priority: Internal traffic & DNS (First match)
-                RuleObject(
-                    type = "field",
-                    inboundTag = listOf("api"),
-                    outboundTag = "api"
-                ),
-                RuleObject(
-                    type = "field",
-                    inboundTag = listOf("tun"),
-                    outboundTag = "dns-out",
-                    port = "53"
-                ),
+            domainStrategy = when(settingsState.domainStrategy) {
+                DomainStrategy.ASIS -> "AsIs"
+                DomainStrategy.IP_IF_NON_MATCH -> "IPIfNonMatch"
+                DomainStrategy.IP_ON_DEMAND -> "IPOnDemand"
+                else -> throw IllegalArgumentException("wrong domain strategy")
+            },
+            rules = rules
+        )
 
-                // 2. Specialized Services: Telegram & Google (Optional but good for clarity)
-                RuleObject(
-                    type = "field",
-                    outboundTag = "proxy",
-                    domain = listOf("geosite:telegram", "geosite:google")
-                ),
+    }
 
-                // 3. Regional Routing: China traffic goes DIRECT
-                RuleObject(
-                    type = "field",
-                    outboundTag = "direct",
-                    domain = listOf("geosite:cn", "geosite:geolocation-cn"),
-                    ip = listOf("geoip:cn")
-                )
-                // Note: No need for geosite:geolocation-!cn rule anymore 
-                // because proxy is now the first outbound (default route).
+    fun getGlobalRules(): List<RuleObject> {
+        return listOf(
+            RuleObject(
+                type = "field",
+                inboundTag = listOf("api"),
+                outboundTag = "api"
+            ),
+            RuleObject(
+                type = "field",
+                port = "443",
+                network = "udp",
+                outboundTag = "block"
+            ),
+            RuleObject(
+                type = "field",
+                outboundTag = "direct",
+                ip = listOf("geoip:private")
+            ),
+            RuleObject(
+                type = "field",
+                outboundTag = "direct",
+                domain = listOf("geosite:private")
+            ),
+            RuleObject(
+                type = "field",
+                port = "0-65535",
+                outboundTag = "proxy"
             )
         )
     }
@@ -198,6 +215,7 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
     }
 
     suspend fun parse(startOptions: StartOptions):String {
+        val settingsState = settingsRepo.settingsFlow.first()
         val outbound = parseOutbound(startOptions.url)
         val outbounds = mutableListOf<OutboundObject<*>>()
 
@@ -228,6 +246,13 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
                 settings = NoneOutboundConfigurationObject()
             )
         )
+        outbounds.add(
+            OutboundObject(
+                protocol = "blackhole",
+                tag = "block",
+                settings = NoneOutboundConfigurationObject()
+            )
+        )
         val xrayConfig = XrayConfiguration(
             stats = emptyMap(), // enable
             api = getBaseAPIObject(),
@@ -235,12 +260,12 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
             log = getBaseLogObject(),
             policy = getBasePolicyObject(),
             inbounds = listOf(
-                getBaseInboundConfig(),
+                getBaseInboundConfig(settingsState),
                 getAPIInboundConfig(),
                 getTunInboundConfig()
             ),
             outbounds = outbounds,
-            routing = getBaseRoutingObject(),
+            routing = getBaseRoutingObject(settingsState),
         )
         val config = Gson().toJson(xrayConfig)
         println(config)

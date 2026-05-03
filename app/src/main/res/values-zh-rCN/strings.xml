@@ -109,4 +109,7 @@
     <string name="logcat_duration_infinite">一直记录</string>
     <string name="logcat_recording">正在记录... 剩余 %1$d秒</string>
     <string name="copied">已复制到剪切板</string>
+    <string name="routing_mode_label">分流模式设置</string>
+    <string name="routing_mode_global">全局模式</string>
+    <string name="routing_mode_route">路由模式</string>
 </resources>
