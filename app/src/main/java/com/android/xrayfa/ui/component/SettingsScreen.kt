@@ -29,6 +29,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
@@ -228,6 +229,7 @@ fun SettingsScreen(
                             title = R.string.allow_app_settings,
                             content = stringResource(R.string.select_app_settings),
                             icon = Icons.Outlined.Apps,
+                            trailingIcon = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
                             modifier = Modifier.sharedElement(
                                 sharedTransitionScope.rememberSharedContentState(key = Apps.route),
                                 animatedVisibilityScope = LocalNavAnimatedContentScope.current,
@@ -243,6 +245,7 @@ fun SettingsScreen(
                             title = R.string.logcat,
                             content = stringResource(R.string.logcat_desc),
                             icon = Icons.Outlined.BugReport,
+                            trailingIcon = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
                             modifier = Modifier.sharedElement(
                                 sharedTransitionScope.rememberSharedContentState(key = Logcat.route),
                                 animatedVisibilityScope = LocalNavAnimatedContentScope.current
@@ -373,6 +376,7 @@ fun SettingsScreen(
                             title = R.string.route_settings_title,
                             content = stringResource(R.string.route_settings_desc),
                             icon = Icons.Outlined.Route,
+                            trailingIcon = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
                             modifier = Modifier.sharedElement(
                                 sharedTransitionScope.rememberSharedContentState(key = RouteSettings.route),
                                 animatedVisibilityScope = LocalNavAnimatedContentScope.current,
@@ -423,6 +427,7 @@ fun SettingsScreen(
                         icon = Icons.Outlined.DataUsage,
                         onDownloadClick = {viewmodel.downloadGeoLite(context)},
                         downloading = geoLiteDownloading,
+                        downloadEnable = XrayBaseService.statusFlow.collectAsState().value,
                         progress = geoLiteProgress,
                         enable = settingsState.geoLiteInstall
                     )

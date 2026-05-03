@@ -11,6 +11,7 @@ import com.android.xrayfa.model.ShadowSocksOutboundConfigurationObject
 import com.android.xrayfa.model.ShadowSocksServerObject
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.utils.Device
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
 import java.util.Base64
 import javax.inject.Inject
@@ -19,7 +20,8 @@ import javax.inject.Singleton
 @Singleton
 class ShadowSocksConfigParser
 @Inject constructor(
-    override val settingsRepo: SettingsRepository
+    override val settingsRepo: SettingsRepository,
+    override val gson: Gson
 ): AbstractConfigParser<ShadowSocksOutboundConfigurationObject, ShadowSocksConfig>() {
     override fun decodeProtocol(url: String): ShadowSocksConfig {
         require(url.startsWith("ss://")) { "Not a valid Shadowsocks URL" }

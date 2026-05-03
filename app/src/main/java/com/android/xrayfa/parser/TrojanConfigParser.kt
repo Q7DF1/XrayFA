@@ -14,6 +14,7 @@ import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
 import com.android.xrayfa.utils.Device
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
 import java.net.URI
 import java.net.URLDecoder
@@ -25,7 +26,8 @@ import javax.inject.Singleton
 @Singleton
 class TrojanConfigParser
 @Inject constructor(
-    override val settingsRepo: SettingsRepository
+    override val settingsRepo: SettingsRepository,
+    override val gson: Gson
 ): AbstractConfigParser<TrojanOutboundConfigurationObject, TrojanConfig>() {
     override fun decodeProtocol(url: String): TrojanConfig {
         val uri = URI(url)

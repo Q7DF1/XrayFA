@@ -23,6 +23,9 @@ import com.android.xrayfa.common.GEO_IP
 import com.android.xrayfa.common.GEO_LITE
 import com.android.xrayfa.common.GEO_SITE
 import com.android.xrayfa.common.di.qualifier.LongTime
+import com.android.xrayfa.common.repository.DomainStrategy
+import com.android.xrayfa.common.repository.RoutingMode
+import com.android.xrayfa.common.repository.Rule
 import com.android.xrayfa.common.utils.calculateFileHash
 import com.android.xrayfa.core.XrayBaseServiceManager
 import kotlinx.coroutines.Dispatchers
@@ -120,6 +123,20 @@ class SettingsViewmodel(
         }
     }
 
+    fun setDomainStrategy(@DomainStrategy strategy: Int) {
+        viewModelScope.launch {
+            repository.setDomainStrategy(strategy)
+            onConfigSettingsChanged()
+        }
+    }
+
+    fun setRoutingMode(@RoutingMode mode: Int) {
+        viewModelScope.launch {
+            repository.setRoutingMode(mode)
+            onConfigSettingsChanged()
+        }
+    }
+
     fun setIpV6Enable(enable: Boolean) {
         viewModelScope.launch {
             repository.setIpV6Enable(enable)
@@ -195,6 +212,13 @@ class SettingsViewmodel(
     fun setSocksListen(address: String) {
         viewModelScope.launch {
             repository.setSocksListen(address)
+            onConfigSettingsChanged()
+        }
+    }
+
+    fun setRoutingRules(rules: List<Rule>) {
+        viewModelScope.launch {
+            repository.setRoutingRules(rules)
             onConfigSettingsChanged()
         }
     }

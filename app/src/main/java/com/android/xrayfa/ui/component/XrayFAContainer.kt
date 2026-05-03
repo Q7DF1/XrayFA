@@ -263,7 +263,10 @@ fun XrayFAContainer(
                             key = key,
                             metadata = XrayFASceneStrategy.subscreen()
                         ) {
-                            RouteSettingsScreen(sharedTransitionScope = this@SharedTransitionLayout)
+                            RouteSettingsScreen(
+                                viewmodel = settingsViewmodel,
+                                sharedTransitionScope = this@SharedTransitionLayout
+                            )
                         }
                         else -> NavEntry(key) { Text("Unknown route") }
                     }

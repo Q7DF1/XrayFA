@@ -14,6 +14,7 @@ import com.android.xrayfa.model.stream.HysteriaSettings
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.utils.Device
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -21,7 +22,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class Hysteria2ConfigParser @Inject constructor(override val settingsRepo: SettingsRepository)
+class Hysteria2ConfigParser @Inject constructor(
+    override val settingsRepo: SettingsRepository,
+    override val gson: Gson
+)
     : AbstractConfigParser<Hysteria2OutboundConfigurationObject, Hysteria2Config>() {
 
     override fun decodeProtocol(url: String): Hysteria2Config {

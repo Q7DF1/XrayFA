@@ -19,6 +19,7 @@ import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
 import com.android.xrayfa.model.stream.XHttpSettings
 import com.android.xrayfa.utils.Device
+import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -28,7 +29,8 @@ import javax.inject.Singleton
 @Singleton
 class VLESSConfigParser
 @Inject constructor(
-    override val settingsRepo: SettingsRepository
+    override val settingsRepo: SettingsRepository,
+    override val gson: Gson
 ): AbstractConfigParser<VLESSOutboundConfigurationObject, VLESSConfig>(){
     override fun decodeProtocol(url: String): VLESSConfig {
         val decode = URLDecoder.decode(url, "UTF-8")

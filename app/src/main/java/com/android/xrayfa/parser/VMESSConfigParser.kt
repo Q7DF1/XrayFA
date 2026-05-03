@@ -20,6 +20,7 @@ import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
 import com.android.xrayfa.utils.Device
+import com.google.gson.Gson
 import com.google.gson.JsonParser
 import kotlinx.coroutines.flow.first
 import java.util.Base64
@@ -29,7 +30,8 @@ import javax.inject.Singleton
 @Singleton
 class VMESSConfigParser
 @Inject constructor(
-    override val settingsRepo: SettingsRepository
+    override val settingsRepo: SettingsRepository,
+    override val gson: Gson
 ): AbstractConfigParser<VMESSOutboundConfigurationObject, VMESSConfig>() {
     override fun decodeProtocol(url: String): VMESSConfig {
         val cleanLink = url.removePrefix("vmess://").trim()
