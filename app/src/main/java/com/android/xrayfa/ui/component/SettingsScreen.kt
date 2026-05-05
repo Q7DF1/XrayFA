@@ -458,13 +458,11 @@ fun SettingsScreen(
                     groupName = stringResource(R.string.about_part)
                 ) {
 
-                    SettingsWithBtnBox(
+                    SettingsFieldBox(
                         title = R.string.xrayfa_version,
                         content = versionName,
                         icon = Icons.Outlined.Info,
-                        downloading = xrayFaDownloading,
-                        onDownloadClick = {
-                        }
+                        onClick = {}
                     )
 
                     SettingsFieldBox(
