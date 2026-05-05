@@ -126,6 +126,8 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.ui.text.style.TextAlign
 import com.android.xrayfa.ui.navigation.ScanQR
+import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.SUB_ALL
+import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.SUB_MANUAL
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -371,6 +373,7 @@ fun ConfigScreen(
             if (nodes.isEmpty()) {
                 EmptyConfigContent(
                     modifier = Modifier.weight(1f),
+                    selectedSubId = selectedSubId
                 ) {
                     onNavigate(Edit)
                 }
@@ -693,6 +696,7 @@ fun Modifier.columnVerticalScrollbar(
 @Composable
 private fun EmptyConfigContent(
     modifier: Modifier = Modifier,
+    selectedSubId: Int,
     onAddClick: () -> Unit
 ) {
     Column(
@@ -738,15 +742,19 @@ private fun EmptyConfigContent(
         )
 
         Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = onAddClick,
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
-            shape = MaterialTheme.shapes.medium
+        AnimatedVisibility(
+            visible = selectedSubId == SUB_MANUAL || selectedSubId == SUB_ALL
         ) {
-            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.create_a_config))
+            Button(
+                onClick = onAddClick,
+                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.create_a_config))
+            }
         }
+
     }
 }
