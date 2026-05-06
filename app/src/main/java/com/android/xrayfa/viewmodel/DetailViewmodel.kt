@@ -9,13 +9,8 @@ import com.android.xrayfa.dto.VMESSConfig
 import com.android.xrayfa.dto.ShadowSocksConfig
 import com.android.xrayfa.dto.TrojanConfig
 import com.android.xrayfa.dto.Hysteria2Config
-import com.android.xrayfa.model.AbsOutboundConfigurationObject
-import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.parser.ParserFactory
-import com.android.xrayfa.parser.ShadowSocksConfigParser
-import com.android.xrayfa.parser.TrojanConfigParser
-import com.android.xrayfa.parser.VMESSConfigParser
 import com.android.xrayfa.repository.NodeRepository
 import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
@@ -192,7 +187,7 @@ class DetailViewmodel(
             }
             
             if (nodeId > 0) {
-                nodeRepository.updateNodeUrlAndPort(nodeId, url, port)
+                nodeRepository.updateNode(nodeId, url, port,remarks)
             } else {
                 val node = Node(
                     id = 0,
