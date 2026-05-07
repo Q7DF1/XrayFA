@@ -7,7 +7,7 @@
     <string name="config">配置</string>
     <string name="logcat">日志</string>
     <string name="add_config">添加配置</string>
-    <string name="clipboard_import">剪切板倒入</string>
+    <string name="clipboard_import">剪切板导入</string>
     <string name="no_configuration">没有配置信息</string>
     <string name="no_configuration_hint">通过二维码或者剪切板导入配置来使用</string>
     <string name="create_a_config">手动创建一个节点</string>
