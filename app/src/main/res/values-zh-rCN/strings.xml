@@ -112,4 +112,5 @@
     <string name="routing_mode_label">分流模式设置</string>
     <string name="routing_mode_global">全局模式</string>
     <string name="routing_mode_route">路由模式</string>
+    <string name="import_manually">手动</string>
 </resources>

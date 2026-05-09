@@ -125,4 +125,5 @@
     <string name="routing_mode_label">Routing Mode</string>
     <string name="routing_mode_global">Global Mode</string>
     <string name="routing_mode_route">Route Mode</string>
+    <string name="import_manually">manual</string>
 </resources>

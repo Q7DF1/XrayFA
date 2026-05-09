@@ -63,6 +63,14 @@ import kotlin.collections.set
 @Composable
 fun QRCodeScannerScreen(onBack: () -> Unit, onResult: (String) -> Unit) {
     val context = LocalContext.current
+    var isProcessed by remember { mutableStateOf(false) }
+    val handleResult: (String) -> Unit = { result ->
+        if (!isProcessed) {
+            isProcessed = true
+            onResult(result)
+        }
+    }
+
     var hasCameraPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -90,7 +98,7 @@ fun QRCodeScannerScreen(onBack: () -> Unit, onResult: (String) -> Unit) {
             uri?.let {
                 val result = BarcodeUtils.decodeQRCodeFromUri(context, it)
                 if (result != null) {
-                    onResult(result)
+                    handleResult(result)
                 } else {
                     Toast.makeText(context, R.string.decode_qr_failed, Toast.LENGTH_SHORT).show()
                 }
@@ -121,7 +129,7 @@ fun QRCodeScannerScreen(onBack: () -> Unit, onResult: (String) -> Unit) {
             modifier = Modifier.fillMaxSize()
         ) {
             if (hasCameraPermission) {
-                CameraPreview(onResult = onResult, isTorchOn = isTorchOn)
+                CameraPreview(onResult = handleResult, isTorchOn = isTorchOn)
                 ScannerOverlay()
             } else {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
