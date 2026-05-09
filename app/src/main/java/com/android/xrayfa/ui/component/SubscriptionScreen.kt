@@ -232,13 +232,13 @@ fun SubscriptionScreen(
                                   // ScanQR code
                                     onNavigate(ScanQR { result ->
                                         if (result.isEmpty()) {
-                                            Toast.makeText(context, "Cancelled", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(context, R.string.cancel, Toast.LENGTH_SHORT).show()
                                         } else {
                                             viewmodel.addSubscription(
                                                 subscription = Subscription(
                                                     id = 0,
                                                     url = result,
-                                                    mark = "unknown"
+                                                    mark = context.getString(R.string.import_manually)
                                                 )
                                             )
                                         }
@@ -294,7 +294,7 @@ fun SubscriptionScreen(
                             OutlinedCard(
                                 onClick = {
                                     viewmodel.getSubscriptionWithCallback(item.url, item.id) {
-//                                        onNavigate(Config)
+                                        onNavigate(Config)
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth(),
