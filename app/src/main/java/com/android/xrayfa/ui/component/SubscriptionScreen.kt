@@ -2,6 +2,8 @@ package com.android.xrayfa.ui.component
 
 import android.graphics.Bitmap
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
@@ -10,31 +12,59 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Label
+import androidx.compose.material.icons.automirrored.filled.Message
+import androidx.compose.material.icons.automirrored.filled.NoteAdd
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Snooze
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.*
+import androidx.compose.material3.ToggleFloatingActionButtonDefaults.animateIcon
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.isTraversalGroup
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -42,14 +72,22 @@ import androidx.compose.ui.window.Dialog
 import com.android.xrayfa.R
 import com.android.xrayfa.dto.Node
 import com.android.xrayfa.dto.Subscription
+import com.android.xrayfa.ui.navigation.Config
+import com.android.xrayfa.ui.navigation.NavigateDestination
+import com.android.xrayfa.ui.navigation.ScanQR
 import com.android.xrayfa.viewmodel.SubscriptionViewmodel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.net.URI
+import java.net.URL
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SubscriptionScreen(
     viewmodel: SubscriptionViewmodel,
-    onBack: () -> Unit
+    onNavigate: (NavigateDestination) -> Unit
 ) {
     val context = LocalContext.current
     val subscriptions by viewmodel.subscriptions.collectAsState()
@@ -73,13 +111,14 @@ fun SubscriptionScreen(
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
         rememberTopAppBarState()
     )
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.menu_subscription), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = {/*onNavigate(Config)*/}) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "back")
                     }
                 },
@@ -91,16 +130,127 @@ fun SubscriptionScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    viewmodel.setSelectSubscriptionEmpty()
-                    isBottomSheetShow = true
-                },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            ) {
-                Icon(Icons.Default.Add, "add subscription")
-            }
+            val focusRequester = remember { FocusRequester() }
+
+
+            val items =
+                listOf(
+                    Icons.Filled.QrCode to R.string.scan_qr_title,
+                    Icons.AutoMirrored.Filled.NoteAdd to R.string.import_manually,
+                )
+
+                var fabMenuExpanded by rememberSaveable { mutableStateOf(false) }
+
+                BackHandler(fabMenuExpanded) { fabMenuExpanded = false }
+
+                FloatingActionButtonMenu(
+                    expanded = fabMenuExpanded,
+                    button = {
+                        // A FAB should have a tooltip associated with it.
+                        TooltipBox(
+                            positionProvider =
+                                TooltipDefaults.rememberTooltipPositionProvider(
+                                    if (fabMenuExpanded) {
+                                        TooltipAnchorPosition.Start
+                                    } else {
+                                        TooltipAnchorPosition.Above
+                                    }
+                                ),
+                            tooltip = { PlainTooltip { Text("Toggle menu") } },
+                            state = rememberTooltipState(),
+                        ) {
+                            ToggleFloatingActionButton(
+                                modifier =
+                                    Modifier.semantics {
+                                        traversalIndex = -1f
+                                        stateDescription =
+                                            if (fabMenuExpanded) "Expanded" else "Collapsed"
+                                        contentDescription = "Toggle menu"
+                                    }.focusRequester(focusRequester),
+                                checked = fabMenuExpanded,
+                                onCheckedChange = { fabMenuExpanded = !fabMenuExpanded },
+                            ) {
+                                val imageVector by remember {
+                                    derivedStateOf {
+                                        if (checkedProgress > 0.5f) Icons.Filled.Close else Icons.Filled.Add
+                                    }
+                                }
+                                Icon(
+                                    painter = rememberVectorPainter(imageVector),
+                                    contentDescription = null,
+                                    modifier = Modifier.animateIcon({ checkedProgress }),
+                                )
+                            }
+                        }
+                    },
+                ) {
+                    items.forEachIndexed { i, item ->
+                        FloatingActionButtonMenuItem(
+                            modifier =
+                                Modifier.semantics {
+                                    isTraversalGroup = true
+                                    // Add a custom a11y action to allow closing the menu when focusing
+                                    // the last menu item, since the close button comes before the first
+                                    // menu item in the traversal order.
+                                    if (i == items.size - 1) {
+                                        customActions =
+                                            listOf(
+                                                CustomAccessibilityAction(
+                                                    label = "Close menu",
+                                                    action = {
+                                                        fabMenuExpanded = false
+                                                        true
+                                                    },
+                                                )
+                                            )
+                                    }
+                                }
+                                    .then(
+                                        if (i == 0) {
+                                            Modifier.onKeyEvent {
+                                                // Navigating back from the first item should go back to the
+                                                // FAB menu button.
+                                                if (
+                                                    it.type == KeyEventType.KeyDown &&
+                                                    (it.key == Key.DirectionUp ||
+                                                            (it.isShiftPressed && it.key == Key.Tab))
+                                                ) {
+                                                    focusRequester.requestFocus()
+                                                    return@onKeyEvent true
+                                                }
+                                                return@onKeyEvent false
+                                            }
+                                        } else {
+                                            Modifier
+                                        }
+                                    ),
+                            onClick = {
+                                if(item.first == Icons.AutoMirrored.Filled.NoteAdd) {
+                                    viewmodel.setSelectSubscriptionEmpty()
+                                    isBottomSheetShow = true
+                                } else {
+                                  // ScanQR code
+                                    onNavigate(ScanQR { result ->
+                                        if (result.isEmpty()) {
+                                            Toast.makeText(context, "Cancelled", Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            viewmodel.addSubscription(
+                                                subscription = Subscription(
+                                                    id = 0,
+                                                    url = result,
+                                                    mark = "unknown"
+                                                )
+                                            )
+                                        }
+                                    })
+                                }
+                                fabMenuExpanded = false
+                            },
+                            icon = { Icon(item.first, contentDescription = null) },
+                            text = { Text(text = stringResource(item.second)) },
+                        )
+                    }
+                }
         }
     ) { paddingValues ->
         Box(
@@ -144,7 +294,7 @@ fun SubscriptionScreen(
                             OutlinedCard(
                                 onClick = {
                                     viewmodel.getSubscriptionWithCallback(item.url, item.id) {
-                                        onBack()
+//                                        onNavigate(Config)
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth(),

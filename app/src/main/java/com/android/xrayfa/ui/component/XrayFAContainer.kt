@@ -2,6 +2,7 @@ package com.android.xrayfa.ui.component
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -215,7 +216,7 @@ fun XrayFAContainer(
                             metadata = XrayFASceneStrategy.subscription()
                         ) {
                             SubscriptionScreen(subscriptViewmodel) {
-                                navBackStack.routeTo(Config)
+                                if (it is Config) navBackStack.routeBack() else navBackStack.routeTo(it)
                             }
                         }
                         is Edit -> NavEntry(key) { 
@@ -397,7 +398,6 @@ private fun NavBackStack<NavKey>.routeTo(key: NavKey) {
         }
     }
     add(key)
-
 }
 
 private fun NavBackStack<NavKey>.routeBack() {
