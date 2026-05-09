@@ -118,7 +118,7 @@ fun SubscriptionScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.menu_subscription), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton(onClick = {/*onNavigate(Config)*/}) {
+                    IconButton(onClick = { onNavigate(Config) }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "back")
                     }
                 },
