@@ -9,6 +9,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -108,10 +109,11 @@ fun SubscriptionScreen(
     val nodesFlow by viewmodel.nodes.collectAsState()
     val allNodes by nodesFlow.collectAsState(initial = emptyList())
 
+    var fabMenuExpanded by rememberSaveable { mutableStateOf(false) }
+
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(
         rememberTopAppBarState()
     )
-    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -138,8 +140,6 @@ fun SubscriptionScreen(
                     Icons.Filled.QrCode to R.string.scan_qr_title,
                     Icons.AutoMirrored.Filled.NoteAdd to R.string.import_manually,
                 )
-
-                var fabMenuExpanded by rememberSaveable { mutableStateOf(false) }
 
                 BackHandler(fabMenuExpanded) { fabMenuExpanded = false }
 
@@ -258,7 +258,7 @@ fun SubscriptionScreen(
                 .padding(paddingValues)
                 .fillMaxSize()
         ) {
-            Column {
+            Column(modifier = Modifier.fillMaxSize()) {
                 if (requesting) {
                     LinearProgressIndicator(
                         modifier = Modifier.fillMaxWidth(),
@@ -371,6 +371,19 @@ fun SubscriptionScreen(
                         }
                     }
                 }
+            }
+
+            if (fabMenuExpanded) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            fabMenuExpanded = false
+                        }
+                )
             }
 
             if (isBottomSheetShow) {
