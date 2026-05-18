@@ -1,57 +1,59 @@
 package com.android.xrayfa.model
 
+import com.google.gson.annotations.SerializedName
+
 data class RoutingObject(
-    val domainStrategy: String? = null,
-    val domainMatcher: String? = null, // 新增: "hybrid" | "linear"
-    val rules: List<RuleObject>? = null,
-    val balancers: List<BalancerObject>? = null // 修正: 应为列表
+    @SerializedName("domainStrategy") val domainStrategy: String? = null,
+    @SerializedName("domainMatcher") val domainMatcher: String? = null,
+    @SerializedName("rules") val rules: List<RuleObject>? = null,
+    @SerializedName("balancers") val balancers: List<BalancerObject>? = null
 )
 
 data class RuleObject(
-    val domain:      List<String>? = null,
-    val ip:          List<String>? = null,
-    val port:        String? = null,
-    val sourcePort:  String? = null,
-    val localPort:   String? = null,
-    val network:     String? = null,
-    val source:      List<String>? = null, // 新增: 替代 sourceIP
-    val sourceIP:    List<String>? = null, // 标记过时: 建议使用 source
-    val user:        List<String>? = null,
-    val vlessRoute:  String? = null,
-    val inboundTag:  List<String>? = null,
-    val protocol:    List<String>? = null,
-    val attrs:       Map<String, String>? = null, // 修正: 应为键值对 Map
-    val outboundTag: String? = null,
-    val balancerTag: String? = null,
-    val ruleTag:     String? = null,
-    val domainMatcher: String? = null, // 新增: 覆盖全局配置
-    val type: String? = "field"
+    @SerializedName("domain") val domain: List<String>? = null,
+    @SerializedName("ip") val ip: List<String>? = null,
+    @SerializedName("port") val port: String? = null,
+    @SerializedName("sourcePort") val sourcePort: String? = null,
+    @SerializedName("localPort") val localPort: String? = null,
+    @SerializedName("network") val network: String? = null,
+    @SerializedName("source") val source: List<String>? = null,
+    @SerializedName("sourceIP") val sourceIP: List<String>? = null,
+    @SerializedName("user") val user: List<String>? = null,
+    @SerializedName("vlessRoute") val vlessRoute: String? = null,
+    @SerializedName("inboundTag") val inboundTag: List<String>? = null,
+    @SerializedName("protocol") val protocol: List<String>? = null,
+    @SerializedName("attrs") val attrs: Map<String, String>? = null,
+    @SerializedName("outboundTag") val outboundTag: String? = null,
+    @SerializedName("balancerTag") val balancerTag: String? = null,
+    @SerializedName("ruleTag") val ruleTag: String? = null,
+    @SerializedName("domainMatcher") val domainMatcher: String? = null,
+    @SerializedName("type") val type: String? = "field"
 )
 
 data class BalancerObject(
-    val tag: String = "balancer",
-    val selector: List<String>, // 修正: 应为字符串数组
-    val fallbackTag: String? = null, // 新增: 故障转移标签
-    val strategy: StrategyObject,
+    @SerializedName("tag") val tag: String = "balancer",
+    @SerializedName("selector") val selector: List<String>,
+    @SerializedName("fallbackTag") val fallbackTag: String? = null,
+    @SerializedName("strategy") val strategy: StrategyObject,
 )
 
 data class StrategyObject(
-    val type: String, // "random" | "roundRobin" | "leastPing" | "leastLoad"
-    val settings: StrategySettingsObject? = null
+    @SerializedName("type") val type: String,
+    @SerializedName("settings") val settings: StrategySettingsObject? = null
 )
 
 data class StrategySettingsObject(
-    val expected: Int? = null,
-    val maxRTT: String? = null,
-    val tolerance: Float? = null,
-    val baselines: List<String>? = null,
-    val costs: List<CostObject>? = null
+    @SerializedName("expected") val expected: Int? = null,
+    @SerializedName("maxRTT") val maxRTT: String? = null,
+    @SerializedName("tolerance") val tolerance: Float? = null,
+    @SerializedName("baselines") val baselines: List<String>? = null,
+    @SerializedName("costs") val costs: List<CostObject>? = null
 )
 
 data class CostObject(
-    val regexp: Boolean,
-    val match: String,
-    val value: Float
+    @SerializedName("regexp") val regexp: Boolean,
+    @SerializedName("match") val match: String,
+    @SerializedName("value") val value: Float
 )
 
 

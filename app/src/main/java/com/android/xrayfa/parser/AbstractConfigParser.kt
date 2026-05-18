@@ -30,6 +30,8 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.first
 
 
+import com.android.xrayfa.common.repository.defaultRoutes
+
 /**
  *
  * An abstract parser that provides parsing of common structures.
@@ -144,12 +146,18 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
 
 
     fun getBaseRoutingObject(settingsState: SettingsState): RoutingObject {
-        val rules = if (settingsState.routingMode == RoutingMode.GLOBAL) {
+        val targetType = object : TypeToken<List<RuleObject>?>() {}.type
+        var rules: List<RuleObject>? = if (settingsState.routingMode == RoutingMode.GLOBAL) {
             getGlobalRules()
-        }else {
-            val targetType = object : TypeToken<List<RuleObject?>?>() {}.type
-            gson.fromJson(settingsState.routingRules, targetType)
+        } else {
+            gson.fromJson<List<RuleObject>>(settingsState.routingRules, targetType)?.filterNotNull()
         }
+
+        // Validation: Detect broken rules (missing both outboundTag and balancerTag) and fallback to defaultRoutes
+        if (rules != null && rules.any { it.outboundTag == null && it.balancerTag == null }) {
+            rules = gson.fromJson<List<RuleObject>>(defaultRoutes, targetType)?.filterNotNull()
+        }
+
         return RoutingObject(
             domainStrategy = when(settingsState.domainStrategy) {
                 DomainStrategy.ASIS -> "AsIs"
@@ -159,7 +167,6 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
             },
             rules = rules
         )
-
     }
 
     fun getGlobalRules(): List<RuleObject> {

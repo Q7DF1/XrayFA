@@ -27,3 +27,4 @@
 -keepattributes SourceFile,LineNumberTable
 
 -keep class com.android.xrayfa.model.** { *; }
+-keep class com.android.xrayfa.common.repository.** { *; }
