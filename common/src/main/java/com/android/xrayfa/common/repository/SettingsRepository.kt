@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -20,24 +21,24 @@ import javax.inject.Singleton
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 data class Rule(
-    val domain:      List<String>? = null,
-    val ip:          List<String>? = null,
-    val port:        String? = null,
-    val sourcePort:  String? = null,
-    val localPort:   String? = null,
-    val network:     String? = null,
-    val source:      List<String>? = null, // 新增: 替代 sourceIP
-    val sourceIP:    List<String>? = null, // 标记过时: 建议使用 source
-    val user:        List<String>? = null,
-    val vlessRoute:  String? = null,
-    val inboundTag:  List<String>? = null,
-    val protocol:    List<String>? = null,
-    val attrs:       Map<String, String>? = null, // 修正: 应为键值对 Map
-    val outboundTag: String? = null,
-    val balancerTag: String? = null,
-    val ruleTag:     String? = null,
-    val domainMatcher: String? = null, // 新增: 覆盖全局配置
-    val type: String? = "field"
+    @SerializedName("domain") val domain: List<String>? = null,
+    @SerializedName("ip") val ip: List<String>? = null,
+    @SerializedName("port") val port: String? = null,
+    @SerializedName("sourcePort") val sourcePort: String? = null,
+    @SerializedName("localPort") val localPort: String? = null,
+    @SerializedName("network") val network: String? = null,
+    @SerializedName("source") val source: List<String>? = null,
+    @SerializedName("sourceIP") val sourceIP: List<String>? = null,
+    @SerializedName("user") val user: List<String>? = null,
+    @SerializedName("vlessRoute") val vlessRoute: String? = null,
+    @SerializedName("inboundTag") val inboundTag: List<String>? = null,
+    @SerializedName("protocol") val protocol: List<String>? = null,
+    @SerializedName("attrs") val attrs: Map<String, String>? = null,
+    @SerializedName("outboundTag") val outboundTag: String? = null,
+    @SerializedName("balancerTag") val balancerTag: String? = null,
+    @SerializedName("ruleTag") val ruleTag: String? = null,
+    @SerializedName("domainMatcher") val domainMatcher: String? = null,
+    @SerializedName("type") val type: String? = "field"
 )
 
 val defaultRoutes = Gson().toJson(listOf(
