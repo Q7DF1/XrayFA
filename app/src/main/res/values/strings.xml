@@ -126,4 +126,11 @@
     <string name="routing_mode_global">Global Mode</string>
     <string name="routing_mode_route">Route Mode</string>
     <string name="import_manually">manual</string>
+
+    <string name="bug_report_header">Bug Report</string>
+    <string name="bug_report_title_label">Title</string>
+    <string name="bug_report_desc_label">Description</string>
+    <string name="bug_report_expected_label">Expected Behavior</string>
+    <string name="bug_report_actual_label">Actual Behavior</string>
+    <string name="bug_report_submit">Submit and Open GitHub</string>
 </resources>
