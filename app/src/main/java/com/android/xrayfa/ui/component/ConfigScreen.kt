@@ -107,6 +107,7 @@ import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.ui.navigation.NavigateDestination
 import com.android.xrayfa.ui.navigation.Subscription
 import com.android.xrayfa.viewmodel.XrayViewmodel
+import com.android.xrayfa.ui.component.BugReportDialog
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -142,6 +143,7 @@ fun ConfigScreen(
     val queryNodes by xrayViewmodel.queryNodes.collectAsState()
     val qrBitMap by xrayViewmodel.qrBitmap.collectAsState()
     val deleteDialog by xrayViewmodel.deleteDialog.collectAsState()
+    val bugReportDialog by xrayViewmodel.bugReportDialog.collectAsState()
     val subscriptions by xrayViewmodel.subscriptions.collectAsState()
     val selectedSubId by xrayViewmodel.selectedSubscriptionId.collectAsState()
 
@@ -473,6 +475,15 @@ fun ConfigScreen(
             ) {
                 xrayViewmodel.deleteNodeFromDialog()
             }
+        }
+
+        if (bugReportDialog) {
+            BugReportDialog(
+                onDismiss = { xrayViewmodel.hideBugReportDialog() },
+                onSubmit = { data ->
+                    xrayViewmodel.submitBugReport(context, data)
+                }
+            )
         }
 
         val searchBarState = rememberSearchBarState()

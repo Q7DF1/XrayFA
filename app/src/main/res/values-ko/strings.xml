@@ -105,5 +105,12 @@
     <string name="logcat_duration_5m">5분</string>
     <string name="logcat_duration_infinite">항상</string>
     <string name="logcat_recording">기록중... %1$ds</string>
-    <string name="copied">클립보드에 복사 되었습니다</string>
-</resources>
+    <string name="copied">클립보드에 복사됨</string>
+
+    <string name="bug_report_header">버그 보고</string>
+    <string name="bug_report_title_label">제목</string>
+    <string name="bug_report_desc_label">문제 설명</string>
+    <string name="bug_report_expected_label">예상 동작</string>
+    <string name="bug_report_actual_label">실제 동작</string>
+    <string name="bug_report_submit">GitHub에 제출</string>
+    </resources>

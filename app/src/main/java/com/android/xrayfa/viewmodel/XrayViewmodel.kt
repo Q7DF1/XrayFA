@@ -48,6 +48,7 @@ import kotlinx.coroutines.withContext
 
 import com.android.xrayfa.repository.SubscriptionRepository
 import com.android.xrayfa.dto.Subscription
+import com.android.xrayfa.model.BugReportData
 import com.android.xrayfa.ui.navigation.NavigateDestination
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
@@ -167,6 +168,9 @@ class XrayViewmodel(
 
     private val _deleteDialog = MutableStateFlow(false)
     val deleteDialog: StateFlow<Boolean> = _deleteDialog.asStateFlow()
+
+    private val _bugReportDialog = MutableStateFlow(false)
+    val bugReportDialog: StateFlow<Boolean> = _bugReportDialog.asStateFlow()
 
     private val _showNavigationBar = MutableStateFlow(true)
     val showNavigationBar  = _showNavigationBar.asStateFlow()
@@ -418,6 +422,14 @@ class XrayViewmodel(
         deleteLinkId = DELETE_NONE
     }
 
+    fun showBugReportDialog() {
+        _bugReportDialog.value = true
+    }
+
+    fun hideBugReportDialog() {
+        _bugReportDialog.value = false
+    }
+
     fun showNavigationBar() {
         _showNavigationBar.value = true
     }
@@ -590,28 +602,44 @@ class XrayViewmodel(
      * @param context context from Activity or Application
      */
     fun bugReport(context: Context) {
+        showBugReportDialog()
+    }
+
+    fun submitBugReport(context: Context, data: BugReportData) {
+        hideBugReportDialog()
         val appVersion = BuildConfig.VERSION_NAME
         val androidVersion = Build.VERSION.RELEASE
         val deviceModel = Build.MODEL
+
         val issueBody = """
-        ### Describe the bug
-        ### Environment
+        ### [${context.getString(R.string.bug_report_header)}] ${data.title}
+        
+        **${context.getString(R.string.bug_report_desc_label)}:**
+        ${data.description}
+        
+        **${context.getString(R.string.bug_report_expected_label)}:**
+        ${data.expectedBehavior}
+        
+        **${context.getString(R.string.bug_report_actual_label)}:**
+        ${data.actualBehavior}
+        
+        **Environment:**
         - **App Version:** $appVersion
         - **Android Version:** $androidVersion
         - **Device Model:** $deviceModel
-        
-        ### Additional Context(Bug description)
         """.trimIndent()
 
         try {
             val encodedBody = URLEncoder.encode(issueBody, "UTF-8")
             val repoUrl = "https://github.com/Q7DF1/XrayFA/issues/new"
-            val fullUrl = "$repoUrl?title=[Bug]%20&body=$encodedBody&labels=bug"
+            val fullUrl = "$repoUrl?title=[Bug]%20${URLEncoder.encode(data.title, "UTF-8")}&body=$encodedBody&labels=bug"
             val intent = Intent(Intent.ACTION_VIEW, fullUrl.toUri())
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
-        }catch (e: Exception) {
+            Log.d(TAG, "submitBugReport: start GitHub")
+        } catch (e: Exception) {
             e.printStackTrace()
+            Toast.makeText(context, "Error opening GitHub", Toast.LENGTH_SHORT).show()
         }
     }
 }

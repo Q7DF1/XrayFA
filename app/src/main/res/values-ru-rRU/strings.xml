@@ -119,4 +119,11 @@
     <string name="logcat_duration_infinite">Всегда</string>
     <string name="logcat_recording">Запись... Осталось %1$dс</string>
     <string name="copied">Скопировано в буфер обмена</string>
+
+    <string name="bug_report_header">Отчет об ошибке</string>
+    <string name="bug_report_title_label">Заголовок</string>
+    <string name="bug_report_desc_label">Описание проблемы</string>
+    <string name="bug_report_expected_label">Ожидаемое поведение</string>
+    <string name="bug_report_actual_label">Фактическое поведение</string>
+    <string name="bug_report_submit">Отправить на GitHub</string>
 </resources>

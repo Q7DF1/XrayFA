@@ -113,4 +113,11 @@
     <string name="routing_mode_global">全局模式</string>
     <string name="routing_mode_route">路由模式</string>
     <string name="import_manually">手动</string>
+
+    <string name="bug_report_header">问题反馈</string>
+    <string name="bug_report_title_label">标题</string>
+    <string name="bug_report_desc_label">问题描述</string>
+    <string name="bug_report_expected_label">预期行为</string>
+    <string name="bug_report_actual_label">实际行为</string>
+    <string name="bug_report_submit">提交并打开 GitHub</string>
 </resources>
