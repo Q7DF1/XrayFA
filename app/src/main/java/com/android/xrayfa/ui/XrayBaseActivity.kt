@@ -3,10 +3,12 @@ package com.android.xrayfa.ui
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalConfiguration
 import com.android.xrayfa.XrayFAApplication
@@ -21,15 +23,32 @@ abstract class XrayBaseActivity: ComponentActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val app = application as XrayFAApplication
-        enableEdgeToEdge()
         setContent {
             val theme = app.isDarkTheme.collectAsState()
+            val darkTheme = when (theme.value) {
+                Theme.LIGHT_MODE -> false
+                Theme.DARK_MODE -> true
+                else -> isSystemInDarkTheme()
+            }
+
+            DisposableEffect(darkTheme) {
+                enableEdgeToEdge(
+                    statusBarStyle = if (darkTheme) {
+                        SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
+                    } else {
+                        SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT)
+                    },
+                    navigationBarStyle = if (darkTheme) {
+                        SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
+                    } else {
+                        SystemBarStyle.light(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT)
+                    }
+                )
+                onDispose {}
+            }
+
             V2rayForAndroidUITheme(
-                darkTheme = when (theme.value) {
-                    Theme.LIGHT_MODE -> false
-                    Theme.DARK_MODE -> true
-                    else -> isSystemInDarkTheme()
-                }
+                darkTheme = darkTheme
             ) {
                 Content(false)
             }

@@ -10,6 +10,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.os.Build
 import android.util.Log
 import android.widget.RemoteViews
@@ -22,6 +23,7 @@ import com.android.xrayfa.R
 import com.android.xrayfa.common.di.qualifier.Application
 import com.android.xrayfa.common.di.qualifier.Background
 import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.common.repository.Theme
 import com.android.xrayfa.core.XrayBaseService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
@@ -76,24 +78,40 @@ class NotificationHelper @Inject constructor(
         .setShortCriticalText("XrayFA")
     val normalBuilder: NotificationCompat.Builder = NotificationCompat.Builder(context, CHANNEL_ID)
         .setContentTitle(context.resources.getString(R.string.app_label))
-        .setContent(notificationView)
+        .setCustomContentView(notificationView)
         .setCustomBigContentView(bigNotificationView)
+        .setStyle(NotificationCompat.DecoratedCustomViewStyle())
         .setSmallIcon(R.drawable.ic_small_notification)
         .setContentIntent(pendingIntent)
         .setPriority(NotificationManager.IMPORTANCE_LOW)
         .setSilent(true)
 
     var liveUpdate = false
+    private var currentDarkMode: Int = Theme.AUTO_MODE
 
     var preData: Pair<Double,Double>? = null
 
     init {
 
         backgroundScope.launch {
-            liveUpdate = settingsRepository.settingsFlow.first().liveUpdateNotification
+            val settings = settingsRepository.settingsFlow.first()
+            liveUpdate = settings.liveUpdateNotification
+            currentDarkMode = settings.darkMode
+            
             settingsRepository.settingsFlow.collect {
-                if (it.liveUpdateNotification != liveUpdate)
-                    onLiveUpdateChanged(it.liveUpdateNotification)
+                var needsRefresh = false
+                if (it.liveUpdateNotification != liveUpdate) {
+                    liveUpdate = it.liveUpdateNotification
+                    needsRefresh = true
+                }
+                if (it.darkMode != currentDarkMode) {
+                    currentDarkMode = it.darkMode
+                    needsRefresh = true
+                }
+                
+                if (needsRefresh) {
+                    onSettingsChanged()
+                }
             }
         }
 
@@ -110,12 +128,26 @@ class NotificationHelper @Inject constructor(
         bigNotificationView.setOnClickPendingIntent(R.id.close_service,stopPendingIntent)
     }
 
-    private fun onLiveUpdateChanged(live: Boolean) {
-        Log.d(TAG, "onLiveUpdateChanged: $liveUpdate")
-        liveUpdate = live
-        val notification = makeNotification(Pair(0.0, 0.0))
+    private fun onSettingsChanged() {
+        Log.d(TAG, "onSettingsChanged: liveUpdate=$liveUpdate, darkMode=$currentDarkMode")
+        val notification = makeNotification(preData ?: Pair(0.0, 0.0))
         updateNotificationChecked(notification)
     }
+
+    private fun isSystemDarkTheme(): Boolean {
+        val uiMode = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        return uiMode == Configuration.UI_MODE_NIGHT_YES
+    }
+
+    private fun updateRemoteViewsTheme() {
+        val textColor = if (isSystemDarkTheme()) android.graphics.Color.WHITE else android.graphics.Color.BLACK
+        notificationView.setTextColor(R.id.stream_up, textColor)
+        notificationView.setTextColor(R.id.stream_down, textColor)
+        bigNotificationView.setTextColor(R.id.stream_up, textColor)
+        bigNotificationView.setTextColor(R.id.stream_down, textColor)
+        bigNotificationView.setTextColor(R.id.close_service, textColor)
+    }
+
     private fun createNotificationChannel() {
         val serviceChannel = NotificationChannel(
             CHANNEL_ID,
@@ -141,7 +173,7 @@ class NotificationHelper @Inject constructor(
     }
 
     fun makeNotification(data: Pair<Double,Double>): Notification {
-
+         updateRemoteViewsTheme()
          return if (liveUpdate && canPostPromotionsEnabled(context)) {
              liveBuilder
                  .setContentText("${String.format("%.1f",data.first)} kb/s ${String.format("%.1f",data.second)} kb/s")
@@ -155,7 +187,11 @@ class NotificationHelper @Inject constructor(
              notificationView.setTextViewText(R.id.stream_down,"${String.format("%.1f",data.second)} kb/s")
              bigNotificationView.setTextViewText(R.id.stream_up,"${String.format("%.1f",data.first)} kb/s")
              bigNotificationView.setTextViewText(R.id.stream_down,"${String.format("%.1f",data.second)} kb/s")
-            normalBuilder.build()
+            normalBuilder
+                .setCustomContentView(notificationView)
+                .setCustomBigContentView(bigNotificationView)
+                .setStyle(NotificationCompat.DecoratedCustomViewStyle())
+                .build()
         }
     }
 
@@ -165,10 +201,10 @@ class NotificationHelper @Inject constructor(
      * @param: data upload and download traffic data
      */
     fun updateNotificationIfNeeded(data: Pair<Double,Double>) {
-        val notification = makeNotification(data)
-        if (preData?.first != data.first && preData?.second != data.second) {
-            updateNotificationChecked(notification)
+        if (preData?.first != data.first || preData?.second != data.second) {
             preData = data
+            val notification = makeNotification(data)
+            updateNotificationChecked(notification)
         }
     }
 

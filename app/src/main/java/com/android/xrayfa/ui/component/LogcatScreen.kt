@@ -177,7 +177,8 @@ fun LogcatScreen(
                         Text(
                             text = stringResource(R.string.no_log_text),
                             style = MaterialTheme.typography.headlineMedium,
-                            modifier = Modifier.align(Alignment.Center)
+                            modifier = Modifier.align(Alignment.Center),
+                            color = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }else {
@@ -188,7 +189,8 @@ fun LogcatScreen(
                         items(items = logList) { logLine->
                             Text(
                                 text = logLine,
-                                style = MaterialTheme.typography.bodySmall
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onBackground
                             )
                         }
                     }
