@@ -31,6 +31,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import javax.inject.Inject
+import com.android.xrayfa.utils.LinkUtils
 
 val emptySubscription = Subscription(0,"","",-1,-1,false)
 
@@ -135,7 +136,9 @@ class SubscriptionViewmodel(
 
     fun generateQRCode(id: Int) {
         viewModelScope.launch {
-            shareUrl = repository.getSubscriptionById(id).first()?.url
+            shareUrl = repository.getSubscriptionById(id).first()?.url?.let {
+                LinkUtils.cleanUrlForSharing(it)
+            }
             shareUrl?.let {
                 val bitmap = BarcodeUtils.encodeBitmap(it, BarcodeFormat.QR_CODE,400,400)
                 _qrcodeBitmap.value = bitmap
@@ -145,14 +148,14 @@ class SubscriptionViewmodel(
 
     //export clipboard
     fun exportConfigToClipboard(context: Context) {
-        if (shareUrl == "") {
+        if (shareUrl.isNullOrEmpty()) {
             return
         }
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
         val clip = ClipData.newPlainText("label", shareUrl)
         clipboard.setPrimaryClip(clip)
-        shareUrl == ""
+        shareUrl = ""
     }
 
     fun dismissQRCode() {

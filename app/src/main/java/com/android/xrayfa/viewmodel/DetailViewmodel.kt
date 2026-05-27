@@ -63,7 +63,7 @@ class DetailViewmodel(
         hysteria2Obfs: String = "",
         hysteria2ObfsPassword: String = "",
         hysteria2Alpn: String = "",
-        hysteria2AllowInsecure: Boolean = false
+        allowInsecure: Boolean = false
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             val url = when (protocol) {
@@ -87,6 +87,9 @@ class DetailViewmodel(
                     if (transportSecurity == "reality") {
                         params["pbk"] = publicKey
                         params["sid"] = shortId
+                    }
+                    if (transportSecurity == "tls" && allowInsecure) {
+                        params["allowInsecure"] = "1"
                     }
                     
                     parserFactory.vlessConfigParser.encodeProtocol(VLESSConfig(
@@ -113,6 +116,9 @@ class DetailViewmodel(
                         addProperty("tls", if (transportSecurity == "none") "" else transportSecurity)
                         addProperty("sni", sni)
                         addProperty("fp", fingerprint)
+                        if (transportSecurity == "tls" && allowInsecure) {
+                            addProperty("allowInsecure", "1")
+                        }
                     }
                     parserFactory.vmessConfigParser.encodeProtocol(VMESSConfig(
                         uuid = uuidOrPassword,
@@ -146,6 +152,9 @@ class DetailViewmodel(
                     if (transportSecurity == "tls" || transportSecurity == "reality") {
                         params["sni"] = sni
                     }
+                    if (transportSecurity == "tls" && allowInsecure) {
+                        params["allowInsecure"] = "1"
+                    }
                     parserFactory.trojanConfigParser.encodeProtocol(TrojanConfig(
                         scheme = "trojan",
                         password = uuidOrPassword,
@@ -171,8 +180,8 @@ class DetailViewmodel(
                     if (hysteria2ObfsPassword.isNotBlank()) {
                         params["obfs-password"] = hysteria2ObfsPassword
                     }
-                    if (hysteria2AllowInsecure) {
-                        params["allowInsecure"] = "1"
+                    if (allowInsecure) {
+                                    params["allowInsecure"] = "1"
                     }
                     parserFactory.hysteria2ConfigParser.encodeProtocol(
                         Hysteria2Config(

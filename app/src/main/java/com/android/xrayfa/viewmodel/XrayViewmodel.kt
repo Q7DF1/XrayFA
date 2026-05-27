@@ -54,6 +54,8 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 
+import com.android.xrayfa.utils.LinkUtils
+
 class XrayViewmodel(
     private val repository: NodeRepository,
     private val subscriptionRepository: SubscriptionRepository,
@@ -393,7 +395,7 @@ class XrayViewmodel(
     fun generateQRCode(id: Int) {
         viewModelScope.launch {
             val node = repository.loadLinksById(id).first()
-            shareUrl = node?.url ?: ""
+            shareUrl = LinkUtils.cleanUrlForSharing(node?.url ?: "")
             val bitmap = BarcodeUtils.encodeBitmap(shareUrl, BarcodeFormat.QR_CODE,400,400)
             _qrcodeBitmap.value = bitmap
         }
@@ -407,7 +409,7 @@ class XrayViewmodel(
 
         val clip = ClipData.newPlainText("label", shareUrl)
         clipboard.setPrimaryClip(clip)
-        shareUrl == ""
+        shareUrl = ""
     }
 
     //delete dialog

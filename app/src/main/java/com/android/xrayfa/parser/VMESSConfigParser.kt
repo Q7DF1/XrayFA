@@ -113,7 +113,7 @@ class VMESSConfigParser
                     ) else null,
                     tlsSettings = if (tls == "tls") TlsSettings(
                         serverName = if (host.isNotEmpty()) host else address,
-                        allowInsecure = false
+                        allowInsecure = json.get("allowInsecure")?.asString == "1"
                     ) else null,
                     grpcSettings = if (network == "grpc") GrpcSettings(
                         serviceName = json.get("path")?.asString ?: ""

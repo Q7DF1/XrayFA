@@ -107,7 +107,10 @@ class TrojanConfigParser
             streamSettings = StreamSettingsObject(
                 network = network,
                 security = trojanConfig.params.getOrDefault("security", "tls"),
-                tlsSettings = TlsSettings(serverName = trojanConfig.host, allowInsecure = false),
+                tlsSettings = TlsSettings(
+                    serverName = trojanConfig.host,
+                    allowInsecure = trojanConfig.params["allowInsecure"] == "1"
+                ),
                 wsSettings = if (network == "ws") WsSettings(
                     path = trojanConfig.params.getOrDefault("path",""),
                     headers = mapOf(Pair("Host",trojanConfig.host?:""))

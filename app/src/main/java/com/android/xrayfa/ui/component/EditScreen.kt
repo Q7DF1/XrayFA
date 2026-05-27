@@ -119,12 +119,12 @@ fun EditScreen(
     var fingerprint by remember { mutableStateOf("chrome") }
     var publicKey by remember { mutableStateOf("") }
     var shortId by remember { mutableStateOf("") }
+    var allowInsecure by remember { mutableStateOf(false) }
     
     // Hysteria2
     var hysteria2Obfs by remember { mutableStateOf("") }
     var hysteria2ObfsPassword by remember { mutableStateOf("") }
     var hysteria2Alpn by remember { mutableStateOf("") }
-    var hysteria2AllowInsecure by remember { mutableStateOf(false) }
 
     // Initialize from content if provided
     LaunchedEffect(initialContent) {
@@ -148,6 +148,7 @@ fun EditScreen(
                         fingerprint = config.param["fp"] ?: "chrome"
                         publicKey = config.param["pbk"] ?: ""
                         shortId = config.param["sid"] ?: ""
+                        allowInsecure = config.param["allowInsecure"] == "1"
                     }
                     Protocol.VMESS.protocolType -> {
                         selectedProtocol = Protocol.VMESS
@@ -163,6 +164,7 @@ fun EditScreen(
                         wsPath = if (others.has("path")) others.get("path").asString else "/"
                         sni = if (others.has("sni")) others.get("sni").asString else ""
                         fingerprint = if (others.has("fp")) others.get("fp").asString else "chrome"
+                        allowInsecure = others.has("allowInsecure") && others.get("allowInsecure").asString == "1"
                     }
                     Protocol.TROJAN.protocolType -> {
                         selectedProtocol = Protocol.TROJAN
@@ -176,6 +178,7 @@ fun EditScreen(
                         wsHost = config.params["host"] ?: ""
                         grpcServiceName = config.params["serviceName"] ?: ""
                         sni = config.params["sni"] ?: ""
+                        allowInsecure = config.params["allowInsecure"] == "1"
                     }
                     Protocol.SHADOW_SOCKS.protocolType -> {
                         selectedProtocol = Protocol.SHADOW_SOCKS
@@ -195,7 +198,7 @@ fun EditScreen(
                         hysteria2Alpn = config.param["alpn"] ?: ""
                         hysteria2Obfs = config.param["obfs"] ?: ""
                         hysteria2ObfsPassword = config.param["obfs-password"] ?: ""
-                        hysteria2AllowInsecure = config.param["allowInsecure"] == "1"
+                        allowInsecure = config.param["allowInsecure"] == "1"
                     }
                 }
             } catch (e: Exception) {
@@ -271,7 +274,7 @@ fun EditScreen(
                                     hysteria2Obfs = hysteria2Obfs,
                                     hysteria2ObfsPassword = hysteria2ObfsPassword,
                                     hysteria2Alpn = hysteria2Alpn,
-                                    hysteria2AllowInsecure = hysteria2AllowInsecure
+                                    allowInsecure = allowInsecure
                                 )
                                 onBack()
                             },
@@ -345,8 +348,8 @@ fun EditScreen(
                             )
                         }
                         EditDropdownField(
-                            if (hysteria2AllowInsecure) "true" else "false",
-                            { hysteria2AllowInsecure = it == "true" },
+                            if (allowInsecure) "true" else "false",
+                            { allowInsecure = it == "true" },
                             "Allow Insecure",
                             listOf("false", "true")
                         )
@@ -378,6 +381,15 @@ fun EditScreen(
                         if (transportSecurity == "reality") {
                             EditTextField(publicKey, { publicKey = it }, "Public Key")
                             EditTextField(shortId, { shortId = it }, "Short ID")
+                        }
+
+                        if (transportSecurity == "tls") {
+                            EditDropdownField(
+                                if (allowInsecure) "true" else "false",
+                                { allowInsecure = it == "true" },
+                                "Allow Insecure",
+                                listOf("false", "true")
+                            )
                         }
                     }
                 }
