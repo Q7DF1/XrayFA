@@ -126,4 +126,19 @@
     <string name="bug_report_expected_label">Ожидаемое поведение</string>
     <string name="bug_report_actual_label">Фактическое поведение</string>
     <string name="bug_report_submit">Отправить на GitHub</string>
+
+    <string name="notification_permission_denied">В разрешении на уведомление отказано</string>
+    <string name="notification_permission_rationale">Необходимо разрешение на уведомление, чтобы служба оставалась активной</string>
+    <string name="cancelled">Отменено</string>
+    <string name="unknown">Неизвестно</string>
+    <string name="timeout">Тайм-аут</string>
+    <string name="add_to_favorites">Добавить в избранное</string>
+    <string name="remove_from_favorites">Удалить из избранного</string>
+    <string name="no_subscriptions">Нет подписок</string>
+    <string name="add_subscription">Добавить подписку</string>
+    <string name="edit_subscription">Изменить подписку</string>
+    <string name="pre_node">Пре-узел</string>
+    <string name="next_node">Пост-узел</string>
+    <string name="none">Нет</string>
+    <string name="share_subscription">Поделиться подпиской</string>
 </resources>

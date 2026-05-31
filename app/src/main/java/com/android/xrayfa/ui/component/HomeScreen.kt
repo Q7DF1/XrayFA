@@ -185,7 +185,7 @@ fun CompactHomeContent(
 
         selectedNode?.let { node ->
             Text(
-                text = "Connection Details",
+                text = stringResource(R.string.connection_detail),
                 style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.align(Alignment.Start)
             )
@@ -247,7 +247,7 @@ fun ExpandedHomeContent(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Connection Details",
+                text = stringResource(R.string.connection_detail),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -267,7 +267,7 @@ fun ExpandedHomeContent(
                 shape = RoundedCornerShape(24.dp)
             ) {
                 Box(Modifier.padding(48.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text("No Node Selected", style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(R.string.no_configuration), style = MaterialTheme.typography.bodyLarge)
                 }
             }
         }

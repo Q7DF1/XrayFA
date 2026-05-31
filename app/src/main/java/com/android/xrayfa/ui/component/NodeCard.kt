@@ -54,6 +54,8 @@ import com.android.xrayfa.utils.ColorMap
 
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.res.stringResource
+import com.android.xrayfa.R
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
@@ -138,7 +140,8 @@ fun NodeCard(
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = protocolPrefixMap[node.protocolPrefix]?.protocolType ?: "Unknown",
+                        text = protocolPrefixMap[node.protocolPrefix]?.protocolType ?: stringResource(
+                            R.string.unknown),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -158,7 +161,7 @@ fun NodeCard(
                         ) {
                             Icon(
                                 imageVector = if (favorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                                contentDescription = if (favorite) "Remove from favorites" else "Add to favorites",
+                                contentDescription = if (favorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites),
                                 tint = if (favorite) Color.Red else Color.Gray,
                                 modifier = Modifier.size(20.dp)
                             )
@@ -166,7 +169,7 @@ fun NodeCard(
                     }
 
                     if (delayMs > 0 || delayMs == -2L) {
-                        val displayText = if (delayMs == -2L) "Timeout" else "${delayMs}ms"
+                        val displayText = if (delayMs == -2L) stringResource(R.string.timeout) else "${delayMs}ms"
                         Spacer(Modifier.width(8.dp))
                         Box(
                             modifier = Modifier
@@ -215,7 +218,7 @@ fun NodeCard(
                     IconButton(onClick = onTest, enabled = enableTest) {
                         Icon(
                             imageVector = Icons.Outlined.Speed,
-                            contentDescription = "Test",
+                            contentDescription = stringResource(R.string.test_url),
                             modifier = Modifier.scale(scale),
                             tint = if (enableTest) {
                                 MaterialTheme.colorScheme.primary.copy(alpha = alpha)
@@ -225,17 +228,17 @@ fun NodeCard(
                 }
                 if (onShare != null) {
                     IconButton(onClick = onShare) {
-                        Icon(Icons.Default.Share, contentDescription = "Share")
+                        Icon(Icons.Default.Share, contentDescription = stringResource(R.string.clipboard_export))
                     }
                 }
                 if (onEdit != null) {
                     IconButton(onClick = onEdit) {
-                        Icon(Icons.Filled.Edit, contentDescription = "Edit")
+                        Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.edit))
                     }
                 }
                 if (delete != null) {
                     IconButton(onClick = delete) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete")
+                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete))
                     }
                 }
             }

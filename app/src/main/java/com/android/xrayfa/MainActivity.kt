@@ -110,7 +110,7 @@ class MainActivity @Inject constructor(
             if (isGranted) {
                 //TODO migrate to after click the start button
             } else {
-                Toast.makeText(this, "通知权限被拒绝", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.notification_permission_denied), Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -125,12 +125,12 @@ class MainActivity @Inject constructor(
                 }
                 shouldShowRequestPermissionRationale(android.Manifest.permission.POST_NOTIFICATIONS) -> {
                     AlertDialog.Builder(this)
-                        .setTitle("notification permission")
-                        .setMessage("need notification permission to keep service alive")
-                        .setPositiveButton("grant") { _, _ ->
+                        .setTitle(getString(R.string.notification_permission_title))
+                        .setMessage(getString(R.string.notification_permission_rationale))
+                        .setPositiveButton(getString(R.string.notification_permission_grant_button)) { _, _ ->
                             requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
                         }
-                        .setNegativeButton("reject", null)
+                        .setNegativeButton(getString(R.string.notification_permission_reject_button), null)
                         .show()
                 }
                 else -> {
@@ -155,7 +155,7 @@ class MainActivity @Inject constructor(
             ACTION_OPEN_SCAN -> {
                 xrayViewmodel.setPaddingRoute(ScanQR { result ->
                     if (result.isEmpty()) {
-                        Toast.makeText(this, "Cancelled", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, getString(R.string.cancelled), Toast.LENGTH_LONG).show();
                     }else {
                         xrayViewmodel.addLink(result)
                     }

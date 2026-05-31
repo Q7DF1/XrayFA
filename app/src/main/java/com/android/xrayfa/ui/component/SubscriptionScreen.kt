@@ -278,7 +278,7 @@ fun SubscriptionScreen(
                             )
                             Spacer(Modifier.height(16.dp))
                             Text(
-                                text = "No Subscriptions",
+                                text = stringResource(R.string.no_subscriptions),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.outline
                             )
@@ -400,7 +400,7 @@ fun SubscriptionScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Text(
-                            text = if (subscription.id <= 0) "Add Subscription" else "Edit Subscription",
+                            text = if (subscription.id <= 0) stringResource(R.string.add_subscription) else stringResource(R.string.edit_subscription),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -432,14 +432,14 @@ fun SubscriptionScreen(
                         )
 
                         NodeSelector(
-                            label = "Pre Node",
+                            label = stringResource(R.string.pre_node),
                             selectedNodeId = preNodeId,
                             nodes = allNodes,
                             onNodeSelected = { preNodeId = it }
                         )
 
                         NodeSelector(
-                            label = "Next Node",
+                            label = stringResource(R.string.next_node),
                             selectedNodeId = nextNodeId,
                             nodes = allNodes,
                             onNodeSelected = { nextNodeId = it }
@@ -495,7 +495,7 @@ fun SubscriptionScreen(
                             modifier = Modifier.padding(24.dp)
                         ) {
                             Text(
-                                "Share Subscription",
+                                stringResource(R.string.share_subscription),
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold
                             )
@@ -507,7 +507,7 @@ fun SubscriptionScreen(
                             ) {
                                 Image(
                                     bitmap = qrBitMap!!.asImageBitmap(),
-                                    contentDescription = "qrcode",
+                                    contentDescription = stringResource(R.string.qrcode_import),
                                     modifier = Modifier.fillMaxSize()
                                 )
                             }
@@ -557,7 +557,7 @@ fun NodeSelector(
         modifier = Modifier.fillMaxWidth()
     ) {
         OutlinedTextField(
-            value = selectedNode?.remark ?: selectedNode?.address ?: "None",
+            value = selectedNode?.remark ?: selectedNode?.address ?: stringResource(R.string.none),
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
@@ -571,7 +571,7 @@ fun NodeSelector(
             onDismissRequest = { expanded = false }
         ) {
             DropdownMenuItem(
-                text = { Text("None") },
+                text = { Text(stringResource(R.string.none)) },
                 onClick = {
                     onNodeSelected(-1)
                     expanded = false

@@ -120,4 +120,19 @@
     <string name="bug_report_expected_label">预期行为</string>
     <string name="bug_report_actual_label">实际行为</string>
     <string name="bug_report_submit">提交并打开 GitHub</string>
+
+    <string name="notification_permission_denied">通知权限被拒绝</string>
+    <string name="notification_permission_rationale">需要通知权限来保持服务运行</string>
+    <string name="cancelled">已取消</string>
+    <string name="unknown">未知</string>
+    <string name="timeout">超时</string>
+    <string name="add_to_favorites">添加到收藏</string>
+    <string name="remove_from_favorites">从收藏中移除</string>
+    <string name="no_subscriptions">暂无订阅</string>
+    <string name="add_subscription">添加订阅</string>
+    <string name="edit_subscription">编辑订阅</string>
+    <string name="pre_node">前置节点</string>
+    <string name="next_node">后置节点</string>
+    <string name="none">无</string>
+    <string name="share_subscription">分享订阅</string>
 </resources>
