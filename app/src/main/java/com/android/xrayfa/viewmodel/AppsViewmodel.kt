@@ -47,6 +47,9 @@ class AppsViewmodel(
      */
     val loading: StateFlow<Boolean> = appInfoRepo.loading
 
+    /** 查询应用列表的权限状态，UI 据此切换"需要权限"页面 / 列表。 */
+    val permissionState: StateFlow<AppInfoRepository.PermissionState> = appInfoRepo.permissionState
+
     /**
      * 实际给 UI 渲染的列表：
      *   缓存的应用元数据 × 用户允许列表 × 搜索关键字 → List<AppInfo>
@@ -85,6 +88,15 @@ class AppsViewmodel(
     /** 触发首次加载（或在 forceRefresh 时强制刷新），仓库内部去重。 */
     fun load(forceRefresh: Boolean = false) {
         viewModelScope.launch { appInfoRepo.load(forceRefresh) }
+    }
+
+    /**
+     * 仅刷新权限状态（不扫描包）。供 UI 在 onResume 时调用：
+     * 用户从系统设置授予权限回到 App 后，先把状态从 DENIED 推回 UNKNOWN，
+     * 再触发 [load] 重新尝试。
+     */
+    fun recheckPermission() {
+        appInfoRepo.recheckPermission()
     }
 
     fun setAllowedPackages(packages: List<String>, callback: suspend () -> Unit = {}) {

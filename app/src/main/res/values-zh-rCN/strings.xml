@@ -135,4 +135,9 @@
     <string name="next_node">后置节点</string>
     <string name="none">无</string>
     <string name="share_subscription">分享订阅</string>
+
+    <string name="apps_permission_required_title">需要查询应用权限</string>
+    <string name="apps_permission_required_desc">为了显示已安装的应用列表以便选择代理对象，请在系统设置中为 %1$s 授予"读取应用列表"权限。</string>
+    <string name="apps_permission_open_settings">前往设置</string>
+    <string name="apps_permission_retry">重试</string>
 </resources>

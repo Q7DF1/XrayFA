@@ -1,5 +1,6 @@
 package com.android.xrayfa.repository
 
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -7,6 +8,7 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.util.Log
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
@@ -39,11 +41,20 @@ import javax.inject.Singleton
  * - 用 Mutex + double-check 保证并发场景下只扫描一次。
  * - 缓存的数据 [CachedAppInfo] 是不可变元数据，不包含用户的"是否允许"状态，
  *   后者由 ViewModel 与 SettingsRepository.packagesFlow 组合派生。
+ *
+ * 权限处理：
+ * - 在 [load] 前先用 [Manifest.permission.QUERY_ALL_PACKAGES] 静态判定（API 30+）。
+ * - 扫描完成后，再用 PackageManager 实际返回的包数兜底：若只有 0~1 项，
+ *   说明 OEM 隐私管控（如 MIUI/HyperOS）实际拦截了查询，等同于未授予。
+ * - 任一判定失败 → [permissionState] 置为 DENIED，且不缓存任何不完整结果，
+ *   下一次 [load] 仍会重试。
  */
 @Singleton
 class AppInfoRepository @Inject constructor(
     @Application private val context: Context,
 ) {
+
+    enum class PermissionState { UNKNOWN, GRANTED, DENIED }
 
     data class CachedAppInfo(
         val appName: String,
@@ -57,6 +68,10 @@ class AppInfoRepository @Inject constructor(
 
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading.asStateFlow()
+
+    private val _permissionState = MutableStateFlow(PermissionState.UNKNOWN)
+    /** 查询应用列表的权限状态。UI 据此决定显示列表 / "需要权限"页面。 */
+    val permissionState: StateFlow<PermissionState> = _permissionState.asStateFlow()
 
     private val mutex = Mutex()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -98,30 +113,87 @@ class AppInfoRepository @Inject constructor(
     }
 
     /**
+     * 静态权限检查：仅基于 manifest + 系统授予状态判断。
+     * 在 API 30 以下没有此权限，默认视为已授予（旧系统不限制查询）。
+     */
+    private fun hasQueryAllPackagesPermission(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return true
+        return ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.QUERY_ALL_PACKAGES,
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    /**
+     * 让 UI（onResume）能主动触发重检：仅刷新 [permissionState]，不扫描包。
+     * 真正的扫描通过 [load] 触发。
+     */
+    fun recheckPermission() {
+        if (!hasQueryAllPackagesPermission()) {
+            _permissionState.value = PermissionState.DENIED
+        } else if (_permissionState.value == PermissionState.DENIED) {
+            // 之前是 DENIED，现在 manifest 权限通过，回到 UNKNOWN，
+            // 等 load() 通过实际扫描结果再确认是否真的能用。
+            _permissionState.value = PermissionState.UNKNOWN
+        }
+    }
+
+    /**
      * 加载已安装应用列表。
      * - 已加载且未要求强制刷新 → 立即返回（命中缓存）。
      * - 否则在 IO 线程执行扫描。Mutex 保证并发只扫描一次。
+     * - 权限未授予 / OEM 拦截导致扫描结果不完整 → 不缓存，[permissionState] 置 DENIED。
      */
     suspend fun load(forceRefresh: Boolean = false) {
-        // 快速路径：无锁判断
-        if (!forceRefresh && _apps.value != null) return
+        // 0. 静态权限快速判：未授予则直接返回，避免无意义的 PM 扫描
+        if (!hasQueryAllPackagesPermission()) {
+            _permissionState.value = PermissionState.DENIED
+            return
+        }
+        // 1. 快速路径：无锁判断
+        if (!forceRefresh && _apps.value != null) {
+            _permissionState.value = PermissionState.GRANTED
+            return
+        }
         mutex.withLock {
-            // 双重检查：拿到锁后再判断一次，避免重复扫描
-            if (!forceRefresh && _apps.value != null) return
+            // 双重检查
+            if (!hasQueryAllPackagesPermission()) {
+                _permissionState.value = PermissionState.DENIED
+                return
+            }
+            if (!forceRefresh && _apps.value != null) {
+                _permissionState.value = PermissionState.GRANTED
+                return
+            }
             _loading.value = true
             try {
-                val list = withContext(Dispatchers.IO) { fetchFromPackageManager() }
-                _apps.value = list
+                val (rawCount, list) = withContext(Dispatchers.IO) { fetchFromPackageManager() }
+                // 兜底：manifest 权限即使返回 GRANTED，部分 OEM（MIUI/HyperOS 等）
+                // 仍可能在隐私层拦截 getInstalledPackages，使返回值仅有自身。
+                // 此时不污染缓存，下次 load() 还能重试。
+                if (rawCount <= 1) {
+                    Log.w(TAG, "PackageManager returned only $rawCount package(s); " +
+                            "QUERY_ALL_PACKAGES likely not effective. Skipping cache.")
+                    _permissionState.value = PermissionState.DENIED
+                } else {
+                    _apps.value = list
+                    _permissionState.value = PermissionState.GRANTED
+                }
             } finally {
                 _loading.value = false
             }
         }
     }
 
-    private fun fetchFromPackageManager(): List<CachedAppInfo> {
+    /**
+     * 返回 (rawCount, filteredList)：
+     * - rawCount：PackageManager 返回的原始包数量，用于权限是否真生效的兜底判定。
+     * - filteredList：去掉无 INTERNET / 无图标 / 无标题等不合格项后的有序列表。
+     */
+    private fun fetchFromPackageManager(): Pair<Int, List<CachedAppInfo>> {
         val pm = context.packageManager
         val installedPackages = pm.getInstalledPackages(PackageManager.GET_PERMISSIONS)
-        return installedPackages.mapNotNull { pkgInfo ->
+        val list = installedPackages.mapNotNull { pkgInfo ->
             val appInfo = pkgInfo.applicationInfo ?: return@mapNotNull null
 
             val label = runCatching {
@@ -143,6 +215,7 @@ class AppInfoRepository @Inject constructor(
                 icon = drawable.toPainter(),
             )
         }.sortedBy { it.appName.lowercase() }
+        return installedPackages.size to list
     }
 
     companion object {
