@@ -393,6 +393,7 @@ fun SettingsScreen(
                         progress = geoIPProgress,
                         onDownloadClick = {viewmodel.downloadGeoIP(context = context)},
                         downloadEnable = XrayBaseService.statusFlow.collectAsState().value,
+                        downloadDisabledHint = R.string.geo_download_need_service_hint,
                         onImportClick = {
                             val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                                 addCategory(Intent.CATEGORY_OPENABLE)
@@ -411,6 +412,7 @@ fun SettingsScreen(
                         downloading = geoSiteDownloading,
                         progress = geoSiteProgress,
                         downloadEnable = XrayBaseService.statusFlow.collectAsState().value,
+                        downloadDisabledHint = R.string.geo_download_need_service_hint,
                         onImportClick = {
                             val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
                                 addCategory(Intent.CATEGORY_OPENABLE)
@@ -428,6 +430,7 @@ fun SettingsScreen(
                         onDownloadClick = {viewmodel.downloadGeoLite(context)},
                         downloading = geoLiteDownloading,
                         downloadEnable = XrayBaseService.statusFlow.collectAsState().value,
+                        downloadDisabledHint = R.string.geo_download_need_service_hint,
                         progress = geoLiteProgress,
                         enable = settingsState.geoLiteInstall
                     )
@@ -567,7 +570,8 @@ fun SettingsWithBtnBox(
     onDownloadClick: () -> Unit = {},
     onImportClick: (() -> Unit)? = null,
     enable: Boolean = true,
-    downloadEnable: Boolean = true
+    downloadEnable: Boolean = true,
+    @StringRes downloadDisabledHint: Int? = null
 ) {
 
     val infiniteTransition = rememberInfiniteTransition()
@@ -598,6 +602,23 @@ fun SettingsWithBtnBox(
                         progress = { progress },
                         modifier = Modifier.fillMaxWidth(),
                     )
+                }
+                if (!downloadEnable && !downloading && downloadDisabledHint != null) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Outlined.Info,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.tertiary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.size(4.dp))
+                        Text(
+                            text = stringResource(downloadDisabledHint),
+                            color = MaterialTheme.colorScheme.tertiary,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
                 }
             }
         },

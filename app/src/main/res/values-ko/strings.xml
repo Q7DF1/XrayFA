@@ -47,6 +47,7 @@
     <string name="edit">편집</string>
     <string name="can_not_be_empty">공백은 허용 안됩니다</string>
     <string name="geo_import_try_later">다운로드중... 잠시후 다시 시도해 주세요</string>
+    <string name="geo_download_need_service_hint">서비스를 먼저 시작하세요 — 다운로드는 프록시를 통해 GitHub에 안정적으로 접속합니다.</string>
     <string name="err_ipv4_empty">IPv4 주소를 하나 이상 입력해 주세요</string>
     <string name="err_ipv4_item_empty">%1$d번째 항목이 비어 있습니다. 쉼표나 공백이 있는지 확인하십시오</string>
     <string name="err_ipv4_invalid">%1$d번째 항목 %2$s는 유효한 IPv4 주소가 아닙니다</string>

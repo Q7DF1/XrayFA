@@ -54,6 +54,7 @@
     <string name="edit">edit</string>
     <string name="can_not_be_empty">cannot be empty</string>
     <string name="geo_import_try_later">Downloading, please try again later.</string>
+    <string name="geo_download_need_service_hint">Start the service first — downloads route through the proxy to reach GitHub reliably.</string>
 
     <string name="err_ipv4_empty">Please enter at least one IPv4 address</string>
     <string name="err_ipv4_item_empty">The %1$d-th entry is empty, please check commas or spaces</string>
