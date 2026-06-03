@@ -135,7 +135,12 @@ class NotificationHelper @Inject constructor(
     }
 
     private fun isSystemDarkTheme(): Boolean {
-        val uiMode = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        // The notification is rendered by SystemUI and follows the *system* theme,
+        // not the per-app theme that AppCompatDelegate.setDefaultNightMode() applies.
+        // Use Resources.getSystem() so we always read the real system uiMode, even
+        // when the user has overridden the in-app theme via the dark-mode setting.
+        val uiMode = android.content.res.Resources.getSystem()
+            .configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         return uiMode == Configuration.UI_MODE_NIGHT_YES
     }
 
@@ -170,6 +175,16 @@ class NotificationHelper @Inject constructor(
         with(NotificationManagerCompat.from(context)) {
             cancel(NOTIFICATION_ID)
         }
+    }
+
+    /**
+     * Re-render and re-post the notification using the latest traffic data.
+     * Call this when system configuration (e.g. dark/light mode) changes so the
+     * RemoteViews text color matches the current SystemUI background.
+     */
+    fun refreshNotification() {
+        val notification = makeNotification(preData ?: Pair(0.0, 0.0))
+        updateNotificationChecked(notification)
     }
 
     fun makeNotification(data: Pair<Double,Double>): Notification {

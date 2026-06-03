@@ -2,6 +2,7 @@ package com.android.xrayfa.core
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
@@ -124,6 +125,22 @@ class XrayBaseService
         super.onDestroy()
         tunFd?.close()
         tunFd = null
+    }
+
+    /**
+     * Called when the system configuration changes at runtime — most importantly
+     * when the user toggles the system dark/light theme. The notification is
+     * rendered by SystemUI using the system theme, so we need to re-post it so
+     * the RemoteViews text color (computed in NotificationHelper) updates to
+     * match the new background.
+     *
+     * Note: this fires only while the service is running, which is exactly when
+     * the foreground notification is visible.
+     */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        Log.i(TAG, "onConfigurationChanged: uiMode=${newConfig.uiMode}")
+        notificationHelper.refreshNotification()
     }
 
 
