@@ -1,8 +1,6 @@
 package com.android.xrayfa.ui.component
 
-import android.content.Intent
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.Animatable
@@ -32,7 +30,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.ContentCut
 import androidx.compose.material.icons.outlined.DeleteForever
-import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Star
@@ -524,14 +521,6 @@ fun ConfigScreen(
                         tint = if (expended) MaterialTheme.colorScheme.onSurface
                         else MaterialTheme.colorScheme.surface
                     ) },
-                    trailingIcon = {
-                        if (expended) {
-                            Icon(
-                                imageVector = Icons.Outlined.Mic,
-                                contentDescription = "voice_search_lab"
-                            )
-                        }
-                    },
                 )
             }
         AnimatedVisibility(
