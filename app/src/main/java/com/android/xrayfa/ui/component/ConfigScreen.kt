@@ -423,9 +423,11 @@ fun ConfigScreen(
 
                             if(node != nodes.last()) {
                                 HorizontalDivider(
-                                    modifier = Modifier.fillMaxSize()
-                                        .padding(horizontal = 48.dp),
-                                    thickness = 1.dp
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 86.dp, end = 16.dp),
+                                    thickness = 0.6.dp,
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                                 )
                             }
                         }
@@ -584,9 +586,11 @@ fun ConfigScreen(
                         )
                         if (node != queryNodes.last()) {
                             HorizontalDivider(
-                                modifier = Modifier.fillMaxSize()
-                                    .padding(horizontal = 48.dp),
-                                thickness = 1.dp
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 86.dp, end = 16.dp),
+                                thickness = 0.6.dp,
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                             )
                         }
                     }
