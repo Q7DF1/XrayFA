@@ -1,26 +1,30 @@
-# F-Droid Release CI - Automatically triggered on push to main or tag (v*)
-# Builds APK with package name from APPLICATION_ID in gradle.properties
-name: Android CI
+name: Google Play Release
 
+# Manual trigger only - for publishing to Google Play Store
+# Uses a different package name (APPLICATION_ID_PLAY) since the F-Droid
+# package name (com.android.xrayfa) is already registered on Google Play.
 on:
-  push:
-    branches: [ "main" ]
-    tags: 
-    - 'v*'
-  pull_request:
-    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type (aab=Android App Bundle for Play Store, apk=APK for testing)'
+        required: true
+        type: choice
+        default: 'aab'
+        options:
+          - 'aab'
+          - 'apk'
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    # Required permission to create a GitHub Release
     permissions:
       contents: write
     steps:
     - uses: actions/checkout@v5
       with:
         submodules: recursive
+
     - name: set up JDK 17
       uses: actions/setup-java@v4
       with:
@@ -50,81 +54,86 @@ jobs:
         wget -qO android-ndk.zip https://dl.google.com/android/repository/android-ndk-r27-linux.zip
         unzip -q android-ndk.zip
         rm android-ndk.zip
-          
         echo "ANDROID_NDK_HOME=$(pwd)/android-ndk-r27" >> $GITHUB_ENV
+
+    # Read Google Play APPLICATION_ID from gradle.properties
+    - name: Read Play Store APPLICATION_ID
+      run: |
+        PLAY_ID=$(grep "^APPLICATION_ID_PLAY=" gradle.properties | cut -d'=' -f2 | tr -d '\r')
+        echo "PLAY_APPLICATION_ID=$PLAY_ID" >> $GITHUB_ENV
+        echo "Play Store APPLICATION_ID: $PLAY_ID"
 
     - name: Initialize Build Directory
       run: |
-        sudo mkdir -p /home/vagrant/build/com.android.xrayfa
+        sudo mkdir -p /home/vagrant/build/${{ env.PLAY_APPLICATION_ID }}
         sudo chown -R $USER:$USER /home/vagrant
-        cp -a . /home/vagrant/build/com.android.xrayfa/
+        cp -a . /home/vagrant/build/${{ env.PLAY_APPLICATION_ID }}/
 
-    # Update dat files before gomobile binds them into the AAR
     - name: Update GeoIP and GeoSite for AndroidLibXrayLite
-      working-directory: /home/vagrant/build/com.android.xrayfa
+      working-directory: /home/vagrant/build/${{ env.PLAY_APPLICATION_ID }}
       run: |
-        # Extract versions from gradle.properties
         GEO_IP_VERSION=$(grep "^GEO_IP_VERSION=" gradle.properties | cut -d'=' -f2 | tr -d '\r')
         GEO_SITE_VERSION=$(grep "^GEO_SITE_VERSION=" gradle.properties | cut -d'=' -f2 | tr -d '\r')
-
         echo "Syncing dat files for versions: IP=$GEO_IP_VERSION, Site=$GEO_SITE_VERSION"
-
-        # Ensure the assets directory exists in the Go library folder
         LIB_ASSETS_DIR="AndroidLibXrayLite/assets"
         mkdir -p "$LIB_ASSETS_DIR"
-
-        # Download and replace the files
         echo "Downloading geoip.dat to $LIB_ASSETS_DIR..."
         wget -qO "$LIB_ASSETS_DIR/geoip.dat" "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/${GEO_IP_VERSION}/geoip.dat"
-        
         echo "Downloading geosite.dat to $LIB_ASSETS_DIR..."
         wget -qO "$LIB_ASSETS_DIR/geosite.dat" "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/${GEO_SITE_VERSION}/geosite.dat"
-        
         echo "Library assets updated."
-    
+
     - name: Prepare AAR
-      working-directory: /home/vagrant/build/com.android.xrayfa
+      working-directory: /home/vagrant/build/${{ env.PLAY_APPLICATION_ID }}
       env:
         ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
         GOFLAGS: -buildvcs=false
         CGO_LDFLAGS: -Wl,--build-id=none
       run: |
-        # Build AAR for xray
         cd AndroidLibXrayLite
         gomobile init
         go mod tidy -v
-
         CURRENT_PATH=$(pwd)
         export CGO_CFLAGS="-ffile-prefix-map=$CURRENT_PATH=."
         export CGO_CXXFLAGS="-ffile-prefix-map=$CURRENT_PATH=."
-
-        # gomobile bind default name is libv2ray.aar for package libv2ray
         gomobile bind -v -trimpath -androidapi 21 -ldflags="-s -w -buildid=" ./
-
         mkdir -p ../app/libs
         cp libv2ray.aar ../app/libs/
+
     - name: Grant execute permission for gradlew
-      working-directory: /home/vagrant/build/com.android.xrayfa
+      working-directory: /home/vagrant/build/${{ env.PLAY_APPLICATION_ID }}
       run: chmod +x gradlew
-    - name: Build with Gradle
-      working-directory: /home/vagrant/build/com.android.xrayfa
+
+    - name: Build AAB for Google Play
+      if: ${{ github.event.inputs.build_type == 'aab' }}
+      working-directory: /home/vagrant/build/${{ env.PLAY_APPLICATION_ID }}
       env:
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: |
-        ./gradlew assembleRelease --max-workers=1 --no-daemon
+        ./gradlew bundleRelease -PAPPLICATION_ID=${{ env.PLAY_APPLICATION_ID }} --max-workers=1 --no-daemon
 
-    - name: Upload APK
+    - name: Build APK for testing
+      if: ${{ github.event.inputs.build_type == 'apk' }}
+      working-directory: /home/vagrant/build/${{ env.PLAY_APPLICATION_ID }}
+      env:
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      run: |
+        ./gradlew assembleRelease -PAPPLICATION_ID=${{ env.PLAY_APPLICATION_ID }} --max-workers=1 --no-daemon
+
+    - name: Upload AAB
+      if: ${{ github.event.inputs.build_type == 'aab' }}
       uses: actions/upload-artifact@v4
       with:
-        name: release-apk
-        path: /home/vagrant/build/com.android.xrayfa/app/build/outputs/apk/release/*.apk
+        name: google-play-aab
+        path: /home/vagrant/build/${{ env.PLAY_APPLICATION_ID }}/app/build/outputs/bundle/release/*.aab
 
-# Auto-release step
-    - name: Create Release
-      uses: softprops/action-gh-release@v2
-      if: startsWith(github.ref, 'refs/tags/') # Only execute this step if triggered by a tag push
+    - name: Upload APK
+      if: ${{ github.event.inputs.build_type == 'apk' }}
+      uses: actions/upload-artifact@v4
       with:
-        files: /home/vagrant/build/com.android.xrayfa/app/build/outputs/apk/release/*.apk # Directly use the path of the built APK
-        generate_release_notes: true # Automatically generate release notes from PRs/commits
+        name: google-play-apk
+        path: /home/vagrant/build/${{ env.PLAY_APPLICATION_ID }}/app/build/outputs/apk/release/*.apk
