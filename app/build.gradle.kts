@@ -16,7 +16,8 @@ android {
     defaultConfig {
         val VERSION_NAME:String by project
         val VERSION_CODE:String by project
-        applicationId = "com.android.xrayfa"
+        val APPLICATION_ID = findProperty("APPLICATION_ID") as String? ?: "com.android.xrayfa"
+        applicationId = APPLICATION_ID
         minSdk = 28
         targetSdk = 36
         versionCode = VERSION_CODE.toInt()
