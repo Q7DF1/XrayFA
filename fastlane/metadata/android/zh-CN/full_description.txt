@@ -1,0 +1,10 @@
+XrayFA 是一款功能强大且易用的 Xray-core Android 客户端。它在 Android 设备上提供安全且快速的代理体验，支持多种协议，包括 VLESS、VMESS、Shadowsocks、Trojan、Hysteria2 和 Reality。
+
+主要功能：
+- 支持多种协议：VLESS、VMESS、Shadowsocks、Trojan、Hysteria2 和 Reality。
+- 高性能：基于最新的 Xray-core 构建，低延迟、高速度。
+- 高效易用：通过二维码或订阅链接导入配置。
+- 自定义路由：根据规则灵活地绕过或代理流量。
+- 现代化 UI：简洁清爽的界面，带来轻松的用户体验。
+
+XrayFA 通过加密流量和绕过本地限制，确保您的互联网隐私和安全。立即在您的 Android 设备上通过 XrayFA 体验 Xray 的强大功能！
