@@ -84,7 +84,9 @@ android {
 
     splits {
         abi {
-            isEnable = true
+            // Disable APK splits when building App Bundle (AAB), otherwise it causes
+            // "Sequence contains more than one matching element" in buildReleasePreBundle
+            isEnable = gradle.startParameter.taskNames.none { it.contains("Bundle", true) }
             reset()
             include("armeabi-v7a","arm64-v8a","x86","x86_64")
             isUniversalApk = true
