@@ -148,7 +148,7 @@ tasks.register<Exec>("bindXrayLib") {
         "-v",
         "-trimpath",
         "-androidapi", "21",
-        "-ldflags=-s -w -buildid=",
+        "-ldflags=-s -w -buildid= -checklinkname=0",
         "./"
     )
     outputs.file(aarOutput)
