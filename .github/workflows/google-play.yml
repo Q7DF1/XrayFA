@@ -96,7 +96,7 @@ jobs:
         CURRENT_PATH=$(pwd)
         export CGO_CFLAGS="-ffile-prefix-map=$CURRENT_PATH=."
         export CGO_CXXFLAGS="-ffile-prefix-map=$CURRENT_PATH=."
-        gomobile bind -v -trimpath -androidapi 21 -ldflags="-s -w -buildid=" ./
+        gomobile bind -v -trimpath -androidapi 21 -ldflags="-s -w -buildid= -checklinkname=0" ./
         mkdir -p ../app/libs
         cp libv2ray.aar ../app/libs/
 
