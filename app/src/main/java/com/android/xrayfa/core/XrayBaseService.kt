@@ -156,6 +156,10 @@ class XrayBaseService
         } else {
             builder.addDnsServer("8.8.8.8")
         }
+        if (settings.ipV6Enable) {
+            val dnsV6Servers = settings.dnsIPv6.split(",").filter { it.isNotBlank() }
+            dnsV6Servers.forEach { builder.addDnsServer(it.trim()) }
+        }
         val allowedPackages = settingsRepo.getAllowedPackages()
         if (!allowedPackages.isEmpty()) {
             allowedPackages.forEach {
@@ -166,6 +170,7 @@ class XrayBaseService
         }
         if (settings.ipV6Enable) {
             builder.addAddress(prefs.tunnelIpv6Address,prefs.tunnelIpv6Prefix)
+            builder.addRoute("::", 0)
         }
         tunFd = builder.setSession(resources.getString(R.string.app_label))
             .addAddress(prefs.tunnelIpv4Address, prefs.tunnelIpv4Prefix)

@@ -140,7 +140,8 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
             hosts = mapOf(
                 "domain:googleapis.cn" to "googleapis.com"
             ),
-            servers = dns
+            servers = dns,
+            queryStrategy = if (settingsState.ipV6Enable) "UseIP" else "UseIPv4"
         )
     }
 
