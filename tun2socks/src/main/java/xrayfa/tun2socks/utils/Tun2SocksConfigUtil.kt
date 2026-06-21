@@ -29,6 +29,10 @@ class Tun2SocksConfigUtil
                 appendLine("  task-stack-size: ${prefs.taskStackSize}")
                 appendLine("tunnel:")
                 appendLine("  mtu: ${prefs.tunnelMtu}")
+                appendLine("  ipv4: ${prefs.tunnelIpv4Address}")
+                if (settingState.ipV6Enable) {
+                    appendLine("  ipv6: '${prefs.tunnelIpv6Address}'")
+                }
                 appendLine("socks5:")
                 appendLine("  port: ${settingState.socksPort}")
                 appendLine("  address: '${prefs.socksAddress}'")
