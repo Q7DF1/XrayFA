@@ -4,20 +4,15 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.android.xrayfa.common.di.qualifier.ShortTime
-import com.android.xrayfa.common.repository.SettingsRepository
-import com.android.xrayfa.dto.Link
 import com.android.xrayfa.dto.Node
 import com.android.xrayfa.dto.Subscription
-import com.android.xrayfa.parser.ParserFactory
-import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.repository.SubscriptionRepository
 import com.android.xrayfa.utils.BarcodeUtils
+import com.android.xrayfa.utils.SubscriptionUserInfo
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.TAG
 import com.google.zxing.BarcodeFormat
 import kotlinx.coroutines.Dispatchers
@@ -29,32 +24,25 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import javax.inject.Inject
 import com.android.xrayfa.utils.LinkUtils
-import kotlinx.coroutines.runBlocking
+import com.android.xrayfa.utils.SubscriptionMeta
 
-val emptySubscription = Subscription(0,"","",-1,-1,false)
-
+val emptySubscription = Subscription(0, "", "", -1, -1, false)
 
 class SubscriptionViewmodel(
     val repository: SubscriptionRepository,
-    val okHttp: OkHttpClient,
     val nodeRepository: NodeRepository,
-    val subscriptionParser: SubscriptionParser,
-    val parserFactory: ParserFactory,
-    val settingsRepository: SettingsRepository
-): ViewModel() {
+) : ViewModel() {
 
     private val _subscriptions = MutableStateFlow<List<Subscription>>(emptyList())
     val subscriptions = _subscriptions.asStateFlow()
 
-
     private val _selectSubscription = MutableStateFlow<Subscription>(emptySubscription)
     val selectSubscription = _selectSubscription.asStateFlow()
 
-    private val _nodes: MutableStateFlow<Flow<List<Node>>> = MutableStateFlow(nodeRepository.allNodes)
+    private val _nodes: MutableStateFlow<Flow<List<Node>>> =
+        MutableStateFlow(nodeRepository.allNodes)
     val nodes: StateFlow<Flow<List<Node>>> = _nodes.asStateFlow()
 
     private val _deleteDialog = MutableStateFlow(false)
@@ -71,9 +59,12 @@ class SubscriptionViewmodel(
     private val _qrcodeBitmap = MutableStateFlow<Bitmap?>(null)
     val qrBitmap: StateFlow<Bitmap?> = _qrcodeBitmap.asStateFlow()
 
-    var shareUrl: String? = null
-    init {
+    private val _subscriptionMeta = MutableStateFlow<SubscriptionMeta?>(null)
+    val subscriptionMeta: StateFlow<SubscriptionMeta?> = _subscriptionMeta.asStateFlow()
 
+    var shareUrl: String? = null
+
+    init {
         viewModelScope.launch(Dispatchers.IO) {
             repository.allSubscriptions.collect {
                 _subscriptions.value = it
@@ -97,12 +88,38 @@ class SubscriptionViewmodel(
         _deleteDialog.value = false
     }
 
+    fun addOrUpdateSubscription(
+        subscription: Subscription,
+        onSuccess: () -> Unit = {}
+    ) {
+        if (subscription.id == 0) {
+            refreshSubscription(
+                url = subscription.url,
+                subscriptionId = 0
+            ) {
+                val mark = if(subscription.mark.isNullOrEmpty()){
+                    it.profileTitle
+                } else {
+                    subscription.mark
+                }
 
-    fun addOrUpdateSubscription(subscription: Subscription) {
-        viewModelScope.launch(Dispatchers.IO) {
-            if (subscription.id == 0) {
-                repository.addSubscription(subscription)
-            } else {
+                _subscriptionMeta.value?.profileTitle = mark
+
+                val sub = Subscription(
+                    id = subscription.id,
+                    url = subscription.url,
+                    mark = mark,
+                    preNodeId = subscription.preNodeId,
+                    nextNodeId = subscription.nextNodeId,
+                    isAutoUpdate = subscription.isAutoUpdate
+                )
+                viewModelScope.launch(Dispatchers.IO) {
+                    repository.addSubscription(sub)
+                }
+                onSuccess()
+            }
+        } else {
+            viewModelScope.launch(Dispatchers.IO) {
                 repository.updateSubscription(subscription)
             }
         }
@@ -122,10 +139,9 @@ class SubscriptionViewmodel(
     }
 
     fun getSubscriptionByIdWithCallback(id: Int, callback: () -> Unit) {
-
         viewModelScope.launch(Dispatchers.IO) {
             val subscription = repository.getSubscriptionById(id).first()
-            _selectSubscription.value = subscription?:emptySubscription
+            _selectSubscription.value = subscription ?: emptySubscription
             withContext(Dispatchers.Main) {
                 callback()
             }
@@ -136,14 +152,13 @@ class SubscriptionViewmodel(
         _selectSubscription.value = emptySubscription
     }
 
-
     fun generateQRCode(id: Int) {
         viewModelScope.launch {
             shareUrl = repository.getSubscriptionById(id).first()?.url?.let {
                 LinkUtils.cleanUrlForSharing(it)
             }
             shareUrl?.let {
-                val bitmap = BarcodeUtils.encodeBitmap(it, BarcodeFormat.QR_CODE,400,400)
+                val bitmap = BarcodeUtils.encodeBitmap(it, BarcodeFormat.QR_CODE, 400, 400)
                 _qrcodeBitmap.value = bitmap
             }
         }
@@ -155,7 +170,6 @@ class SubscriptionViewmodel(
             return
         }
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-
         val clip = ClipData.newPlainText("label", shareUrl)
         clipboard.setPrimaryClip(clip)
         shareUrl = ""
@@ -165,82 +179,43 @@ class SubscriptionViewmodel(
         _qrcodeBitmap.value = null
     }
 
-    //TODO I think this function would be better placed in the repository.
-    fun getSubscriptionWithCallback(url: String, subscriptionId: Int,callback: () -> Unit) {
-        val currentSettings = runBlocking { settingsRepository.settingsFlow.first() }
-
-        val request = Request.Builder()
-            .get()
-            .url(url)
-            .addHeader(XHWID, currentSettings.hwid)
-            .build()
+    fun refreshSubscription(
+        url: String,
+        subscriptionId: Int,
+        extraHeaders: Map<String, String> = emptyMap(),
+        onSuccess: (SubscriptionMeta) -> Unit = {}
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             _requestingSubscription.value = true
             try {
-                val response = okHttp.newCall(request)
-                    .execute()
-
-                if (response.isSuccessful) {
-                    val content = response.body?.string() ?: ""
-                    if (content != "") {
-                        val urls = subscriptionParser.parseUrl(content)
-                        nodeRepository.deleteLinkBySubscriptionId(subscriptionId)
-                        val newNodes = urls.map {
-                            Log.i(TAG, "getSubscription: ${it.substringBefore("://")}")
-                            Log.i(TAG, "getSubscription: $it")
-                            val link = Link(
-                                protocolPrefix = it.substringBefore("://"),
-                                content = it,
-                                selected = false,
-                                subscriptionId = subscriptionId,
-                            )
-                            val node =
-                                parserFactory.getParser(link.content).preParse(link)
-                            Log.i(TAG, "getSubscriptionWithCallback: $node")
-                            node
-                        }
-                        nodeRepository.addNode(*newNodes.toTypedArray())
-                    }
-                    callback()
-                }
-            }catch (e: Exception) {
+                val subscriptionInfo =
+                    repository.fetchAndSaveNodes(url, subscriptionId, extraHeaders)
+                _subscriptionMeta.value = subscriptionInfo
+                withContext(Dispatchers.Main) { onSuccess(subscriptionInfo) }
+            } catch (e: Exception) {
                 launch {
                     _subscribeError.value = true
                     delay(2000L)
                     _subscribeError.value = false
                 }
-
-                Log.e(TAG, "getSubscription: ${e.message}", )
-            }finally {
+            } finally {
                 _requestingSubscription.value = false
             }
         }
-    }
-
-    companion object {
-
-        private const val XHWID = "x-hwid"
     }
 }
 
 class SubscriptionViewmodelFactory
 @Inject constructor(
     val repository: SubscriptionRepository,
-    @ShortTime val okHttp: OkHttpClient,
     val nodeRepository: NodeRepository,
-    val subscriptionParser: SubscriptionParser,
-    val parserFactory: ParserFactory,
-    val settingsRepository: SettingsRepository
-): ViewModelProvider.Factory {
+) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SubscriptionViewmodel::class.java)) {
-            return SubscriptionViewmodel(repository,
-                okHttp,
+            return SubscriptionViewmodel(
+                repository,
                 nodeRepository,
-                subscriptionParser,
-                parserFactory,
-                settingsRepository
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

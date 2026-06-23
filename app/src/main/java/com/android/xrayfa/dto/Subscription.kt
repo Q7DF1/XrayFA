@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 @Entity
 class Subscription(
     @PrimaryKey(autoGenerate = true) val id: Int = -1,
-    val mark: String,
+    val mark: String?,
     val url: String,
     val preNodeId: Int = -1,
     val nextNodeId: Int = -1,

@@ -46,6 +46,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -95,6 +96,7 @@ fun SubscriptionScreen(
     var isBottomSheetShow by remember { mutableStateOf(false) }
 
     val subscription by viewmodel.selectSubscription.collectAsState()
+    val subscriptionMeta by viewmodel.subscriptionMeta.collectAsState()
     var nickName by remember(subscription) { mutableStateOf(subscription.mark) }
     var url by remember(subscription) { mutableStateOf(subscription.url) }
     var preNodeId by remember(subscription) { mutableStateOf(subscription.preNodeId) }
@@ -293,7 +295,7 @@ fun SubscriptionScreen(
                         items(items = subscriptions, key = { it.id }) { item ->
                             OutlinedCard(
                                 onClick = {
-                                    viewmodel.getSubscriptionWithCallback(item.url, item.id) {
+                                    viewmodel.refreshSubscription(item.url, item.id) {
                                         onNavigate(Config)
                                     }
                                 },
@@ -303,13 +305,17 @@ fun SubscriptionScreen(
                                     containerColor = MaterialTheme.colorScheme.surface
                                 ),
                                 border = CardDefaults.outlinedCardBorder(enabled = true).copy(
-                                    brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                                    brush = SolidColor(
+                                        MaterialTheme.colorScheme.outlineVariant.copy(
+                                            alpha = 0.5f
+                                        )
+                                    )
                                 )
                             ) {
                                 ListItem(
                                     headlineContent = {
                                         Text(
-                                            text = item.mark,
+                                            text = subscriptionMeta?.profileTitle?: item.mark.orEmpty(),
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.SemiBold
                                         )
@@ -406,10 +412,10 @@ fun SubscriptionScreen(
                         )
 
                         OutlinedTextField(
-                            value = nickName,
+                            value = nickName?: subscriptionMeta?.profileTitle.orEmpty(),
                             onValueChange = {
                                 nickName = it
-                                nickNameIsNull = nickName.isBlank()
+                                nickNameIsNull = nickName?.isBlank()?: subscriptionMeta?.profileTitle.orEmpty().isBlank()
                             },
                             label = { Text(stringResource(R.string.nick_name)) },
                             singleLine = true,
@@ -456,7 +462,7 @@ fun SubscriptionScreen(
                             Spacer(Modifier.width(8.dp))
                             Button(
                                 onClick = {
-                                    validateThenConfirm(nickName, url) {
+                                    validateThenConfirm(url) {
                                         viewmodel.addOrUpdateSubscription(
                                             subscription = Subscription(
                                                 id = subscription.id,
@@ -464,14 +470,16 @@ fun SubscriptionScreen(
                                                 url = url,
                                                 preNodeId = preNodeId,
                                                 nextNodeId = nextNodeId,
-                                                isAutoUpdate = subscription.isAutoUpdate
-                                            )
+                                                isAutoUpdate = subscription.isAutoUpdate,
+                                            ),
+                                            onSuccess = {
+                                                onNavigate(Config)
+                                            }
                                         )
+                                        isBottomSheetShow = false
                                     }.also {
-                                        nickNameIsNull = it.first
-                                        urlIsNullOrInvalid = it.second
+                                        urlIsNullOrInvalid = it
                                     }
-                                    isBottomSheetShow = false
                                 },
                                 enabled = !urlIsNullOrInvalid && !nickNameIsNull,
                                 shape = RoundedCornerShape(12.dp)
@@ -604,11 +612,10 @@ fun validateUrl(url: String): Boolean {
     }
 }
 
-fun validateThenConfirm(nickName: String, url: String, onConfirm: () -> Unit): Pair<Boolean, Boolean> {
-    val isNickNameNull = nickName.isBlank()
+fun validateThenConfirm(url: String, onConfirm: () -> Unit): Boolean {
     val isUrlIllegal = !validateUrl(url)
-    if (!isNickNameNull && !isUrlIllegal) {
+    if (!isUrlIllegal) {
         onConfirm()
     }
-    return isNickNameNull to isUrlIllegal
+    return isUrlIllegal
 }

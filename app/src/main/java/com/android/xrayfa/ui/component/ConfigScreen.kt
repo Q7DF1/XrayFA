@@ -170,7 +170,7 @@ fun ConfigScreen(
         list.add(XrayViewmodel.SUB_ALL to "All")
         list.add(XrayViewmodel.FAVORITE to "Favorite")
         subscriptions.forEach { 
-            list.add(it.id to it.mark)
+            list.add(it.id to it.mark.orEmpty())
         }
         list
     }
