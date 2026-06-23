@@ -91,12 +91,15 @@ class XrayBaseService
 
                 serviceScope.launch {
                     notificationHelper.showNotification()
-                    xrayCoreManager.addConsumer { data ->
-                        notificationHelper.updateNotificationIfNeeded(data)
-                    }
                     val start = startXrayCoreService(startOptions = options!!)
                     updateStatus(start)
                     updateToggleShortcut(start)
+                    // Collect traffic data for notification updates
+                    if (start) {
+                        xrayCoreManager.trafficFlow.collect { data ->
+                            notificationHelper.updateNotificationIfNeeded(data)
+                        }
+                    }
                 }
                 START_STICKY
             }

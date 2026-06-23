@@ -29,7 +29,6 @@ class XrayBaseServiceManager
     }
 
     var qsStateCallBack: (Boolean)->Unit = {}
-    var viewmodelTrafficCallback: (Pair<Double, Double>) -> Unit = {}
 
 
     suspend fun getConfigInformation(): StartOptions? {
@@ -64,9 +63,6 @@ class XrayBaseServiceManager
         }
         context.startService(intent)
         qsStateCallBack(true)
-        trafficDetector.addConsumer({
-            viewmodelTrafficCallback(it)
-        })
         return true
     }
 

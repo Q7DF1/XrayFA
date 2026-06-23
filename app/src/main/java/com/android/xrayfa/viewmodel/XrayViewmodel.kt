@@ -247,9 +247,11 @@ class XrayViewmodel(
 
     init {
 
-        xrayBaseServiceManager.viewmodelTrafficCallback  = { pair ->
-            _upSpeed.value = pair.first
-            _downSpeed.value = pair.second
+        viewModelScope.launch {
+            xrayCoreManager.trafficFlow.collect { pair ->
+                _upSpeed.value = pair.first
+                _downSpeed.value = pair.second
+            }
         }
         viewModelScope.launch {
             XrayBaseService.statusFlow.collect {

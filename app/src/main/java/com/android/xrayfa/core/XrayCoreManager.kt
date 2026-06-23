@@ -13,15 +13,16 @@ import com.android.xrayfa.utils.Device
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import libv2ray.CoreCallbackHandler
 import libv2ray.CoreController
 import libv2ray.Libv2ray
-import java.util.function.Consumer
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -56,32 +57,23 @@ class XrayCoreManager
     }
     private var coreController: CoreController? = null
     private var job: Job? = null
-    private var consumeJob: Job? = null
-    private var startOrClose = false
-    private val trafficChannel = Channel<Pair<Double, Double>>(capacity = 0)
-    private val consumes: MutableList<Consumer<Pair<Double, Double>>> = ArrayList()
+
+    private val _trafficFlow = MutableSharedFlow<Pair<Double, Double>>(replay = 1)
+    override val trafficFlow: SharedFlow<Pair<Double, Double>> = _trafficFlow.asSharedFlow()
 
     val controllerHandler = object: CoreCallbackHandler {
         override fun onEmitStatus(p0: Long, p1: String?): Long {
             Log.i(TAG, "onEmitStatus: $p0 $p1")
-            if (startOrClose)
-                startTrafficDetection()
-            else
-                stopTrafficDetection()
             return 0L
         }
 
         override fun shutdown(): Long {
             Log.i(TAG, "shutdown: end")
-            if (consumeJob?.isActive == true) consumeJob?.cancel()
             return 0L
         }
 
         override fun startup(): Long {
             Log.i(TAG, "startup: start")
-            consumeJob = coroutineScope.launch(Dispatchers.Default) {
-                consumeTraffic()
-            }
             return 0L
         }
 
@@ -103,17 +95,13 @@ class XrayCoreManager
 
 
     fun measureDelaySync(url: String): Long {
-        if (coreController?.isRunning == false) {
-            return -1
+        if (coreController?.isRunning == false) return -1
+        return try {
+            coreController?.measureDelay(url) ?: 0L
+        } catch (e: Exception) {
+            Log.e(TAG, "measureDelaySync: ${e.message}")
+            -1
         }
-        var delay = 0L
-        try {
-            delay = coreController?.measureDelay(url) ?:0L
-        }catch (e: Exception) {
-            Log.e(TAG, "measureDelaySync: ${e.message}", )
-            return -1
-        }
-        return delay
     }
 
     suspend fun startXrayCore(startOptions: StartOptions, tunFd: Int?): Boolean {
@@ -121,7 +109,8 @@ class XrayCoreManager
             tunFd?.let {
                 coreController?.startLoop(parserFactory.getParser(startOptions.url).parse(startOptions),tunFd)
             }
-            startOrClose = true
+            // Start traffic detection after core is confirmed running
+            startTrafficDetection()
             return true
         }catch (e: Exception) {
             Log.e(TAG, "startXrayCore failed: ${e.message}")
@@ -134,33 +123,27 @@ class XrayCoreManager
     }
 
     fun stopXrayCore() {
-        startOrClose = false
+        stopTrafficDetection()
         coreController?.stopLoop()
     }
 
     override fun startTrafficDetection() {
-            job = coroutineScope.launch(Dispatchers.IO) {
-                var last = 0L
-                var upSpeed: Double
-                var downSpeed: Double
-                while (true) {
-                    var cur = System.currentTimeMillis()
-                    val up = queryStats(TAG_PROXY, UP_STEAM)
-                    val down = queryStats(TAG_PROXY,DOWN_STEAM)
-                    val deltaTimeSec = (cur - last) / 1000.0
-                    if (deltaTimeSec > 0) {
-                        upSpeed = (up / deltaTimeSec) / 1024
-                        downSpeed = (down / deltaTimeSec) / 1024
-                    } else {
-                        upSpeed = 0.0
-                        downSpeed = 0.0
-                    }
-                    if (last != 0L) {
-                        trafficChannel.send(Pair(upSpeed,downSpeed))
-                    }else {
-                        trafficChannel.send(Pair(0.0,0.0))
-                    }
-                    last = cur
+        job?.cancel()
+        job = coroutineScope.launch(Dispatchers.IO) {
+            var last = System.currentTimeMillis()
+            // send initial zero values
+            _trafficFlow.emit(Pair(0.0, 0.0))
+            delay(3000L)
+            while (true) {
+                val cur = System.currentTimeMillis()
+                val up = queryStats(TAG_PROXY, UP_STEAM)
+                val down = queryStats(TAG_PROXY, DOWN_STEAM)
+                val deltaTimeSec = (cur - last) / 1000.0
+                val upSpeed = if (deltaTimeSec > 0) (up / deltaTimeSec) / 1024 else 0.0
+                val downSpeed = if (deltaTimeSec > 0) (down / deltaTimeSec) / 1024 else 0.0
+                _trafficFlow.emit(Pair(upSpeed, downSpeed))
+                last = cur
+                delay(3000L)
             }
         }
     }
@@ -168,23 +151,6 @@ class XrayCoreManager
     override fun stopTrafficDetection() {
         job?.cancel()
         Log.d(TAG, "stopTrafficDetection: ${job?.isActive}")
-    }
-
-    override fun addConsumer(consume: Consumer<Pair<Double, Double>>) {
-        consumes.add(consume)
-    }
-
-    /**
-     * transfer the up/download data to ui layer
-     */
-    override suspend fun consumeTraffic() {
-
-        for (pair in trafficChannel) {
-            consumes.forEach {
-                it.accept(pair)
-            }
-            delay(3000L)
-        }
     }
 
     /**
