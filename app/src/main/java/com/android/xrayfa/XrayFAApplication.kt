@@ -1,6 +1,8 @@
 package com.android.xrayfa
 
+import android.annotation.SuppressLint
 import android.app.Application
+import android.provider.Settings
 import android.util.Log
 import androidx.datastore.preferences.core.edit
 import com.android.xrayfa.XrayAppCompatFactory.Companion.TAG
@@ -47,6 +49,7 @@ class XrayFAApplication: Application() {
         observeDarkMode()
         initXrayFile()
         initSocksConfig()
+        initHwid()
     }
 
     private fun initXrayFile() {
@@ -90,6 +93,15 @@ class XrayFAApplication: Application() {
                 if (username == null || username.isBlank()) {
                     it[SettingsKeys.SOCKS_USERNAME] = SocksConfigGenerator.generateUsername()
                 }
+            }
+        }
+    }
+
+    @SuppressLint("HardwareIds")
+    private fun initHwid(){
+        appCoroutineScope.launch {
+            dataStore.edit {
+                it[SettingsKeys.HWID] = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID) ?: "unknown"
             }
         }
     }

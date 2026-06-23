@@ -469,6 +469,13 @@ fun SettingsScreen(
                     )
 
                     SettingsFieldBox(
+                        title = R.string.hwid,
+                        content = settingsState.hwid,
+                        icon = Icons.Outlined.Info,
+                        onClick = {}
+                    )
+
+                    SettingsFieldBox(
                         title = R.string.xray_core_version,
                         content = settingsState.xrayCoreVersion,
                         icon = Icons.Outlined.Info
@@ -539,13 +546,13 @@ fun SettingsCheckBox(
     ListItem(
         headlineContent = { Text(stringResource(title)) },
         supportingContent = { Text(stringResource(description)) },
-        leadingContent = icon?.let { { 
+        leadingContent = icon?.let { {
             Icon(
-                imageVector = it, 
-                contentDescription = null, 
+                imageVector = it,
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
-            ) 
+            )
         } },
         trailingContent = {
             Switch(
@@ -679,13 +686,13 @@ fun SettingsSelectBox(
     ListItem(
         headlineContent = { Text(stringResource(title)) },
         supportingContent = { Text(stringResource(description)) },
-        leadingContent = icon?.let { { 
+        leadingContent = icon?.let { {
             Icon(
-                imageVector = it, 
-                contentDescription = null, 
+                imageVector = it,
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp)
-            ) 
+            )
         } },
         trailingContent = {
             Box {

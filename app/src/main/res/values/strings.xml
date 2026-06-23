@@ -67,6 +67,7 @@
     <string name="err_ipv6_duplicate">IPv6 address #%d is duplicated: %s</string>
 
     <string name="xrayfa_version">Version</string>
+    <string name="hwid">hwid</string>
     <string name="xray_core_version">Xray core version</string>
     <string name="general_part">general</string>
     <string name="network_part">network</string>

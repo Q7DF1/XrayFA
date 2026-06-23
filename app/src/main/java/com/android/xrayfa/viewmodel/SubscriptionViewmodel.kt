@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.xrayfa.common.di.qualifier.ShortTime
+import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.dto.Link
 import com.android.xrayfa.dto.Node
 import com.android.xrayfa.dto.Subscription
@@ -32,6 +33,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import javax.inject.Inject
 import com.android.xrayfa.utils.LinkUtils
+import kotlinx.coroutines.runBlocking
 
 val emptySubscription = Subscription(0,"","",-1,-1,false)
 
@@ -41,7 +43,8 @@ class SubscriptionViewmodel(
     val okHttp: OkHttpClient,
     val nodeRepository: NodeRepository,
     val subscriptionParser: SubscriptionParser,
-    val parserFactory: ParserFactory
+    val parserFactory: ParserFactory,
+    val settingsRepository: SettingsRepository
 ): ViewModel() {
 
     private val _subscriptions = MutableStateFlow<List<Subscription>>(emptyList())
@@ -162,11 +165,14 @@ class SubscriptionViewmodel(
         _qrcodeBitmap.value = null
     }
 
-
+    //TODO I think this function would be better placed in the repository.
     fun getSubscriptionWithCallback(url: String, subscriptionId: Int,callback: () -> Unit) {
+        val currentSettings = runBlocking { settingsRepository.settingsFlow.first() }
+
         val request = Request.Builder()
             .get()
             .url(url)
+            .addHeader(XHWID, currentSettings.hwid)
             .build()
         viewModelScope.launch(Dispatchers.IO) {
             _requestingSubscription.value = true
@@ -210,6 +216,11 @@ class SubscriptionViewmodel(
             }
         }
     }
+
+    companion object {
+
+        private const val XHWID = "x-hwid"
+    }
 }
 
 class SubscriptionViewmodelFactory
@@ -218,7 +229,8 @@ class SubscriptionViewmodelFactory
     @ShortTime val okHttp: OkHttpClient,
     val nodeRepository: NodeRepository,
     val subscriptionParser: SubscriptionParser,
-    val parserFactory: ParserFactory
+    val parserFactory: ParserFactory,
+    val settingsRepository: SettingsRepository
 ): ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -227,7 +239,8 @@ class SubscriptionViewmodelFactory
                 okHttp,
                 nodeRepository,
                 subscriptionParser,
-                parserFactory
+                parserFactory,
+                settingsRepository
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
