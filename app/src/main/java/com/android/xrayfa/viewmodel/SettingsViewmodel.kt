@@ -185,6 +185,7 @@ class SettingsViewmodel(
     fun setHexTunEnable(enable: Boolean) {
         viewModelScope.launch {
             repository.setHexTunState(enable)
+            onConfigSettingsChanged()
         }
     }
 
@@ -225,7 +226,6 @@ class SettingsViewmodel(
     fun setSendHwid(enable: Boolean){
         viewModelScope.launch {
             repository.setSendHwid(enable)
-            onConfigSettingsChanged()
         }
     }
 
