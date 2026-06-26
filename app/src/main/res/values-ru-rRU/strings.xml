@@ -70,7 +70,7 @@
     <string name="xray_core_version">Версия Xray‑core</string>
     <string name="general_part">Основное</string>
     <string name="network_part">Сеть</string>
-    <string name="subscirption_part">Подписка</string>
+    <string name="subscription_part">Подписка</string>
     <string name="about_part">Дополнительно</string>
     <string name="geo_lite_title" translatable="false">Geo_ip_lite</string>
     <string name="geo_ip_lite_description">IP‑адреса и соответствующая информация о странах</string>

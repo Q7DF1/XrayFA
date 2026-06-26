@@ -205,7 +205,8 @@ class SettingsRepository
             domainStrategy = prefs[SettingsKeys.DOMAIN_STRATEGY]?: DomainStrategy.IP_IF_NON_MATCH,
             routingRules = prefs[SettingsKeys.ROUTING_RULES]?: defaultRoutes,
             routingMode = prefs[SettingsKeys.ROUTING_MODE] ?: RoutingMode.ROUTE,
-            hwid = prefs[SettingsKeys.HWID] ?: ""
+            hwid = prefs[SettingsKeys.HWID] ?: "",
+            sendHwid = prefs[SettingsKeys.SEND_HWID] ?: true
         )
 
     }

@@ -185,7 +185,6 @@ class SettingsViewmodel(
     fun setHexTunEnable(enable: Boolean) {
         viewModelScope.launch {
             repository.setHexTunState(enable)
-            onConfigSettingsChanged()
         }
     }
 

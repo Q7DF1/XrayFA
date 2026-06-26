@@ -457,19 +457,19 @@ fun SettingsScreen(
                         }
                     }
                 }
-            SettingsGroup(
-                groupName = stringResource(R.string.subscirption_part)
-            ) {
-                SettingsCheckBox(
-                    title = R.string.send_hwid,
-                    description = R.string.send_hwid_desc,
-                    icon = Icons.Outlined.Security,
-                    checked = settingsState.sendHwid,
-                    onCheckedChange = {
-                        viewmodel.setSendHwid(it)
-                    }
-                )
-            }
+                SettingsGroup(
+                    groupName = stringResource(R.string.subscription_part)
+                ) {
+                    SettingsCheckBox(
+                        title = R.string.send_hwid,
+                        description = R.string.send_hwid_desc,
+                        icon = Icons.Outlined.Security,
+                        checked = settingsState.sendHwid,
+                        onCheckedChange = {
+                            viewmodel.setSendHwid(it)
+                        }
+                    )
+                }
                 SettingsGroup(
                     groupName = stringResource(R.string.about_part)
                 ) {
