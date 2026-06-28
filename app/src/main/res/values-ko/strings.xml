@@ -34,7 +34,7 @@
     <string name="dark_mode_description">다크 모드를 활성화 하려면 선택하세요</string>
     <string name="dns_ipv4" translatable="false">DNS IPv4</string>
     <string name="dns_ipv6" translatable="false">DNS IPv6</string>
-    <string name="socks_port" translatable="false">SOCKS 포트</string>
+    <string name="socks_port">SOCKS 포트</string>
     <string name="allow_app_settings">앱 프록시 설정 열기</string>
     <string name="select_app_settings">프록시 설정을 위해 특정 앱을 선택하세요</string>
     <string name="all_app_settings" translatable="false">앱</string>
