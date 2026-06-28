@@ -112,8 +112,8 @@
     <string name="err_socks_invalid_chars">유효하지 않은 문자가 포함되어 있습니다</string>
     <string name="socks_address_listen_title">수신 주소</string>
     <string name="socks_address_listen_desc">수신 주소 (기본값 127.0.0.1)</string>
-    <string name="send_hwid">hwid 전송</string>
-    <string name="send_hwid_desc">구독 요청 시 hwid를 전송합니다</string>
+    <string name="send_hwid">HWID 전송</string>
+    <string name="send_hwid_desc">구독 요청 시 HWID를 전송합니다</string>
 
     <string name="logcat_start">기록 시작</string>
     <string name="logcat_stop">기록 중지</string>
@@ -149,8 +149,8 @@
     <string name="no_subscriptions">구독 없음</string>
     <string name="add_subscription">구독 추가</string>
     <string name="edit_subscription">구독 편집</string>
-    <string name="pre_node">프리 노드</string>
-    <string name="next_node">포스트 노드</string>
+    <string name="pre_node">이전</string>
+    <string name="next_node">다음</string>
     <string name="none">없음</string>
     <string name="share_subscription">구독 공유</string>
 
