@@ -37,7 +37,7 @@
     <string name="socks_port">SOCKS 포트</string>
     <string name="allow_app_settings">앱 프록시 설정 열기</string>
     <string name="select_app_settings">프록시 설정을 위해 특정 앱을 선택하세요</string>
-    <string name="all_app_settings" translatable="false">앱</string>
+    <string name="all_app_settings">앱</string>
     <string name="repo_site">저장소</string>
     <string name="no_log_text">로그 비활성화</string>
     <string name="clipboard_export">클립보드로 내보내기</string>
