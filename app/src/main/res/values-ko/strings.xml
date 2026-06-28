@@ -142,8 +142,8 @@
     <string name="notification_permission_denied">알림 권한이 거부되었습니다</string>
     <string name="notification_permission_rationale">서비스를 유지하려면 알림 권한이 필요합니다</string>
     <string name="cancelled">취소됨</string>
-    <string name="unknown">알수없음</string>
-    <string name="timeout">시간초과</string>
+    <string name="unknown">알 수 없음</string>
+    <string name="timeout">시간 초과</string>
     <string name="add_to_favorites">즐겨찾기에 추가</string>
     <string name="remove_from_favorites">즐겨찾기에서 제거</string>
     <string name="no_subscriptions">구독 없음</string>
