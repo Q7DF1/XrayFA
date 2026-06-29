@@ -51,10 +51,10 @@ jobs:
 
     - name: Setup EXACT NDK for Reproducibility
       run: |
-        wget -qO android-ndk.zip https://dl.google.com/android/repository/android-ndk-r27-linux.zip
+        wget -qO android-ndk.zip https://dl.google.com/android/repository/android-ndk-r28-linux.zip
         unzip -q android-ndk.zip
         rm android-ndk.zip
-        echo "ANDROID_NDK_HOME=$(pwd)/android-ndk-r27" >> $GITHUB_ENV
+        echo "ANDROID_NDK_HOME=$(pwd)/android-ndk-r28" >> $GITHUB_ENV
 
     # Read Google Play APPLICATION_ID from gradle.properties
     - name: Read Play Store APPLICATION_ID
