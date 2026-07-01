@@ -180,8 +180,8 @@ fun EditScreen(
                         sni = config.params["sni"] ?: ""
                         allowInsecure = config.params["allowInsecure"] == "1"
                     }
-                    Protocol.SHADOW_SOCKS.protocolType -> {
-                        selectedProtocol = Protocol.SHADOW_SOCKS
+                    Protocol.SHADOWSOCKS.protocolType -> {
+                        selectedProtocol = Protocol.SHADOWSOCKS
                         val config = detailViewmodel.parseShadowSocks(initialContent)
                         address = config.server
                         port = config.port.toString()
@@ -323,7 +323,7 @@ fun EditScreen(
                         EditTextField(id, { id = it }, "UUID")
                         EditDropdownField(vmessSecurity, { vmessSecurity = it }, "Security", listOf("auto", "aes-128-gcm", "chacha20-poly1305", "none"))
                     }
-                    Protocol.SHADOW_SOCKS -> {
+                    Protocol.SHADOWSOCKS -> {
                         EditTextField(id, { id = it }, "Password")
                         EditDropdownField(ssMethod, { ssMethod = it }, "Method", listOf("aes-256-gcm", "aes-128-gcm", "chacha20-ietf-poly1305", "2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm"))
                     }

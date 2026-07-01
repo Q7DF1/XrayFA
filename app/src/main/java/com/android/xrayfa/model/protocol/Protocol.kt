@@ -1,6 +1,6 @@
 package com.android.xrayfa.model.protocol
 
-import com.android.xrayfa.model.protocol.Protocol.SHADOW_SOCKS
+import com.android.xrayfa.model.protocol.Protocol.SHADOWSOCKS
 import com.android.xrayfa.model.protocol.Protocol.TROJAN
 import com.android.xrayfa.model.protocol.Protocol.VLESS
 import com.android.xrayfa.model.protocol.Protocol.VMESS
@@ -16,7 +16,7 @@ enum class Protocol(
 
     VMESS("vmess"),
 
-    SHADOW_SOCKS("ss"),
+    SHADOWSOCKS("ss"),
 
     TROJAN("trojan"),
 
@@ -27,12 +27,12 @@ enum class Protocol(
 val protocolsPrefix = listOf(
     VLESS.protocolType,
     VMESS.protocolType,
-    SHADOW_SOCKS.protocolType,
+    SHADOWSOCKS.protocolType,
     TROJAN.protocolType,
     HYSTERIA2.protocolType
 )
 val protocolPrefixMap = mapOf(
-    SHADOW_SOCKS.protocolType to SHADOW_SOCKS,
+    SHADOWSOCKS.protocolType to SHADOWSOCKS,
     VLESS.protocolType to VLESS,
     VMESS.protocolType to VMESS,
     TROJAN.protocolType to TROJAN,

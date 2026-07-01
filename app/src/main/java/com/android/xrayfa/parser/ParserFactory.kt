@@ -24,7 +24,7 @@ class ParserFactory @Inject constructor(
             Protocol.VLESS.protocolType -> vlessConfigParser
             Protocol.VMESS.protocolType -> vmessConfigParser
             Protocol.TROJAN.protocolType -> trojanConfigParser
-            Protocol.SHADOW_SOCKS.protocolType -> shadowSocksConfigParser
+            Protocol.SHADOWSOCKS.protocolType -> shadowSocksConfigParser
             Protocol.HYSTERIA2.protocolType -> hysteria2ConfigParser
             else -> {
                 throw IllegalArgumentException("Unsupported protocol: $protocol")
