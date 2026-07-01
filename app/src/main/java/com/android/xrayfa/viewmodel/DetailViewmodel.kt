@@ -129,7 +129,7 @@ class DetailViewmodel(
                         others = others
                     ))
                 }
-                Protocol.SHADOW_SOCKS -> {
+                Protocol.SHADOWSOCKS -> {
                     parserFactory.shadowSocksConfigParser.encodeProtocol(ShadowSocksConfig(
                         method = ssMethod,
                         password = uuidOrPassword,
