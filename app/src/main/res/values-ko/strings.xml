@@ -35,6 +35,7 @@
     <string name="dns_ipv4" translatable="false">DNS IPv4</string>
     <string name="dns_ipv6" translatable="false">DNS IPv6</string>
     <string name="socks_port">SOCKS 포트</string>
+    <string name="http_proxy_port" translatable="false">HTTP 프록시 포트</string>
     <string name="allow_app_settings">앱 프록시 설정 열기</string>
     <string name="select_app_settings">프록시 설정을 위해 특정 앱을 선택하세요</string>
     <string name="all_app_settings">앱</string>
@@ -66,6 +67,7 @@
     <string name="err_ipv6_item_empty">IPv6 주소 #%d가 비어 있습니다. 확인해 주세요</string>
     <string name="err_ipv6_invalid">IPv6 주소 #%d가 유효하지 않습니다 - %s</string>
     <string name="err_ipv6_duplicate">IPv6 주소 #%d가 중복되었습니다 - %s</string>
+    <string name="err_port_invalid">포트는 1에서 65535 사이여야 합니다</string>
 
     <string name="xrayfa_version">버전</string>
     <string name="xray_core_version">Xray core 버전</string>
@@ -112,6 +114,10 @@
     <string name="err_socks_invalid_chars">유효하지 않은 문자가 포함되어 있습니다</string>
     <string name="socks_address_listen_title">수신 주소</string>
     <string name="socks_address_listen_desc">수신 주소 (기본값 127.0.0.1)</string>
+    <string name="lan_socks_proxy_title">LAN SOCKS5 프록시 허용</string>
+    <string name="lan_socks_proxy_desc">같은 Wi-Fi의 기기가 이 기기의 LAN IP와 SOCKS5 프록시 포트를 사용하도록 허용합니다.</string>
+    <string name="lan_http_proxy_title">LAN HTTP 프록시 허용</string>
+    <string name="lan_http_proxy_desc">같은 Wi-Fi의 기기가 이 기기의 LAN IP와 HTTP 프록시 포트를 사용하도록 허용합니다.</string>
     <string name="send_hwid">HWID 전송</string>
     <string name="send_hwid_desc">구독 요청 시 HWID를 전송합니다</string>
 

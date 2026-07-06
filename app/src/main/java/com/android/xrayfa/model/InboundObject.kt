@@ -57,6 +57,11 @@ data class SocksInboundConfigurationObject(
     )
 }
 
+data class HttpInboundConfigurationObject(
+    val timeout: Int? = null,
+    val userLevel: Int? = null
+): AbsInboundConfigurationObject()
+
 data class TunnelInboundConfigurationObject( //dokodemo-door
     val address: String? = null,
     val port: Int? = null,

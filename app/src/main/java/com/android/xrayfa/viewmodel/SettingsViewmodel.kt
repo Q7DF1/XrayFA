@@ -42,6 +42,12 @@ import okio.buffer
 import okio.sink
 import java.io.File
 
+const val LOCAL_PROXY_LISTEN_ADDRESS = "127.0.0.1"
+const val LAN_PROXY_LISTEN_ADDRESS = "0.0.0.0"
+
+fun resolveSocksListenAddressForLan(enable: Boolean): String {
+    return if (enable) LAN_PROXY_LISTEN_ADDRESS else LOCAL_PROXY_LISTEN_ADDRESS
+}
 
 @IntDef(value = [
     GEOFileType.FILE_TYPE_SITE,
@@ -148,6 +154,24 @@ class SettingsViewmodel(
             repository.setSocksPort(port)
             onConfigSettingsChanged()
         }
+    }
+
+    fun setHttpPort(port: Int) {
+        viewModelScope.launch {
+            repository.setHttpPort(port)
+            onConfigSettingsChanged()
+        }
+    }
+
+    fun setLanHttpProxyEnable(enable: Boolean) {
+        viewModelScope.launch {
+            repository.setLanHttpProxyEnable(enable)
+            onConfigSettingsChanged()
+        }
+    }
+
+    fun setLanSocksProxyEnable(enable: Boolean) {
+        setSocksListen(resolveSocksListenAddressForLan(enable))
     }
 
     fun setDnsIpV4(dns: String) {

@@ -105,6 +105,7 @@ import com.android.xrayfa.ui.navigation.RouteSettings
 import com.android.xrayfa.ui.navigation.Settings
 import com.android.xrayfa.viewmodel.GEOFileType
 import com.android.xrayfa.viewmodel.GEOFileType.Companion.FILE_TYPE_IP
+import com.android.xrayfa.viewmodel.LAN_PROXY_LISTEN_ADDRESS
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -289,22 +290,37 @@ fun SettingsScreen(
                 SettingsGroup(
                     groupName = stringResource(R.string.network_part)
                 ) {
-                    SettingsSelectBox(
-                        title = R.string.socks_address_listen_title,
-                        description = R.string.socks_address_listen_desc,
+                    SettingsCheckBox(
+                        title = R.string.lan_socks_proxy_title,
+                        description = R.string.lan_socks_proxy_desc,
                         icon = Icons.Outlined.Router,
-                        onSelected = { mode ->
-                            when(mode) {
-                                0 -> viewmodel.setSocksListen("127.0.0.1")
-                                1 -> viewmodel.setSocksListen("0.0.0.0")
-                            }
-                        },
-                        selected = settingsState.socksListen,
-                        options = mapOf(
-                            0 to "127.0.0.1",
-                            1 to "0.0.0.0"
-                        )
+                        checked = settingsState.socksListen == LAN_PROXY_LISTEN_ADDRESS,
+                        onCheckedChange = { checked ->
+                            viewmodel.setLanSocksProxyEnable(checked)
+                        }
                     )
+                    SettingsCheckBox(
+                        title = R.string.lan_http_proxy_title,
+                        description = R.string.lan_http_proxy_desc,
+                        icon = Icons.Outlined.Public,
+                        checked = settingsState.lanHttpProxyEnable,
+                        onCheckedChange = { checked ->
+                            viewmodel.setLanHttpProxyEnable(checked)
+                        }
+                    )
+                    SettingsFieldBox(
+                        title = R.string.http_proxy_port,
+                        content = settingsState.httpPort.toString(),
+                        icon = Icons.Outlined.Numbers,
+                        enable = settingsState.lanHttpProxyEnable
+                    ) {
+                        editInitValue = settingsState.httpPort.toString()
+                        isShowEditDialog = true
+                        editType = SettingsKeys.HTTP_PORT
+                        validator = {
+                            validatePort(it, context)
+                        }
+                    }
                     SettingsFieldBox(
                         title = R.string.socks_port,
                         content = settingsState.socksPort.toString(),
@@ -508,13 +524,17 @@ fun SettingsScreen(
                         dismissText = stringResource(R.string.cancel),
                         confirmText = stringResource(R.string.save),
                         initialText = editInitValue,
-                        isNumeric = editType.name == SettingsKeys.SOCKS_PORT.name,
+                        isNumeric = editType.name == SettingsKeys.SOCKS_PORT.name ||
+                                editType.name == SettingsKeys.HTTP_PORT.name,
                         validator = validator,
                         onConfirm = {
                             when(editType.name) {
 
                                 SettingsKeys.SOCKS_PORT.name ->
                                     viewmodel.setSocksPort(it.toIntOrNull()?:10808)
+
+                                SettingsKeys.HTTP_PORT.name ->
+                                    viewmodel.setHttpPort(it.toIntOrNull()?:10809)
 
                                 SettingsKeys.SOCKS_USERNAME.name ->
                                     viewmodel.setSocksUsername(it)
@@ -937,6 +957,11 @@ fun validateIpv6List(input: String, context: Context): String? {
 
     // All valid
     return null
+}
+
+fun validatePort(input: String, context: Context): String? {
+    val port = input.toIntOrNull() ?: return context.getString(R.string.err_port_invalid)
+    return if (port in 1..65535) null else context.getString(R.string.err_port_invalid)
 }
 
 /**

@@ -85,6 +85,8 @@ data class SettingsState(
     val darkMode: Int = 0,
     val ipV6Enable: Boolean = false,
     val socksPort: Int = 10808,
+    val httpPort: Int = 10809,
+    val lanHttpProxyEnable: Boolean = false,
     val socksUserName: String = "",
     val socksPassword: String = "",
     val socksListen: String = "",
@@ -108,6 +110,8 @@ object SettingsKeys {
     val DARK_MODE = intPreferencesKey("dark_mode")
     val IPV6_ENABLE = booleanPreferencesKey("ipv6_enable")
     val SOCKS_PORT = intPreferencesKey("socks_port")
+    val HTTP_PORT = intPreferencesKey("http_port")
+    val LAN_HTTP_PROXY_ENABLE = booleanPreferencesKey("lan_http_proxy_enable")
     val SOCKS_USERNAME = stringPreferencesKey("socks_username")
     val SOCKS_PASSWORD = stringPreferencesKey("socks_password")
     val SOCKS_LISTEN = stringPreferencesKey("socks_listen")
@@ -189,6 +193,8 @@ class SettingsRepository
             darkMode = prefs[SettingsKeys.DARK_MODE] ?: 0,
             ipV6Enable = prefs[SettingsKeys.IPV6_ENABLE] == true,
             socksPort = prefs[SettingsKeys.SOCKS_PORT] ?: 10808,
+            httpPort = prefs[SettingsKeys.HTTP_PORT] ?: 10809,
+            lanHttpProxyEnable = prefs[SettingsKeys.LAN_HTTP_PROXY_ENABLE] == true,
             socksUserName = prefs[SettingsKeys.SOCKS_USERNAME]?:"",
             socksPassword = prefs[SettingsKeys.SOCKS_PASSWORD]?:"",
             socksListen = prefs[SettingsKeys.SOCKS_LISTEN]?:"127.0.0.1",
@@ -248,6 +254,18 @@ class SettingsRepository
     suspend fun setSocksPort(port: Int) {
         context.dataStore.edit {
             it[SettingsKeys.SOCKS_PORT] = port
+        }
+    }
+
+    suspend fun setHttpPort(port: Int) {
+        context.dataStore.edit {
+            it[SettingsKeys.HTTP_PORT] = port
+        }
+    }
+
+    suspend fun setLanHttpProxyEnable(enable: Boolean) {
+        context.dataStore.edit {
+            it[SettingsKeys.LAN_HTTP_PROXY_ENABLE] = enable
         }
     }
 

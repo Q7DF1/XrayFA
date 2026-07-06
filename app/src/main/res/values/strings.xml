@@ -34,6 +34,7 @@
     <string name="dns_ipv4" translatable="false">DNS IPv4</string>
     <string name="dns_ipv6" translatable="false">DNS IPv6</string>
     <string name="socks_port" translatable="false">socks port</string>
+    <string name="http_proxy_port" translatable="false">HTTP proxy port</string>
     <string name="allow_app_settings">open app proxy settings</string>
     <string name="select_app_settings">select special app  to config proxy</string>
     <string name="all_app_settings" translatable="false">Apps</string>
@@ -65,6 +66,7 @@
     <string name="err_ipv6_item_empty">IPv6 address #%d is empty, please check</string>
     <string name="err_ipv6_invalid">IPv6 address #%d is invalid: %s</string>
     <string name="err_ipv6_duplicate">IPv6 address #%d is duplicated: %s</string>
+    <string name="err_port_invalid">Port must be between 1 and 65535</string>
 
     <string name="xrayfa_version">Version</string>
     <string name="hwid">hwid</string>
@@ -112,6 +114,10 @@
     <string name="err_socks_invalid_chars">contains invalid chars</string>
     <string name="socks_address_listen_title">listen</string>
     <string name="socks_address_listen_desc">listen address(127.0.0.1 default)</string>
+    <string name="lan_socks_proxy_title">Allow LAN SOCKS5 proxy</string>
+    <string name="lan_socks_proxy_desc">Allow devices on the same Wi-Fi to use this device LAN IP and SOCKS5 proxy port.</string>
+    <string name="lan_http_proxy_title">Allow LAN HTTP proxy</string>
+    <string name="lan_http_proxy_desc">Allow devices on the same Wi-Fi to use this device LAN IP and HTTP proxy port.</string>
     <string name="send_hwid">Send hwid</string>
     <string name="send_hwid_desc">Send hwid when requesting a subscription</string>
 

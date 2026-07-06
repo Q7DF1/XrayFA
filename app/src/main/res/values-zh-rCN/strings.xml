@@ -30,6 +30,7 @@
     <string name="light_mode">正常模式</string>
     <string name="auto_mode">跟随系统</string>
     <string name="dark_mode_description">选择是否开启深色模式</string>
+    <string name="http_proxy_port" translatable="false">HTTP 代理端口</string>
     <string name="allow_app_settings">选择针对app代理</string>
     <string name="select_app_settings">选择app开启代理</string>
     <string name="repo_site">仓库</string>
@@ -58,6 +59,7 @@
     <string name="err_ipv6_item_empty">第%d项IPv6地址为空，请检查</string>
     <string name="err_ipv6_invalid">第%d项IPv6地址格式无效：%s</string>
     <string name="err_ipv6_duplicate">第%d项IPv6地址重复：%s</string>
+    <string name="err_port_invalid">端口必须在 1 到 65535 之间</string>
     <string name="xrayfa_version">版本</string>
     <string name="xray_core_version">Xray core 版本</string>
     <string name="general_part">常规</string>
@@ -100,6 +102,10 @@
     <string name="err_socks_invalid_chars">包含特殊非法字符</string>
     <string name="socks_address_listen_title">监听地址</string>
     <string name="socks_address_listen_desc">默认本地回环地址127.0.0.1</string>
+    <string name="lan_socks_proxy_title">允许局域网 SOCKS5 代理</string>
+    <string name="lan_socks_proxy_desc">允许同一 Wi-Fi 下的设备使用本机局域网 IP 和 SOCKS5 代理端口。</string>
+    <string name="lan_http_proxy_title">允许局域网 HTTP 代理</string>
+    <string name="lan_http_proxy_desc">允许同一 Wi-Fi 下的设备使用本机局域网 IP 和 HTTP 代理端口。</string>
 
     <string name="logcat_start">开始记录</string>
     <string name="logcat_stop">停止记录</string>
