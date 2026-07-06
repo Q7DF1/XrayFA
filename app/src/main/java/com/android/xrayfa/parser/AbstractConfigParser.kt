@@ -11,6 +11,7 @@ import com.android.xrayfa.dto.Node
 import com.android.xrayfa.model.AbsOutboundConfigurationObject
 import com.android.xrayfa.model.ApiObject
 import com.android.xrayfa.model.DnsObject
+import com.android.xrayfa.model.HttpInboundConfigurationObject
 import com.android.xrayfa.model.InboundObject
 import com.android.xrayfa.model.LogObject
 import com.android.xrayfa.model.NoneOutboundConfigurationObject
@@ -76,7 +77,35 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
         )
     }
 
-    suspend fun getTunInboundConfig(): InboundObject {
+    fun getHttpInboundConfig(settingsState: SettingsState): InboundObject {
+        return InboundObject(
+            listen = "0.0.0.0",
+            port = settingsState.httpPort,
+            protocol = "http",
+            settings = HttpInboundConfigurationObject(
+                userLevel = 8
+            ),
+            sniffing = SniffingObject(
+                destOverride = listOf("http","tls"),
+                enabled = true
+            ),
+            tag = "http"
+        )
+    }
+
+    fun getInboundConfigs(settingsState: SettingsState): List<InboundObject> {
+        val inbounds = mutableListOf(
+            getBaseInboundConfig(settingsState)
+        )
+        if (settingsState.lanHttpProxyEnable) {
+            inbounds.add(getHttpInboundConfig(settingsState))
+        }
+        inbounds.add(getAPIInboundConfig())
+        inbounds.add(getTunInboundConfig())
+        return inbounds
+    }
+
+    fun getTunInboundConfig(): InboundObject {
         return InboundObject(
             port = 0,
             protocol = "tun",
@@ -267,11 +296,7 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
             dns = getBaseDnsConfig(),
             log = getBaseLogObject(),
             policy = getBasePolicyObject(),
-            inbounds = listOf(
-                getBaseInboundConfig(settingsState),
-                getAPIInboundConfig(),
-                getTunInboundConfig()
-            ),
+            inbounds = getInboundConfigs(settingsState),
             outbounds = outbounds,
             routing = getBaseRoutingObject(settingsState),
         )
