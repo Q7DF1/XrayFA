@@ -48,3 +48,21 @@ data class Hysteria2Config(
     val auth: String,
     val param: Map<String, String>
 )
+
+data class SocksConfig(
+    val protocol: Protocol = Protocol.SOCKS,
+    val remark: String? = null,
+    val server: String,
+    val port: Int,
+    val username: String? = null,
+    val password: String? = null
+)
+
+data class HttpConfig(
+    val protocol: Protocol = Protocol.HTTP,
+    val remark: String? = null,
+    val server: String,
+    val port: Int,
+    val username: String? = null,
+    val password: String? = null
+)

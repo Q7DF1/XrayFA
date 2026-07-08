@@ -9,6 +9,8 @@ import com.android.xrayfa.dto.VMESSConfig
 import com.android.xrayfa.dto.ShadowSocksConfig
 import com.android.xrayfa.dto.TrojanConfig
 import com.android.xrayfa.dto.Hysteria2Config
+import com.android.xrayfa.dto.SocksConfig
+import com.android.xrayfa.dto.HttpConfig
 import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.repository.NodeRepository
@@ -39,6 +41,12 @@ class DetailViewmodel(
     fun parseHysteria2Protocol(content:String): Hysteria2Config {
         return parserFactory.hysteria2ConfigParser.decodeProtocol(content)
     }
+    fun parseSocksProtocol(content:String): SocksConfig {
+        return parserFactory.socksConfigParser.decodeProtocol(content)
+    }
+    fun parseHttpProtocol(content:String): HttpConfig {
+        return parserFactory.httpConfigParser.decodeProtocol(content)
+    }
 
     fun saveNode(
         nodeId: Int = -1,
@@ -63,7 +71,8 @@ class DetailViewmodel(
         hysteria2Obfs: String = "",
         hysteria2ObfsPassword: String = "",
         hysteria2Alpn: String = "",
-        allowInsecure: Boolean = false
+        allowInsecure: Boolean = false,
+        username: String = ""
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             val url = when (protocol) {
@@ -190,6 +199,30 @@ class DetailViewmodel(
                             port = port,
                             auth = uuidOrPassword,
                             param = params
+                        )
+                    )
+                }
+
+                Protocol.SOCKS -> {
+                    parserFactory.socksConfigParser.encodeProtocol(
+                        SocksConfig(
+                            remark = remarks,
+                            server = address,
+                            port = port,
+                            username = username.ifBlank { null },
+                            password = uuidOrPassword.ifBlank { null }
+                        )
+                    )
+                }
+
+                Protocol.HTTP -> {
+                    parserFactory.httpConfigParser.encodeProtocol(
+                        HttpConfig(
+                            remark = remarks,
+                            server = address,
+                            port = port,
+                            username = username.ifBlank { null },
+                            password = uuidOrPassword.ifBlank { null }
                         )
                     )
                 }

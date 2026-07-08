@@ -175,7 +175,7 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
     }
 
 
-    fun getBaseRoutingObject(settingsState: SettingsState): RoutingObject {
+    fun getBaseRoutingObject(settingsState: SettingsState, tcpOnlyProxy: Boolean = false): RoutingObject {
         val targetType = object : TypeToken<List<RuleObject>?>() {}.type
         var rules: List<RuleObject>? = if (settingsState.routingMode == RoutingMode.GLOBAL) {
             getGlobalRules()
@@ -188,6 +188,14 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
             rules = gson.fromJson<List<RuleObject>>(defaultRoutes, targetType)?.filterNotNull()
         }
 
+        // HTTP outbounds are TCP-only and cannot relay UDP. Without special handling, DNS queries and
+        // other UDP traffic would be routed to the proxy and silently fail, causing intermittent
+        // connectivity loss. Keep DNS/UDP off the proxy so name resolution keeps working.
+        // (SOCKS5 supports UDP, so it is not treated as TCP-only.)
+        if (tcpOnlyProxy) {
+            rules = getTcpOnlyProxyRules() + (rules ?: emptyList())
+        }
+
         return RoutingObject(
             domainStrategy = when(settingsState.domainStrategy) {
                 DomainStrategy.ASIS -> "AsIs"
@@ -196,6 +204,37 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
                 else -> throw IllegalArgumentException("wrong domain strategy")
             },
             rules = rules
+        )
+    }
+
+    /**
+     * Extra routing rules used when the active proxy is a TCP-only protocol (http).
+     * HTTP proxies cannot forward UDP, so we must keep DNS and UDP traffic away from the proxy:
+     *  - all DNS (port 53) is resolved via direct connection (real network) so lookups never hang;
+     *  - QUIC (UDP/443) is blocked, forcing apps to fall back to TCP (also nicer for packet capture);
+     *  - any remaining UDP goes direct instead of into the dead-end proxy.
+     */
+    fun getTcpOnlyProxyRules(): List<RuleObject> {
+        return listOf(
+            RuleObject(
+                type = "field",
+                port = "53",
+                outboundTag = "direct",
+                ruleTag = "DNS Direct (TCP-only proxy)"
+            ),
+            RuleObject(
+                type = "field",
+                network = "udp",
+                port = "443",
+                outboundTag = "block",
+                ruleTag = "Block QUIC (TCP-only proxy)"
+            ),
+            RuleObject(
+                type = "field",
+                network = "udp",
+                outboundTag = "direct",
+                ruleTag = "UDP Direct (TCP-only proxy)"
+            )
         )
     }
 
@@ -290,6 +329,9 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
                 settings = NoneOutboundConfigurationObject()
             )
         )
+        // Only HTTP proxies are truly TCP-only. SOCKS5 supports UDP (UDP ASSOCIATE) and Xray can relay
+        // it, so SOCKS is treated like any other UDP-capable proxy.
+        val tcpOnlyProxy = outbound.protocol == "http"
         val xrayConfig = XrayConfiguration(
             stats = emptyMap(), // enable
             api = getBaseAPIObject(),
@@ -298,7 +340,7 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
             policy = getBasePolicyObject(),
             inbounds = getInboundConfigs(settingsState),
             outbounds = outbounds,
-            routing = getBaseRoutingObject(settingsState),
+            routing = getBaseRoutingObject(settingsState, tcpOnlyProxy),
         )
         val config = Gson().toJson(xrayConfig)
         println(config)
