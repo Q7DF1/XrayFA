@@ -98,6 +98,7 @@ fun EditScreen(
     
     // Protocol Specific
     var id by remember { mutableStateOf("") } // UUID or Password
+    var username by remember { mutableStateOf("") } // HTTP / SOCKS username
     var flow by remember { mutableStateOf("") } 
     var vlessEncryption by remember { mutableStateOf("none") }
     var ssMethod by remember { mutableStateOf("aes-256-gcm") } 
@@ -200,6 +201,22 @@ fun EditScreen(
                         hysteria2ObfsPassword = config.param["obfs-password"] ?: ""
                         allowInsecure = config.param["allowInsecure"] == "1"
                     }
+                    Protocol.SOCKS.protocolType -> {
+                        selectedProtocol = Protocol.SOCKS
+                        val config = detailViewmodel.parseSocksProtocol(initialContent)
+                        address = config.server
+                        port = config.port.toString()
+                        username = config.username ?: ""
+                        id = config.password ?: ""
+                    }
+                    Protocol.HTTP.protocolType -> {
+                        selectedProtocol = Protocol.HTTP
+                        val config = detailViewmodel.parseHttpProtocol(initialContent)
+                        address = config.server
+                        port = config.port.toString()
+                        username = config.username ?: ""
+                        id = config.password ?: ""
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -274,7 +291,8 @@ fun EditScreen(
                                     hysteria2Obfs = hysteria2Obfs,
                                     hysteria2ObfsPassword = hysteria2ObfsPassword,
                                     hysteria2Alpn = hysteria2Alpn,
-                                    allowInsecure = allowInsecure
+                                    allowInsecure = allowInsecure,
+                                    username = username
                                 )
                                 onBack()
                             },
@@ -307,7 +325,17 @@ fun EditScreen(
                 Text("Basic Settings", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
                 EditTextField(remarks, { remarks = it }, "Remarks")
                 EditTextField(address, { address = it }, "Address")
-                EditTextField(port, { if (it.all { c -> c.isDigit() }) port = it }, "Port")
+                EditTextField(
+                    port,
+                    { input ->
+                        if (input.all { c -> c.isDigit() } &&
+                            (input.isEmpty() || (input.toIntOrNull()?.let { it in 0..65535 } == true))
+                        ) {
+                            port = input
+                        }
+                    },
+                    "Port (0-65535)"
+                )
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
@@ -329,6 +357,14 @@ fun EditScreen(
                     }
                     Protocol.TROJAN -> {
                         EditTextField(id, { id = it }, "Password")
+                    }
+                    Protocol.SOCKS -> {
+                        EditTextField(username, { username = it }, "Username (optional)")
+                        EditTextField(id, { id = it }, "Password (optional)")
+                    }
+                    Protocol.HTTP -> {
+                        EditTextField(username, { username = it }, "Username (optional)")
+                        EditTextField(id, { id = it }, "Password (optional)")
                     }
                     Protocol.HYSTERIA2 -> {
                         EditTextField(id, { id = it }, "Auth")
@@ -356,7 +392,10 @@ fun EditScreen(
                     }
                 }
 
-                if (selectedProtocol != Protocol.HYSTERIA2) {
+                val hasTransportSettings = selectedProtocol != Protocol.HYSTERIA2 &&
+                        selectedProtocol != Protocol.SOCKS &&
+                        selectedProtocol != Protocol.HTTP
+                if (hasTransportSettings) {
                     HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
                     // 3. Transport Settings

@@ -16,7 +16,9 @@ class ParserFactory @Inject constructor(
     val vmessConfigParser: VMESSConfigParser,
     val trojanConfigParser: TrojanConfigParser,
     val shadowSocksConfigParser: ShadowSocksConfigParser,
-    val hysteria2ConfigParser: Hysteria2ConfigParser
+    val hysteria2ConfigParser: Hysteria2ConfigParser,
+    val socksConfigParser: SocksConfigParser,
+    val httpConfigParser: HttpConfigParser
 ) {
 
     fun getParser(url: String): AbstractConfigParser<*,*> {
@@ -26,6 +28,9 @@ class ParserFactory @Inject constructor(
             Protocol.TROJAN.protocolType -> trojanConfigParser
             Protocol.SHADOWSOCKS.protocolType -> shadowSocksConfigParser
             Protocol.HYSTERIA2.protocolType -> hysteria2ConfigParser
+            Protocol.SOCKS.protocolType -> socksConfigParser
+            "socks5" -> socksConfigParser
+            Protocol.HTTP.protocolType -> httpConfigParser
             else -> {
                 throw IllegalArgumentException("Unsupported protocol: $protocol")
             }

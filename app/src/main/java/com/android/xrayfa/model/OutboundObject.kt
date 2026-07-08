@@ -55,6 +55,14 @@ data class Hysteria2OutboundConfigurationObject(
     val port: Int
 ): AbsOutboundConfigurationObject()
 
+data class SocksOutboundConfigurationObject(
+    val servers: List<HttpSocksServerObject>
+): AbsOutboundConfigurationObject()
+
+data class HttpOutboundConfigurationObject(
+    val servers: List<HttpSocksServerObject>
+): AbsOutboundConfigurationObject()
+
 data class ServerObject(
     val address: String,
     val port: Int,
@@ -79,6 +87,18 @@ data class ShadowSocksServerObject(
     val UotVersion:Int? = null,
     val level: Int? = null,
     val ivCheck: Boolean? = null // 新增: 兼容性字段
+)
+
+data class HttpSocksServerObject(
+    val address: String,
+    val port: Int,
+    val users: List<HttpSocksUserObject>? = null
+)
+
+data class HttpSocksUserObject(
+    val user: String,
+    val pass: String,
+    val level: Int? = null
 )
 
 data class UserObject(
