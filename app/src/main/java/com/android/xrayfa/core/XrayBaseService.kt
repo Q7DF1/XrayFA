@@ -23,6 +23,7 @@ import xrayfa.tun2socks.Tun2SocksService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -126,6 +127,10 @@ class XrayBaseService
     override fun onDestroy() {
         Log.i(TAG, "onDestroy: close VPN")
         super.onDestroy()
+        // Cancel the service scope so the trafficFlow collector (running against the
+        // singleton XrayCoreManager's SharedFlow) is torn down. Otherwise the suspended
+        // collect keeps a slot in the SharedFlow that references this Service, leaking it.
+        serviceScope.cancel()
         tunFd?.close()
         tunFd = null
     }
