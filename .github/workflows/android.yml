@@ -47,11 +47,11 @@ jobs:
 
     - name: Setup EXACT NDK for Reproducibility
       run: |
-        wget -qO android-ndk.zip https://dl.google.com/android/repository/android-ndk-r28-linux.zip
+        wget -qO android-ndk.zip https://dl.google.com/android/repository/android-ndk-r28c-linux.zip
         unzip -q android-ndk.zip
         rm android-ndk.zip
 
-        echo "ANDROID_NDK_HOME=$(pwd)/android-ndk-r28" >> $GITHUB_ENV
+        echo "ANDROID_NDK_HOME=$(pwd)/android-ndk-r28c" >> $GITHUB_ENV
 
     - name: Initialize Build Directory
       run: |
