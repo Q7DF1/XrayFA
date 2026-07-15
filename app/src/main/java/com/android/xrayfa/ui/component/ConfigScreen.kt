@@ -122,6 +122,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.ui.text.style.TextAlign
 import com.android.xrayfa.ui.navigation.ScanQR
 import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.SUB_ALL
@@ -143,6 +146,8 @@ fun ConfigScreen(
     val bugReportDialog by xrayViewmodel.bugReportDialog.collectAsState()
     val subscriptions by xrayViewmodel.subscriptions.collectAsState()
     val selectedSubId by xrayViewmodel.selectedSubscriptionId.collectAsState()
+    val nodeDelayMap by xrayViewmodel.nodeDelayMap.collectAsState()
+    val isTestingAll by xrayViewmodel.isTestingAll.collectAsState()
 
     val context = LocalContext.current
     val listState = rememberLazyListState()
@@ -343,10 +348,16 @@ fun ConfigScreen(
                     )
                     
                     // Filter Chips Row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         LazyRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 4.dp),
-                            modifier = Modifier.fillMaxWidth()
+                            contentPadding = PaddingValues(start = 16.dp, end = 8.dp),
+                            modifier = Modifier.weight(1f)
                         ) {
                             items(filters.size) { index ->
                                 val (id, label) = filters[index]
@@ -367,6 +378,21 @@ fun ConfigScreen(
                                 )
                             }
                         }
+
+                        IconButton(
+                            onClick = { 
+                                xrayViewmodel.measureAllNodesDelay(context) 
+                            },
+                            modifier = Modifier.padding(end = 12.dp).size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Speed,
+                                contentDescription = "Speed Test All",
+                                tint = if (isTestingAll) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
                 }
             }
             if (nodes.isEmpty()) {
@@ -383,6 +409,7 @@ fun ConfigScreen(
                         .columnVerticalScrollbar(listState,4.dp)
                 ) {
                     items(nodes, key = {it.id}) { node ->
+                        val delayMs = nodeDelayMap[node.id] ?: 0L
                         Column(modifier = Modifier.animateItem()) {
                             with(sharedTransitionScope) {
                                 NodeCard(
@@ -409,6 +436,8 @@ fun ConfigScreen(
                                     },
                                     selected =node.selected,
                                     favorite = node.favorite,
+                                    delayMs = delayMs,
+                                    testing = delayMs == -1L,
                                     onFavorite = {
                                         xrayViewmodel.updateFavoriteById(node.id, !node.favorite)
                                     },

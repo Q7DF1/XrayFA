@@ -47,6 +47,8 @@ import com.android.xrayfa.R
 import kotlinx.coroutines.withContext
 
 import com.android.xrayfa.repository.SubscriptionRepository
+import com.android.xrayfa.core.StartOptions
+import libv2ray.Libv2ray
 import com.android.xrayfa.dto.Subscription
 import com.android.xrayfa.model.BugReportData
 import com.android.xrayfa.ui.navigation.NavigateDestination
@@ -153,7 +155,7 @@ class XrayViewmodel(
     private val _upSpeed = MutableStateFlow(0.0)
     val upSpeed: StateFlow<Double> = _upSpeed.asStateFlow()
 
-    private val _delay = MutableStateFlow(-1L)
+    private val _delay = MutableStateFlow(0L)
     val delay = _delay.asStateFlow()
 
     private val _testing = MutableStateFlow(false)
@@ -180,6 +182,12 @@ class XrayViewmodel(
     private val _notConfig = MutableStateFlow(false)
     val notConfig = _notConfig.asStateFlow()
     var deleteLinkId = DELETE_NONE
+
+    private val _nodeDelayMap = MutableStateFlow<Map<Int, Long>>(emptyMap())
+    val nodeDelayMap = _nodeDelayMap.asStateFlow()
+
+    private val _isTestingAll = MutableStateFlow(false)
+    val isTestingAll = _isTestingAll.asStateFlow()
 
     private val _logList = MutableStateFlow<List<String>>(emptyList())
     val logList = _logList.asStateFlow()
@@ -483,6 +491,46 @@ class XrayViewmodel(
 
             _testing.value = false
             _delay.value = if (finalResult <= 0L) -2L else finalResult
+            
+            // Sync current node delay to map if we're testing current
+            getSelectedNode().first()?.let { node ->
+                val newMap = _nodeDelayMap.value.toMutableMap()
+                newMap[node.id] = _delay.value
+                _nodeDelayMap.value = newMap
+            }
+        }
+    }
+
+    fun measureAllNodesDelay(context: Context) {
+        if (_isTestingAll.value) return
+        
+        measureJob?.cancel()
+        _isTestingAll.value = true
+        
+        measureJob = viewModelScope.launch(Dispatchers.IO) {
+            val url = context.dataStore.data.first()[SettingsKeys.DELAY_TEST_URL] ?: DEFAULT_DELAY_TEST_URL
+            val nodeList = nodes.value
+            
+            val currentDelayMap = _nodeDelayMap.value.toMutableMap()
+            
+            for (node in nodeList) {
+                // Set to -1 to show testing status in UI
+                currentDelayMap[node.id] = -1L
+                _nodeDelayMap.value = currentDelayMap.toMap()
+                
+                val delay = try {
+                    val config = parserFactory.getParser(node.url).parse(StartOptions(node.url))
+                    val res = Libv2ray.measureOutboundDelay(config, url)
+                    if (res <= 0L) -2L else res
+                } catch (e: Exception) {
+                    -2L
+                }
+                
+                currentDelayMap[node.id] = delay
+                _nodeDelayMap.value = currentDelayMap.toMap()
+            }
+            
+            _isTestingAll.value = false
         }
     }
 
