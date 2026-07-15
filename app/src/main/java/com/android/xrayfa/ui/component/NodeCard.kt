@@ -210,9 +210,12 @@ private fun NodeCardContent(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                if (delayMs > 0 || delayMs == -2L) {
+                if (delayMs != -1L && (delayMs > 0 || delayMs == -2L)) {
                     Spacer(Modifier.width(8.dp))
-                    DelayChip(delayMs = delayMs)
+                    DelayChip(delayMs = delayMs, isTesting = false)
+                } else if (delayMs == -1L || testing) {
+                    Spacer(Modifier.width(8.dp))
+                    DelayChip(delayMs = -1L, isTesting = true)
                 }
             }
         }
@@ -316,17 +319,20 @@ private fun NodeCardContent(
 }
 
 @Composable
-private fun DelayChip(delayMs: Long) {
+private fun DelayChip(delayMs: Long, isTesting: Boolean = false) {
     // Delay semantic colors: keep universal green/orange/red semantics, but tone down to Material-friendly saturation
     val delayColor = when {
+        isTesting -> MaterialTheme.colorScheme.primary // Blue for loading
         delayMs == -2L -> MaterialTheme.colorScheme.error
         delayMs < 300 -> Color(0xFF2E7D32) // green 800
         delayMs < 900 -> Color(0xFFE65100) // orange 900
         else -> MaterialTheme.colorScheme.error
     }
-    val displayText = if (delayMs == -2L)
-        stringResource(R.string.timeout)
-    else "${delayMs}ms"
+    val displayText = when {
+        isTesting -> "Testing..."
+        delayMs == -2L -> stringResource(R.string.timeout)
+        else -> "${delayMs}ms"
+    }
 
     Box(
         modifier = Modifier
