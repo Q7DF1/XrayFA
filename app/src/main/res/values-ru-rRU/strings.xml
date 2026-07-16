@@ -158,6 +158,7 @@
     <string name="next_node">Пост-узел</string>
     <string name="none">Нет</string>
     <string name="share_subscription">Поделиться подпиской</string>
+    <string name="err_subscription_mark_duplicate">Такое имя уже существует</string>
 
     <string name="apps_permission_required_title">Требуется разрешение</string>
     <string name="apps_permission_required_desc">Чтобы отобразить список установленных приложений для прокси отдельных приложений, предоставьте разрешение «Все приложения» / «Запрос всех пакетов» для %1$s в настройках системы.</string>

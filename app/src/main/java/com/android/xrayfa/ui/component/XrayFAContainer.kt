@@ -215,7 +215,7 @@ fun XrayFAContainer(
                             key = key,
                             metadata = XrayFASceneStrategy.subscription()
                         ) {
-                            SubscriptionScreen(subscriptViewmodel) {
+                            SubscriptionScreen(subscriptViewmodel, xrayViewmodel) {
                                 if (it is Config) navBackStack.routeBack() else navBackStack.routeTo(it)
                             }
                         }

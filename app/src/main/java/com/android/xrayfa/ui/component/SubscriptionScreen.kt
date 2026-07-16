@@ -78,6 +78,7 @@ import com.android.xrayfa.ui.navigation.Config
 import com.android.xrayfa.ui.navigation.NavigateDestination
 import com.android.xrayfa.ui.navigation.ScanQR
 import com.android.xrayfa.viewmodel.SubscriptionViewmodel
+import com.android.xrayfa.viewmodel.XrayViewmodel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -89,6 +90,7 @@ import java.net.URL
 @Composable
 fun SubscriptionScreen(
     viewmodel: SubscriptionViewmodel,
+    xrayViewmodel: XrayViewmodel,
     onNavigate: (NavigateDestination) -> Unit
 ) {
     val context = LocalContext.current
@@ -102,7 +104,16 @@ fun SubscriptionScreen(
     var preNodeId by remember(subscription) { mutableStateOf(subscription.preNodeId) }
     var nextNodeId by remember(subscription) { mutableStateOf(subscription.nextNodeId) }
     var nickNameIsNull by remember { mutableStateOf(false) }
+    var nickNameIsDuplicate by remember { mutableStateOf(false) }
     var urlIsNullOrInvalid by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isBottomSheetShow, subscription.id, nickName) {
+        if (isBottomSheetShow) {
+            val resolved = nickName.trim()
+            nickNameIsNull = resolved.isBlank()
+            nickNameIsDuplicate = viewmodel.isMarkDuplicate(resolved, subscription.id)
+        }
+    }
 
     val deleteDialog by viewmodel.deleteDialog.collectAsState()
     val requesting by viewmodel.requesting.collectAsState()
@@ -236,12 +247,16 @@ fun SubscriptionScreen(
                                         if (result.isEmpty()) {
                                             Toast.makeText(context, R.string.cancel, Toast.LENGTH_SHORT).show()
                                         } else {
-                                            viewmodel.addSubscription(
+                                            viewmodel.addOrUpdateSubscription(
                                                 subscription = Subscription(
                                                     id = 0,
                                                     url = result,
-                                                    mark = context.getString(R.string.import_manually)
-                                                )
+                                                    mark = viewmodel.generateQrSubscriptionMark()
+                                                ),
+                                                onSuccess = { id ->
+                                                    xrayViewmodel.selectSubscription(id)
+                                                    onNavigate(Config)
+                                                }
                                             )
                                         }
                                     })
@@ -296,6 +311,7 @@ fun SubscriptionScreen(
                             OutlinedCard(
                                 onClick = {
                                     viewmodel.refreshSubscription(item.url, item.id) {
+                                        xrayViewmodel.selectSubscription(item.id)
                                         onNavigate(Config)
                                     }
                                 },
@@ -412,15 +428,22 @@ fun SubscriptionScreen(
                         )
 
                         OutlinedTextField(
-                            value = nickName?: subscriptionMeta?.profileTitle.orEmpty(),
+                            value = nickName,
                             onValueChange = {
                                 nickName = it
-                                nickNameIsNull = nickName?.isBlank()?: subscriptionMeta?.profileTitle.orEmpty().isBlank()
+                                val resolved = it.trim()
+                                nickNameIsNull = resolved.isBlank()
+                                nickNameIsDuplicate = viewmodel.isMarkDuplicate(resolved, subscription.id)
                             },
                             label = { Text(stringResource(R.string.nick_name)) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
-                            isError = nickNameIsNull,
+                            isError = nickNameIsNull || nickNameIsDuplicate,
+                            supportingText = if (nickNameIsDuplicate) {
+                                { Text(stringResource(R.string.err_subscription_mark_duplicate)) }
+                            } else {
+                                null
+                            },
                             shape = RoundedCornerShape(12.dp)
                         )
 
@@ -462,17 +485,23 @@ fun SubscriptionScreen(
                             Spacer(Modifier.width(8.dp))
                             Button(
                                 onClick = {
+                                    val resolvedMark = nickName.trim()
+                                    nickNameIsNull = resolvedMark.isBlank()
+                                    nickNameIsDuplicate = viewmodel.isMarkDuplicate(resolvedMark, subscription.id)
+                                    if (nickNameIsNull || nickNameIsDuplicate) return@Button
+
                                     validateThenConfirm(url) {
                                         viewmodel.addOrUpdateSubscription(
                                             subscription = Subscription(
                                                 id = subscription.id,
-                                                mark = nickName,
+                                                mark = resolvedMark,
                                                 url = url,
                                                 preNodeId = preNodeId,
                                                 nextNodeId = nextNodeId,
                                                 isAutoUpdate = subscription.isAutoUpdate,
                                             ),
-                                            onSuccess = {
+                                            onSuccess = { id ->
+                                                xrayViewmodel.selectSubscription(id)
                                                 onNavigate(Config)
                                             }
                                         )
@@ -481,7 +510,7 @@ fun SubscriptionScreen(
                                         urlIsNullOrInvalid = it
                                     }
                                 },
-                                enabled = !urlIsNullOrInvalid,
+                                enabled = !urlIsNullOrInvalid && !nickNameIsNull && !nickNameIsDuplicate,
                                 shape = RoundedCornerShape(12.dp)
                             ) {
                                 Text(stringResource(R.string.confirm))
