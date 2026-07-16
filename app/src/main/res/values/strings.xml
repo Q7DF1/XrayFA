@@ -159,6 +159,7 @@
     <string name="next_node">Next Node</string>
     <string name="none">None</string>
     <string name="share_subscription">Share Subscription</string>
+    <string name="err_subscription_mark_duplicate">This nickname already exists</string>
 
     <string name="apps_permission_required_title">Permission required</string>
     <string name="apps_permission_required_desc">To list installed apps for per-app proxy, please grant the "All apps" / "Query all packages" permission to %1$s in system settings.</string>

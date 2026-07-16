@@ -72,6 +72,23 @@ class SubscriptionViewmodel(
         }
     }
 
+    fun isMarkDuplicate(mark: String, excludeSubscriptionId: Int = 0): Boolean {
+        val trimmed = mark.trim()
+        if (trimmed.isEmpty()) return false
+        return _subscriptions.value.any { subscription ->
+            subscription.id != excludeSubscriptionId && subscription.mark.trim() == trimmed
+        }
+    }
+
+    fun generateQrSubscriptionMark(): String {
+        val existingMarks = _subscriptions.value.map { it.mark.trim() }.toSet()
+        for (i in 1..1000) {
+            val candidate = "QR_$i"
+            if (candidate !in existingMarks) return candidate
+        }
+        return "QR_1000"
+    }
+
     fun addSubscription(subscription: Subscription) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.addSubscription(subscription)
@@ -90,35 +107,77 @@ class SubscriptionViewmodel(
 
     fun addOrUpdateSubscription(
         subscription: Subscription,
-        onSuccess: () -> Unit = {}
+        onSuccess: (Int) -> Unit = {}
     ) {
         if (subscription.id == 0) {
-            refreshSubscription(
-                url = subscription.url,
-                subscriptionId = 0
-            ) {
-                val mark = subscription.mark.ifEmpty {
-                    it.profileTitle.orEmpty()
-                }
-
-                _subscriptionMeta.value = _subscriptionMeta.value?.copy(profileTitle = mark)
-
+            viewModelScope.launch(Dispatchers.IO) {
+                _requestingSubscription.value = true
                 val sub = Subscription(
-                    id = subscription.id,
+                    id = 0,
                     url = subscription.url,
-                    mark = mark,
+                    mark = subscription.mark,
                     preNodeId = subscription.preNodeId,
                     nextNodeId = subscription.nextNodeId,
                     isAutoUpdate = subscription.isAutoUpdate
                 )
-                viewModelScope.launch(Dispatchers.IO) {
-                    repository.addSubscription(sub)
+                var newId = 0
+                try {
+                    newId = repository.addSubscription(sub).toInt()
+                    val meta = repository.fetchAndSaveNodes(subscription.url, newId)
+                    val mark = subscription.mark.ifEmpty { meta.profileTitle.orEmpty() }
+                    if (mark.isNotEmpty() && isMarkDuplicate(mark, newId)) {
+                        throw IllegalStateException("Duplicate subscription mark: $mark")
+                    }
+                    if (mark.isNotEmpty() && mark != sub.mark) {
+                        repository.updateSubscription(
+                            Subscription(
+                                id = newId,
+                                url = sub.url,
+                                mark = mark,
+                                preNodeId = sub.preNodeId,
+                                nextNodeId = sub.nextNodeId,
+                                isAutoUpdate = sub.isAutoUpdate
+                            )
+                        )
+                    }
+                    _subscriptionMeta.value = meta.copy(
+                        profileTitle = mark.ifEmpty { meta.profileTitle }
+                    )
+                    withContext(Dispatchers.Main) { onSuccess(newId) }
+                } catch (e: Exception) {
+                    if (newId > 0) {
+                        repository.deleteSubscription(
+                            Subscription(
+                                id = newId,
+                                url = sub.url,
+                                mark = sub.mark,
+                                preNodeId = sub.preNodeId,
+                                nextNodeId = sub.nextNodeId,
+                                isAutoUpdate = sub.isAutoUpdate
+                            )
+                        )
+                    }
+                    launch {
+                        _subscribeError.value = true
+                        delay(2000L)
+                        _subscribeError.value = false
+                    }
+                } finally {
+                    _requestingSubscription.value = false
                 }
-                onSuccess()
             }
         } else {
             viewModelScope.launch(Dispatchers.IO) {
+                if (isMarkDuplicate(subscription.mark, subscription.id)) {
+                    launch {
+                        _subscribeError.value = true
+                        delay(2000L)
+                        _subscribeError.value = false
+                    }
+                    return@launch
+                }
                 repository.updateSubscription(subscription)
+                withContext(Dispatchers.Main) { onSuccess(subscription.id) }
             }
         }
     }
