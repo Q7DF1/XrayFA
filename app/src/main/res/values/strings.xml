@@ -5,6 +5,9 @@
     <string name="stop">stop</string>
     <string name="disconnect">Disconnect</string>
     <string name="connected">Connected</string>
+    <string name="not_connected">Not connected</string>
+    <string name="tap_to_connect">Tap the button to connect</string>
+    <string name="tap_to_disconnect">Tap the button to disconnect</string>
     <string name="home">Home</string>
     <string name="config">Config</string>
     <string name="logcat">Logcat</string>
