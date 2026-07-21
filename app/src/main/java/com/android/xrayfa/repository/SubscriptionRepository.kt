@@ -35,11 +35,12 @@ class SubscriptionRepository
 
     val allSubscriptions = subscriptionDao.getALLSubscriptions()
 
-    suspend fun addSubscription(subscription: Subscription) {
-        subscriptionDao.addSubscription(subscription)
+    suspend fun addSubscription(subscription: Subscription): Long {
+        return subscriptionDao.addSubscription(subscription)
     }
 
     suspend fun deleteSubscription(subscription: Subscription) {
+        nodeRepository.deleteLinkBySubscriptionId(subscription.id)
         subscriptionDao.deleteSubscription(subscription)
     }
 
@@ -56,6 +57,10 @@ class SubscriptionRepository
         subscriptionId: Int,
         extraHeaders: Map<String, String> = emptyMap()
     ): SubscriptionMeta {
+        if (subscriptionId > 0) {
+            nodeRepository.deleteLinkBySubscriptionId(0)
+        }
+
         val currentSettings = settingsRepository.settingsFlow.first()
 
         val requestBuilder = Request.Builder()

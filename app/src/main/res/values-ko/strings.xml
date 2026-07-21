@@ -159,6 +159,7 @@
     <string name="next_node">다음</string>
     <string name="none">없음</string>
     <string name="share_subscription">구독 공유</string>
+    <string name="err_subscription_mark_duplicate">이미 사용 중인 닉네임입니다</string>
 
     <string name="apps_permission_required_title">권한 필요</string>
     <string name="apps_permission_required_desc">개별 앱 프록시를 위해 설치된 앱 목록을 표시하려면, 시스템 설정에서 %1$s에 대해 "모든 앱" / "모든 패키지 요청" 권한을 허용하십시오.</string>

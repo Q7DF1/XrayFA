@@ -17,7 +17,7 @@ interface SubscriptionDao {
 
 
     @Insert
-    suspend fun addSubscription(vararg subscription: Subscription)
+    suspend fun addSubscription(subscription: Subscription): Long
 
 
     @Delete
