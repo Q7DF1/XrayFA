@@ -46,6 +46,10 @@ import com.android.xrayfa.BuildConfig
 import com.android.xrayfa.R
 import kotlinx.coroutines.withContext
 
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import com.android.xrayfa.repository.SubscriptionRepository
 import com.android.xrayfa.core.StartOptions
 import libv2ray.Libv2ray
@@ -188,6 +192,15 @@ class XrayViewmodel(
 
     private val _isTestingAll = MutableStateFlow(false)
     val isTestingAll = _isTestingAll.asStateFlow()
+
+    private val mapMutex = Mutex()
+    private suspend fun updateNodeDelay(nodeId: Int, delay: Long) {
+        mapMutex.withLock {
+            val current = _nodeDelayMap.value.toMutableMap()
+            current[nodeId] = delay
+            _nodeDelayMap.value = current
+        }
+    }
 
     private val _logList = MutableStateFlow<List<String>>(emptyList())
     val logList = _logList.asStateFlow()
@@ -511,25 +524,30 @@ class XrayViewmodel(
             val url = context.dataStore.data.first()[SettingsKeys.DELAY_TEST_URL] ?: DEFAULT_DELAY_TEST_URL
             val nodeList = nodes.value
             
-            val currentDelayMap = _nodeDelayMap.value.toMutableMap()
+            // Limit concurrency to 32 to avoid exhausting resources
+            val semaphore = Semaphore(32)
             
-            for (node in nodeList) {
-                // Set to -1 to show testing status in UI
-                currentDelayMap[node.id] = -1L
-                _nodeDelayMap.value = currentDelayMap.toMap()
-                
-                val delay = try {
-                    val config = parserFactory.getParser(node.url).parse(StartOptions(node.url))
-                    val res = Libv2ray.measureOutboundDelay(config, url)
-                    if (res <= 0L) -2L else res
-                } catch (e: Exception) {
-                    -2L
+            val jobs = nodeList.map { node ->
+                launch {
+                    semaphore.withPermit {
+                        // Set to -1 to show testing status in UI
+                        updateNodeDelay(node.id, -1L)
+                        
+                        val delay = try {
+                            val config = parserFactory.getParser(node.url).parse(StartOptions(node.url))
+                            val res = Libv2ray.measureOutboundDelay(config, url)
+                            if (res <= 0L) -2L else res
+                        } catch (e: Exception) {
+                            -2L
+                        }
+                        
+                        updateNodeDelay(node.id, delay)
+                    }
                 }
-                
-                currentDelayMap[node.id] = delay
-                _nodeDelayMap.value = currentDelayMap.toMap()
             }
             
+            // Wait for all tests to finish
+            jobs.forEach { it.join() }
             _isTestingAll.value = false
         }
     }
