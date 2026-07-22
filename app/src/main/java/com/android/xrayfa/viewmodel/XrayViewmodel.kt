@@ -98,7 +98,8 @@ class XrayViewmodel(
     private val _pendingRoute: MutableStateFlow<NavigateDestination?> = MutableStateFlow(null)
     val pendingRoute = _pendingRoute.asStateFlow()
 
-    var measureJob: Job? = null
+    private var measureSingleJob: Job? = null
+    private var measureAllJob: Job? = null
     val subscriptions: StateFlow<List<Subscription>> = subscriptionRepository.allSubscriptions
         .stateIn(
             scope = viewModelScope,
@@ -475,11 +476,11 @@ class XrayViewmodel(
     fun measureDelay(context: Context) {
         if (!isServiceRunning()) return
         
-        measureJob?.cancel()
+        measureSingleJob?.cancel()
         _testing.value = true
         _delay.value = -1L // Reset display
         
-        measureJob = viewModelScope.launch {
+        measureSingleJob = viewModelScope.launch {
             val url = context.dataStore.data.first()[SettingsKeys.DELAY_TEST_URL] ?: DEFAULT_DELAY_TEST_URL
             val resultDeferred = CompletableDeferred<Long>()
 
@@ -507,9 +508,7 @@ class XrayViewmodel(
             
             // Sync current node delay to map if we're testing current
             getSelectedNode().first()?.let { node ->
-                val newMap = _nodeDelayMap.value.toMutableMap()
-                newMap[node.id] = _delay.value
-                _nodeDelayMap.value = newMap
+                updateNodeDelay(node.id, _delay.value)
             }
         }
     }
@@ -517,10 +516,10 @@ class XrayViewmodel(
     fun measureAllNodesDelay(context: Context) {
         if (_isTestingAll.value) return
         
-        measureJob?.cancel()
+        measureAllJob?.cancel()
         _isTestingAll.value = true
         
-        measureJob = viewModelScope.launch(Dispatchers.IO) {
+        measureAllJob = viewModelScope.launch(Dispatchers.IO) {
             val url = context.dataStore.data.first()[SettingsKeys.DELAY_TEST_URL] ?: DEFAULT_DELAY_TEST_URL
             val nodeList = nodes.value
             
