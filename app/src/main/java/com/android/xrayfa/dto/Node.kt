@@ -1,6 +1,5 @@
 package com.android.xrayfa.dto
 
-import androidx.compose.ui.graphics.Color
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.android.xrayfa.model.protocol.Protocol

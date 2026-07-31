@@ -1,10 +1,8 @@
 package com.android.xrayfa.parser
 
-import android.net.Uri
 import com.android.xrayfa.model.protocol.Protocol
 import javax.inject.Inject
 import javax.inject.Singleton
-import androidx.core.net.toUri
 import com.android.xrayfa.model.OutboundObject
 
 /**
@@ -22,7 +20,7 @@ class ParserFactory @Inject constructor(
 ) {
 
     fun getParser(url: String): AbstractConfigParser<*,*> {
-        val parser =  when(val protocol = url.toUri().scheme) {
+        val parser =  when(val protocol = url.substringBefore("://").lowercase()) {
             Protocol.VLESS.protocolType -> vlessConfigParser
             Protocol.VMESS.protocolType -> vmessConfigParser
             Protocol.TROJAN.protocolType -> trojanConfigParser
