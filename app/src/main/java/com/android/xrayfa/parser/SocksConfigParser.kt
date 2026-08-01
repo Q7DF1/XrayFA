@@ -12,13 +12,10 @@ import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.SocksOutboundConfigurationObject
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.common.utils.Base64Compat
+import com.android.xrayfa.common.utils.UrlCodec
 import com.android.xrayfa.utils.Device
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
-import java.net.URI
-import java.net.URLDecoder
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -117,7 +114,7 @@ internal object ProxyLinkUtils {
         url: String,
         factory: (remark: String?, server: String, port: Int, user: String?, pass: String?) -> T
     ): T {
-        val uri = URI(url)
+        val uri = UrlCodec.parseUri(url)
         val host = uri.host ?: throw IllegalArgumentException("Invalid proxy URL: missing host")
         val port = uri.port
         val remark = if (uri.fragment.isNullOrEmpty()) null else percentDecode(uri.fragment)
@@ -179,13 +176,13 @@ internal object ProxyLinkUtils {
     private fun percentDecode(s: String?): String {
         if (s == null) return ""
         return try {
-            URLDecoder.decode(s, StandardCharsets.UTF_8.name())
+            UrlCodec.decode(s)
         } catch (e: Exception) {
             s
         }
     }
 
     private fun urlEncode(s: String): String {
-        return URLEncoder.encode(s, StandardCharsets.UTF_8.name())
+        return UrlCodec.encode(s)
     }
 }

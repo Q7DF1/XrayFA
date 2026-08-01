@@ -18,11 +18,10 @@ import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
 import com.android.xrayfa.model.stream.XHttpSettings
+import com.android.xrayfa.common.utils.UrlCodec
 import com.android.xrayfa.utils.Device
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
-import java.net.URLDecoder
-import java.net.URLEncoder
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,7 +32,7 @@ class VLESSConfigParser
     override val gson: Gson
 ): AbstractConfigParser<VLESSOutboundConfigurationObject, VLESSConfig>(){
     override fun decodeProtocol(url: String): VLESSConfig {
-        val decode = URLDecoder.decode(url, "UTF-8")
+        val decode = UrlCodec.decode(url)
         val withoutProtocol = decode.removePrefix("vless://")
         val (mainPart, remark) = withoutProtocol.split("#").let {
             it[0] to if (it.size > 1) it[1] else ""
@@ -61,7 +60,7 @@ class VLESSConfigParser
     override fun encodeProtocol(protocol: VLESSConfig): String {
         val mainPart = "${protocol.uuid}@${protocol.server}:${protocol.port}"
         val query = protocol.param.entries.joinToString("&") { "${it.key}=${it.value}" }
-        val remarkEncoded = protocol.remark?.let { URLEncoder.encode(it, "UTF-8") } ?: ""
+        val remarkEncoded = protocol.remark?.let { UrlCodec.encode(it) } ?: ""
         return buildString {
             append("vless://")
             append(mainPart)

@@ -13,11 +13,10 @@ import com.android.xrayfa.model.stream.FinalMask
 import com.android.xrayfa.model.stream.HysteriaSettings
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
+import com.android.xrayfa.common.utils.UrlCodec
 import com.android.xrayfa.utils.Device
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
-import java.net.URLDecoder
-import java.net.URLEncoder
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,7 +28,7 @@ class Hysteria2ConfigParser @Inject constructor(
     : AbstractConfigParser<Hysteria2OutboundConfigurationObject, Hysteria2Config>() {
 
     override fun decodeProtocol(url: String): Hysteria2Config {
-        val decode = URLDecoder.decode(url, "UTF-8")
+        val decode = UrlCodec.decode(url)
         val withoutProtocol = decode.removePrefix("hysteria2://")
         val (mainPart, remark) = withoutProtocol.split("#").let {
             it[0] to if (it.size > 1) it[1] else ""
@@ -57,7 +56,7 @@ class Hysteria2ConfigParser @Inject constructor(
     override fun encodeProtocol(protocol: Hysteria2Config): String {
         val mainPart = "${protocol.auth}@${protocol.address}:${protocol.port}"
         val query = protocol.param.entries.joinToString("&") { "${it.key}=${it.value}" }
-        val remarkEncoded = protocol.remark?.let { URLEncoder.encode(it, "UTF-8") } ?: ""
+        val remarkEncoded = protocol.remark?.let { UrlCodec.encode(it) } ?: ""
         return buildString {
             append("hysteria2://")
             append(mainPart)
