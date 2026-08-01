@@ -4,10 +4,10 @@ import android.content.Context
 import android.net.InetAddresses
 import android.os.Build
 import android.provider.Settings
-import android.util.Base64
 import android.util.Log
 import android.util.Patterns
 import androidx.annotation.RequiresApi
+import com.android.xrayfa.common.utils.Base64Compat
 import com.maxmind.geoip2.DatabaseReader
 import java.io.File
 import java.net.InetAddress
@@ -17,7 +17,7 @@ object Device {
     fun getDeviceIdForXUDPBaseKey(): String {
         return try {
             val androidId = Settings.Secure.ANDROID_ID.toByteArray(Charsets.UTF_8)
-            Base64.encodeToString(androidId.copyOf(32), Base64.NO_PADDING.or(Base64.URL_SAFE))
+            Base64Compat.encodeUrlSafeNoPadding(androidId.copyOf(32))
         } catch (e: Exception) {
             Log.e(TAG, "Failed to generate device ID", e)
             ""

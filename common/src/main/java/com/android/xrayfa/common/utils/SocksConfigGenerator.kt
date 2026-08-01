@@ -1,6 +1,5 @@
 package com.android.xrayfa.common.utils
 import java.security.SecureRandom
-import java.util.Base64
 
 /**
  * Configuration generator for SOCKS5 proxy to prevent detection.
@@ -33,6 +32,6 @@ object SocksConfigGenerator {
         val bytes = ByteArray(length)
         secureRandom.nextBytes(bytes)
         // Use URL-safe Base64 to avoid issues with special characters in config files
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes).take(length)
+        return Base64Compat.encodeUrlSafeNoPadding(bytes).take(length)
     }
 }

@@ -1,7 +1,7 @@
 package com.android.xrayfa.utils
 
+import com.android.xrayfa.common.utils.Base64Compat
 import okhttp3.Response
-import java.util.Base64
 
 data class SubscriptionUserInfo(
     val upload: Long,
@@ -40,7 +40,7 @@ object HttpResponseUtils {
         if (!value.startsWith(PREFIX_BASE64)) return value
         return try {
             val encoded = value.removePrefix(PREFIX_BASE64)
-            String(Base64.getDecoder().decode(encoded), Charsets.UTF_8)
+            String(Base64Compat.decode(encoded), Charsets.UTF_8)
         } catch (e: Exception) {
             value
         }

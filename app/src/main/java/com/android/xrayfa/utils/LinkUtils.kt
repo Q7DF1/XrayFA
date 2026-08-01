@@ -1,7 +1,7 @@
 package com.android.xrayfa.utils
 
+import com.android.xrayfa.common.utils.Base64Compat
 import com.google.gson.JsonParser
-import java.util.Base64
 
 object LinkUtils {
     /**
@@ -22,13 +22,13 @@ object LinkUtils {
 
     private fun cleanVmess(url: String): String {
         val encoded = url.removePrefix("vmess://")
-        val decoded = String(Base64.getDecoder().decode(encoded))
+        val decoded = String(Base64Compat.decode(encoded))
         val json = JsonParser.parseString(decoded).asJsonObject
         
         // Remove allowInsecure
         json.remove("allowInsecure")
         
-        val cleanedEncoded = Base64.getEncoder().encodeToString(json.toString().toByteArray())
+        val cleanedEncoded = Base64Compat.encode(json.toString().toByteArray())
         return "vmess://$cleanedEncoded"
     }
 
