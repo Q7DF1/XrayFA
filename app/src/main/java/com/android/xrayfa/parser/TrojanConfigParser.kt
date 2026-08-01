@@ -13,13 +13,10 @@ import com.android.xrayfa.model.stream.GrpcSettings
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
+import com.android.xrayfa.common.utils.UrlCodec
 import com.android.xrayfa.utils.Device
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
-import java.net.URI
-import java.net.URLDecoder
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,7 +27,7 @@ class TrojanConfigParser
     override val gson: Gson
 ): AbstractConfigParser<TrojanOutboundConfigurationObject, TrojanConfig>() {
     override fun decodeProtocol(url: String): TrojanConfig {
-        val uri = URI(url)
+        val uri = UrlCodec.parseUri(url)
         val scheme = uri.scheme ?: "trojan"
         val password = percentDecode(uri.userInfo ?: "")
         val host = uri.host
@@ -59,11 +56,11 @@ class TrojanConfigParser
     }
 
     override fun encodeProtocol(protocol: TrojanConfig): String {
-        val userInfo = URLEncoder.encode(protocol.password, StandardCharsets.UTF_8.name())
+        val userInfo = UrlCodec.encode(protocol.password)
         val query = protocol.params.entries.joinToString("&") {
-            "${URLEncoder.encode(it.key, StandardCharsets.UTF_8.name())}=${URLEncoder.encode(it.value, StandardCharsets.UTF_8.name())}"
+            "${UrlCodec.encode(it.key)}=${UrlCodec.encode(it.value)}"
         }
-        val fragment = protocol.remark?.let { "#${URLEncoder.encode(it, StandardCharsets.UTF_8.name())}" } ?: ""
+        val fragment = protocol.remark?.let { "#${UrlCodec.encode(it)}" } ?: ""
 
         return buildString {
             append("trojan://")
@@ -84,7 +81,7 @@ class TrojanConfigParser
         private fun percentDecode(s: String?): String {
             if (s == null) return ""
             return try {
-                URLDecoder.decode(s, StandardCharsets.UTF_8.name())
+                UrlCodec.decode(s)
             } catch (e: Exception) {
                 s
             }

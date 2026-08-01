@@ -37,7 +37,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
-import java.net.URLEncoder
+import com.android.xrayfa.common.utils.UrlCodec
 import javax.inject.Inject
 import kotlin.jvm.java
 import androidx.core.net.toUri
@@ -699,9 +699,9 @@ class XrayViewmodel(
         """.trimIndent()
 
         try {
-            val encodedBody = URLEncoder.encode(issueBody, "UTF-8")
+            val encodedBody = UrlCodec.encode(issueBody)
             val repoUrl = "https://github.com/Q7DF1/XrayFA/issues/new"
-            val fullUrl = "$repoUrl?title=[Bug]%20${URLEncoder.encode(data.title, "UTF-8")}&body=$encodedBody&labels=bug"
+            val fullUrl = "$repoUrl?title=[Bug]%20${UrlCodec.encode(data.title)}&body=$encodedBody&labels=bug"
             val intent = Intent(Intent.ACTION_VIEW, fullUrl.toUri())
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)

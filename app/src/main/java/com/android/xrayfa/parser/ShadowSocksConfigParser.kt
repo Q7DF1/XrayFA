@@ -11,6 +11,7 @@ import com.android.xrayfa.model.ShadowSocksOutboundConfigurationObject
 import com.android.xrayfa.model.ShadowSocksServerObject
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.common.utils.Base64Compat
+import com.android.xrayfa.common.utils.UrlCodec
 import com.android.xrayfa.utils.Device
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
@@ -30,7 +31,7 @@ class ShadowSocksConfigParser
         // 1. Split the fragment (tag)
         val parts = content.split("#", limit = 2)
         var mainPart = parts[0]
-        val tag = if (parts.size > 1) java.net.URLDecoder.decode(parts[1], "UTF-8") else null
+        val tag = if (parts.size > 1) UrlCodec.decode(parts[1]) else null
 
         // 2. Remove query parameters (e.g., ?plugin=...) to prevent port parsing errors
         val queryParts = mainPart.split("?", limit = 2)
@@ -77,7 +78,7 @@ class ShadowSocksConfigParser
         val userInfo = "${protocol.method}:${protocol.password}"
         val base64UserInfo = Base64Compat.encode(userInfo.toByteArray())
         val mainPart = "$base64UserInfo@${protocol.server}:${protocol.port}"
-        val tagPart = if (!protocol.tag.isNullOrEmpty()) "#${java.net.URLEncoder.encode(protocol.tag, "UTF-8")}" else ""
+        val tagPart = if (!protocol.tag.isNullOrEmpty()) "#${UrlCodec.encode(protocol.tag)}" else ""
         return "ss://$mainPart$tagPart"
     }
 
