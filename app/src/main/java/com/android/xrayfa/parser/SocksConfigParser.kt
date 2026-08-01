@@ -11,6 +11,7 @@ import com.android.xrayfa.model.HttpSocksUserObject
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.SocksOutboundConfigurationObject
 import com.android.xrayfa.model.stream.StreamSettingsObject
+import com.android.xrayfa.common.utils.Base64Compat
 import com.android.xrayfa.utils.Device
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
@@ -18,7 +19,6 @@ import java.net.URI
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.util.Base64
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -170,7 +170,7 @@ internal object ProxyLinkUtils {
 
     private fun tryBase64Decode(value: String): String {
         return try {
-            String(Base64.getDecoder().decode(value))
+            String(Base64Compat.decode(value))
         } catch (e: Exception) {
             value
         }

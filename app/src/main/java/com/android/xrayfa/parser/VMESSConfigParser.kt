@@ -20,10 +20,10 @@ import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
 import com.android.xrayfa.utils.Device
+import com.android.xrayfa.common.utils.Base64Compat
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import kotlinx.coroutines.flow.first
-import java.util.Base64
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,7 +35,7 @@ class VMESSConfigParser
 ): AbstractConfigParser<VMESSOutboundConfigurationObject, VMESSConfig>() {
     override fun decodeProtocol(url: String): VMESSConfig {
         val cleanLink = url.removePrefix("vmess://").trim()
-        val decoded = String(Base64.getDecoder().decode(cleanLink))
+        val decoded = String(Base64Compat.decode(cleanLink))
         val json = JsonParser.parseString(decoded).asJsonObject
         val uuid = json.get("id").asString
         val tls = json.get("tls")?.asString ?: ""
@@ -62,7 +62,7 @@ class VMESSConfigParser
         json.addProperty("add", protocol.address)
 
         val jsonString = json.toString()
-        val encoded = Base64.getEncoder().encodeToString(jsonString.toByteArray())
+        val encoded = Base64Compat.encode(jsonString.toByteArray())
         return "vmess://$encoded"
     }
 

@@ -10,10 +10,10 @@ import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.ShadowSocksOutboundConfigurationObject
 import com.android.xrayfa.model.ShadowSocksServerObject
 import com.android.xrayfa.model.stream.StreamSettingsObject
+import com.android.xrayfa.common.utils.Base64Compat
 import com.android.xrayfa.utils.Device
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
-import java.util.Base64
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,18 +44,18 @@ class ShadowSocksConfigParser
             mainPart.substring(0, lastAtIndex) to mainPart.substring(lastAtIndex + 1)
         } else {
             // Handle ss://base64(method:password@server:port)
-            val decodedMain = String(Base64.getDecoder().decode(mainPart))
+            val decodedMain = String(Base64Compat.decode(mainPart))
             val atIndex = decodedMain.lastIndexOf("@")
             if (atIndex != -1) {
                 val userInfo = decodedMain.substring(0, atIndex)
                 val serverInfo = decodedMain.substring(atIndex + 1)
-                Base64.getEncoder().encodeToString(userInfo.toByteArray()) to serverInfo
+                Base64Compat.encode(userInfo.toByteArray()) to serverInfo
             } else {
                 throw IllegalArgumentException("Invalid SS URL")
             }
         }
 
-        val decodedUserInfo = String(Base64.getDecoder().decode(base64Part))
+        val decodedUserInfo = String(Base64Compat.decode(base64Part))
         val userParts = decodedUserInfo.split(":", limit = 2)
         val method = userParts[0]
         val password = if (userParts.size > 1) userParts[1] else ""
@@ -75,7 +75,7 @@ class ShadowSocksConfigParser
 
     override fun encodeProtocol(protocol: ShadowSocksConfig): String {
         val userInfo = "${protocol.method}:${protocol.password}"
-        val base64UserInfo = Base64.getEncoder().encodeToString(userInfo.toByteArray())
+        val base64UserInfo = Base64Compat.encode(userInfo.toByteArray())
         val mainPart = "$base64UserInfo@${protocol.server}:${protocol.port}"
         val tagPart = if (!protocol.tag.isNullOrEmpty()) "#${java.net.URLEncoder.encode(protocol.tag, "UTF-8")}" else ""
         return "ss://$mainPart$tagPart"

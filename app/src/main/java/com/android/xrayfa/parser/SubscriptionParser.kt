@@ -1,6 +1,6 @@
 package com.android.xrayfa.parser
 
-import java.util.Base64
+import com.android.xrayfa.common.utils.Base64Compat
 
 /**
  *
@@ -10,7 +10,7 @@ class SubscriptionParser {
 
 
     fun parseUrl(content: String): List<String> {
-        val decode = String(Base64.getDecoder().decode(content))
+        val decode = String(Base64Compat.decode(content))
         val urls = decode.split("\n")
             .map { it.trim() }
             .filter { it.isNotEmpty() }
