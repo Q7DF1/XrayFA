@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.Service
 import android.content.Context
 import com.android.xrayfa.XrayAppCompatFactory
+import com.android.xrayfa.common.core.XrayAssetPaths
 import dagger.BindsInstance
 import dagger.Component
 import javax.inject.Provider
@@ -30,7 +31,7 @@ interface XrayFAComponent {
     fun getVpnServices(): Map<Class<*>, Provider<Service>>
     fun getActivities(): Map<Class<*>, Provider<Activity>>
 
-
+    fun xrayAssetPaths(): XrayAssetPaths
 
     fun inject(appCompatFactory: XrayAppCompatFactory)
 
