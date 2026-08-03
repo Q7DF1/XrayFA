@@ -19,9 +19,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import androidx.core.net.toUri
 import com.android.xrayfa.R
-import com.android.xrayfa.common.GEO_IP
-import com.android.xrayfa.common.GEO_LITE
-import com.android.xrayfa.common.GEO_SITE
+import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.di.qualifier.LongTime
 import com.android.xrayfa.common.repository.DomainStrategy
 import com.android.xrayfa.common.repository.RoutingMode
@@ -76,7 +74,8 @@ data class GithubAsset(
 class SettingsViewmodel(
     val repository: SettingsRepository,
     val okHttpClient: OkHttpClient,
-    val xrayBaseServiceManager: XrayBaseServiceManager
+    val xrayBaseServiceManager: XrayBaseServiceManager,
+    private val assetPaths: XrayAssetPaths,
 ): ViewModel() {
 
     companion object {
@@ -270,7 +269,7 @@ class SettingsViewmodel(
         }
         viewModelScope.launch(Dispatchers.IO) {
             _geoSiteDownloading.value = true
-            val downloaded = download(GEOFileType.FILE_TYPE_SITE,context)
+            val downloaded = download(GEOFileType.FILE_TYPE_SITE)
             if (downloaded) onConfigChanged()
             _geoSiteDownloading.value = false
         }
@@ -282,7 +281,7 @@ class SettingsViewmodel(
         }
         viewModelScope.launch(Dispatchers.IO) {
             _geoLiteDownloading.value = true
-            download(GEOFileType.FILE_TYPE_LITE,context)
+            download(GEOFileType.FILE_TYPE_LITE)
             _geoLiteDownloading.value = false
             Log.i(TAG, "downloadGeoLite: download successful!")
             repository.setGeoLiteInstall(true)
@@ -297,7 +296,7 @@ class SettingsViewmodel(
         }
         viewModelScope.launch(Dispatchers.IO) {
             _geoIPDownloading.value = true
-            val downloaded = download(GEOFileType.FILE_TYPE_IP,context)
+            val downloaded = download(GEOFileType.FILE_TYPE_IP)
             if (downloaded) onConfigChanged()
             _geoIPDownloading.value = false
         }
@@ -310,10 +309,9 @@ class SettingsViewmodel(
 
     private suspend fun download(
         url: String,
-        target:String,
+        targetPath: String,
         statusFlow: MutableStateFlow<Boolean>,
         progressFlow: MutableStateFlow<Float>,
-        context: Context
     ): Boolean = withContext(Dispatchers.IO) {
 
 
@@ -327,7 +325,7 @@ class SettingsViewmodel(
 
                 res.body?.let { body ->
                     val contentLength = body.contentLength()
-                    val file = File(context.filesDir,target)
+                    val file = File(targetPath)
                     var totalRead = 0L
                     val buffer = ByteArray(8192)
 
@@ -361,16 +359,15 @@ class SettingsViewmodel(
     }
     private suspend fun download(
         @GEOFileType fileType: Int,
-        context: Context
     ):Boolean {
 
         return when(fileType) {
             GEOFileType.FILE_TYPE_IP ->
-                download(geoIPUrlTest, GEO_IP,_geoIPDownloading, _geoIPProgress, context)
+                download(geoIPUrlTest, assetPaths.geoIpPath, _geoIPDownloading, _geoIPProgress)
             GEOFileType.FILE_TYPE_SITE ->
-                download(geoSiteUrlTest, GEO_SITE,_geoSiteDownloading, _geoSiteProgress, context)
+                download(geoSiteUrlTest, assetPaths.geoSitePath, _geoSiteDownloading, _geoSiteProgress)
             GEOFileType.FILE_TYPE_LITE ->
-                download(geoLiteUrlTest, GEO_LITE,_geoLiteDownloading, _geoLiteProgress, context)
+                download(geoLiteUrlTest, assetPaths.geoLiteDatabasePath, _geoLiteDownloading, _geoLiteProgress)
             else -> {
                 Log.e(TAG, "download: download type error")
                 false
@@ -396,8 +393,12 @@ class SettingsViewmodel(
                 return@launch
             }
 
-            val targetName = if (fileType == GEOFileType.FILE_TYPE_IP) GEO_IP else GEO_SITE
-            val file = File(context.filesDir,targetName)
+            val filePath = if (fileType == GEOFileType.FILE_TYPE_IP) {
+                assetPaths.geoIpPath
+            } else {
+                assetPaths.geoSitePath
+            }
+            val file = File(filePath)
             val calculateFileHash = calculateFileHash(file)
             Log.i(TAG, "onSelectFile: $calculateFileHash")
             val input = context.contentResolver.openInputStream(uri)
@@ -433,12 +434,13 @@ class SettingsViewmodelFactory
 @Inject constructor(
     val repository: SettingsRepository,
     @LongTime val okHttpClient : OkHttpClient,
-    val xrayBaseServiceManager: XrayBaseServiceManager
+    val xrayBaseServiceManager: XrayBaseServiceManager,
+    val assetPaths: XrayAssetPaths,
 ): ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SettingsViewmodel::class.java)) {
-            return SettingsViewmodel(repository,okHttpClient,xrayBaseServiceManager) as T
+            return SettingsViewmodel(repository, okHttpClient, xrayBaseServiceManager, assetPaths) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
