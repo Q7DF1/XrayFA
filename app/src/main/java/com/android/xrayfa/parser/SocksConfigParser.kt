@@ -13,8 +13,6 @@ import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.common.utils.Base64Compat
 import com.android.xrayfa.common.utils.UrlCodec
 import com.google.gson.Gson
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Parser for SOCKS proxy outbounds.
@@ -26,9 +24,7 @@ import javax.inject.Singleton
  *
  * See https://xtls.github.io/config/outbounds/socks.html
  */
-@Singleton
-class SocksConfigParser
-@Inject constructor(
+class SocksConfigParser(
     override val settingsRepo: SettingsRepository,
     override val geoIpProvider: GeoIpProvider,
     override val gson: Gson

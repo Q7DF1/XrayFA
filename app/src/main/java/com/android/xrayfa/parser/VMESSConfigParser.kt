@@ -21,12 +21,8 @@ import com.android.xrayfa.model.stream.WsSettings
 import com.android.xrayfa.common.utils.Base64Compat
 import com.google.gson.Gson
 import com.google.gson.JsonParser
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class VMESSConfigParser
-@Inject constructor(
+class VMESSConfigParser(
     override val settingsRepo: SettingsRepository,
     override val geoIpProvider: GeoIpProvider,
     override val gson: Gson

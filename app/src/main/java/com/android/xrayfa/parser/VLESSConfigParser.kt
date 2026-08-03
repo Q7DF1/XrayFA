@@ -19,12 +19,8 @@ import com.android.xrayfa.model.stream.WsSettings
 import com.android.xrayfa.model.stream.XHttpSettings
 import com.android.xrayfa.common.utils.UrlCodec
 import com.google.gson.Gson
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class VLESSConfigParser
-@Inject constructor(
+class VLESSConfigParser(
     override val settingsRepo: SettingsRepository,
     override val geoIpProvider: GeoIpProvider,
     override val gson: Gson
