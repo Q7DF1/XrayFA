@@ -6,7 +6,6 @@ import android.provider.Settings
 import android.util.Log
 import androidx.datastore.preferences.core.edit
 import com.android.xrayfa.XrayAppCompatFactory.Companion.TAG
-import com.android.xrayfa.XrayAppCompatFactory.Companion.xrayPATH
 import com.android.xrayfa.common.GEO_IP
 import com.android.xrayfa.common.GEO_SITE
 import com.android.xrayfa.common.repository.Theme
@@ -58,7 +57,6 @@ class XrayFAApplication: Application() {
             val fileDir = filesDir
             val geoipFile = File(fileDir, GEO_IP)
             val geositeFile = File(fileDir, GEO_SITE)
-            xrayPATH = filesDir.absolutePath
             if (!geoipFile.exists()) {
                 Log.i(TAG, "copy geoip.dat")
                 assets.open(GEO_IP).use { input ->

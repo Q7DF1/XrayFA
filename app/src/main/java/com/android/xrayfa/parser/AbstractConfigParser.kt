@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.first
 
 
 import com.android.xrayfa.common.repository.defaultRoutes
+import com.android.xrayfa.common.core.GeoIpProvider
 
 /**
  *
@@ -47,6 +48,8 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
     private var apiEnable: Boolean = false
 
     abstract val settingsRepo: SettingsRepository
+
+    abstract val geoIpProvider: GeoIpProvider
 
     abstract val gson: Gson
 
@@ -367,4 +370,12 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
     abstract fun parseOutbound(url: String): OutboundObject<T>
     @Throws(Exception::class)
     abstract suspend fun preParse(link: Link): Node
+
+    protected suspend fun countryIsoForServer(ip: String): String {
+        return if (settingsRepo.settingsFlow.first().geoLiteInstall) {
+            geoIpProvider.countryIsoFromIp(ip)
+        } else {
+            ""
+        }
+    }
 }

@@ -1,7 +1,6 @@
 package com.android.xrayfa.parser
 
-import com.android.xrayfa.XrayAppCompatFactory
-import com.android.xrayfa.common.GEO_LITE
+import com.android.xrayfa.common.core.GeoIpProvider
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.dto.HttpConfig
 import com.android.xrayfa.dto.Link
@@ -11,9 +10,7 @@ import com.android.xrayfa.model.HttpSocksServerObject
 import com.android.xrayfa.model.HttpSocksUserObject
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.stream.StreamSettingsObject
-import com.android.xrayfa.utils.Device
 import com.google.gson.Gson
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,6 +27,7 @@ import javax.inject.Singleton
 class HttpConfigParser
 @Inject constructor(
     override val settingsRepo: SettingsRepository,
+    override val geoIpProvider: GeoIpProvider,
     override val gson: Gson
 ) : AbstractConfigParser<HttpOutboundConfigurationObject, HttpConfig>() {
 
@@ -91,12 +89,7 @@ class HttpConfigParser
             address = config.server,
             selected = link.selected,
             remark = config.remark,
-            countryISO = if (settingsRepo.settingsFlow.first().geoLiteInstall) {
-                Device.getCountryISOFromIp(
-                    geoPath = "${XrayAppCompatFactory.xrayPATH}/$GEO_LITE",
-                    ip = config.server
-                )
-            } else ""
+            countryISO = countryIsoForServer(config.server)
         )
     }
 }

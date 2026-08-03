@@ -1,7 +1,6 @@
 package com.android.xrayfa.parser
 
-import com.android.xrayfa.XrayAppCompatFactory
-import com.android.xrayfa.common.GEO_LITE
+import com.android.xrayfa.common.core.GeoIpProvider
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.dto.Link
 import com.android.xrayfa.dto.Node
@@ -14,9 +13,7 @@ import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
 import com.android.xrayfa.common.utils.UrlCodec
-import com.android.xrayfa.utils.Device
 import com.google.gson.Gson
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,6 +21,7 @@ import javax.inject.Singleton
 class TrojanConfigParser
 @Inject constructor(
     override val settingsRepo: SettingsRepository,
+    override val geoIpProvider: GeoIpProvider,
     override val gson: Gson
 ): AbstractConfigParser<TrojanOutboundConfigurationObject, TrojanConfig>() {
     override fun decodeProtocol(url: String): TrojanConfig {
@@ -129,12 +127,7 @@ class TrojanConfigParser
             address = trojanConfig.host?:"unknown",
             port = trojanConfig.port?:0,
             remark = trojanConfig.remark,
-            countryISO = if (settingsRepo.settingsFlow.first().geoLiteInstall) {
-                Device.getCountryISOFromIp(
-                    geoPath = "${XrayAppCompatFactory.xrayPATH}/$GEO_LITE",
-                    ip = trojanConfig.host?:""
-                )
-            } else ""
+            countryISO = countryIsoForServer(trojanConfig.host ?: "")
         )
     }
 }

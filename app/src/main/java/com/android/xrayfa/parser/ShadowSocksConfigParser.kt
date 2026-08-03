@@ -1,7 +1,6 @@
 package com.android.xrayfa.parser
 
-import com.android.xrayfa.XrayAppCompatFactory
-import com.android.xrayfa.common.GEO_LITE
+import com.android.xrayfa.common.core.GeoIpProvider
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.dto.Link
 import com.android.xrayfa.dto.Node
@@ -12,9 +11,7 @@ import com.android.xrayfa.model.ShadowSocksServerObject
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.common.utils.Base64Compat
 import com.android.xrayfa.common.utils.UrlCodec
-import com.android.xrayfa.utils.Device
 import com.google.gson.Gson
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,6 +19,7 @@ import javax.inject.Singleton
 class ShadowSocksConfigParser
 @Inject constructor(
     override val settingsRepo: SettingsRepository,
+    override val geoIpProvider: GeoIpProvider,
     override val gson: Gson
 ): AbstractConfigParser<ShadowSocksOutboundConfigurationObject, ShadowSocksConfig>() {
     override fun decodeProtocol(url: String): ShadowSocksConfig {
@@ -114,12 +112,7 @@ class ShadowSocksConfigParser
             address = shadowSocksConfig.server,
             selected = link.selected,
             remark = shadowSocksConfig.tag,
-            countryISO = if (settingsRepo.settingsFlow.first().geoLiteInstall) {
-                Device.getCountryISOFromIp(
-                    geoPath = "${XrayAppCompatFactory.xrayPATH}/$GEO_LITE",
-                    ip = shadowSocksConfig.server
-                )
-            } else ""
+            countryISO = countryIsoForServer(shadowSocksConfig.server)
         )
     }
 }

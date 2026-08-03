@@ -25,7 +25,6 @@ class XrayAppCompatFactory: AppComponentFactory(),ContextAvailableCallback {
         const val TAG = "V2rayAppCompatFactory"
 
         var rootComponent: XrayFAComponent? = null
-        var xrayPATH: String? = null
     }
 
     @set:Inject

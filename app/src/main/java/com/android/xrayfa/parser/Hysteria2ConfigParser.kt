@@ -1,7 +1,6 @@
 package com.android.xrayfa.parser
 
-import com.android.xrayfa.XrayAppCompatFactory
-import com.android.xrayfa.common.GEO_LITE
+import com.android.xrayfa.common.core.GeoIpProvider
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.dto.Hysteria2Config
 import com.android.xrayfa.dto.Link
@@ -14,15 +13,14 @@ import com.android.xrayfa.model.stream.HysteriaSettings
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.common.utils.UrlCodec
-import com.android.xrayfa.utils.Device
 import com.google.gson.Gson
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class Hysteria2ConfigParser @Inject constructor(
     override val settingsRepo: SettingsRepository,
+    override val geoIpProvider: GeoIpProvider,
     override val gson: Gson
 )
     : AbstractConfigParser<Hysteria2OutboundConfigurationObject, Hysteria2Config>() {
@@ -112,12 +110,7 @@ class Hysteria2ConfigParser @Inject constructor(
             port = h2Config.port,
             selected = link.selected,
             remark = h2Config.remark,
-            countryISO = if (settingsRepo.settingsFlow.first().geoLiteInstall) {
-                Device.getCountryISOFromIp(
-                    geoPath = "${XrayAppCompatFactory.xrayPATH}/$GEO_LITE",
-                    ip = h2Config.address
-                )
-            } else ""
+            countryISO = countryIsoForServer(h2Config.address)
         )
     }
 }
