@@ -10,7 +10,7 @@ import com.android.xrayfa.common.GEO_IP
 import com.android.xrayfa.common.GEO_SITE
 import com.android.xrayfa.common.repository.Theme
 import com.android.xrayfa.common.repository.SettingsKeys
-import com.android.xrayfa.common.repository.dataStore
+import com.android.xrayfa.data.settingsDataStore
 import com.android.xrayfa.common.utils.SocksConfigGenerator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +32,7 @@ class XrayFAApplication: Application() {
 
     private fun observeDarkMode() {
         appCoroutineScope.launch {
-            dataStore.data
+            settingsDataStore.data
                 .map { prefs ->
                     prefs[SettingsKeys.DARK_MODE] ?: Theme.AUTO_MODE
                 }
@@ -78,7 +78,7 @@ class XrayFAApplication: Application() {
 
     private fun initSocksConfig() {
         appCoroutineScope.launch {
-            dataStore.edit {
+            settingsDataStore.edit {
                 val port = it[SettingsKeys.SOCKS_PORT]
                 if (port == null || port !in SocksConfigGenerator.portRange) {
                     it[SettingsKeys.SOCKS_PORT] = SocksConfigGenerator.generatePort()
@@ -98,7 +98,7 @@ class XrayFAApplication: Application() {
     @SuppressLint("HardwareIds")
     private fun initHwid(){
         appCoroutineScope.launch {
-            dataStore.edit {
+            settingsDataStore.edit {
                 it[SettingsKeys.HWID] = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID) ?: "unknown"
             }
         }
