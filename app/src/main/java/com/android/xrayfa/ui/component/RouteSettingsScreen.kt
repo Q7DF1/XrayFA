@@ -60,7 +60,7 @@ fun RouteSettingsScreen(
     }
 
     var showAddSheet by remember { mutableStateOf(false) }
-    val isRouteMode = settingsState.routingMode == RoutingMode.ROUTE
+    val isRouteMode = settingsState.routingMode == RoutingMode.ROUTE.code
 
     val saveRules = { rules: List<Rule> ->
         // Priority: 1. System Rules (API/Tun), 2. Custom Rules, 3. Presets
@@ -107,7 +107,7 @@ fun RouteSettingsScreen(
                 item {
                     SettingsGroup(groupName = stringResource(R.string.routing_mode_label)) {
                         RoutingModeSelector(
-                            currentMode = settingsState.routingMode,
+                            currentMode = RoutingMode.fromCode(settingsState.routingMode),
                             onModeSelected = { viewmodel.setRoutingMode(it) }
                         )
                     }
@@ -117,7 +117,7 @@ fun RouteSettingsScreen(
                 item {
                     SettingsGroup(groupName = "Domain Strategy") {
                         DomainStrategySelector(
-                            currentStrategy = settingsState.domainStrategy,
+                            currentStrategy = DomainStrategy.fromCode(settingsState.domainStrategy),
                             onStrategySelected = { viewmodel.setDomainStrategy(it) }
                         )
                     }
@@ -326,8 +326,8 @@ fun AddRuleBottomSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DomainStrategySelector(
-    currentStrategy: Int,
-    onStrategySelected: (Int) -> Unit
+    currentStrategy: DomainStrategy,
+    onStrategySelected: (DomainStrategy) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     val strategies = listOf(
@@ -485,8 +485,8 @@ fun ManualRuleCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoutingModeSelector(
-    currentMode: Int,
-    onModeSelected: (Int) -> Unit
+    currentMode: RoutingMode,
+    onModeSelected: (RoutingMode) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     val modes = listOf(

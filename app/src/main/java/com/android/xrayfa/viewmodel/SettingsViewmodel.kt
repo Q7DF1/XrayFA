@@ -122,20 +122,20 @@ class SettingsViewmodel(
     )
 
 
-    fun setDarkMode(@Theme darkMode: Int) {
+    fun setDarkMode(darkMode: Int) {
         viewModelScope.launch {
-            repository.setDarkMode(darkMode)
+            repository.setDarkMode(Theme.fromCode(darkMode))
         }
     }
 
-    fun setDomainStrategy(@DomainStrategy strategy: Int) {
+    fun setDomainStrategy(strategy: DomainStrategy) {
         viewModelScope.launch {
             repository.setDomainStrategy(strategy)
             onConfigSettingsChanged()
         }
     }
 
-    fun setRoutingMode(@RoutingMode mode: Int) {
+    fun setRoutingMode(mode: RoutingMode) {
         viewModelScope.launch {
             repository.setRoutingMode(mode)
             onConfigSettingsChanged()
