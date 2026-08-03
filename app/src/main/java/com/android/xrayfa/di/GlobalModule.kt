@@ -1,6 +1,8 @@
 package com.android.xrayfa.di
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import com.android.xrayfa.common.core.GeoIpProvider
 import com.android.xrayfa.common.core.TrafficDetector
 import com.android.xrayfa.common.core.XrayAssetPaths
@@ -8,6 +10,7 @@ import com.android.xrayfa.common.core.XrayCore
 import com.android.xrayfa.core.AndroidGeoIpProvider
 import com.android.xrayfa.core.AndroidXrayAssetPaths
 import com.android.xrayfa.core.XrayCoreManager
+import com.android.xrayfa.data.settingsDataStore
 import com.android.xrayfa.common.di.qualifier.Application
 import com.android.xrayfa.dao.SubscriptionDao
 import com.android.xrayfa.dao.XrayFADatabase
@@ -95,6 +98,12 @@ abstract class GlobalModule {
      @Singleton
      fun provideGson(): Gson {
          return Gson()
+     }
+
+     @Provides
+     @Singleton
+     fun provideSettingsDataStore(@Application context: Context): DataStore<Preferences> {
+         return context.settingsDataStore
      }
  }
 

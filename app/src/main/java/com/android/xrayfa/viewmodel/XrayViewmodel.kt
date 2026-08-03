@@ -19,9 +19,7 @@ import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.core.XrayBaseServiceManager
 import com.android.xrayfa.common.core.XrayCore
 import com.android.xrayfa.common.di.qualifier.ShortTime
-import com.android.xrayfa.common.repository.DEFAULT_DELAY_TEST_URL
-import com.android.xrayfa.common.repository.SettingsKeys
-import com.android.xrayfa.common.repository.dataStore
+import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.utils.BarcodeUtils
@@ -66,6 +64,7 @@ class XrayViewmodel(
     private val subscriptionRepository: SubscriptionRepository,
     private val xrayBaseServiceManager: XrayBaseServiceManager,
     private val xrayCore: XrayCore,
+    private val settingsRepository: SettingsRepository,
     private val parserFactory: ParserFactory,
     private val okHttp: OkHttpClient,
     private val subscriptionParser: SubscriptionParser
@@ -480,7 +479,7 @@ class XrayViewmodel(
         _delay.value = -1L // Reset display
         
         measureSingleJob = viewModelScope.launch {
-            val url = context.dataStore.data.first()[SettingsKeys.DELAY_TEST_URL] ?: DEFAULT_DELAY_TEST_URL
+            val url = settingsRepository.settingsFlow.first().delayTestUrl
             val resultDeferred = CompletableDeferred<Long>()
 
             // 1. Start the actual test job
@@ -519,7 +518,7 @@ class XrayViewmodel(
         _isTestingAll.value = true
         
         measureAllJob = viewModelScope.launch(Dispatchers.IO) {
-            val url = context.dataStore.data.first()[SettingsKeys.DELAY_TEST_URL] ?: DEFAULT_DELAY_TEST_URL
+            val url = settingsRepository.settingsFlow.first().delayTestUrl
             val nodeList = nodes.value
             
             // Limit concurrency to 32 to avoid exhausting resources
@@ -718,6 +717,7 @@ class XrayViewmodelFactory
     private val subscriptionRepository: SubscriptionRepository,
     private val xrayBaseServiceManager: XrayBaseServiceManager,
     private val xrayCore: XrayCore,
+    private val settingsRepository: SettingsRepository,
     private val parserFactory: ParserFactory,
     @ShortTime private val okHttp: OkHttpClient,
     private val subscriptionParser: SubscriptionParser
@@ -730,6 +730,7 @@ class XrayViewmodelFactory
                 subscriptionRepository,
                 xrayBaseServiceManager,
                 xrayCore,
+                settingsRepository,
                 parserFactory,
                 okHttp,
                 subscriptionParser

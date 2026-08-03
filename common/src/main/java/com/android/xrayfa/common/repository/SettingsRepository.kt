@@ -1,6 +1,5 @@
 package com.android.xrayfa.common.repository
 
-import android.content.Context
 import android.util.Log
 import androidx.annotation.IntDef
 import androidx.datastore.core.DataStore
@@ -9,7 +8,6 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.google.gson.reflect.TypeToken
@@ -18,7 +16,8 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+/** DataStore file name; must stay stable across app upgrades and KMP platform actuals. */
+const val SETTINGS_DATA_STORE_NAME = "settings"
 
 data class Rule(
     @SerializedName("domain") val domain: List<String>? = null,
@@ -184,11 +183,11 @@ annotation class DomainStrategy {
 @Singleton
 class SettingsRepository
 @Inject constructor(
-    private val context: Context,
+    private val dataStore: DataStore<Preferences>,
     private val gson: Gson
 ) {
 
-    val settingsFlow = context.dataStore.data.map { prefs ->
+    val settingsFlow = dataStore.data.map { prefs ->
         SettingsState(
             darkMode = prefs[SettingsKeys.DARK_MODE] ?: 0,
             ipV6Enable = prefs[SettingsKeys.IPV6_ENABLE] == true,
@@ -217,144 +216,144 @@ class SettingsRepository
 
     }
 
-    val packagesFlow = context.dataStore.data.map { prefs ->
+    val packagesFlow = dataStore.data.map { prefs ->
         Gson().fromJson<MutableList<String>>(prefs[SettingsKeys.ALLOW_PACKAGES], listType) ?: emptyList()
     }
 
     suspend fun setRoutingMode(@RoutingMode mode: Int) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.ROUTING_MODE] = mode
         }
     }
 
     suspend fun setDarkMode(@Theme darkMode: Int) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.DARK_MODE] = darkMode
         }
     }
 
     suspend fun setDomainStrategy(@DomainStrategy domainStrategy: Int) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.DOMAIN_STRATEGY] = domainStrategy
         }
     }
 
     suspend fun setRoutingRules(rules: List<Rule>) {
         val rulesString = gson.toJson(rules)
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.ROUTING_RULES] = rulesString
         }
     }
     suspend fun setIpV6Enable(enable: Boolean) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.IPV6_ENABLE] = enable
         }
     }
 
     suspend fun setSocksPort(port: Int) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.SOCKS_PORT] = port
         }
     }
 
     suspend fun setHttpPort(port: Int) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.HTTP_PORT] = port
         }
     }
 
     suspend fun setLanHttpProxyEnable(enable: Boolean) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.LAN_HTTP_PROXY_ENABLE] = enable
         }
     }
 
     suspend fun setDnsIPv4(dns: String) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.DNS_IPV4] = dns
         }
     }
 
     suspend fun setDnsIPv6(dns: String) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.DNS_IPV6] = dns
         }
     }
     suspend fun setXrayCoreVersion(version: String) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.XRAY_CORE_VERSION] = version
         }
     }
 
     suspend fun setDelayTestUrl(url:String) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.DELAY_TEST_URL] = url
         }
     }
 
     suspend fun setAllowedPackages(packages: List<String>) {
         val listJson = Gson().toJson(packages, listType)
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.ALLOW_PACKAGES] = listJson
         }
     }
 
     suspend fun setGeoLiteInstall(installed: Boolean) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.GEO_LITE_INSTALL] = installed
         }
     }
 
     suspend fun setLiveUpdateNotification(enable: Boolean) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.LIVE_UPDATE_NOTIFICATION] = enable
         }
     }
 
     suspend fun setBootAutoStart(enable: Boolean) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.BOOT_AUTO_START] = enable
         }
     }
 
     suspend fun setHexTunState(enable: Boolean) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.HEX_TUN_ENABLE] = enable
         }
     }
 
     suspend fun setHideFromRecentsState(enable: Boolean) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.HIDE_FROM_RECENTS] = enable
         }
     }
 
     suspend fun setSocksUsername(username: String) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.SOCKS_USERNAME] = username
         }
     }
 
     suspend fun setSocksPassword(password: String) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.SOCKS_PASSWORD] = password
         }
     }
 
     suspend fun setSocksListen(address: String) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.SOCKS_LISTEN] = address
         }
     }
 
     suspend fun setSendHwid(enable: Boolean) {
-        context.dataStore.edit {
+        dataStore.edit {
             it[SettingsKeys.SEND_HWID] = enable
         }
     }
 
     suspend fun addAllowedPackages(packageName: String) {
-        context.dataStore.edit { prefs ->
+        dataStore.edit { prefs ->
             val listJson = prefs[SettingsKeys.ALLOW_PACKAGES] ?: "[]"
             val list: MutableList<String> = Gson().fromJson(listJson, listType) ?: mutableListOf()
 
@@ -367,7 +366,7 @@ class SettingsRepository
     }
 
     suspend fun removeAllowedPackage(packageName: String) {
-        context.dataStore.edit { prefs ->
+        dataStore.edit { prefs ->
             val listJson = prefs[SettingsKeys.ALLOW_PACKAGES] ?: "[]"
 
             val list: MutableList<String> = Gson().fromJson(listJson, listType) ?: mutableListOf()
@@ -379,7 +378,7 @@ class SettingsRepository
     }
 
     suspend fun getAllowedPackages(): List<String> {
-        val prefs = context.dataStore.data.first()
+        val prefs = dataStore.data.first()
         val json = prefs[SettingsKeys.ALLOW_PACKAGES] ?: "[]"
         return Gson().fromJson(json, listType) ?: emptyList()
     }
