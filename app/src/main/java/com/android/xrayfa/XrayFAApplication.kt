@@ -8,8 +8,10 @@ import androidx.datastore.preferences.core.edit
 import com.android.xrayfa.XrayAppCompatFactory.Companion.TAG
 import com.android.xrayfa.common.GEO_IP
 import com.android.xrayfa.common.GEO_SITE
+import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.repository.Theme
 import com.android.xrayfa.common.repository.SettingsKeys
+import com.android.xrayfa.core.AndroidXrayAssetPaths
 import com.android.xrayfa.data.settingsDataStore
 import com.android.xrayfa.common.utils.SocksConfigGenerator
 import kotlinx.coroutines.CoroutineScope
@@ -51,12 +53,15 @@ class XrayFAApplication: Application() {
         initHwid()
     }
 
+    private fun xrayAssetPaths(): XrayAssetPaths =
+        XrayAppCompatFactory.rootComponent?.xrayAssetPaths()
+            ?: AndroidXrayAssetPaths(applicationContext)
+
     private fun initXrayFile() {
         appCoroutineScope.launch {
-            //init file
-            val fileDir = filesDir
-            val geoipFile = File(fileDir, GEO_IP)
-            val geositeFile = File(fileDir, GEO_SITE)
+            val assetPaths = xrayAssetPaths()
+            val geoipFile = File(assetPaths.geoIpPath)
+            val geositeFile = File(assetPaths.geoSitePath)
             if (!geoipFile.exists()) {
                 Log.i(TAG, "copy geoip.dat")
                 assets.open(GEO_IP).use { input ->
