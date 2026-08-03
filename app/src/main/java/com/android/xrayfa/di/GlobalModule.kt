@@ -7,7 +7,9 @@ import com.android.xrayfa.common.core.GeoIpProvider
 import com.android.xrayfa.common.core.TrafficDetector
 import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.core.XrayCore
+import com.android.xrayfa.common.utils.Logger
 import com.android.xrayfa.core.AndroidGeoIpProvider
+import com.android.xrayfa.core.AndroidLogger
 import com.android.xrayfa.core.AndroidXrayAssetPaths
 import com.android.xrayfa.core.XrayCoreManager
 import com.android.xrayfa.data.settingsDataStore
@@ -107,6 +109,9 @@ abstract class GlobalModule {
          return context.settingsDataStore
      }
  }
+
+    @Binds
+    abstract fun bindLogger(impl: AndroidLogger): Logger
 
     @Binds
     abstract fun bindTun2SocksService(service: TProxyService): Tun2SocksService
