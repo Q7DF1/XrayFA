@@ -87,7 +87,7 @@ class NotificationHelper @Inject constructor(
         .setSilent(true)
 
     var liveUpdate = false
-    private var currentDarkMode: Int = Theme.AUTO_MODE
+    private var currentDarkMode: Int = Theme.AUTO_MODE.code
 
     var preData: Pair<Double,Double>? = null
 

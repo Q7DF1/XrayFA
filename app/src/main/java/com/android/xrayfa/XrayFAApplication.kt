@@ -25,7 +25,7 @@ import java.io.FileOutputStream
 
 class XrayFAApplication: Application() {
 
-    private val _isDarkTheme = MutableStateFlow(Theme.AUTO_MODE)
+    private val _isDarkTheme = MutableStateFlow(Theme.AUTO_MODE.code)
     val isDarkTheme: StateFlow<Int> get() = _isDarkTheme
 
     var contextAvailableCallback: ContextAvailableCallback? = null
@@ -36,7 +36,7 @@ class XrayFAApplication: Application() {
         appCoroutineScope.launch {
             settingsDataStore.data
                 .map { prefs ->
-                    prefs[SettingsKeys.DARK_MODE] ?: Theme.AUTO_MODE
+                    prefs[SettingsKeys.DARK_MODE] ?: Theme.AUTO_MODE.code
                 }
                 .collect { value ->
                     _isDarkTheme.value = value

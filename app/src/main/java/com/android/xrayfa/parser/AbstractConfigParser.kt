@@ -180,7 +180,7 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
 
     fun getBaseRoutingObject(settingsState: SettingsState, tcpOnlyProxy: Boolean = false): RoutingObject {
         val targetType = object : TypeToken<List<RuleObject>?>() {}.type
-        var rules: List<RuleObject>? = if (settingsState.routingMode == RoutingMode.GLOBAL) {
+        var rules: List<RuleObject>? = if (settingsState.routingMode == RoutingMode.GLOBAL.code) {
             getGlobalRules()
         } else {
             gson.fromJson<List<RuleObject>>(settingsState.routingRules, targetType)?.filterNotNull()
@@ -201,9 +201,9 @@ abstract class AbstractConfigParser<T: AbsOutboundConfigurationObject,P>(
 
         return RoutingObject(
             domainStrategy = when(settingsState.domainStrategy) {
-                DomainStrategy.ASIS -> "AsIs"
-                DomainStrategy.IP_IF_NON_MATCH -> "IPIfNonMatch"
-                DomainStrategy.IP_ON_DEMAND -> "IPOnDemand"
+                DomainStrategy.ASIS.code -> "AsIs"
+                DomainStrategy.IP_IF_NON_MATCH.code -> "IPIfNonMatch"
+                DomainStrategy.IP_ON_DEMAND.code -> "IPOnDemand"
                 else -> throw IllegalArgumentException("wrong domain strategy")
             },
             rules = rules

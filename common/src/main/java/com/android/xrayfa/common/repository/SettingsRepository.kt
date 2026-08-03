@@ -1,6 +1,5 @@
 package com.android.xrayfa.common.repository
 
-import androidx.annotation.IntDef
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -99,9 +98,9 @@ data class SettingsState(
     val bootAutoStart: Boolean = false,
     val hexTunEnable: Boolean = true,
     val hideFromRecents: Boolean = false,
-    val domainStrategy: Int = DomainStrategy.IP_IF_NON_MATCH,
+    val domainStrategy: Int = DomainStrategy.IP_IF_NON_MATCH.code,
     val routingRules: String = defaultRoutes,
-    val routingMode: Int = RoutingMode.ROUTE,
+    val routingMode: Int = RoutingMode.ROUTE.code,
     val hwid: String = "",
     val sendHwid: Boolean = true
 )
@@ -139,43 +138,33 @@ const val DEFAULT_DELAY_TEST_URL = "https://www.google.com"
 
 val listType = object : TypeToken<MutableList<String>>() {}.type
 
-@IntDef(value = [
-    Theme.LIGHT_MODE,
-    Theme.DARK_MODE,
-    Theme.AUTO_MODE
-])
-@Retention(AnnotationRetention.SOURCE)
-annotation class Theme {
+enum class Theme(val code: Int) {
+    LIGHT_MODE(0),
+    DARK_MODE(1),
+    AUTO_MODE(2);
+
     companion object {
-        const val LIGHT_MODE = 0
-        const val DARK_MODE = 1
-        const val AUTO_MODE = 2
+        fun fromCode(code: Int): Theme = entries.firstOrNull { it.code == code } ?: AUTO_MODE
     }
 }
 
-@IntDef(value = [
-    RoutingMode.GLOBAL,
-    RoutingMode.ROUTE
-])
-@Retention(AnnotationRetention.SOURCE)
-annotation class RoutingMode {
+enum class RoutingMode(val code: Int) {
+    GLOBAL(0),
+    ROUTE(1);
+
     companion object {
-        const val GLOBAL = 0
-        const val ROUTE = 1
+        fun fromCode(code: Int): RoutingMode = entries.firstOrNull { it.code == code } ?: ROUTE
     }
 }
 
-@IntDef(value = [
-    DomainStrategy.ASIS,
-    DomainStrategy.IP_IF_NON_MATCH,
-    DomainStrategy.IP_ON_DEMAND
-])
-@Retention(AnnotationRetention.SOURCE)
-annotation class DomainStrategy {
+enum class DomainStrategy(val code: Int) {
+    ASIS(0),
+    IP_IF_NON_MATCH(1),
+    IP_ON_DEMAND(2);
+
     companion object {
-        const val ASIS = 0
-        const val IP_IF_NON_MATCH = 1
-        const val IP_ON_DEMAND = 2
+        fun fromCode(code: Int): DomainStrategy =
+            entries.firstOrNull { it.code == code } ?: IP_IF_NON_MATCH
     }
 }
 
@@ -212,9 +201,9 @@ class SettingsRepository
             bootAutoStart = prefs[SettingsKeys.BOOT_AUTO_START] == true,
             hexTunEnable =  prefs[SettingsKeys.HEX_TUN_ENABLE]?:true,
             hideFromRecents = prefs[SettingsKeys.HIDE_FROM_RECENTS] == true,
-            domainStrategy = prefs[SettingsKeys.DOMAIN_STRATEGY]?: DomainStrategy.IP_IF_NON_MATCH,
+            domainStrategy = prefs[SettingsKeys.DOMAIN_STRATEGY] ?: DomainStrategy.IP_IF_NON_MATCH.code,
             routingRules = prefs[SettingsKeys.ROUTING_RULES]?: defaultRoutes,
-            routingMode = prefs[SettingsKeys.ROUTING_MODE] ?: RoutingMode.ROUTE,
+            routingMode = prefs[SettingsKeys.ROUTING_MODE] ?: RoutingMode.ROUTE.code,
             hwid = prefs[SettingsKeys.HWID] ?: "",
             sendHwid = prefs[SettingsKeys.SEND_HWID] ?: true
         )
@@ -225,21 +214,21 @@ class SettingsRepository
         Gson().fromJson<MutableList<String>>(prefs[SettingsKeys.ALLOW_PACKAGES], listType) ?: emptyList()
     }
 
-    suspend fun setRoutingMode(@RoutingMode mode: Int) {
+    suspend fun setRoutingMode(mode: RoutingMode) {
         dataStore.edit {
-            it[SettingsKeys.ROUTING_MODE] = mode
+            it[SettingsKeys.ROUTING_MODE] = mode.code
         }
     }
 
-    suspend fun setDarkMode(@Theme darkMode: Int) {
+    suspend fun setDarkMode(darkMode: Theme) {
         dataStore.edit {
-            it[SettingsKeys.DARK_MODE] = darkMode
+            it[SettingsKeys.DARK_MODE] = darkMode.code
         }
     }
 
-    suspend fun setDomainStrategy(@DomainStrategy domainStrategy: Int) {
+    suspend fun setDomainStrategy(domainStrategy: DomainStrategy) {
         dataStore.edit {
-            it[SettingsKeys.DOMAIN_STRATEGY] = domainStrategy
+            it[SettingsKeys.DOMAIN_STRATEGY] = domainStrategy.code
         }
     }
 

@@ -26,8 +26,8 @@ abstract class XrayBaseActivity: ComponentActivity(){
         setContent {
             val theme = app.isDarkTheme.collectAsState()
             val darkTheme = when (theme.value) {
-                Theme.LIGHT_MODE -> false
-                Theme.DARK_MODE -> true
+                Theme.LIGHT_MODE.code -> false
+                Theme.DARK_MODE.code -> true
                 else -> isSystemInDarkTheme()
             }
 
