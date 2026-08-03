@@ -17,7 +17,7 @@ import com.android.xrayfa.dto.Node
 import com.android.xrayfa.model.protocol.protocolsPrefix
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.core.XrayBaseServiceManager
-import com.android.xrayfa.core.XrayCoreManager
+import com.android.xrayfa.common.core.XrayCore
 import com.android.xrayfa.common.di.qualifier.ShortTime
 import com.android.xrayfa.common.repository.DEFAULT_DELAY_TEST_URL
 import com.android.xrayfa.common.repository.SettingsKeys
@@ -52,7 +52,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import com.android.xrayfa.repository.SubscriptionRepository
 import com.android.xrayfa.core.StartOptions
-import libv2ray.Libv2ray
 import com.android.xrayfa.dto.Subscription
 import com.android.xrayfa.model.BugReportData
 import com.android.xrayfa.ui.navigation.NavigateDestination
@@ -66,7 +65,7 @@ class XrayViewmodel(
     private val repository: NodeRepository,
     private val subscriptionRepository: SubscriptionRepository,
     private val xrayBaseServiceManager: XrayBaseServiceManager,
-    private val xrayCoreManager: XrayCoreManager,
+    private val xrayCore: XrayCore,
     private val parserFactory: ParserFactory,
     private val okHttp: OkHttpClient,
     private val subscriptionParser: SubscriptionParser
@@ -270,7 +269,7 @@ class XrayViewmodel(
     init {
 
         viewModelScope.launch {
-            xrayCoreManager.trafficFlow.collect { pair ->
+            xrayCore.trafficFlow.collect { pair ->
                 _upSpeed.value = pair.first
                 _downSpeed.value = pair.second
             }
@@ -486,7 +485,7 @@ class XrayViewmodel(
 
             // 1. Start the actual test job
             val testJob = launch(Dispatchers.IO) {
-                val res = try { xrayCoreManager.measureDelaySync(url) } catch (e: Exception) { -1L }
+                val res = try { xrayCore.measureDelaySync(url) } catch (e: Exception) { -1L }
                 resultDeferred.complete(res)
             }
 
@@ -534,7 +533,7 @@ class XrayViewmodel(
                         
                         val delay = try {
                             val config = parserFactory.getParser(node.url).parse(StartOptions(node.url))
-                            val res = Libv2ray.measureOutboundDelay(config, url)
+                            val res = xrayCore.measureOutboundDelay(config, url)
                             if (res <= 0L) -2L else res
                         } catch (e: Exception) {
                             -2L
@@ -718,7 +717,7 @@ class XrayViewmodelFactory
     private val repository: NodeRepository,
     private val subscriptionRepository: SubscriptionRepository,
     private val xrayBaseServiceManager: XrayBaseServiceManager,
-    private val xrayCoreManager: XrayCoreManager,
+    private val xrayCore: XrayCore,
     private val parserFactory: ParserFactory,
     @ShortTime private val okHttp: OkHttpClient,
     private val subscriptionParser: SubscriptionParser
@@ -730,7 +729,7 @@ class XrayViewmodelFactory
                 repository,
                 subscriptionRepository,
                 xrayBaseServiceManager,
-                xrayCoreManager,
+                xrayCore,
                 parserFactory,
                 okHttp,
                 subscriptionParser

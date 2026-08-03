@@ -2,6 +2,7 @@ package com.android.xrayfa.core
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.android.xrayfa.common.core.CoreStartOptions
 
 data class StartOptions(
     val url: String,
@@ -40,3 +41,6 @@ data class StartOptions(
         const val EXTRA_START_OPTIONS = "com.android.XrayFA.EXTRA_START_OPTIONS"
     }
 }
+
+fun StartOptions.toCoreStartOptions(): CoreStartOptions =
+    CoreStartOptions(url = url, preUrl = preUrl, nextUrl = nextUrl)

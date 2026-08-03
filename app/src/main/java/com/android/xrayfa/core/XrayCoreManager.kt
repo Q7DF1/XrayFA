@@ -5,6 +5,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.StringDef
 import com.android.xrayfa.R
+import com.android.xrayfa.common.core.CoreStartOptions
+import com.android.xrayfa.common.core.TrafficDetector
+import com.android.xrayfa.common.core.XrayCore
 import com.android.xrayfa.common.di.qualifier.Application
 import com.android.xrayfa.common.di.qualifier.Background
 import com.android.xrayfa.common.repository.SettingsRepository
@@ -50,7 +53,7 @@ class XrayCoreManager
     @Background private val coroutineScope: CoroutineScope,
     private val parserFactory: ParserFactory,
     private val settingsRepository: SettingsRepository
-): TrafficDetector {
+): XrayCore {
 
     companion object {
         const val TAG = "XrayCoreManager"
@@ -94,7 +97,7 @@ class XrayCoreManager
     }
 
 
-    fun measureDelaySync(url: String): Long {
+    override fun measureDelaySync(url: String): Long {
         if (coreController?.isRunning == false) return -1
         return try {
             coreController?.measureDelay(url) ?: 0L
@@ -104,10 +107,15 @@ class XrayCoreManager
         }
     }
 
-    suspend fun startXrayCore(startOptions: StartOptions, tunFd: Int?): Boolean {
+    override fun measureOutboundDelay(config: String, url: String): Long {
+        return Libv2ray.measureOutboundDelay(config, url)
+    }
+
+    override suspend fun startXrayCore(startOptions: CoreStartOptions, tunFd: Int?): Boolean {
         try {
+            val appStartOptions = StartOptions(startOptions.url, startOptions.preUrl, startOptions.nextUrl)
             tunFd?.let {
-                coreController?.startLoop(parserFactory.getParser(startOptions.url).parse(startOptions),tunFd)
+                coreController?.startLoop(parserFactory.getParser(startOptions.url).parse(appStartOptions), tunFd)
             }
             // Start traffic detection after core is confirmed running
             startTrafficDetection()
@@ -122,7 +130,7 @@ class XrayCoreManager
         }
     }
 
-    fun stopXrayCore() {
+    override fun stopXrayCore() {
         stopTrafficDetection()
         coreController?.stopLoop()
     }

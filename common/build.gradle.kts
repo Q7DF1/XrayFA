@@ -35,6 +35,7 @@ android {
 
 dependencies {
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
     implementation(libs.gson)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.core.ktx)
