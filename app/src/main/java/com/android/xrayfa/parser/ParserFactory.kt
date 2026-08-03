@@ -1,15 +1,12 @@
 package com.android.xrayfa.parser
 
 import com.android.xrayfa.model.protocol.Protocol
-import javax.inject.Inject
-import javax.inject.Singleton
 import com.android.xrayfa.model.OutboundObject
 
 /**
  * A simple factory for parsers that provides different parsers for different protocols
  */
-@Singleton
-class ParserFactory @Inject constructor(
+class ParserFactory(
     val vlessConfigParser: VLESSConfigParser,
     val vmessConfigParser: VMESSConfigParser,
     val trojanConfigParser: TrojanConfigParser,

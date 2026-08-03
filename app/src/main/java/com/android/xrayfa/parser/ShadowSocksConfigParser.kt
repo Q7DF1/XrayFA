@@ -12,12 +12,8 @@ import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.common.utils.Base64Compat
 import com.android.xrayfa.common.utils.UrlCodec
 import com.google.gson.Gson
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class ShadowSocksConfigParser
-@Inject constructor(
+class ShadowSocksConfigParser(
     override val settingsRepo: SettingsRepository,
     override val geoIpProvider: GeoIpProvider,
     override val gson: Gson

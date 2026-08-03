@@ -11,8 +11,6 @@ import com.android.xrayfa.model.HttpSocksUserObject
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.google.gson.Gson
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Parser for HTTP proxy outbounds.
@@ -23,9 +21,7 @@ import javax.inject.Singleton
  *
  * See https://xtls.github.io/config/outbounds/http.html
  */
-@Singleton
-class HttpConfigParser
-@Inject constructor(
+class HttpConfigParser(
     override val settingsRepo: SettingsRepository,
     override val geoIpProvider: GeoIpProvider,
     override val gson: Gson

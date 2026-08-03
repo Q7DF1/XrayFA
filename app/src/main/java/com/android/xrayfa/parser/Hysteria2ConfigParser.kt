@@ -14,11 +14,8 @@ import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.common.utils.UrlCodec
 import com.google.gson.Gson
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class Hysteria2ConfigParser @Inject constructor(
+class Hysteria2ConfigParser(
     override val settingsRepo: SettingsRepository,
     override val geoIpProvider: GeoIpProvider,
     override val gson: Gson

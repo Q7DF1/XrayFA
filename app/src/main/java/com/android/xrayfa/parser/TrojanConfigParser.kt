@@ -14,12 +14,8 @@ import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
 import com.android.xrayfa.common.utils.UrlCodec
 import com.google.gson.Gson
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class TrojanConfigParser
-@Inject constructor(
+class TrojanConfigParser(
     override val settingsRepo: SettingsRepository,
     override val geoIpProvider: GeoIpProvider,
     override val gson: Gson

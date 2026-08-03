@@ -34,7 +34,8 @@ import javax.inject.Singleton
     ServiceModule::class,
     ActivityModule::class,
     CoroutinesModule::class,
-    NetworkModule::class
+    NetworkModule::class,
+    ParserModule::class,
 ])
 abstract class GlobalModule {
 
