@@ -1,6 +1,5 @@
 package com.android.xrayfa.common.repository
 
-import android.util.Log
 import androidx.annotation.IntDef
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -8,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.android.xrayfa.common.utils.Logger
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.google.gson.reflect.TypeToken
@@ -184,8 +184,13 @@ annotation class DomainStrategy {
 class SettingsRepository
 @Inject constructor(
     private val dataStore: DataStore<Preferences>,
-    private val gson: Gson
+    private val gson: Gson,
+    private val logger: Logger,
 ) {
+
+    companion object {
+        private const val TAG = "SettingsRepository"
+    }
 
     val settingsFlow = dataStore.data.map { prefs ->
         SettingsState(
@@ -360,7 +365,7 @@ class SettingsRepository
             if (!list.contains(packageName)) {
                 list.add(packageName)
             }
-            Log.i("test", "addAllowedPackages: ${list.size}")
+            logger.i(TAG, "addAllowedPackages: ${list.size}")
             prefs[SettingsKeys.ALLOW_PACKAGES] = Gson().toJson(list, listType)
         }
     }
