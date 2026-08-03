@@ -1,5 +1,4 @@
 package com.android.xrayfa.common.utils
-import java.security.SecureRandom
 
 /**
  * Configuration generator for SOCKS5 proxy to prevent detection.
@@ -7,7 +6,7 @@ import java.security.SecureRandom
  */
 object SocksConfigGenerator {
 
-    private val secureRandom = SecureRandom()
+    private val secureRandom: CryptoRandom = defaultCryptoRandom
 
     // Recommended range for dynamic/private ports
     val portRange = 1024..65535

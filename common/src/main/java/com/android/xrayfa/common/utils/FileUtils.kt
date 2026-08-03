@@ -2,18 +2,25 @@ package com.android.xrayfa.common.utils
 
 import java.io.File
 import java.io.FileInputStream
-import java.security.MessageDigest
+import java.io.InputStream
 
+/**
+ * Stream-based hash; [InputStream] is JVM/Android-only and will move to platform source sets in KMP.
+ */
+fun calculateStreamHash(input: InputStream, algorithm: String = "SHA-256"): String {
+    val buffer = ByteArray(8192)
+    val digest = defaultDigestCalculator.createDigest(algorithm)
+    var bytesRead: Int
+    while (input.read(buffer).also { bytesRead = it } != -1) {
+        digest.update(buffer, 0, bytesRead)
+    }
+    return digest.finalize().toHexLowercase()
+}
+
+/** File-based hash; [File] is JVM/Android-only and will move to platform source sets in KMP. */
 fun calculateFileHash(file: File, algorithm: String = "SHA-256"): String {
     if (!file.exists()) return ""
-
-    val buffer = ByteArray(8192)
-    val digest = MessageDigest.getInstance(algorithm)
     FileInputStream(file).use { fis ->
-        var bytesRead: Int
-        while (fis.read(buffer).also { bytesRead = it } != -1) {
-            digest.update(buffer, 0, bytesRead)
-        }
+        return calculateStreamHash(fis, algorithm)
     }
-    return digest.digest().joinToString("") { "%02x".format(it) }
 }
