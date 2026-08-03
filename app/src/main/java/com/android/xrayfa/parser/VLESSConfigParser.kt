@@ -1,7 +1,6 @@
 package com.android.xrayfa.parser
 
-import com.android.xrayfa.XrayAppCompatFactory
-import com.android.xrayfa.common.GEO_LITE
+import com.android.xrayfa.common.core.GeoIpProvider
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.dto.Link
 import com.android.xrayfa.model.MuxObject
@@ -19,9 +18,7 @@ import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
 import com.android.xrayfa.model.stream.XHttpSettings
 import com.android.xrayfa.common.utils.UrlCodec
-import com.android.xrayfa.utils.Device
 import com.google.gson.Gson
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,6 +26,7 @@ import javax.inject.Singleton
 class VLESSConfigParser
 @Inject constructor(
     override val settingsRepo: SettingsRepository,
+    override val geoIpProvider: GeoIpProvider,
     override val gson: Gson
 ): AbstractConfigParser<VLESSOutboundConfigurationObject, VLESSConfig>(){
     override fun decodeProtocol(url: String): VLESSConfig {
@@ -158,12 +156,7 @@ class VLESSConfigParser
             port = vlessConfig.port,
             selected = link.selected,
             remark = vlessConfig.remark,
-            countryISO = if (settingsRepo.settingsFlow.first().geoLiteInstall) {
-                Device.getCountryISOFromIp(
-                    geoPath = "${XrayAppCompatFactory.xrayPATH}/$GEO_LITE",
-                    ip = vlessConfig.server
-                )
-            } else ""
+            countryISO = countryIsoForServer(vlessConfig.server)
         )
     }
 }

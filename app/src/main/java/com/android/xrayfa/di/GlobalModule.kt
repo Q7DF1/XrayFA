@@ -1,8 +1,12 @@
 package com.android.xrayfa.di
 
 import android.content.Context
+import com.android.xrayfa.common.core.GeoIpProvider
 import com.android.xrayfa.common.core.TrafficDetector
+import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.core.XrayCore
+import com.android.xrayfa.core.AndroidGeoIpProvider
+import com.android.xrayfa.core.AndroidXrayAssetPaths
 import com.android.xrayfa.core.XrayCoreManager
 import com.android.xrayfa.common.di.qualifier.Application
 import com.android.xrayfa.dao.SubscriptionDao
@@ -96,6 +100,12 @@ abstract class GlobalModule {
 
     @Binds
     abstract fun bindTun2SocksService(service: TProxyService): Tun2SocksService
+
+    @Binds
+    abstract fun bindXrayAssetPaths(impl: AndroidXrayAssetPaths): XrayAssetPaths
+
+    @Binds
+    abstract fun bindGeoIpProvider(impl: AndroidGeoIpProvider): GeoIpProvider
 
     @Binds
     abstract fun bindXrayCore(xrayCoreManager: XrayCoreManager): XrayCore
