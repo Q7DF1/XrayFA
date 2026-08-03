@@ -1,7 +1,6 @@
-package com.android.xrayfa.core
+package com.android.xrayfa.common.core
 
 import kotlinx.coroutines.flow.SharedFlow
-
 
 /**
  * Traffic detector, used to calculate upload and download speeds for front-end display.
@@ -14,5 +13,4 @@ interface TrafficDetector {
     fun startTrafficDetection()
 
     fun stopTrafficDetection()
-
 }

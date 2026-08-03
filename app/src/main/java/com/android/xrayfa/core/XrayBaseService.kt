@@ -15,6 +15,7 @@ import com.android.xrayfa.MainActivity
 import com.android.xrayfa.MainActivity.Companion.ACTION_START_SERVICE
 import com.android.xrayfa.MainActivity.Companion.ACTION_STOP_SERVICE
 import com.android.xrayfa.R
+import com.android.xrayfa.common.core.XrayCore
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.core.StartOptions.Companion.EXTRA_START_OPTIONS
 import com.android.xrayfa.helper.NotificationHelper
@@ -35,7 +36,7 @@ import javax.inject.Inject
 class XrayBaseService
 @Inject constructor(
     private val tun2SocksService: Tun2SocksService,
-    private val xrayCoreManager: XrayCoreManager,
+    private val xrayCore: XrayCore,
     private val settingsRepo: SettingsRepository,
     private val notificationHelper: NotificationHelper
 ): VpnService(){
@@ -97,7 +98,7 @@ class XrayBaseService
                     updateToggleShortcut(start)
                     // Collect traffic data for notification updates
                     if (start) {
-                        xrayCoreManager.trafficFlow.collect { data ->
+                        xrayCore.trafficFlow.collect { data ->
                             notificationHelper.updateNotificationIfNeeded(data)
                         }
                     }
@@ -208,14 +209,14 @@ class XrayBaseService
         startVpn()
         var start: Boolean
         if (settingState.hexTunEnable) {
-            start = xrayCoreManager.startXrayCore(startOptions,0)
+            start = xrayCore.startXrayCore(startOptions.toCoreStartOptions(), 0)
             if (start) {
                 tunFd?.let {
                     tun2SocksService.startTun2Socks(it.fd)
                 }
             }
         }else {
-            start = xrayCoreManager.startXrayCore(startOptions,tunFd?.fd)
+            start = xrayCore.startXrayCore(startOptions.toCoreStartOptions(), tunFd?.fd)
         }
         if (!start) {
             stopVPN()
@@ -226,7 +227,7 @@ class XrayBaseService
     private suspend fun stopXrayCoreService() {
         if (tun2SocksService.isRunning()) tun2SocksService.stopTun2Socks()
         stopVPN()
-        xrayCoreManager.stopXrayCore()
+        xrayCore.stopXrayCore()
     }
 
     // Call this method whenever VPN state changes
