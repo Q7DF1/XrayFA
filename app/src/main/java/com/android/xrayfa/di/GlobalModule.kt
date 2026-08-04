@@ -20,6 +20,7 @@ import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.common.di.qualifier.Background
 import com.android.xrayfa.common.di.qualifier.Main
 import com.android.xrayfa.dao.NodeDao
+import com.android.xrayfa.common.repository.SettingsRepository
 import com.google.gson.Gson
 import xrayfa.tun2socks.utils.NetPreferences
 import dagger.Binds
@@ -108,6 +109,13 @@ abstract class GlobalModule {
      fun provideSettingsDataStore(@Application context: Context): DataStore<Preferences> {
          return context.settingsDataStore
      }
+
+     @Provides
+     @Singleton
+     fun provideSettingsRepository(
+         dataStore: DataStore<Preferences>,
+         logger: Logger,
+     ): SettingsRepository = SettingsRepository(dataStore, logger)
  }
 
     @Binds

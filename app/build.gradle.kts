@@ -206,6 +206,7 @@ dependencies {
     implementation(libs.javax.annotation.api)
     implementation(libs.maxmind.geoip2)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.koin.android)
 
     implementation (libs.okhttp)
     implementation (libs.logging.interceptor)

@@ -59,7 +59,7 @@
 
 | 关注点 | 当前方案 | KMP 目标方案 | 选型理由 |
 |--------|----------|-------------|----------|
-| **依赖注入** | Dagger 2.57.1 | **Koin 4.x** | KMP 原生支持，无注解处理，迁移成本低 |
+| **依赖注入** | Dagger 2.57.1 | **Koin 4.x** | KMP 原生支持，无注解处理，迁移成本低。**当前实际锁定 4.0.1**（Kotlin 2.0.21 + iOS klib 兼容）；见 Step 21「Koin 版本决策」，Kotlin 升级后再 bump |
 | **数据库** | Room 2.7.0 | **Room KMP** | Room 2.7+ 已支持 KMP，可保留现有 migration 和 DAO |
 | **设置存储** | DataStore Prefs | **DataStore KMP** | 官方自 1.1.0 起支持多平台，迁移量极小 |
 | **网络请求** | OkHttp 4.12 | **Ktor 3.x** | KMP 原生 HTTP 客户端，各平台独立引擎 |
@@ -220,7 +220,7 @@ kotlin {
 kotlin = "2.1.0"                    # 升级以获得更好的 KMP 支持
 compose-multiplatform = "1.7.0"     # Compose Multiplatform
 ktor = "3.1.0"
-koin = "4.1.0"
+koin = "4.1.0"                      # 目标版本；当前实际 4.0.1，见 Step 21「Koin 版本决策」
 decompose = "3.2.0"
 kotlinx-serialization = "1.7.3"
 kotlinx-datetime = "0.6.2"

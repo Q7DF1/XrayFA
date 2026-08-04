@@ -13,7 +13,10 @@ import com.android.xrayfa.common.repository.Theme
 import com.android.xrayfa.common.repository.SettingsKeys
 import com.android.xrayfa.core.AndroidXrayAssetPaths
 import com.android.xrayfa.data.settingsDataStore
+import com.android.xrayfa.di.androidKoinModules
 import com.android.xrayfa.common.utils.SocksConfigGenerator
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.startKoin
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,10 +50,18 @@ class XrayFAApplication: Application() {
     override fun onCreate() {
         super.onCreate()
         contextAvailableCallback?.onContextAvailable(applicationContext)
+        initKoin()
         observeDarkMode()
         initXrayFile()
         initSocksConfig()
         initHwid()
+    }
+
+    private fun initKoin() {
+        startKoin {
+            androidContext(this@XrayFAApplication)
+            modules(androidKoinModules())
+        }
     }
 
     private fun xrayAssetPaths(): XrayAssetPaths =

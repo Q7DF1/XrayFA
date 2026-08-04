@@ -9,8 +9,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.android.xrayfa.common.utils.Logger
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Due to module dependencies, we cannot directly use the `com.android.xrayfa.model.RuleObject` object here.
@@ -74,9 +72,7 @@ object SettingsKeys {
 
 const val DEFAULT_DELAY_TEST_URL = "https://www.google.com"
 
-@Singleton
-class SettingsRepository
-@Inject constructor(
+class SettingsRepository(
     private val dataStore: DataStore<Preferences>,
     private val logger: Logger,
 ) : ConfigParserSettingsProvider {
