@@ -15,12 +15,15 @@ class AndroidXrayAssetPaths
     @Application private val context: Context,
 ) : XrayAssetPaths {
 
+    override val basePath: String
+        get() = context.filesDir.absolutePath
+
     override val geoIpPath: String
-        get() = "${context.filesDir.absolutePath}/$GEO_IP"
+        get() = "$basePath/$GEO_IP"
 
     override val geoSitePath: String
-        get() = "${context.filesDir.absolutePath}/$GEO_SITE"
+        get() = "$basePath/$GEO_SITE"
 
     override val geoLiteDatabasePath: String
-        get() = "${context.filesDir.absolutePath}/$GEO_LITE"
+        get() = "$basePath/$GEO_LITE"
 }

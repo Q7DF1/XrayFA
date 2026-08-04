@@ -6,6 +6,9 @@ package com.android.xrayfa.common.core
  * Android actual uses [Context.filesDir]; iOS will use App Group / Documents.
  */
 interface XrayAssetPaths {
+    /** Absolute path to the Xray runtime working directory (geo assets, core env). */
+    val basePath: String
+
     /** Absolute path to geoip.dat */
     val geoIpPath: String
 
