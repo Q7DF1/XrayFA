@@ -3,12 +3,12 @@ package com.android.xrayfa.data
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
-import com.android.xrayfa.common.repository.SETTINGS_DATA_STORE_NAME
+import com.android.xrayfa.common.datastore.SettingsDataStoreContext
+import com.android.xrayfa.common.datastore.createSettingsDataStore
 
 /**
- * Android settings DataStore; file name must match [SETTINGS_DATA_STORE_NAME] for user upgrades.
+ * Android settings DataStore; delegates to the KMP factory so the on-disk path
+ * stays identical to the legacy `preferencesDataStore` delegate.
  */
-val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(
-    name = SETTINGS_DATA_STORE_NAME,
-)
+val Context.settingsDataStore: DataStore<Preferences>
+    get() = createSettingsDataStore(SettingsDataStoreContext(applicationContext))

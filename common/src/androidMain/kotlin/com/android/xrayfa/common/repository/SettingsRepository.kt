@@ -7,14 +7,10 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.android.xrayfa.common.utils.Logger
-import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
-
-/** DataStore file name; must stay stable across app upgrades and KMP platform actuals. */
-const val SETTINGS_DATA_STORE_NAME = "settings"
 
 /**
  * Due to module dependencies, we cannot directly use the `com.android.xrayfa.model.RuleObject` object here.
@@ -113,7 +109,6 @@ enum class DomainStrategy(val code: Int) {
 class SettingsRepository
 @Inject constructor(
     private val dataStore: DataStore<Preferences>,
-    private val gson: Gson,
     private val logger: Logger,
 ) {
 
