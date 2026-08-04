@@ -115,9 +115,8 @@ class XrayCoreManager
 
     override suspend fun startXrayCore(startOptions: CoreStartOptions, tunFd: Int?): Boolean {
         try {
-            val appStartOptions = StartOptions(startOptions.url, startOptions.preUrl, startOptions.nextUrl)
             tunFd?.let {
-                coreController?.startLoop(parserFactory.getParser(startOptions.url).parse(appStartOptions), tunFd)
+                coreController?.startLoop(parserFactory.getParser(startOptions.url).parse(startOptions), tunFd)
             }
             // Start traffic detection after core is confirmed running
             startTrafficDetection()

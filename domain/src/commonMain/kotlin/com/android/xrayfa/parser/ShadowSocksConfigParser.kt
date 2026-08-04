@@ -1,9 +1,10 @@
 package com.android.xrayfa.parser
 
 import com.android.xrayfa.common.core.GeoIpProvider
-import com.android.xrayfa.common.repository.SettingsRepository
-import com.android.xrayfa.dto.Link
-import com.android.xrayfa.dto.Node
+import com.android.xrayfa.common.repository.ConfigParserSettingsProvider
+import com.android.xrayfa.config.XrayConfigEncoder
+import com.android.xrayfa.dto.ParseLinkInput
+import com.android.xrayfa.dto.ParsedNode
 import com.android.xrayfa.dto.ShadowSocksConfig
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.ShadowSocksOutboundConfigurationObject
@@ -11,46 +12,40 @@ import com.android.xrayfa.model.ShadowSocksServerObject
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.common.utils.Base64Compat
 import com.android.xrayfa.common.utils.UrlCodec
-import com.google.gson.Gson
 
 class ShadowSocksConfigParser(
-    override val settingsRepo: SettingsRepository,
+    override val settingsProvider: ConfigParserSettingsProvider,
     override val geoIpProvider: GeoIpProvider,
-    override val gson: Gson
-): AbstractConfigParser<ShadowSocksOutboundConfigurationObject, ShadowSocksConfig>() {
+    override val configEncoder: XrayConfigEncoder,
+) : AbstractConfigParser<ShadowSocksOutboundConfigurationObject, ShadowSocksConfig>() {
     override fun decodeProtocol(url: String): ShadowSocksConfig {
         require(url.startsWith("ss://")) { "Not a valid Shadowsocks URL" }
         val content = url.removePrefix("ss://")
 
-        // 1. Split the fragment (tag)
         val parts = content.split("#", limit = 2)
         var mainPart = parts[0]
         val tag = if (parts.size > 1) UrlCodec.decode(parts[1]) else null
 
-        // 2. Remove query parameters (e.g., ?plugin=...) to prevent port parsing errors
         val queryParts = mainPart.split("?", limit = 2)
         mainPart = queryParts[0]
-
-        // 3. Remove trailing slash if present (handles cases like server:port/)
         mainPart = mainPart.trimEnd('/')
 
         val (base64Part, serverPart) = if (mainPart.contains("@")) {
             val lastAtIndex = mainPart.lastIndexOf("@")
             mainPart.substring(0, lastAtIndex) to mainPart.substring(lastAtIndex + 1)
         } else {
-            // Handle ss://base64(method:password@server:port)
-            val decodedMain = String(Base64Compat.decode(mainPart))
+            val decodedMain = Base64Compat.decode(mainPart).decodeToString()
             val atIndex = decodedMain.lastIndexOf("@")
             if (atIndex != -1) {
                 val userInfo = decodedMain.substring(0, atIndex)
                 val serverInfo = decodedMain.substring(atIndex + 1)
-                Base64Compat.encode(userInfo.toByteArray()) to serverInfo
+                Base64Compat.encode(userInfo.encodeToByteArray()) to serverInfo
             } else {
                 throw IllegalArgumentException("Invalid SS URL")
             }
         }
 
-        val decodedUserInfo = String(Base64Compat.decode(base64Part))
+        val decodedUserInfo = Base64Compat.decode(base64Part).decodeToString()
         val userParts = decodedUserInfo.split(":", limit = 2)
         val method = userParts[0]
         val password = if (userParts.size > 1) userParts[1] else ""
@@ -63,14 +58,14 @@ class ShadowSocksConfigParser(
             method = method,
             password = password,
             server = server,
-            port = portStr.toInt(), // The port is now guaranteed to be pure digits
-            tag = tag
+            port = portStr.toInt(),
+            tag = tag,
         )
     }
 
     override fun encodeProtocol(protocol: ShadowSocksConfig): String {
         val userInfo = "${protocol.method}:${protocol.password}"
-        val base64UserInfo = Base64Compat.encode(userInfo.toByteArray())
+        val base64UserInfo = Base64Compat.encode(userInfo.encodeToByteArray())
         val mainPart = "$base64UserInfo@${protocol.server}:${protocol.port}"
         val tagPart = if (!protocol.tag.isNullOrEmpty()) "#${UrlCodec.encode(protocol.tag)}" else ""
         return "ss://$mainPart$tagPart"
@@ -87,19 +82,19 @@ class ShadowSocksConfigParser(
                         address = shadowSocksConfig.server,
                         method = shadowSocksConfig.method,
                         password = shadowSocksConfig.password,
-                        port = shadowSocksConfig.port
-                    )
-                )
+                        port = shadowSocksConfig.port,
+                    ),
+                ),
             ),
             streamSettings = StreamSettingsObject(
-                network = "tcp"
-            )
+                network = "tcp",
+            ),
         )
     }
 
-    override suspend fun preParse(link: Link): Node {
+    override suspend fun preParse(link: ParseLinkInput): ParsedNode {
         val shadowSocksConfig = decodeProtocol(link.content)
-        return Node(
+        return ParsedNode(
             id = link.id,
             url = link.content,
             protocolPrefix = "ss",
@@ -108,7 +103,7 @@ class ShadowSocksConfigParser(
             address = shadowSocksConfig.server,
             selected = link.selected,
             remark = shadowSocksConfig.tag,
-            countryISO = countryIsoForServer(shadowSocksConfig.server)
+            countryISO = countryIsoForServer(shadowSocksConfig.server),
         )
     }
 }

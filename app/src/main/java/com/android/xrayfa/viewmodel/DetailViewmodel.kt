@@ -14,7 +14,8 @@ import com.android.xrayfa.dto.HttpConfig
 import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.repository.NodeRepository
-import com.google.gson.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -110,23 +111,26 @@ class DetailViewmodel(
                     ))
                 }
                 Protocol.VMESS -> {
-                    val others = JsonObject().apply {
-                        addProperty("v", "2")
-                        addProperty("ps", remarks)
-                        addProperty("add", address)
-                        addProperty("port", port)
-                        addProperty("id", uuidOrPassword)
-                        addProperty("aid", "0")
-                        addProperty("scy", vmessSecurity)
-                        addProperty("net", network)
-                        addProperty("type", "none")
-                        addProperty("host", wsHost)
-                        addProperty("path", if (network == "ws") wsPath else if (network == "grpc") grpcServiceName else "")
-                        addProperty("tls", if (transportSecurity == "none") "" else transportSecurity)
-                        addProperty("sni", sni)
-                        addProperty("fp", fingerprint)
+                    val others = buildJsonObject {
+                        put("v", "2")
+                        put("ps", remarks)
+                        put("add", address)
+                        put("port", port)
+                        put("id", uuidOrPassword)
+                        put("aid", "0")
+                        put("scy", vmessSecurity)
+                        put("net", network)
+                        put("type", "none")
+                        put("host", wsHost)
+                        put(
+                            "path",
+                            if (network == "ws") wsPath else if (network == "grpc") grpcServiceName else "",
+                        )
+                        put("tls", if (transportSecurity == "none") "" else transportSecurity)
+                        put("sni", sni)
+                        put("fp", fingerprint)
                         if (transportSecurity == "tls" && allowInsecure) {
-                            addProperty("allowInsecure", "1")
+                            put("allowInsecure", "1")
                         }
                     }
                     parserFactory.vmessConfigParser.encodeProtocol(VMESSConfig(

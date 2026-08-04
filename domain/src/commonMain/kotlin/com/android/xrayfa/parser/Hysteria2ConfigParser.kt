@@ -1,10 +1,11 @@
 package com.android.xrayfa.parser
 
 import com.android.xrayfa.common.core.GeoIpProvider
-import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.common.repository.ConfigParserSettingsProvider
+import com.android.xrayfa.config.XrayConfigEncoder
 import com.android.xrayfa.dto.Hysteria2Config
-import com.android.xrayfa.dto.Link
-import com.android.xrayfa.dto.Node
+import com.android.xrayfa.dto.ParseLinkInput
+import com.android.xrayfa.dto.ParsedNode
 import com.android.xrayfa.model.Hysteria2OutboundConfigurationObject
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.Sockopt
@@ -13,14 +14,12 @@ import com.android.xrayfa.model.stream.HysteriaSettings
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.common.utils.UrlCodec
-import com.google.gson.Gson
 
 class Hysteria2ConfigParser(
-    override val settingsRepo: SettingsRepository,
+    override val settingsProvider: ConfigParserSettingsProvider,
     override val geoIpProvider: GeoIpProvider,
-    override val gson: Gson
-)
-    : AbstractConfigParser<Hysteria2OutboundConfigurationObject, Hysteria2Config>() {
+    override val configEncoder: XrayConfigEncoder,
+) : AbstractConfigParser<Hysteria2OutboundConfigurationObject, Hysteria2Config>() {
 
     override fun decodeProtocol(url: String): Hysteria2Config {
         val decode = UrlCodec.decode(url)
@@ -43,9 +42,8 @@ class Hysteria2ConfigParser(
             address = server,
             port = port,
             auth = uuid,
-            param = queryParams
+            param = queryParams,
         )
-
     }
 
     override fun encodeProtocol(protocol: Hysteria2Config): String {
@@ -66,7 +64,6 @@ class Hysteria2ConfigParser(
         }
     }
 
-
     override fun parseOutbound(url: String): OutboundObject<Hysteria2OutboundConfigurationObject> {
         val hysteria2Config = decodeProtocol(url)
         val alpn = hysteria2Config.param["alpn"]
@@ -75,7 +72,7 @@ class Hysteria2ConfigParser(
             settings = Hysteria2OutboundConfigurationObject(
                 address = hysteria2Config.address,
                 port = hysteria2Config.port,
-                version = hysteria2Config.version
+                version = hysteria2Config.version,
             ),
             streamSettings = StreamSettingsObject(
                 network = "hysteria",
@@ -83,22 +80,22 @@ class Hysteria2ConfigParser(
                 sockopt = Sockopt(),
                 tlsSettings = TlsSettings(
                     allowInsecure = hysteria2Config.param["allowInsecure"] == "1",
-                    alpn = if (alpn != null )listOf(alpn) else null,
-                    serverName = hysteria2Config.address
+                    alpn = if (alpn != null) listOf(alpn) else null,
+                    serverName = hysteria2Config.address,
                 ),
                 hysteriaSettings = HysteriaSettings(
                     auth = hysteria2Config.auth,
-                    version = hysteria2Config.version
+                    version = hysteria2Config.version,
                 ),
-                finalMask = FinalMask() // todo
+                finalMask = FinalMask(),
             ),
             tag = "proxy",
         )
     }
 
-    override suspend fun preParse(link: Link): Node {
+    override suspend fun preParse(link: ParseLinkInput): ParsedNode {
         val h2Config = decodeProtocol(link.content)
-        return Node(
+        return ParsedNode(
             id = link.id,
             url = link.content,
             protocolPrefix = link.protocolPrefix,
@@ -107,7 +104,7 @@ class Hysteria2ConfigParser(
             port = h2Config.port,
             selected = link.selected,
             remark = h2Config.remark,
-            countryISO = countryIsoForServer(h2Config.address)
+            countryISO = countryIsoForServer(h2Config.address),
         )
     }
 }

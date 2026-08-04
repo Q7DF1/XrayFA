@@ -6,6 +6,8 @@ import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.dao.SubscriptionDao
 import com.android.xrayfa.dto.Link
 import com.android.xrayfa.dto.Subscription
+import com.android.xrayfa.dto.toNode
+import com.android.xrayfa.dto.toParseLinkInput
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.utils.HttpResponseUtils
@@ -98,7 +100,7 @@ class SubscriptionRepository
                 selected = false,
                 subscriptionId = subscriptionId,
             )
-            parserFactory.getParser(link.content).preParse(link)
+            parserFactory.getParser(link.content).preParse(link.toParseLinkInput()).toNode()
         }
 
         nodeRepository.addNode(*newNodes.toTypedArray())
