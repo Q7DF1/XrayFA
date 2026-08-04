@@ -8,8 +8,6 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.android.xrayfa.common.utils.Logger
 import com.google.gson.Gson
-import com.google.gson.annotations.SerializedName
-import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -17,62 +15,6 @@ import javax.inject.Singleton
 
 /** DataStore file name; must stay stable across app upgrades and KMP platform actuals. */
 const val SETTINGS_DATA_STORE_NAME = "settings"
-
-data class Rule(
-    @SerializedName("domain") val domain: List<String>? = null,
-    @SerializedName("ip") val ip: List<String>? = null,
-    @SerializedName("port") val port: String? = null,
-    @SerializedName("sourcePort") val sourcePort: String? = null,
-    @SerializedName("localPort") val localPort: String? = null,
-    @SerializedName("network") val network: String? = null,
-    @SerializedName("source") val source: List<String>? = null,
-    @SerializedName("sourceIP") val sourceIP: List<String>? = null,
-    @SerializedName("user") val user: List<String>? = null,
-    @SerializedName("vlessRoute") val vlessRoute: String? = null,
-    @SerializedName("inboundTag") val inboundTag: List<String>? = null,
-    @SerializedName("protocol") val protocol: List<String>? = null,
-    @SerializedName("attrs") val attrs: Map<String, String>? = null,
-    @SerializedName("outboundTag") val outboundTag: String? = null,
-    @SerializedName("balancerTag") val balancerTag: String? = null,
-    @SerializedName("ruleTag") val ruleTag: String? = null,
-    @SerializedName("domainMatcher") val domainMatcher: String? = null,
-    @SerializedName("type") val type: String? = "field"
-)
-
-val defaultRoutes = Gson().toJson(listOf(
-    Rule(
-        type = "field",
-        inboundTag = listOf("api"),
-        outboundTag = "api",
-        ruleTag = "API Traffic"
-    ),
-    Rule(
-        type = "field",
-        inboundTag = listOf("tun"),
-        outboundTag = "dns-out",
-        port = "53",
-        ruleTag = "DNS Traffic"
-    ),
-    Rule(
-        type = "field",
-        outboundTag = "proxy",
-        domain = listOf("geosite:telegram", "geosite:google"),
-        ruleTag = "Proxy Telegram & Google"
-    ),
-    Rule(
-        type = "field",
-        outboundTag = "direct",
-        domain = listOf("geosite:cn", "geosite:geolocation-cn"),
-        ip = listOf("geoip:cn"),
-        ruleTag = "Bypass Mainland China"
-    ),
-    Rule(
-        type = "field",
-        outboundTag = "block",
-        domain = listOf("geosite:category-ads-all"),
-        ruleTag = "Ad Block"
-    )
-))
 
 /**
  * Due to module dependencies, we cannot directly use the `com.android.xrayfa.model.RuleObject` object here.
@@ -135,8 +77,6 @@ object SettingsKeys {
 }
 
 const val DEFAULT_DELAY_TEST_URL = "https://www.google.com"
-
-val listType = object : TypeToken<MutableList<String>>() {}.type
 
 enum class Theme(val code: Int) {
     LIGHT_MODE(0),
@@ -211,7 +151,7 @@ class SettingsRepository
     }
 
     val packagesFlow = dataStore.data.map { prefs ->
-        Gson().fromJson<MutableList<String>>(prefs[SettingsKeys.ALLOW_PACKAGES], listType) ?: emptyList()
+        decodeStringList(prefs[SettingsKeys.ALLOW_PACKAGES] ?: "[]")
     }
 
     suspend fun setRoutingMode(mode: RoutingMode) {
@@ -233,7 +173,7 @@ class SettingsRepository
     }
 
     suspend fun setRoutingRules(rules: List<Rule>) {
-        val rulesString = gson.toJson(rules)
+        val rulesString = encodeRules(rules)
         dataStore.edit {
             it[SettingsKeys.ROUTING_RULES] = rulesString
         }
@@ -286,7 +226,7 @@ class SettingsRepository
     }
 
     suspend fun setAllowedPackages(packages: List<String>) {
-        val listJson = Gson().toJson(packages, listType)
+        val listJson = encodeStringList(packages)
         dataStore.edit {
             it[SettingsKeys.ALLOW_PACKAGES] = listJson
         }
@@ -349,32 +289,29 @@ class SettingsRepository
     suspend fun addAllowedPackages(packageName: String) {
         dataStore.edit { prefs ->
             val listJson = prefs[SettingsKeys.ALLOW_PACKAGES] ?: "[]"
-            val list: MutableList<String> = Gson().fromJson(listJson, listType) ?: mutableListOf()
+            val list = decodeStringList(listJson).toMutableList()
 
             if (!list.contains(packageName)) {
                 list.add(packageName)
             }
             logger.i(TAG, "addAllowedPackages: ${list.size}")
-            prefs[SettingsKeys.ALLOW_PACKAGES] = Gson().toJson(list, listType)
+            prefs[SettingsKeys.ALLOW_PACKAGES] = encodeStringList(list)
         }
     }
 
     suspend fun removeAllowedPackage(packageName: String) {
         dataStore.edit { prefs ->
             val listJson = prefs[SettingsKeys.ALLOW_PACKAGES] ?: "[]"
-
-            val list: MutableList<String> = Gson().fromJson(listJson, listType) ?: mutableListOf()
-
+            val list = decodeStringList(listJson)
             val newList = list.filter { it != packageName }
-
-            prefs[SettingsKeys.ALLOW_PACKAGES] = Gson().toJson(newList, listType)
+            prefs[SettingsKeys.ALLOW_PACKAGES] = encodeStringList(newList)
         }
     }
 
     suspend fun getAllowedPackages(): List<String> {
         val prefs = dataStore.data.first()
         val json = prefs[SettingsKeys.ALLOW_PACKAGES] ?: "[]"
-        return Gson().fromJson(json, listType) ?: emptyList()
+        return decodeStringList(json)
     }
 
 }

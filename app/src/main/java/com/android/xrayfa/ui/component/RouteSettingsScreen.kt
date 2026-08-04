@@ -20,10 +20,9 @@ import com.android.xrayfa.R
 import com.android.xrayfa.common.repository.DomainStrategy
 import com.android.xrayfa.common.repository.RoutingMode
 import com.android.xrayfa.common.repository.Rule
+import com.android.xrayfa.common.repository.decodeRules
 import com.android.xrayfa.ui.navigation.RouteSettings
 import com.android.xrayfa.viewmodel.SettingsViewmodel
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,8 +31,6 @@ fun RouteSettingsScreen(
     sharedTransitionScope: SharedTransitionScope,
 ) {
     val settingsState by viewmodel.settingsState.collectAsState()
-    val gson = remember { Gson() }
-    val ruleType = object : TypeToken<List<Rule>>() {}.type
 
     // Presets from defaultRoutes
     val telegramRule = remember { Rule(type = "field", outboundTag = "proxy", domain = listOf("geosite:telegram", "geosite:google"), ruleTag = "Proxy Telegram & Google") }
@@ -42,7 +39,7 @@ fun RouteSettingsScreen(
 
     // Local state for all rules
     var allRules by remember(settingsState.routingRules) {
-        mutableStateOf(gson.fromJson<List<Rule>>(settingsState.routingRules, ruleType) ?: emptyList())
+        mutableStateOf(decodeRules(settingsState.routingRules))
     }
 
     // Filter out presets to show only custom rules in the manual list

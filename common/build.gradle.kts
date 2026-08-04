@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.ksp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -20,6 +21,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
         }
         androidMain.dependencies {
             implementation(libs.gson)
@@ -35,6 +37,7 @@ kotlin {
         }
         androidUnitTest.dependencies {
             implementation(libs.junit)
+            implementation(libs.gson)
         }
         androidInstrumentedTest.dependencies {
             implementation(libs.androidx.junit)
