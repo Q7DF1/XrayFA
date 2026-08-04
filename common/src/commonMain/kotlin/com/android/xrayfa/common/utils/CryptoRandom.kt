@@ -12,5 +12,3 @@ interface CryptoRandom {
     /** @return a uniformly distributed value in `[0, n)`. */
     fun nextInt(n: Int): Int
 }
-
-internal val defaultCryptoRandom: CryptoRandom = JvmCryptoRandom()
