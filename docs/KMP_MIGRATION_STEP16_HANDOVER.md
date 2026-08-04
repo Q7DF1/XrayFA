@@ -9,8 +9,6 @@
 - `./gradlew :common:compileKotlinIosSimulatorArm64` **BUILD SUCCESSFUL**
 - `./gradlew :app:compileDebugKotlin` **BUILD SUCCESSFUL**
 
-**待用户确认后再 commit。**
-
 ---
 
 ## 改动概要
@@ -70,7 +68,7 @@
 |------|------|------|
 | C.1 | `:common` 转 KMP multiplatform | ✅ |
 | C.2 | Gson → kotlinx.serialization（Rule + String list） | ✅ |
-| C.3 | DataStore KMP | ✅（待 commit） |
+| C.3 | DataStore KMP | ✅ |
 | C.4 | parser + model 物理迁入 `:domain` | ⬜ |
 
 ---
