@@ -1,9 +1,10 @@
 package com.android.xrayfa.parser
 
 import com.android.xrayfa.common.core.GeoIpProvider
-import com.android.xrayfa.common.repository.SettingsRepository
-import com.android.xrayfa.dto.Link
-import com.android.xrayfa.dto.Node
+import com.android.xrayfa.common.repository.ConfigParserSettingsProvider
+import com.android.xrayfa.config.XrayConfigEncoder
+import com.android.xrayfa.dto.ParseLinkInput
+import com.android.xrayfa.dto.ParsedNode
 import com.android.xrayfa.dto.SocksConfig
 import com.android.xrayfa.model.HttpSocksServerObject
 import com.android.xrayfa.model.HttpSocksUserObject
@@ -12,22 +13,14 @@ import com.android.xrayfa.model.SocksOutboundConfigurationObject
 import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.common.utils.Base64Compat
 import com.android.xrayfa.common.utils.UrlCodec
-import com.google.gson.Gson
 
 /**
  * Parser for SOCKS proxy outbounds.
- *
- * Supported share link formats (aligned with the common v2rayN convention):
- *  - socks://host:port#remark                        (no authentication)
- *  - socks://user:pass@host:port#remark              (plain, percent-encoded credentials)
- *  - socks://base64(user:pass)@host:port#remark      (base64 encoded credentials)
- *
- * See https://xtls.github.io/config/outbounds/socks.html
  */
 class SocksConfigParser(
-    override val settingsRepo: SettingsRepository,
+    override val settingsProvider: ConfigParserSettingsProvider,
     override val geoIpProvider: GeoIpProvider,
-    override val gson: Gson
+    override val configEncoder: XrayConfigEncoder,
 ) : AbstractConfigParser<SocksOutboundConfigurationObject, SocksConfig>() {
 
     override fun decodeProtocol(url: String): SocksConfig {
@@ -38,7 +31,7 @@ class SocksConfigParser(
                 server = server,
                 port = if (port == -1) 1080 else port,
                 username = user,
-                password = pass
+                password = pass,
             )
         }
     }
@@ -50,7 +43,7 @@ class SocksConfigParser(
             port = protocol.port,
             username = protocol.username,
             password = protocol.password,
-            remark = protocol.remark
+            remark = protocol.remark,
         )
     }
 
@@ -67,19 +60,19 @@ class SocksConfigParser(
                     HttpSocksServerObject(
                         address = config.server,
                         port = config.port,
-                        users = users
-                    )
-                )
+                        users = users,
+                    ),
+                ),
             ),
             streamSettings = StreamSettingsObject(
-                network = "tcp"
-            )
+                network = "tcp",
+            ),
         )
     }
 
-    override suspend fun preParse(link: Link): Node {
+    override suspend fun preParse(link: ParseLinkInput): ParsedNode {
         val config = decodeProtocol(link.content)
-        return Node(
+        return ParsedNode(
             id = link.id,
             url = link.content,
             protocolPrefix = "socks",
@@ -88,20 +81,16 @@ class SocksConfigParser(
             address = config.server,
             selected = link.selected,
             remark = config.remark,
-            countryISO = countryIsoForServer(config.server)
+            countryISO = countryIsoForServer(config.server),
         )
     }
 }
 
-/**
- * Shared decode/encode helpers for the SOCKS and HTTP proxy share links, which use an
- * identical `scheme://[credentials@]host:port#remark` structure.
- */
 internal object ProxyLinkUtils {
 
     fun <T> decode(
         url: String,
-        factory: (remark: String?, server: String, port: Int, user: String?, pass: String?) -> T
+        factory: (remark: String?, server: String, port: Int, user: String?, pass: String?) -> T,
     ): T {
         val uri = UrlCodec.parseUri(url)
         val host = uri.host ?: throw IllegalArgumentException("Invalid proxy URL: missing host")
@@ -112,9 +101,6 @@ internal object ProxyLinkUtils {
         var password: String? = null
         val rawUserInfo = uri.userInfo
         if (!rawUserInfo.isNullOrEmpty()) {
-            // Plain "user:pass" is used as-is. Otherwise try base64 (v2rayN style), but only accept
-            // the decoded value when it actually looks like "user:pass"; this avoids garbling a plain
-            // username that has no password (e.g. socks://user@host) which is also valid base64.
             val userInfo = if (rawUserInfo.contains(":")) {
                 rawUserInfo
             } else {
@@ -138,7 +124,7 @@ internal object ProxyLinkUtils {
         port: Int,
         username: String?,
         password: String?,
-        remark: String?
+        remark: String?,
     ): String = buildString {
         append(scheme).append("://")
         if (!username.isNullOrEmpty()) {
@@ -156,7 +142,7 @@ internal object ProxyLinkUtils {
 
     private fun tryBase64Decode(value: String): String {
         return try {
-            String(Base64Compat.decode(value))
+            Base64Compat.decode(value).decodeToString()
         } catch (e: Exception) {
             value
         }
@@ -171,7 +157,5 @@ internal object ProxyLinkUtils {
         }
     }
 
-    private fun urlEncode(s: String): String {
-        return UrlCodec.encode(s)
-    }
+    private fun urlEncode(s: String): String = UrlCodec.encode(s)
 }

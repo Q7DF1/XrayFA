@@ -1,11 +1,12 @@
 package com.android.xrayfa.parser
 
 import com.android.xrayfa.common.core.GeoIpProvider
-import com.android.xrayfa.common.repository.SettingsRepository
-import com.android.xrayfa.dto.Link
-import com.android.xrayfa.model.MuxObject
-import com.android.xrayfa.dto.Node
+import com.android.xrayfa.common.repository.ConfigParserSettingsProvider
+import com.android.xrayfa.config.XrayConfigEncoder
+import com.android.xrayfa.dto.ParseLinkInput
+import com.android.xrayfa.dto.ParsedNode
 import com.android.xrayfa.dto.VLESSConfig
+import com.android.xrayfa.model.MuxObject
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.ServerObject
 import com.android.xrayfa.model.UserObject
@@ -18,13 +19,12 @@ import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
 import com.android.xrayfa.model.stream.XHttpSettings
 import com.android.xrayfa.common.utils.UrlCodec
-import com.google.gson.Gson
 
 class VLESSConfigParser(
-    override val settingsRepo: SettingsRepository,
+    override val settingsProvider: ConfigParserSettingsProvider,
     override val geoIpProvider: GeoIpProvider,
-    override val gson: Gson
-): AbstractConfigParser<VLESSOutboundConfigurationObject, VLESSConfig>(){
+    override val configEncoder: XrayConfigEncoder,
+) : AbstractConfigParser<VLESSOutboundConfigurationObject, VLESSConfig>() {
     override fun decodeProtocol(url: String): VLESSConfig {
         val decode = UrlCodec.decode(url)
         val withoutProtocol = decode.removePrefix("vless://")
@@ -47,7 +47,7 @@ class VLESSConfigParser(
             uuid = uuid,
             server = server,
             port = port,
-            param = queryParams
+            param = queryParams,
         )
     }
 
@@ -89,42 +89,46 @@ class VLESSConfigParser(
                             UserObject(
                                 id = parseVLESS.uuid,
                                 encryption = queryParams["encryption"] ?: "",
-                                flow = queryParams["flow"]?:"",
+                                flow = queryParams["flow"] ?: "",
                                 level = 0,
-                                security = "auto"
-                            )
-                        )
-                    )
-                )
+                                security = "auto",
+                            ),
+                        ),
+                    ),
+                ),
             ),
             streamSettings = StreamSettingsObject(
                 network = network,
                 security = security,
                 realitySettings = if (security == "reality") {
                     RealitySettings(
-                        fingerprint = queryParams["fp"]?:"",
-                        publicKey = queryParams["pbk"]?:"",
-                        serverName = queryParams["sni"]?:"",
+                        fingerprint = queryParams["fp"] ?: "",
+                        publicKey = queryParams["pbk"] ?: "",
+                        serverName = queryParams["sni"] ?: "",
                         spiderX = "",
-                        shortId = queryParams["sid"]?:"",
+                        shortId = queryParams["sid"] ?: "",
                         show = false,
                     )
                 } else null,
-                rawSettings = if (network == "raw") { RawSettings() } else null,
+                rawSettings = if (network == "raw") {
+                    RawSettings()
+                } else null,
                 wsSettings = if (network == "ws") {
                     WsSettings(
                         path = "${queryParams["path"]}",
-                        headers = mapOf(Pair("host",queryParams["host"]?:""))
+                        headers = mapOf(Pair("host", queryParams["host"] ?: "")),
                     )
                 } else null,
-                grpcSettings = if (network == "grpc") GrpcSettings(
-                    serviceName = queryParams["serviceName"]?:"",
-                    multiMode = false
-                ) else null,
+                grpcSettings = if (network == "grpc") {
+                    GrpcSettings(
+                        serviceName = queryParams["serviceName"] ?: "",
+                        multiMode = false,
+                    )
+                } else null,
                 tlsSettings = if (security == "tls") {
                     TlsSettings(
                         serverName = queryParams["host"] ?: "",
-                        allowInsecure = queryParams["allowInsecure"] == "1"
+                        allowInsecure = queryParams["allowInsecure"] == "1",
                     )
                 } else null,
                 xhttpSettings = if (network == "xhttp") {
@@ -132,18 +136,18 @@ class VLESSConfigParser(
                         mode = queryParams["mode"],
                         host = queryParams["host"],
                         path = queryParams["path"],
-                        extra = null // todo
+                        extra = null,
                     )
-                } else null
+                } else null,
             ),
             mux = MuxObject(concurrency = -1, enable = false, xudpConcurrency = 8, xudpProxyUDP443 = ""),
-            tag = "proxy"
+            tag = "proxy",
         )
     }
 
-    override suspend fun preParse(link: Link): Node {
+    override suspend fun preParse(link: ParseLinkInput): ParsedNode {
         val vlessConfig = decodeProtocol(link.content)
-        return Node(
+        return ParsedNode(
             id = link.id,
             url = link.content,
             protocolPrefix = link.protocolPrefix,
@@ -152,7 +156,7 @@ class VLESSConfigParser(
             port = vlessConfig.port,
             selected = link.selected,
             remark = vlessConfig.remark,
-            countryISO = countryIsoForServer(vlessConfig.server)
+            countryISO = countryIsoForServer(vlessConfig.server),
         )
     }
 }

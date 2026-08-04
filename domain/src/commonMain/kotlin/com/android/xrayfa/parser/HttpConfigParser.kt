@@ -1,30 +1,24 @@
 package com.android.xrayfa.parser
 
 import com.android.xrayfa.common.core.GeoIpProvider
-import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.common.repository.ConfigParserSettingsProvider
+import com.android.xrayfa.config.XrayConfigEncoder
 import com.android.xrayfa.dto.HttpConfig
-import com.android.xrayfa.dto.Link
-import com.android.xrayfa.dto.Node
+import com.android.xrayfa.dto.ParseLinkInput
+import com.android.xrayfa.dto.ParsedNode
 import com.android.xrayfa.model.HttpOutboundConfigurationObject
 import com.android.xrayfa.model.HttpSocksServerObject
 import com.android.xrayfa.model.HttpSocksUserObject
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.stream.StreamSettingsObject
-import com.google.gson.Gson
 
 /**
  * Parser for HTTP proxy outbounds.
- *
- * Supported share link formats:
- *  - http://host:port#remark                (no authentication)
- *  - http://user:pass@host:port#remark      (plain, percent-encoded credentials)
- *
- * See https://xtls.github.io/config/outbounds/http.html
  */
 class HttpConfigParser(
-    override val settingsRepo: SettingsRepository,
+    override val settingsProvider: ConfigParserSettingsProvider,
     override val geoIpProvider: GeoIpProvider,
-    override val gson: Gson
+    override val configEncoder: XrayConfigEncoder,
 ) : AbstractConfigParser<HttpOutboundConfigurationObject, HttpConfig>() {
 
     override fun decodeProtocol(url: String): HttpConfig {
@@ -35,7 +29,7 @@ class HttpConfigParser(
                 server = server,
                 port = if (port == -1) 8080 else port,
                 username = user,
-                password = pass
+                password = pass,
             )
         }
     }
@@ -47,7 +41,7 @@ class HttpConfigParser(
             port = protocol.port,
             username = protocol.username,
             password = protocol.password,
-            remark = protocol.remark
+            remark = protocol.remark,
         )
     }
 
@@ -64,19 +58,19 @@ class HttpConfigParser(
                     HttpSocksServerObject(
                         address = config.server,
                         port = config.port,
-                        users = users
-                    )
-                )
+                        users = users,
+                    ),
+                ),
             ),
             streamSettings = StreamSettingsObject(
-                network = "tcp"
-            )
+                network = "tcp",
+            ),
         )
     }
 
-    override suspend fun preParse(link: Link): Node {
+    override suspend fun preParse(link: ParseLinkInput): ParsedNode {
         val config = decodeProtocol(link.content)
-        return Node(
+        return ParsedNode(
             id = link.id,
             url = link.content,
             protocolPrefix = "http",
@@ -85,7 +79,7 @@ class HttpConfigParser(
             address = config.server,
             selected = link.selected,
             remark = config.remark,
-            countryISO = countryIsoForServer(config.server)
+            countryISO = countryIsoForServer(config.server),
         )
     }
 }

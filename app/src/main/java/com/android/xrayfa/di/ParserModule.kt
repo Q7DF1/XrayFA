@@ -1,7 +1,10 @@
 package com.android.xrayfa.di
 
 import com.android.xrayfa.common.core.GeoIpProvider
+import com.android.xrayfa.common.repository.ConfigParserSettingsProvider
 import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.config.GsonXrayConfigEncoder
+import com.android.xrayfa.config.XrayConfigEncoder
 import com.android.xrayfa.parser.HttpConfigParser
 import com.android.xrayfa.parser.Hysteria2ConfigParser
 import com.android.xrayfa.parser.ParserFactory
@@ -20,59 +23,69 @@ object ParserModule {
 
     @Provides
     @Singleton
+    fun provideXrayConfigEncoder(gson: Gson): XrayConfigEncoder = GsonXrayConfigEncoder(gson)
+
+    @Provides
+    @Singleton
+    fun provideConfigParserSettingsProvider(
+        settingsRepository: SettingsRepository,
+    ): ConfigParserSettingsProvider = settingsRepository
+
+    @Provides
+    @Singleton
     fun provideVLESSConfigParser(
-        settingsRepo: SettingsRepository,
+        settingsProvider: ConfigParserSettingsProvider,
         geoIpProvider: GeoIpProvider,
-        gson: Gson,
-    ): VLESSConfigParser = VLESSConfigParser(settingsRepo, geoIpProvider, gson)
+        configEncoder: XrayConfigEncoder,
+    ): VLESSConfigParser = VLESSConfigParser(settingsProvider, geoIpProvider, configEncoder)
 
     @Provides
     @Singleton
     fun provideVMESSConfigParser(
-        settingsRepo: SettingsRepository,
+        settingsProvider: ConfigParserSettingsProvider,
         geoIpProvider: GeoIpProvider,
-        gson: Gson,
-    ): VMESSConfigParser = VMESSConfigParser(settingsRepo, geoIpProvider, gson)
+        configEncoder: XrayConfigEncoder,
+    ): VMESSConfigParser = VMESSConfigParser(settingsProvider, geoIpProvider, configEncoder)
 
     @Provides
     @Singleton
     fun provideTrojanConfigParser(
-        settingsRepo: SettingsRepository,
+        settingsProvider: ConfigParserSettingsProvider,
         geoIpProvider: GeoIpProvider,
-        gson: Gson,
-    ): TrojanConfigParser = TrojanConfigParser(settingsRepo, geoIpProvider, gson)
+        configEncoder: XrayConfigEncoder,
+    ): TrojanConfigParser = TrojanConfigParser(settingsProvider, geoIpProvider, configEncoder)
 
     @Provides
     @Singleton
     fun provideShadowSocksConfigParser(
-        settingsRepo: SettingsRepository,
+        settingsProvider: ConfigParserSettingsProvider,
         geoIpProvider: GeoIpProvider,
-        gson: Gson,
-    ): ShadowSocksConfigParser = ShadowSocksConfigParser(settingsRepo, geoIpProvider, gson)
+        configEncoder: XrayConfigEncoder,
+    ): ShadowSocksConfigParser = ShadowSocksConfigParser(settingsProvider, geoIpProvider, configEncoder)
 
     @Provides
     @Singleton
     fun provideHysteria2ConfigParser(
-        settingsRepo: SettingsRepository,
+        settingsProvider: ConfigParserSettingsProvider,
         geoIpProvider: GeoIpProvider,
-        gson: Gson,
-    ): Hysteria2ConfigParser = Hysteria2ConfigParser(settingsRepo, geoIpProvider, gson)
+        configEncoder: XrayConfigEncoder,
+    ): Hysteria2ConfigParser = Hysteria2ConfigParser(settingsProvider, geoIpProvider, configEncoder)
 
     @Provides
     @Singleton
     fun provideSocksConfigParser(
-        settingsRepo: SettingsRepository,
+        settingsProvider: ConfigParserSettingsProvider,
         geoIpProvider: GeoIpProvider,
-        gson: Gson,
-    ): SocksConfigParser = SocksConfigParser(settingsRepo, geoIpProvider, gson)
+        configEncoder: XrayConfigEncoder,
+    ): SocksConfigParser = SocksConfigParser(settingsProvider, geoIpProvider, configEncoder)
 
     @Provides
     @Singleton
     fun provideHttpConfigParser(
-        settingsRepo: SettingsRepository,
+        settingsProvider: ConfigParserSettingsProvider,
         geoIpProvider: GeoIpProvider,
-        gson: Gson,
-    ): HttpConfigParser = HttpConfigParser(settingsRepo, geoIpProvider, gson)
+        configEncoder: XrayConfigEncoder,
+    ): HttpConfigParser = HttpConfigParser(settingsProvider, geoIpProvider, configEncoder)
 
     @Provides
     @Singleton

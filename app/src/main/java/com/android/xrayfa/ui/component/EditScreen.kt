@@ -60,6 +60,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import com.android.xrayfa.model.protocol.Protocol
+import com.android.xrayfa.parser.optionalString
 
 
 import androidx.compose.material3.DropdownMenuItem
@@ -156,16 +157,16 @@ fun EditScreen(
                         val config = detailViewmodel.parseVMESSProtocol(initialContent)
                         address = config.address
                         val others = config.others
-                        port = if (others.has("port")) others.get("port").asString else ""
+                        port = others.optionalString("port") ?: ""
                         id = config.uuid
-                        vmessSecurity = if (others.has("scy")) others.get("scy").asString else "auto"
+                        vmessSecurity = others.optionalString("scy") ?: "auto"
                         network = config.network
                         transportSecurity = config.tls
                         wsHost = config.host
-                        wsPath = if (others.has("path")) others.get("path").asString else "/"
-                        sni = if (others.has("sni")) others.get("sni").asString else ""
-                        fingerprint = if (others.has("fp")) others.get("fp").asString else "chrome"
-                        allowInsecure = others.has("allowInsecure") && others.get("allowInsecure").asString == "1"
+                        wsPath = others.optionalString("path") ?: "/"
+                        sni = others.optionalString("sni") ?: ""
+                        fingerprint = others.optionalString("fp") ?: "chrome"
+                        allowInsecure = others.optionalString("allowInsecure") == "1"
                     }
                     Protocol.TROJAN.protocolType -> {
                         selectedProtocol = Protocol.TROJAN

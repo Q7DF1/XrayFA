@@ -1,7 +1,7 @@
 package com.android.xrayfa.parser
 
-import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.model.OutboundObject
+import com.android.xrayfa.model.protocol.Protocol
 
 /**
  * A simple factory for parsers that provides different parsers for different protocols
@@ -13,11 +13,11 @@ class ParserFactory(
     val shadowSocksConfigParser: ShadowSocksConfigParser,
     val hysteria2ConfigParser: Hysteria2ConfigParser,
     val socksConfigParser: SocksConfigParser,
-    val httpConfigParser: HttpConfigParser
+    val httpConfigParser: HttpConfigParser,
 ) {
 
-    fun getParser(url: String): AbstractConfigParser<*,*> {
-        val parser =  when(val protocol = url.substringBefore("://").lowercase()) {
+    fun getParser(url: String): AbstractConfigParser<*, *> {
+        val parser = when (val protocol = url.substringBefore("://").lowercase()) {
             Protocol.VLESS.protocolType -> vlessConfigParser
             Protocol.VMESS.protocolType -> vmessConfigParser
             Protocol.TROJAN.protocolType -> trojanConfigParser
@@ -26,9 +26,7 @@ class ParserFactory(
             Protocol.SOCKS.protocolType -> socksConfigParser
             "socks5" -> socksConfigParser
             Protocol.HTTP.protocolType -> httpConfigParser
-            else -> {
-                throw IllegalArgumentException("Unsupported protocol: $protocol")
-            }
+            else -> throw IllegalArgumentException("Unsupported protocol: $protocol")
         }
         parser.otherProtocolParser = { url ->
             getParser(url).parseOutbound(url)

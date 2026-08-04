@@ -1,9 +1,10 @@
 package com.android.xrayfa.parser
 
 import com.android.xrayfa.common.core.GeoIpProvider
-import com.android.xrayfa.common.repository.SettingsRepository
-import com.android.xrayfa.dto.Link
-import com.android.xrayfa.dto.Node
+import com.android.xrayfa.common.repository.ConfigParserSettingsProvider
+import com.android.xrayfa.config.XrayConfigEncoder
+import com.android.xrayfa.dto.ParseLinkInput
+import com.android.xrayfa.dto.ParsedNode
 import com.android.xrayfa.dto.TrojanConfig
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.TrojanOutboundConfigurationObject
@@ -13,13 +14,12 @@ import com.android.xrayfa.model.stream.StreamSettingsObject
 import com.android.xrayfa.model.stream.TlsSettings
 import com.android.xrayfa.model.stream.WsSettings
 import com.android.xrayfa.common.utils.UrlCodec
-import com.google.gson.Gson
 
 class TrojanConfigParser(
-    override val settingsRepo: SettingsRepository,
+    override val settingsProvider: ConfigParserSettingsProvider,
     override val geoIpProvider: GeoIpProvider,
-    override val gson: Gson
-): AbstractConfigParser<TrojanOutboundConfigurationObject, TrojanConfig>() {
+    override val configEncoder: XrayConfigEncoder,
+) : AbstractConfigParser<TrojanOutboundConfigurationObject, TrojanConfig>() {
     override fun decodeProtocol(url: String): TrojanConfig {
         val uri = UrlCodec.parseUri(url)
         val scheme = uri.scheme ?: "trojan"
@@ -45,7 +45,7 @@ class TrojanConfigParser(
             port = port,
             params = params,
             remark = remark,
-            original = url
+            original = url,
         )
     }
 
@@ -84,46 +84,52 @@ class TrojanConfigParser(
 
     override fun parseOutbound(url: String): OutboundObject<TrojanOutboundConfigurationObject> {
         val trojanConfig = decodeProtocol(url)
-        val network = trojanConfig.params.getOrDefault("type", "tcp")
+        val network = trojanConfig.params["type"] ?: "tcp"
         return OutboundObject(
             tag = "proxy",
             protocol = "trojan",
             settings = TrojanOutboundConfigurationObject(
-                servers = listOf(TrojanServerObject(
-                    address = trojanConfig.host,
-                    port = trojanConfig.port,
-                    password =trojanConfig.password
-                ))
+                servers = listOf(
+                    TrojanServerObject(
+                        address = trojanConfig.host,
+                        port = trojanConfig.port,
+                        password = trojanConfig.password,
+                    ),
+                ),
             ),
             streamSettings = StreamSettingsObject(
                 network = network,
-                security = trojanConfig.params.getOrDefault("security", "tls"),
+                security = trojanConfig.params["security"] ?: "tls",
                 tlsSettings = TlsSettings(
                     serverName = trojanConfig.host,
-                    allowInsecure = trojanConfig.params["allowInsecure"] == "1"
+                    allowInsecure = trojanConfig.params["allowInsecure"] == "1",
                 ),
-                wsSettings = if (network == "ws") WsSettings(
-                    path = trojanConfig.params.getOrDefault("path",""),
-                    headers = mapOf(Pair("Host",trojanConfig.host?:""))
-                ) else null,
-                grpcSettings = if (network == "grpc") GrpcSettings(
-                    serviceName = trojanConfig.params.getOrDefault("serviceName","")
-                ) else null
-            )
+                wsSettings = if (network == "ws") {
+                    WsSettings(
+                        path = trojanConfig.params["path"] ?: "",
+                        headers = mapOf(Pair("Host", trojanConfig.host ?: "")),
+                    )
+                } else null,
+                grpcSettings = if (network == "grpc") {
+                    GrpcSettings(
+                        serviceName = trojanConfig.params["serviceName"] ?: "",
+                    )
+                } else null,
+            ),
         )
     }
 
-    override suspend fun preParse(link: Link): Node {
+    override suspend fun preParse(link: ParseLinkInput): ParsedNode {
         val trojanConfig = decodeProtocol(link.content)
-        return Node(
+        return ParsedNode(
             id = link.id,
             url = link.content,
             subscriptionId = link.subscriptionId,
             protocolPrefix = link.protocolPrefix,
-            address = trojanConfig.host?:"unknown",
-            port = trojanConfig.port?:0,
+            address = trojanConfig.host ?: "unknown",
+            port = trojanConfig.port ?: 0,
             remark = trojanConfig.remark,
-            countryISO = countryIsoForServer(trojanConfig.host ?: "")
+            countryISO = countryIsoForServer(trojanConfig.host ?: ""),
         )
     }
 }

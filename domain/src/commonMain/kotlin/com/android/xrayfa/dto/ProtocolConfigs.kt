@@ -1,7 +1,7 @@
 package com.android.xrayfa.dto
 
 import com.android.xrayfa.model.protocol.Protocol
-import com.google.gson.JsonObject
+import kotlinx.serialization.json.JsonObject
 
 data class VLESSConfig(
     val protocol: Protocol = Protocol.VLESS,
@@ -9,7 +9,7 @@ data class VLESSConfig(
     val uuid: String,
     val server: String,
     val port: Int,
-    val param: Map<String, String>
+    val param: Map<String, String>,
 )
 
 data class VMESSConfig(
@@ -19,7 +19,7 @@ data class VMESSConfig(
     val host: String,
     val network: String,
     val address: String,
-    val others: JsonObject
+    val others: JsonObject,
 )
 
 data class ShadowSocksConfig(
@@ -27,7 +27,7 @@ data class ShadowSocksConfig(
     val password: String,
     val server: String,
     val port: Int,
-    val tag: String?
+    val tag: String?,
 )
 
 data class TrojanConfig(
@@ -37,16 +37,16 @@ data class TrojanConfig(
     val port: Int?,
     val params: Map<String, String>,
     val remark: String?,
-    val original: String
+    val original: String,
 )
 
 data class Hysteria2Config(
     val remark: String?,
     val address: String,
     val port: Int,
-    val version:Int = 2,
+    val version: Int = 2,
     val auth: String,
-    val param: Map<String, String>
+    val param: Map<String, String>,
 )
 
 data class SocksConfig(
@@ -55,7 +55,7 @@ data class SocksConfig(
     val server: String,
     val port: Int,
     val username: String? = null,
-    val password: String? = null
+    val password: String? = null,
 )
 
 data class HttpConfig(
@@ -64,5 +64,5 @@ data class HttpConfig(
     val server: String,
     val port: Int,
     val username: String? = null,
-    val password: String? = null
+    val password: String? = null,
 )

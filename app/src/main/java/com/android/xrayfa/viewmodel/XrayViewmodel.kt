@@ -49,8 +49,10 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import com.android.xrayfa.repository.SubscriptionRepository
-import com.android.xrayfa.core.StartOptions
+import com.android.xrayfa.common.core.CoreStartOptions
 import com.android.xrayfa.dto.Subscription
+import com.android.xrayfa.dto.toNode
+import com.android.xrayfa.dto.toParseLinkInput
 import com.android.xrayfa.model.BugReportData
 import com.android.xrayfa.ui.navigation.NavigateDestination
 import kotlinx.coroutines.CompletableDeferred
@@ -353,7 +355,7 @@ class XrayViewmodel(
             Log.i(TAG, "addLink: ${protocolPrefix}")
             if (protocolsPrefix.contains(protocolPrefix)) {
                 val link0 =  Link(protocolPrefix = protocolPrefix, content = link, subscriptionId = SUB_MANUAL)
-                val node = parserFactory.getParser(link).preParse(link0)
+                val node = parserFactory.getParser(link).preParse(link0.toParseLinkInput()).toNode()
                 viewModelScope.launch {
                     Log.i(TAG, "addLink: ${link0}")
                     repository.addNode(node)
@@ -531,7 +533,7 @@ class XrayViewmodel(
                         updateNodeDelay(node.id, -1L)
                         
                         val delay = try {
-                            val config = parserFactory.getParser(node.url).parse(StartOptions(node.url))
+                            val config = parserFactory.getParser(node.url).parse(CoreStartOptions(node.url))
                             val res = xrayCore.measureOutboundDelay(config, url)
                             if (res <= 0L) -2L else res
                         } catch (e: Exception) {

@@ -74,43 +74,12 @@ object SettingsKeys {
 
 const val DEFAULT_DELAY_TEST_URL = "https://www.google.com"
 
-enum class Theme(val code: Int) {
-    LIGHT_MODE(0),
-    DARK_MODE(1),
-    AUTO_MODE(2);
-
-    companion object {
-        fun fromCode(code: Int): Theme = entries.firstOrNull { it.code == code } ?: AUTO_MODE
-    }
-}
-
-enum class RoutingMode(val code: Int) {
-    GLOBAL(0),
-    ROUTE(1);
-
-    companion object {
-        fun fromCode(code: Int): RoutingMode = entries.firstOrNull { it.code == code } ?: ROUTE
-    }
-}
-
-enum class DomainStrategy(val code: Int) {
-    ASIS(0),
-    IP_IF_NON_MATCH(1),
-    IP_ON_DEMAND(2);
-
-    companion object {
-        fun fromCode(code: Int): DomainStrategy =
-            entries.firstOrNull { it.code == code } ?: IP_IF_NON_MATCH
-    }
-}
-
-
 @Singleton
 class SettingsRepository
 @Inject constructor(
     private val dataStore: DataStore<Preferences>,
     private val logger: Logger,
-) {
+) : ConfigParserSettingsProvider {
 
     companion object {
         private const val TAG = "SettingsRepository"
@@ -307,6 +276,25 @@ class SettingsRepository
         val prefs = dataStore.data.first()
         val json = prefs[SettingsKeys.ALLOW_PACKAGES] ?: "[]"
         return decodeStringList(json)
+    }
+
+    override suspend fun getConfigParserSettings(): ConfigParserSettings {
+        val settings = settingsFlow.first()
+        return ConfigParserSettings(
+            socksListen = settings.socksListen,
+            socksPort = settings.socksPort,
+            socksUserName = settings.socksUserName,
+            socksPassword = settings.socksPassword,
+            lanHttpProxyEnable = settings.lanHttpProxyEnable,
+            httpPort = settings.httpPort,
+            dnsIPv4 = settings.dnsIPv4,
+            dnsIPv6 = settings.dnsIPv6,
+            ipV6Enable = settings.ipV6Enable,
+            domainStrategy = settings.domainStrategy,
+            routingRules = settings.routingRules,
+            routingMode = settings.routingMode,
+            geoLiteInstall = settings.geoLiteInstall,
+        )
     }
 
 }
