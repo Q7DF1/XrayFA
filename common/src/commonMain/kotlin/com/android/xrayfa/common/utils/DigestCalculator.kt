@@ -19,9 +19,12 @@ interface DigestCalculator {
     fun createDigest(algorithm: String): StreamingDigest
 }
 
-internal val defaultDigestCalculator: DigestCalculator = JvmDigestCalculator()
+private const val HEX_LOWER = "0123456789abcdef"
 
-internal fun ByteArray.toHexLowercase(): String = joinToString("") { "%02x".format(it) }
+internal fun ByteArray.toHexLowercase(): String = joinToString("") { byte ->
+    val value = byte.toInt() and 0xFF
+    "${HEX_LOWER[value shr 4]}${HEX_LOWER[value and 0x0F]}"
+}
 
 /** Hash a byte array; algorithm names follow JCA conventions (e.g. "SHA-256", "MD5"). */
 fun calculateBytesHash(data: ByteArray, algorithm: String = "SHA-256"): String {
