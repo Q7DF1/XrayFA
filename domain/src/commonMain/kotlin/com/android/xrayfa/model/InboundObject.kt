@@ -100,42 +100,9 @@ data class FallbackObject(
     val name: String? = null,
     val alpn: String? = null,
     val path: String? = null,
-    val dest: String? = null, // 修正: dest 可以是数字或字符串 "80" 或 "127.0.0.1:80"
+    val dest: String? = null,
     val xver: Int? = null,
 )
-
-
-
-
-
-data class HappyEyeballs(
-    val tryDelayMs: Int = 250,
-    val prioritizeIPv6: Boolean = false,
-    val interleave: Int = 1,
-    val maxConcurrent: Int = 1,
-)
-
-data class Sockopt(
-    val mark: Int = 0,
-    val tcpMaxSeg: Int? = null,
-    val tcpFastOpen: Any? = null, // 可为 Boolean 或 Int
-    val tproxy: String = "off",
-    val domainStrategy: String = "AsIs",
-    val happyEyeballs: HappyEyeballs? = null,
-    val dialerProxy: String = "",
-    val acceptProxyProtocol: Boolean = false,
-    val tcpKeepAliveInterval: Int = 0,
-    val tcpKeepAliveIdle: Int = 300,
-    val tcpUserTimeout: Int = 10000,
-    val tcpCongestion: String = "bbr",
-    val interfaceName: String = "", // “interface”为 Kotlin 保留关键字，用 interfaceName 替代
-    val v6only: Boolean = false,
-    val tcpWindowClamp: Int = 600,
-    val tcpMptcp: Boolean = false,
-    val addressPortStrategy: String = "",
-    //val customSockopt: Any? = null,
-)
-
 
 /**
  * Port can be:
