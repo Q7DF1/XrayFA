@@ -38,7 +38,7 @@ import javax.inject.Singleton
     ActivityModule::class,
     CoroutinesModule::class,
     NetworkModule::class,
-    ParserModule::class,
+    KoinBridgeModule::class,
 ])
 abstract class GlobalModule {
 
