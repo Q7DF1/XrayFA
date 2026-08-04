@@ -3,11 +3,8 @@ package com.android.xrayfa.repository
 import com.android.xrayfa.dao.NodeDao
 import com.android.xrayfa.dto.Node
 import kotlinx.coroutines.flow.Flow
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class NodeRepository @Inject constructor(
+class NodeRepository(
     private val nodeDao: NodeDao
 ){
     val allNodes = nodeDao.getAllNodes()

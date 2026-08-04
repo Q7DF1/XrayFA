@@ -30,6 +30,8 @@ val appPlatformDiModule: Module = module {
 
 fun androidKoinModules(): List<Module> = listOf(
     appPlatformDiModule,
+    appNetworkDiModule,
+    appDataDiModule,
     androidDomainDiModule,
     parserDiModule(),
 )
