@@ -12,7 +12,7 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 /**
- * KMP-safe parser dependency graph (mirrors app [com.android.xrayfa.di.ParserModule]).
+ * KMP-safe parser dependency graph.
  * Platform modules must bind [com.android.xrayfa.config.XrayConfigEncoder],
  * [com.android.xrayfa.common.repository.ConfigParserSettingsProvider], and
  * [com.android.xrayfa.common.core.GeoIpProvider] before this module is loaded.

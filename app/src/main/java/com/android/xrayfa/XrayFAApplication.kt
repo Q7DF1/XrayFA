@@ -49,8 +49,8 @@ class XrayFAApplication: Application() {
 
     override fun onCreate() {
         super.onCreate()
-        contextAvailableCallback?.onContextAvailable(applicationContext)
         initKoin()
+        contextAvailableCallback?.onContextAvailable(applicationContext)
         observeDarkMode()
         initXrayFile()
         initSocksConfig()
