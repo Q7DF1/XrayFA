@@ -1,7 +1,6 @@
 package com.android.xrayfa.repository
 
 import android.util.Log
-import com.android.xrayfa.common.di.qualifier.ShortTime
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.dao.SubscriptionDao
 import com.android.xrayfa.dto.Link
@@ -18,17 +17,13 @@ import kotlinx.coroutines.flow.first
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
-import javax.inject.Inject
-import javax.inject.Singleton
 
 private const val XHWID = "x-hwid"
 private const val TAG = "SubscriptionRepository"
 
-@Singleton
-class SubscriptionRepository
-@Inject constructor(
+class SubscriptionRepository(
     val subscriptionDao: SubscriptionDao,
-    @ShortTime val okHttp: OkHttpClient,
+    val okHttp: OkHttpClient,
     val nodeRepository: NodeRepository,
     val subscriptionParser: SubscriptionParser,
     val parserFactory: ParserFactory,
