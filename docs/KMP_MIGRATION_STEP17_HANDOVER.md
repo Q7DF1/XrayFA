@@ -70,7 +70,7 @@ config parser / model 批量迁入提供模块骨架。
 | C.1 | `:common` 转 KMP | ✅ |
 | C.2 | kotlinx.serialization 试点 | ✅ |
 | C.3 | DataStore KMP | ✅ |
-| C.4 | parser + model → `:domain` | 🔄 首批完成，config parser / model 待续 |
+| C.4 | parser + model → `:domain` | 🔄 C.4a ✅，C.4b 待 commit，C.4c 待续 |
 
 ---
 
