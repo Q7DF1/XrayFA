@@ -87,6 +87,15 @@ sealed interface ProtocolSettings {
 
 ## 2. Dagger → Koin
 
+### Koin 版本（当前 vs 目标）
+
+| | 版本 | 说明 |
+|---|------|------|
+| **当前（libs.versions.toml）** | **4.0.1** | Kotlin 2.0.21 下 iOS klib 可编译；Step 21 确认 |
+| **目标（Kotlin 升级后）** | 4.1.1+（BOM）或 4.2.2 | 4.1+ 需 Kotlin 2.1+；4.2+ 需 Kotlin 2.3+ |
+
+详见 `docs/KMP_MIGRATION_STEP21_HANDOVER.md` §「Koin 版本决策」。**D.1 DI 迁移不等待 Koin 升级。**
+
 ### 概念对照
 
 | Dagger | Koin |
@@ -655,8 +664,8 @@ datastore = "1.1.7"
 # 网络
 ktor = "3.1.0"
 
-# DI
-koin = "4.1.0"
+# DI — 当前 4.0.1；目标 4.1.1+（见 Step 21 版本决策）
+koin = "4.0.1"
 
 # 导航/架构
 decompose = "3.2.0"
