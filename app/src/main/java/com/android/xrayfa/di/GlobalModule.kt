@@ -14,13 +14,8 @@ import com.android.xrayfa.core.AndroidXrayAssetPaths
 import com.android.xrayfa.core.XrayCoreManager
 import com.android.xrayfa.data.settingsDataStore
 import com.android.xrayfa.common.di.qualifier.Application
-import com.android.xrayfa.dao.SubscriptionDao
-import com.android.xrayfa.dao.XrayFADatabase
-import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.common.di.qualifier.Background
 import com.android.xrayfa.common.di.qualifier.Main
-import com.android.xrayfa.dao.NodeDao
-import com.android.xrayfa.common.repository.SettingsRepository
 import com.google.gson.Gson
 import xrayfa.tun2socks.utils.NetPreferences
 import dagger.Binds
@@ -37,7 +32,6 @@ import javax.inject.Singleton
     ServiceModule::class,
     ActivityModule::class,
     CoroutinesModule::class,
-    NetworkModule::class,
     KoinBridgeModule::class,
 ])
 abstract class GlobalModule {
@@ -74,32 +68,6 @@ abstract class GlobalModule {
 
      @Provides
      @Singleton
-     fun provideXrayDatabase(context: Context): XrayFADatabase {
-         return XrayFADatabase.getXrayDatabase(context)
-     }
-
-
-     @Provides
-     @Singleton
-     fun provideNodeDao(xrayFADatabase: XrayFADatabase): NodeDao {
-         return xrayFADatabase.NodeDao()
-     }
-
-     @Provides
-     @Singleton
-     fun provideSubscriptionDao(xrayFADatabase: XrayFADatabase): SubscriptionDao {
-         return xrayFADatabase.SubscriptionDao()
-     }
-
-
-     @Provides
-     @Singleton
-     fun provideBase64Parser(): SubscriptionParser {
-         return SubscriptionParser()
-     }
-
-     @Provides
-     @Singleton
      fun provideGson(): Gson {
          return Gson()
      }
@@ -109,13 +77,6 @@ abstract class GlobalModule {
      fun provideSettingsDataStore(@Application context: Context): DataStore<Preferences> {
          return context.settingsDataStore
      }
-
-     @Provides
-     @Singleton
-     fun provideSettingsRepository(
-         dataStore: DataStore<Preferences>,
-         logger: Logger,
-     ): SettingsRepository = SettingsRepository(dataStore, logger)
  }
 
     @Binds
