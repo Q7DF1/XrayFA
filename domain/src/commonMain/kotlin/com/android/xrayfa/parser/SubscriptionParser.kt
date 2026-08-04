@@ -10,7 +10,7 @@ class SubscriptionParser {
 
 
     fun parseUrl(content: String): List<String> {
-        val decode = String(Base64Compat.decode(content))
+        val decode = Base64Compat.decode(content).decodeToString()
         val urls = decode.split("\n")
             .map { it.trim() }
             .filter { it.isNotEmpty() }
