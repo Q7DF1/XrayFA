@@ -7,6 +7,7 @@ import androidx.annotation.StringDef
 import com.android.xrayfa.R
 import com.android.xrayfa.common.core.CoreStartOptions
 import com.android.xrayfa.common.core.TrafficDetector
+import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.core.XrayCore
 import com.android.xrayfa.common.di.qualifier.Application
 import com.android.xrayfa.common.di.qualifier.Background
@@ -52,7 +53,8 @@ class XrayCoreManager
     @Application private val context: Context,
     @Background private val coroutineScope: CoroutineScope,
     private val parserFactory: ParserFactory,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val assetPaths: XrayAssetPaths,
 ): XrayCore {
 
     companion object {
@@ -83,9 +85,9 @@ class XrayCoreManager
     }
     init {
 
-        Log.i(TAG, "${context.filesDir.absolutePath}")
+        Log.i(TAG, assetPaths.basePath)
         Libv2ray.initCoreEnv(
-            context.filesDir.absolutePath, Device.getDeviceIdForXUDPBaseKey()
+            assetPaths.basePath, Device.getDeviceIdForXUDPBaseKey()
         )
         coroutineScope.launch {
             val xrayCoreVersion = Libv2ray.checkVersionX()
