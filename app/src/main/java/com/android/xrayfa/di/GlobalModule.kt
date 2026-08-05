@@ -1,28 +1,15 @@
 package com.android.xrayfa.di
 
 import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import com.android.xrayfa.common.core.GeoIpProvider
-import com.android.xrayfa.common.core.TrafficDetector
-import com.android.xrayfa.common.core.XrayAssetPaths
-import com.android.xrayfa.common.core.XrayCore
-import com.android.xrayfa.common.utils.Logger
-import com.android.xrayfa.core.AndroidGeoIpProvider
-import com.android.xrayfa.core.AndroidLogger
-import com.android.xrayfa.core.AndroidXrayAssetPaths
-import com.android.xrayfa.core.XrayCoreManager
-import com.android.xrayfa.data.settingsDataStore
 import com.android.xrayfa.common.di.qualifier.Application
 import com.android.xrayfa.common.di.qualifier.Background
 import com.android.xrayfa.common.di.qualifier.Main
-import com.google.gson.Gson
-import xrayfa.tun2socks.utils.NetPreferences
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import xrayfa.tun2socks.TProxyService
 import xrayfa.tun2socks.Tun2SocksService
+import xrayfa.tun2socks.utils.NetPreferences
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import javax.inject.Singleton
@@ -31,7 +18,6 @@ import javax.inject.Singleton
 @Module(includes = [
     ServiceModule::class,
     ActivityModule::class,
-    CoroutinesModule::class,
     KoinBridgeModule::class,
 ])
 abstract class GlobalModule {
@@ -65,37 +51,9 @@ abstract class GlobalModule {
      fun providePreferences(context: Context): NetPreferences {
          return NetPreferences(context)
      }
-
-     @Provides
-     @Singleton
-     fun provideGson(): Gson {
-         return Gson()
-     }
-
-     @Provides
-     @Singleton
-     fun provideSettingsDataStore(@Application context: Context): DataStore<Preferences> {
-         return context.settingsDataStore
-     }
  }
 
     @Binds
-    abstract fun bindLogger(impl: AndroidLogger): Logger
-
-    @Binds
     abstract fun bindTun2SocksService(service: TProxyService): Tun2SocksService
-
-    @Binds
-    abstract fun bindXrayAssetPaths(impl: AndroidXrayAssetPaths): XrayAssetPaths
-
-    @Binds
-    abstract fun bindGeoIpProvider(impl: AndroidGeoIpProvider): GeoIpProvider
-
-    @Binds
-    abstract fun bindXrayCore(xrayCoreManager: XrayCoreManager): XrayCore
-
-    @Binds
-    abstract fun bindTrafficDetector(xrayCoreManager: XrayCoreManager): TrafficDetector
-
 
 }

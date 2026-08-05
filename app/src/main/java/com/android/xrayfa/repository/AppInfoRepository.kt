@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
-import com.android.xrayfa.common.di.qualifier.Application
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -26,8 +25,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * 应用级单例：缓存 "已安装且具有 INTERNET 权限的应用" 列表。
@@ -49,9 +46,8 @@ import javax.inject.Singleton
  * - 任一判定失败 → [permissionState] 置为 DENIED，且不缓存任何不完整结果，
  *   下一次 [load] 仍会重试。
  */
-@Singleton
-class AppInfoRepository @Inject constructor(
-    @Application private val context: Context,
+class AppInfoRepository(
+    private val context: Context,
 ) {
 
     enum class PermissionState { UNKNOWN, GRANTED, DENIED }
