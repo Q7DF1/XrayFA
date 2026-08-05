@@ -1,8 +1,8 @@
 package com.android.xrayfa.di
 
-import com.android.xrayfa.dao.NodeDao
-import com.android.xrayfa.dao.SubscriptionDao
-import com.android.xrayfa.dao.XrayFADatabase
+import com.android.xrayfa.database.AndroidXrayDatabaseFactory
+import com.android.xrayfa.database.dao.NodeDao
+import com.android.xrayfa.database.dao.SubscriptionDao
 import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.repository.AndroidSubscriptionRepository
 import com.android.xrayfa.repository.NodeRepository
@@ -14,9 +14,8 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val appDataDiModule: Module = module {
-    single { XrayFADatabase.getXrayDatabase(androidContext()) }
-    single<NodeDao> { get<XrayFADatabase>().NodeDao() }
-    single<SubscriptionDao> { get<XrayFADatabase>().SubscriptionDao() }
+    single<NodeDao> { AndroidXrayDatabaseFactory.getNodeDao(androidContext()) }
+    single<SubscriptionDao> { AndroidXrayDatabaseFactory.getSubscriptionDao(androidContext()) }
     single { SubscriptionParser() }
     single<NodeRepository> { RoomNodeRepository(get()) }
     single<SubscriptionRepository> {

@@ -1,13 +1,12 @@
-package com.android.xrayfa.dao
+package com.android.xrayfa.database.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import com.android.xrayfa.dto.SubscriptionEntity
+import com.android.xrayfa.database.entity.SubscriptionEntity
 import kotlinx.coroutines.flow.Flow
-
 
 @Dao
 interface SubscriptionDao {

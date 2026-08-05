@@ -2,7 +2,7 @@ package com.android.xrayfa.repository
 
 import android.util.Log
 import com.android.xrayfa.common.repository.SettingsRepository
-import com.android.xrayfa.dao.SubscriptionDao
+import com.android.xrayfa.database.dao.SubscriptionDao
 import com.android.xrayfa.dto.ParseLinkInput
 import com.android.xrayfa.dto.toDomain
 import com.android.xrayfa.dto.toEntity

@@ -4,7 +4,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.kotlin.serialization)
 }
 
@@ -172,6 +171,7 @@ dependencies {
     implementation(project(":tun2socks"))
     implementation(project(":common"))
     implementation(project(":domain"))
+    implementation(project(":core:database"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -182,8 +182,6 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.compose.adaptive)
-    ksp(libs.androidx.room.compiler)
-    implementation(libs.androidx.room.ktx)
     // Zxing
     implementation(libs.zxing.core)
     // CameraX Essential

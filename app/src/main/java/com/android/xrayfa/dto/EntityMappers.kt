@@ -1,5 +1,7 @@
 package com.android.xrayfa.dto
 
+import com.android.xrayfa.database.entity.NodeEntity
+import com.android.xrayfa.database.entity.SubscriptionEntity
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.Subscription
 
