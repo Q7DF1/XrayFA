@@ -1,4 +1,4 @@
-package com.android.xrayfa.dto
+package com.android.xrayfa.database.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

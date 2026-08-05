@@ -1,6 +1,6 @@
 package com.android.xrayfa.repository
 
-import com.android.xrayfa.dao.NodeDao
+import com.android.xrayfa.database.dao.NodeDao
 import com.android.xrayfa.dto.toDomain
 import com.android.xrayfa.dto.toEntity
 import com.android.xrayfa.model.Node

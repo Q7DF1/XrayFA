@@ -2,7 +2,7 @@ package com.android.xrayfa.model
 
 /**
  * Subscription metadata — platform-neutral domain model.
- * Room [com.android.xrayfa.dto.SubscriptionEntity] maps at the app data boundary.
+ * Room [com.android.xrayfa.database.entity.SubscriptionEntity] maps at the app data boundary.
  */
 data class Subscription(
     val id: Int = -1,

@@ -2,7 +2,7 @@ package com.android.xrayfa.model
 
 /**
  * Persisted VPN node — platform-neutral domain model.
- * Room [com.android.xrayfa.dto.NodeEntity] maps at the app data boundary.
+ * Room [com.android.xrayfa.database.entity.NodeEntity] maps at the app data boundary.
  */
 data class Node(
     val id: Int = 0,
