@@ -72,8 +72,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.android.xrayfa.R
-import com.android.xrayfa.dto.Node
-import com.android.xrayfa.dto.Subscription
+import com.android.xrayfa.model.Node
+import com.android.xrayfa.model.Subscription
 import com.android.xrayfa.ui.navigation.Config
 import com.android.xrayfa.ui.navigation.NavigateDestination
 import com.android.xrayfa.ui.navigation.ScanQR

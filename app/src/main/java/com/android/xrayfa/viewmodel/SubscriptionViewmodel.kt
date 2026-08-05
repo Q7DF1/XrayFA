@@ -7,8 +7,8 @@ import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.android.xrayfa.dto.Node
-import com.android.xrayfa.dto.Subscription
+import com.android.xrayfa.model.Node
+import com.android.xrayfa.model.Subscription
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.repository.SubscriptionRepository
 import com.android.xrayfa.utils.BarcodeUtils

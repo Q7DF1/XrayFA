@@ -49,7 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.xrayfa.R
-import com.android.xrayfa.dto.Node
+import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.protocol.protocolPrefixMap
 
 @SuppressLint("ConfigurationScreenWidthHeight")

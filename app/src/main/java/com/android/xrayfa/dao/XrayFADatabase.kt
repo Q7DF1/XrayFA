@@ -6,11 +6,11 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.android.xrayfa.dto.Node
-import com.android.xrayfa.dto.Subscription
+import com.android.xrayfa.dto.NodeEntity
+import com.android.xrayfa.dto.SubscriptionEntity
 
 
-@Database(entities = [Subscription::class, Node::class], version = 4)
+@Database(entities = [SubscriptionEntity::class, NodeEntity::class], version = 4)
 abstract class XrayFADatabase: RoomDatabase() {
 
 

@@ -2,13 +2,12 @@ package com.android.xrayfa.dto
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.android.xrayfa.model.protocol.Protocol
 
-@Entity
-data class Node(
+@Entity(tableName = "Node")
+data class NodeEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val protocolPrefix: String,
-    val address: String,  // IP or domain
+    val address: String,
     val port: Int,
     val selected: Boolean = false,
     val isPreNode: Boolean = false,
@@ -16,7 +15,7 @@ data class Node(
     val remark: String? = null,
     val subscriptionId: Int,
     val favorite: Boolean = false,
-    val jsonData: String? = null, //todo: full json config data
+    val jsonData: String? = null,
     val url: String,
-    val countryISO: String = ""
+    val countryISO: String = "",
 )
