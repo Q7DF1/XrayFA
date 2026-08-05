@@ -7,10 +7,10 @@ import com.android.xrayfa.dto.ParseLinkInput
 import com.android.xrayfa.dto.toDomain
 import com.android.xrayfa.dto.toEntity
 import com.android.xrayfa.model.Subscription
+import com.android.xrayfa.model.SubscriptionMeta
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.utils.HttpResponseUtils
-import com.android.xrayfa.utils.SubscriptionMeta
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -19,41 +19,41 @@ import okhttp3.Request
 import java.io.IOException
 
 private const val XHWID = "x-hwid"
-private const val TAG = "SubscriptionRepository"
+private const val TAG = "AndroidSubscriptionRepository"
 
-class SubscriptionRepository(
-    val subscriptionDao: SubscriptionDao,
-    val okHttp: OkHttpClient,
-    val nodeRepository: NodeRepository,
-    val subscriptionParser: SubscriptionParser,
-    val parserFactory: ParserFactory,
-    val settingsRepository: SettingsRepository,
-) {
+class AndroidSubscriptionRepository(
+    private val subscriptionDao: SubscriptionDao,
+    private val okHttp: OkHttpClient,
+    private val nodeRepository: NodeRepository,
+    private val subscriptionParser: SubscriptionParser,
+    private val parserFactory: ParserFactory,
+    private val settingsRepository: SettingsRepository,
+) : SubscriptionRepository {
 
-    val allSubscriptions: Flow<List<Subscription>> =
+    override val allSubscriptions: Flow<List<Subscription>> =
         subscriptionDao.getALLSubscriptions().map { list -> list.map { it.toDomain() } }
 
-    suspend fun addSubscription(subscription: Subscription): Long {
+    override suspend fun addSubscription(subscription: Subscription): Long {
         return subscriptionDao.addSubscription(subscription.toEntity())
     }
 
-    suspend fun deleteSubscription(subscription: Subscription) {
+    override suspend fun deleteSubscription(subscription: Subscription) {
         nodeRepository.deleteLinkBySubscriptionId(subscription.id)
         subscriptionDao.deleteSubscription(subscription.toEntity())
     }
 
-    suspend fun updateSubscription(subscription: Subscription) {
+    override suspend fun updateSubscription(subscription: Subscription) {
         subscriptionDao.updateSubscription(subscription.toEntity())
     }
 
-    fun getSubscriptionById(id: Int): Flow<Subscription?> {
+    override fun getSubscriptionById(id: Int): Flow<Subscription?> {
         return subscriptionDao.selectSubscriptionById(id).map { it?.toDomain() }
     }
 
-    suspend fun fetchAndSaveNodes(
+    override suspend fun fetchAndSaveNodes(
         url: String,
         subscriptionId: Int,
-        extraHeaders: Map<String, String> = emptyMap(),
+        extraHeaders: Map<String, String>,
     ): SubscriptionMeta {
         if (subscriptionId > 0) {
             nodeRepository.deleteLinkBySubscriptionId(0)

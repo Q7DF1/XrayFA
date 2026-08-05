@@ -4,7 +4,9 @@ import com.android.xrayfa.dao.NodeDao
 import com.android.xrayfa.dao.SubscriptionDao
 import com.android.xrayfa.dao.XrayFADatabase
 import com.android.xrayfa.parser.SubscriptionParser
+import com.android.xrayfa.repository.AndroidSubscriptionRepository
 import com.android.xrayfa.repository.NodeRepository
+import com.android.xrayfa.repository.RoomNodeRepository
 import com.android.xrayfa.repository.SubscriptionRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
@@ -16,9 +18,9 @@ val appDataDiModule: Module = module {
     single<NodeDao> { get<XrayFADatabase>().NodeDao() }
     single<SubscriptionDao> { get<XrayFADatabase>().SubscriptionDao() }
     single { SubscriptionParser() }
-    single { NodeRepository(get()) }
-    single {
-        SubscriptionRepository(
+    single<NodeRepository> { RoomNodeRepository(get()) }
+    single<SubscriptionRepository> {
+        AndroidSubscriptionRepository(
             subscriptionDao = get(),
             okHttp = get(named(KoinQualifiers.SHORT_TIME)),
             nodeRepository = get(),
