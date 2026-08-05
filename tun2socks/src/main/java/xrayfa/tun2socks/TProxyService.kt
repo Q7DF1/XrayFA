@@ -2,16 +2,11 @@ package xrayfa.tun2socks
 
 import android.content.Context
 import android.util.Log
-import com.android.xrayfa.common.di.qualifier.Application
 import xrayfa.tun2socks.utils.Tun2SocksConfigUtil
-import javax.inject.Inject
-import javax.inject.Singleton
 
-
-@Singleton
-open class TProxyService @Inject constructor(
-    @Application private val context: Context,
-    private val util: Tun2SocksConfigUtil
+open class TProxyService constructor(
+    private val context: Context,
+    private val util: Tun2SocksConfigUtil,
 ) : Tun2SocksService {
 
     var running: Boolean = false

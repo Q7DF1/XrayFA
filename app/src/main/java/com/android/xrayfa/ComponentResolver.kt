@@ -3,23 +3,16 @@ package com.android.xrayfa
 import android.app.Activity
 import android.app.Service
 import android.content.BroadcastReceiver
-import javax.inject.Inject
-import javax.inject.Provider
-import javax.inject.Singleton
 
 /**
- * This class is used to replace the system construction Activity Service and other components
- * to facilitate dependency injection on the construction method
+ * Replaces system-constructed Activity/Service/Receiver instances so constructor
+ * injection is satisfied via Koin instead of Dagger multibindings.
  */
-
-@Singleton
-class ComponentResolver
-@Inject constructor(
-    private val activityProviders: Map<Class<*>, @JvmSuppressWildcards Provider<Activity>>,
-    private val serviceProviders: Map<Class<*>, @JvmSuppressWildcards Provider<Service>>,
-    private val resolverProviders: Map<Class<*>,@JvmSuppressWildcards Provider<BroadcastReceiver>>
+class ComponentResolver(
+    private val activityProviders: Map<Class<*>, () -> Activity>,
+    private val serviceProviders: Map<Class<*>, () -> Service>,
+    private val receiverProviders: Map<Class<*>, () -> BroadcastReceiver>,
 ) {
-
 
     fun resolveActivity(className: String): Activity? {
         return resolve(className, activityProviders)
@@ -30,12 +23,11 @@ class ComponentResolver
     }
 
     fun resolveReceiver(className: String): BroadcastReceiver? {
-        return  resolve(className,resolverProviders)
+        return resolve(className, receiverProviders)
     }
 
-    fun <T> resolve(className: String,creators: Map<Class<*>, Provider<T>>): T? {
+    private fun <T> resolve(className: String, creators: Map<Class<*>, () -> T>): T? {
         val clazz = Class.forName(className)
-        val provider = creators[clazz]
-        return provider?.get()
+        return creators[clazz]?.invoke()
     }
 }

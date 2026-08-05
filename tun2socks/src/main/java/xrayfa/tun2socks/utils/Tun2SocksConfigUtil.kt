@@ -6,11 +6,8 @@ import com.android.xrayfa.common.repository.SettingsRepository
 import kotlinx.coroutines.flow.first
 import java.io.File
 import java.io.IOException
-import javax.inject.Inject
-
-class Tun2SocksConfigUtil
-@Inject constructor(
-    private val settingsRepo: SettingsRepository
+class Tun2SocksConfigUtil constructor(
+    private val settingsRepo: SettingsRepository,
 ) {
     companion object {
         const val TAG = "Tun2SocksConfigUtil"

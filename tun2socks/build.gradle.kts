@@ -1,7 +1,6 @@
 plugins {
     id("com.android.library")
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.ksp)
 }
 
 android {
@@ -98,9 +97,4 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-
-    implementation(libs.dagger)
-    ksp(libs.dagger.compiler)
-    implementation (libs.dagger.android)
-    ksp(libs.dagger.android.processor)
 }

@@ -32,9 +32,7 @@ import com.android.xrayfa.viewmodel.XrayViewmodelFactory
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-
-class MainActivity @Inject constructor(
+class MainActivity constructor(
     val xrayViewmodelFactory: XrayViewmodelFactory,
     val detailViewmodelFactory: DetailViewmodelFactory,
     val settingsViewmodelFactory: SettingsViewmodelFactory,
