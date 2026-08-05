@@ -16,11 +16,9 @@ import com.android.xrayfa.common.repository.SettingsState
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 import androidx.core.net.toUri
 import com.android.xrayfa.R
 import com.android.xrayfa.common.core.XrayAssetPaths
-import com.android.xrayfa.common.di.qualifier.LongTime
 import com.android.xrayfa.common.repository.DomainStrategy
 import com.android.xrayfa.common.repository.RoutingMode
 import com.android.xrayfa.common.repository.Rule
@@ -430,10 +428,9 @@ class SettingsViewmodel(
 }
 
 
-class SettingsViewmodelFactory
-@Inject constructor(
+class SettingsViewmodelFactory(
     val repository: SettingsRepository,
-    @LongTime val okHttpClient : OkHttpClient,
+    val okHttpClient: OkHttpClient,
     val xrayBaseServiceManager: XrayBaseServiceManager,
     val assetPaths: XrayAssetPaths,
 ): ViewModelProvider.Factory {

@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 import com.android.xrayfa.utils.LinkUtils
 import com.android.xrayfa.utils.SubscriptionMeta
 
@@ -262,8 +261,7 @@ class SubscriptionViewmodel(
     }
 }
 
-class SubscriptionViewmodelFactory
-@Inject constructor(
+class SubscriptionViewmodelFactory(
     val repository: SubscriptionRepository,
     val nodeRepository: NodeRepository,
 ) : ViewModelProvider.Factory {

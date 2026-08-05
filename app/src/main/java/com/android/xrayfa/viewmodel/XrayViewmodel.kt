@@ -18,7 +18,6 @@ import com.android.xrayfa.model.protocol.protocolsPrefix
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.core.XrayBaseServiceManager
 import com.android.xrayfa.common.core.XrayCore
-import com.android.xrayfa.common.di.qualifier.ShortTime
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.repository.NodeRepository
@@ -36,7 +35,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import com.android.xrayfa.common.utils.UrlCodec
-import javax.inject.Inject
 import kotlin.jvm.java
 import androidx.core.net.toUri
 import android.widget.Toast
@@ -713,15 +711,14 @@ class XrayViewmodel(
     }
 }
 
-class XrayViewmodelFactory
-@Inject constructor(
+class XrayViewmodelFactory(
     private val repository: NodeRepository,
     private val subscriptionRepository: SubscriptionRepository,
     private val xrayBaseServiceManager: XrayBaseServiceManager,
     private val xrayCore: XrayCore,
     private val settingsRepository: SettingsRepository,
     private val parserFactory: ParserFactory,
-    @ShortTime private val okHttp: OkHttpClient,
+    private val okHttp: OkHttpClient,
     private val subscriptionParser: SubscriptionParser
 ): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

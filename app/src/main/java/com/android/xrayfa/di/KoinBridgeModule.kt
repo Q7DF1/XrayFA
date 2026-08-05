@@ -10,12 +10,19 @@ import com.android.xrayfa.common.di.qualifier.LongTime
 import com.android.xrayfa.common.di.qualifier.ShortTime
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.common.utils.Logger
+import com.android.xrayfa.core.XrayBaseServiceManager
 import com.android.xrayfa.core.XrayCoreManager
+import com.android.xrayfa.helper.NotificationHelper
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.repository.AppInfoRepository
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.repository.SubscriptionRepository
+import com.android.xrayfa.viewmodel.AppsViewmodelFactory
+import com.android.xrayfa.viewmodel.DetailViewmodelFactory
+import com.android.xrayfa.viewmodel.SettingsViewmodelFactory
+import com.android.xrayfa.viewmodel.SubscriptionViewmodelFactory
+import com.android.xrayfa.viewmodel.XrayViewmodelFactory
 import dagger.Module
 import dagger.Provides
 import kotlinx.coroutines.CoroutineScope
@@ -102,4 +109,32 @@ object KoinBridgeModule {
     @Provides
     @Singleton
     fun provideTrafficDetector(manager: XrayCoreManager): TrafficDetector = manager
+
+    @Provides
+    @Singleton
+    fun provideNotificationHelper(): NotificationHelper = GlobalContext.get().get()
+
+    @Provides
+    @Singleton
+    fun provideXrayBaseServiceManager(): XrayBaseServiceManager = GlobalContext.get().get()
+
+    @Provides
+    @Singleton
+    fun provideXrayViewmodelFactory(): XrayViewmodelFactory = GlobalContext.get().get()
+
+    @Provides
+    @Singleton
+    fun provideSettingsViewmodelFactory(): SettingsViewmodelFactory = GlobalContext.get().get()
+
+    @Provides
+    @Singleton
+    fun provideDetailViewmodelFactory(): DetailViewmodelFactory = GlobalContext.get().get()
+
+    @Provides
+    @Singleton
+    fun provideSubscriptionViewmodelFactory(): SubscriptionViewmodelFactory = GlobalContext.get().get()
+
+    @Provides
+    @Singleton
+    fun provideAppsViewmodelFactory(): AppsViewmodelFactory = GlobalContext.get().get()
 }

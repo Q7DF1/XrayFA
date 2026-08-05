@@ -18,8 +18,6 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-
 class DetailViewmodel(
     val parserFactory: ParserFactory,
     val nodeRepository: NodeRepository,
@@ -252,8 +250,7 @@ class DetailViewmodel(
 }
 
 
-class DetailViewmodelFactory
-@Inject constructor(
+class DetailViewmodelFactory(
     val parserFactory: ParserFactory,
     val nodeRepository: NodeRepository
 ): ViewModelProvider.Factory {
