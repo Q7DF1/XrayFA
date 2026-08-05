@@ -8,22 +8,19 @@ import com.android.xrayfa.dto.toDomain
 import com.android.xrayfa.dto.toEntity
 import com.android.xrayfa.model.Subscription
 import com.android.xrayfa.model.SubscriptionMeta
+import com.android.xrayfa.network.SubscriptionFetcher
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.parser.SubscriptionParser
-import com.android.xrayfa.utils.HttpResponseUtils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import java.io.IOException
 
 private const val XHWID = "x-hwid"
 private const val TAG = "AndroidSubscriptionRepository"
 
 class AndroidSubscriptionRepository(
     private val subscriptionDao: SubscriptionDao,
-    private val okHttp: OkHttpClient,
+    private val subscriptionFetcher: SubscriptionFetcher,
     private val nodeRepository: NodeRepository,
     private val subscriptionParser: SubscriptionParser,
     private val parserFactory: ParserFactory,
@@ -60,29 +57,17 @@ class AndroidSubscriptionRepository(
         }
 
         val currentSettings = settingsRepository.settingsFlow.first()
-
-        val requestBuilder = Request.Builder()
-            .get()
-            .url(url)
-            .apply {
-                if (currentSettings.sendHwid) {
-                    addHeader(XHWID, currentSettings.hwid)
-                }
+        val requestHeaders = buildMap {
+            if (currentSettings.sendHwid) {
+                put(XHWID, currentSettings.hwid)
             }
-
-        extraHeaders.forEach { (key, value) ->
-            requestBuilder.addHeader(key, value)
+            putAll(extraHeaders)
         }
 
-        val response = okHttp.newCall(requestBuilder.build()).execute()
+        val fetchResult = subscriptionFetcher.fetch(url, requestHeaders)
+        val subscriptionMeta = fetchResult.meta
 
-        if (!response.isSuccessful) {
-            throw IOException("HTTP error: ${response.code}")
-        }
-
-        val subscriptionMeta = HttpResponseUtils.parseSubscriptionMeta(response)
-
-        val content = response.body?.string() ?: return subscriptionMeta
+        val content = fetchResult.body
         if (content.isBlank()) return subscriptionMeta
 
         val urls = subscriptionParser.parseUrl(content)
