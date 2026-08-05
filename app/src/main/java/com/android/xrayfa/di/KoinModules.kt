@@ -17,7 +17,6 @@ import org.koin.dsl.module
 
 /**
  * Android platform bindings for shared Koin modules.
- * Dagger remains the runtime DI for app components during the D.1 transition.
  */
 val appPlatformDiModule: Module = module {
     single<Logger> { AndroidLogger() }
@@ -35,6 +34,7 @@ fun androidKoinModules(): List<Module> = listOf(
     appDataDiModule,
     appCoreDiModule,
     appViewModelDiModule,
+    appComponentDiModule,
     androidDomainDiModule,
     parserDiModule(),
 )

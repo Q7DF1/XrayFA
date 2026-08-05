@@ -30,11 +30,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
-
 @SuppressLint("VpnServicePolicy")
-class XrayBaseService
-@Inject constructor(
+class XrayBaseService constructor(
     private val tun2SocksService: Tun2SocksService,
     private val xrayCore: XrayCore,
     private val settingsRepo: SettingsRepository,

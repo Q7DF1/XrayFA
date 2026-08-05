@@ -184,10 +184,6 @@ dependencies {
     implementation(libs.androidx.compose.adaptive)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
-    implementation(libs.dagger)
-    ksp(libs.dagger.compiler)
-    implementation (libs.dagger.android)
-    ksp(libs.dagger.android.processor)
     // Zxing
     implementation(libs.zxing.core)
     // CameraX Essential

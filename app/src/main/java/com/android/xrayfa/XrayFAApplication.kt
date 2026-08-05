@@ -11,10 +11,10 @@ import com.android.xrayfa.common.GEO_SITE
 import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.repository.Theme
 import com.android.xrayfa.common.repository.SettingsKeys
-import com.android.xrayfa.core.AndroidXrayAssetPaths
 import com.android.xrayfa.data.settingsDataStore
 import com.android.xrayfa.di.androidKoinModules
 import com.android.xrayfa.common.utils.SocksConfigGenerator
+import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import kotlinx.coroutines.CoroutineScope
@@ -31,9 +31,9 @@ class XrayFAApplication: Application() {
     private val _isDarkTheme = MutableStateFlow(Theme.AUTO_MODE.code)
     val isDarkTheme: StateFlow<Int> get() = _isDarkTheme
 
-    var contextAvailableCallback: ContextAvailableCallback? = null
-
     private val appCoroutineScope = CoroutineScope(Dispatchers.IO)
+
+    private val xrayAssetPaths: XrayAssetPaths by inject()
 
     private fun observeDarkMode() {
         appCoroutineScope.launch {
@@ -50,7 +50,6 @@ class XrayFAApplication: Application() {
     override fun onCreate() {
         super.onCreate()
         initKoin()
-        contextAvailableCallback?.onContextAvailable(applicationContext)
         observeDarkMode()
         initXrayFile()
         initSocksConfig()
@@ -64,15 +63,10 @@ class XrayFAApplication: Application() {
         }
     }
 
-    private fun xrayAssetPaths(): XrayAssetPaths =
-        XrayAppCompatFactory.rootComponent?.xrayAssetPaths()
-            ?: AndroidXrayAssetPaths(applicationContext)
-
     private fun initXrayFile() {
         appCoroutineScope.launch {
-            val assetPaths = xrayAssetPaths()
-            val geoipFile = File(assetPaths.geoIpPath)
-            val geositeFile = File(assetPaths.geoSitePath)
+            val geoipFile = File(xrayAssetPaths.geoIpPath)
+            val geositeFile = File(xrayAssetPaths.geoSitePath)
             if (!geoipFile.exists()) {
                 Log.i(TAG, "copy geoip.dat")
                 assets.open(GEO_IP).use { input ->
