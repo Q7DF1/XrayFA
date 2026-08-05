@@ -12,8 +12,7 @@ import com.android.xrayfa.model.Subscription
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.repository.SubscriptionRepository
 import com.android.xrayfa.utils.BarcodeUtils
-import com.android.xrayfa.utils.SubscriptionUserInfo
-import com.android.xrayfa.viewmodel.XrayViewmodel.Companion.TAG
+import com.android.xrayfa.utils.LinkUtils
 import com.google.zxing.BarcodeFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -24,8 +23,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.android.xrayfa.utils.LinkUtils
-import com.android.xrayfa.utils.SubscriptionMeta
+import com.android.xrayfa.model.SubscriptionMeta
+import com.android.xrayfa.model.SubscriptionUserInfo
 
 val emptySubscription = Subscription(0, "", "", -1, -1, false)
 

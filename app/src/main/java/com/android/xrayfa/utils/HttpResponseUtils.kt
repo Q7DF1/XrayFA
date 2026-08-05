@@ -1,26 +1,9 @@
 package com.android.xrayfa.utils
 
 import com.android.xrayfa.common.utils.Base64Compat
+import com.android.xrayfa.model.SubscriptionMeta
+import com.android.xrayfa.model.SubscriptionUserInfo
 import okhttp3.Response
-
-data class SubscriptionUserInfo(
-    val upload: Long,
-    val download: Long,
-    val total: Long,
-    val expire: Long?
-)
-
-data class SubscriptionMeta(
-    val announce: String?,
-    var profileTitle: String?,
-    val profileUpdateIntervalHours: Int?,
-    val profileWebPageUrl: String?,
-    val routing: String?,
-    val routingEnable: Boolean?,
-    val supportUrl: String?,
-    val servedBy: String?,
-    val userInfo: SubscriptionUserInfo?
-)
 
 object HttpResponseUtils {
 
@@ -58,7 +41,7 @@ object HttpResponseUtils {
                 upload = map["upload"]?.toLongOrNull() ?: 0L,
                 download = map["download"]?.toLongOrNull() ?: 0L,
                 total = map["total"]?.toLongOrNull() ?: 0L,
-                expire = map["expire"]?.toLongOrNull()
+                expire = map["expire"]?.toLongOrNull(),
             )
         } catch (e: Exception) {
             null
@@ -79,7 +62,7 @@ object HttpResponseUtils {
                 ?.trim()?.lowercase()?.toBooleanStrictOrNull(),
             supportUrl = response.header(HEADER_SUPPORT_URL),
             servedBy = response.header(HEADER_X_SERVED_BY),
-            userInfo = parseSubscriptionUserInfo(response)
+            userInfo = parseSubscriptionUserInfo(response),
         )
     }
 
