@@ -6,12 +6,8 @@ import com.android.xrayfa.common.core.XrayAssetPaths
 import com.maxmind.geoip2.DatabaseReader
 import java.io.File
 import java.net.InetAddress
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class AndroidGeoIpProvider
-@Inject constructor(
+class AndroidGeoIpProvider(
     private val assetPaths: XrayAssetPaths,
 ) : GeoIpProvider {
 

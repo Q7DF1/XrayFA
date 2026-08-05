@@ -2,11 +2,8 @@ package com.android.xrayfa.core
 
 import android.util.Log
 import com.android.xrayfa.common.utils.Logger
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class AndroidLogger @Inject constructor() : Logger {
+class AndroidLogger() : Logger {
 
     override fun i(tag: String, message: String) {
         Log.i(tag, message)

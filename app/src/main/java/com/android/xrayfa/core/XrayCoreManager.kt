@@ -9,8 +9,6 @@ import com.android.xrayfa.common.core.CoreStartOptions
 import com.android.xrayfa.common.core.TrafficDetector
 import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.core.XrayCore
-import com.android.xrayfa.common.di.qualifier.Application
-import com.android.xrayfa.common.di.qualifier.Background
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.utils.Device
@@ -27,8 +25,6 @@ import kotlinx.coroutines.withContext
 import libv2ray.CoreCallbackHandler
 import libv2ray.CoreController
 import libv2ray.Libv2ray
-import javax.inject.Inject
-import javax.inject.Singleton
 
 const val TAG_PROXY = "proxy"
 const val TAG_DIRECT = "direct"
@@ -47,11 +43,9 @@ const val DOWN_STEAM = "downlink"
 ])
 annotation class Stream
 
-@Singleton
-class XrayCoreManager
-@Inject constructor(
-    @Application private val context: Context,
-    @Background private val coroutineScope: CoroutineScope,
+class XrayCoreManager(
+    private val context: Context,
+    private val coroutineScope: CoroutineScope,
     private val parserFactory: ParserFactory,
     private val settingsRepository: SettingsRepository,
     private val assetPaths: XrayAssetPaths,
