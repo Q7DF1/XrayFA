@@ -14,9 +14,8 @@ kotlin {
             }
         }
     }
-    // iOS targets + KSP deferred until Kotlin 2.1+ (Room 2.7 iOS klib ABI requires 2.1.10).
-    // iosArm64()
-    // iosSimulatorArm64()
+    iosArm64()
+    iosSimulatorArm64()
 
     sourceSets {
         commonMain.dependencies {
@@ -27,11 +26,17 @@ kotlin {
             implementation(libs.androidx.room.ktx)
             implementation(libs.androidx.core.ktx)
         }
+        iosMain.dependencies {
+            implementation(libs.androidx.room.runtime)
+            implementation(libs.androidx.sqlite.bundled)
+        }
     }
 }
 
 dependencies {
     add("kspAndroid", libs.androidx.room.compiler)
+    add("kspIosArm64", libs.androidx.room.compiler)
+    add("kspIosSimulatorArm64", libs.androidx.room.compiler)
 }
 
 android {
