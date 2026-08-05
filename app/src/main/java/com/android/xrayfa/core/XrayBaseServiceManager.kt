@@ -6,23 +6,18 @@ import android.util.Log
 import android.widget.Toast
 import com.android.xrayfa.R
 import com.android.xrayfa.common.core.TrafficDetector
-import com.android.xrayfa.common.di.qualifier.Application
 import com.android.xrayfa.core.StartOptions.Companion.EXTRA_START_OPTIONS
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.repository.SubscriptionRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class XrayBaseServiceManager
-@Inject constructor(
+class XrayBaseServiceManager(
     val repository: NodeRepository,
     val subscriptionRepository: SubscriptionRepository,
     val trafficDetector: TrafficDetector,
-    @Application val context: Context
+    val context: Context,
 ) {
 
     companion object {

@@ -1,0 +1,55 @@
+package com.android.xrayfa.di
+
+import com.android.xrayfa.common.core.XrayAssetPaths
+import com.android.xrayfa.common.core.XrayCore
+import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.core.XrayBaseServiceManager
+import com.android.xrayfa.parser.ParserFactory
+import com.android.xrayfa.parser.SubscriptionParser
+import com.android.xrayfa.repository.AppInfoRepository
+import com.android.xrayfa.repository.NodeRepository
+import com.android.xrayfa.repository.SubscriptionRepository
+import com.android.xrayfa.viewmodel.AppsViewmodelFactory
+import com.android.xrayfa.viewmodel.DetailViewmodelFactory
+import com.android.xrayfa.viewmodel.SettingsViewmodelFactory
+import com.android.xrayfa.viewmodel.SubscriptionViewmodelFactory
+import com.android.xrayfa.viewmodel.XrayViewmodelFactory
+import org.koin.core.module.Module
+import org.koin.core.qualifier.named
+import org.koin.dsl.module
+
+val appViewModelDiModule: Module = module {
+    single {
+        XrayViewmodelFactory(
+            repository = get(),
+            subscriptionRepository = get(),
+            xrayBaseServiceManager = get(),
+            xrayCore = get(),
+            settingsRepository = get(),
+            parserFactory = get(),
+            okHttp = get(named(KoinQualifiers.SHORT_TIME)),
+            subscriptionParser = get(),
+        )
+    }
+    single {
+        SettingsViewmodelFactory(
+            repository = get(),
+            okHttpClient = get(named(KoinQualifiers.LONG_TIME)),
+            xrayBaseServiceManager = get(),
+            assetPaths = get<XrayAssetPaths>(),
+        )
+    }
+    single { DetailViewmodelFactory(parserFactory = get(), nodeRepository = get()) }
+    single {
+        SubscriptionViewmodelFactory(
+            repository = get(),
+            nodeRepository = get(),
+        )
+    }
+    single {
+        AppsViewmodelFactory(
+            settingsRepo = get<SettingsRepository>(),
+            appInfoRepo = get<AppInfoRepository>(),
+        )
+    }
+}

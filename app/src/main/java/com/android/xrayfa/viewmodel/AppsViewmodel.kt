@@ -16,8 +16,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-
 
 data class AppInfo(
     val appName: String,
@@ -123,8 +121,7 @@ class AppsViewmodel(
     }
 }
 
-class AppsViewmodelFactory
-@Inject constructor(
+class AppsViewmodelFactory(
     private val settingsRepo: SettingsRepository,
     private val appInfoRepo: AppInfoRepository,
 ) : ViewModelProvider.Factory {

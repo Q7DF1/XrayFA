@@ -20,23 +20,18 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.android.xrayfa.MainActivity
 import com.android.xrayfa.R
-import com.android.xrayfa.common.di.qualifier.Application
-import com.android.xrayfa.common.di.qualifier.Background
 import com.android.xrayfa.common.repository.SettingsRepository
 import com.android.xrayfa.common.repository.Theme
 import com.android.xrayfa.core.XrayBaseService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import javax.inject.Singleton
 
 
-@Singleton
-class NotificationHelper @Inject constructor(
+class NotificationHelper(
     val settingsRepository: SettingsRepository,
-    @param:Background val backgroundScope:  CoroutineScope,
-    @param:Application val context: Context
+    val backgroundScope: CoroutineScope,
+    val context: Context,
 ) {
 
     companion object {

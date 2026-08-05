@@ -34,6 +34,7 @@ fun androidKoinModules(): List<Module> = listOf(
     appNetworkDiModule,
     appDataDiModule,
     appCoreDiModule,
+    appViewModelDiModule,
     androidDomainDiModule,
     parserDiModule(),
 )
