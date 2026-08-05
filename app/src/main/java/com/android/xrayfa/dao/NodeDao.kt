@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
-import com.android.xrayfa.dto.Node
+import com.android.xrayfa.dto.NodeEntity
 import kotlinx.coroutines.flow.Flow
 
 
@@ -12,19 +12,19 @@ import kotlinx.coroutines.flow.Flow
 interface NodeDao {
 
     @Query("SELECT * FROM node")
-    fun getAllNodes(): Flow<List<Node>>
+    fun getAllNodes(): Flow<List<NodeEntity>>
 
     @Query("SELECT * FROM node WHERE favorite = :favorite")
-    fun getNodesSelectByFavorite(favorite: Boolean):Flow<List<Node>>
+    fun getNodesSelectByFavorite(favorite: Boolean): Flow<List<NodeEntity>>
 
     @Query("SELECT * FROM node WHERE id = :id")
-    fun loadNodeById(id: Int): Flow<Node?>
+    fun loadNodeById(id: Int): Flow<NodeEntity?>
 
     @Insert
-    suspend fun addNode(vararg nodes: Node)
+    suspend fun addNode(vararg nodes: NodeEntity)
 
     @Delete
-    suspend fun deleteNode(node: Node)
+    suspend fun deleteNode(node: NodeEntity)
 
     @Query("DELETE FROM node WHERE id = :id")
     suspend fun deleteNodeById(id: Int)
@@ -33,29 +33,28 @@ interface NodeDao {
     suspend fun updateNode(id: Int, url: String, port: Int, remark: String?)
 
     @Query("SELECT * FROM node WHERE selected = 1 LIMIT 1")
-    fun querySelectedNode(): Flow<Node?>
+    fun querySelectedNode(): Flow<NodeEntity?>
 
     @Query("SELECT * FROM node WHERE isPreNode = 1 LIMIT 1")
-    fun queryPreNode(): Flow<Node?>
+    fun queryPreNode(): Flow<NodeEntity?>
 
     @Query("SELECT * FROM node WHERE isNextNode = 1 LIMIT 1")
-    fun queryNextNode(): Flow<Node?>
+    fun queryNextNode(): Flow<NodeEntity?>
 
     @Query("UPDATE node SET selected = :selected WHERE id = :id")
     suspend fun updateSelectById(id: Int, selected: Boolean)
 
     @Query("UPDATE node SET favorite = :favorite WHERE id = :id")
-    suspend fun updateFavoriteById(id:Int, favorite: Boolean)
-
+    suspend fun updateFavoriteById(id: Int, favorite: Boolean)
 
     @Query("UPDATE node SET selected = 0 WHERE selected = 1")
     suspend fun clearSelection()
 
     @Query("SELECT * FROM node WHERE subscriptionId = :subscriptionId")
-    suspend fun queryNodeBySubscriptionId(subscriptionId: Int): List<Node>
+    suspend fun queryNodeBySubscriptionId(subscriptionId: Int): List<NodeEntity>
 
     @Query("SELECT * FROM node ORDER BY :subscriptionId ASC")
-    suspend fun getAllNodesSortBySubscriptionId(subscriptionId: Int): List<Node>
+    suspend fun getAllNodesSortBySubscriptionId(subscriptionId: Int): List<NodeEntity>
 
     @Query("DELETE FROM node WHERE subscriptionId = :subscriptionId")
     suspend fun deleteBySubscriptionId(subscriptionId: Int)

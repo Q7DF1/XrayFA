@@ -3,7 +3,7 @@ package com.android.xrayfa.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.android.xrayfa.dto.Node
+import com.android.xrayfa.model.Node
 import com.android.xrayfa.dto.VLESSConfig
 import com.android.xrayfa.dto.VMESSConfig
 import com.android.xrayfa.dto.ShadowSocksConfig

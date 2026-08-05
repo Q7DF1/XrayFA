@@ -5,7 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import com.android.xrayfa.dto.Subscription
+import com.android.xrayfa.dto.SubscriptionEntity
 import kotlinx.coroutines.flow.Flow
 
 
@@ -13,20 +13,17 @@ import kotlinx.coroutines.flow.Flow
 interface SubscriptionDao {
 
     @Query("SELECT * FROM subscription")
-    fun getALLSubscriptions(): Flow<List<Subscription>>
-
+    fun getALLSubscriptions(): Flow<List<SubscriptionEntity>>
 
     @Insert
-    suspend fun addSubscription(subscription: Subscription): Long
-
+    suspend fun addSubscription(subscription: SubscriptionEntity): Long
 
     @Delete
-    suspend fun deleteSubscription(subscription: Subscription)
+    suspend fun deleteSubscription(subscription: SubscriptionEntity)
 
     @Update
-    suspend fun updateSubscription(subscription: Subscription)
-
+    suspend fun updateSubscription(subscription: SubscriptionEntity)
 
     @Query("SELECT * FROM subscription WHERE id = :id")
-    fun selectSubscriptionById(id: Int): Flow<Subscription?>
+    fun selectSubscriptionById(id: Int): Flow<SubscriptionEntity?>
 }

@@ -12,8 +12,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.xrayfa.core.XrayBaseService
-import com.android.xrayfa.dto.Link
-import com.android.xrayfa.dto.Node
+import com.android.xrayfa.dto.ParseLinkInput
+import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.protocol.protocolsPrefix
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.core.XrayBaseServiceManager
@@ -48,9 +48,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import com.android.xrayfa.repository.SubscriptionRepository
 import com.android.xrayfa.common.core.CoreStartOptions
-import com.android.xrayfa.dto.Subscription
-import com.android.xrayfa.dto.toNode
-import com.android.xrayfa.dto.toParseLinkInput
+import com.android.xrayfa.model.Subscription
 import com.android.xrayfa.model.BugReportData
 import com.android.xrayfa.ui.navigation.NavigateDestination
 import kotlinx.coroutines.CompletableDeferred
@@ -352,10 +350,14 @@ class XrayViewmodel(
             val protocolPrefix = link.substringBefore("://").lowercase()
             Log.i(TAG, "addLink: ${protocolPrefix}")
             if (protocolsPrefix.contains(protocolPrefix)) {
-                val link0 =  Link(protocolPrefix = protocolPrefix, content = link, subscriptionId = SUB_MANUAL)
-                val node = parserFactory.getParser(link).preParse(link0.toParseLinkInput()).toNode()
+                val input = ParseLinkInput(
+                    protocolPrefix = protocolPrefix,
+                    content = link,
+                    subscriptionId = SUB_MANUAL,
+                )
+                val node = parserFactory.getParser(link).preParse(input)
                 viewModelScope.launch {
-                    Log.i(TAG, "addLink: ${link0}")
+                    Log.i(TAG, "addLink: $input")
                     repository.addNode(node)
                 }
             }else {
