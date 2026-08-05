@@ -21,7 +21,7 @@ val appDataDiModule: Module = module {
     single<SubscriptionRepository> {
         AndroidSubscriptionRepository(
             subscriptionDao = get(),
-            okHttp = get(named(KoinQualifiers.SHORT_TIME)),
+            subscriptionFetcher = get(),
             nodeRepository = get(),
             subscriptionParser = get(),
             parserFactory = get(),

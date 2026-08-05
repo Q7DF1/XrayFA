@@ -1,6 +1,8 @@
 package com.android.xrayfa.di
 
 import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.network.SubscriptionFetcher
+import com.android.xrayfa.network.createSubscriptionFetcher
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
@@ -32,6 +34,12 @@ val appNetworkDiModule: Module = module {
                 .build()
             chain.proceed(request)
         }
+    }
+
+    single {
+        val context = androidContext()
+        val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
+        createSubscriptionFetcher(userAgent = "xrayFA/$versionName")
     }
 
     single(named(KoinQualifiers.SHORT_TIME)) {

@@ -1,11 +1,10 @@
-package com.android.xrayfa.utils
+package com.android.xrayfa.network
 
 import com.android.xrayfa.common.utils.Base64Compat
 import com.android.xrayfa.model.SubscriptionMeta
 import com.android.xrayfa.model.SubscriptionUserInfo
-import okhttp3.Response
 
-object HttpResponseUtils {
+object SubscriptionHeaderParser {
 
     private const val PREFIX_BASE64 = "base64:"
 
@@ -23,15 +22,10 @@ object HttpResponseUtils {
         if (!value.startsWith(PREFIX_BASE64)) return value
         return try {
             val encoded = value.removePrefix(PREFIX_BASE64)
-            String(Base64Compat.decode(encoded), Charsets.UTF_8)
-        } catch (e: Exception) {
+            Base64Compat.decode(encoded).decodeToString()
+        } catch (_: Exception) {
             value
         }
-    }
-
-    fun parseSubscriptionUserInfo(response: Response): SubscriptionUserInfo? {
-        val header = response.header(HEADER_SUBSCRIPTION_USERINFO) ?: return null
-        return parseSubscriptionUserInfo(header)
     }
 
     fun parseSubscriptionUserInfo(header: String): SubscriptionUserInfo? {
@@ -43,26 +37,25 @@ object HttpResponseUtils {
                 total = map["total"]?.toLongOrNull() ?: 0L,
                 expire = map["expire"]?.toLongOrNull(),
             )
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
 
-    fun parseSubscriptionMeta(response: Response): SubscriptionMeta {
+    fun parseSubscriptionMeta(headers: Map<String, List<String>>): SubscriptionMeta {
+        fun header(name: String): String? = headers[name]?.firstOrNull()
+
+        val userInfoHeader = header(HEADER_SUBSCRIPTION_USERINFO)
         return SubscriptionMeta(
-            announce = response.header(HEADER_ANNOUNCE)
-                ?.let { decodeBase64Header(it) },
-            profileTitle = response.header(HEADER_PROFILE_TITLE)
-                ?.let { decodeBase64Header(it) },
-            profileUpdateIntervalHours = response.header(HEADER_PROFILE_UPDATE_INTERVAL)
-                ?.trim()?.toIntOrNull(),
-            profileWebPageUrl = response.header(HEADER_PROFILE_WEB_PAGE_URL),
-            routing = response.header(HEADER_ROUTING),
-            routingEnable = response.header(HEADER_ROUTING_ENABLE)
-                ?.trim()?.lowercase()?.toBooleanStrictOrNull(),
-            supportUrl = response.header(HEADER_SUPPORT_URL),
-            servedBy = response.header(HEADER_X_SERVED_BY),
-            userInfo = parseSubscriptionUserInfo(response),
+            announce = header(HEADER_ANNOUNCE)?.let(::decodeBase64Header),
+            profileTitle = header(HEADER_PROFILE_TITLE)?.let(::decodeBase64Header),
+            profileUpdateIntervalHours = header(HEADER_PROFILE_UPDATE_INTERVAL)?.trim()?.toIntOrNull(),
+            profileWebPageUrl = header(HEADER_PROFILE_WEB_PAGE_URL),
+            routing = header(HEADER_ROUTING),
+            routingEnable = header(HEADER_ROUTING_ENABLE)?.trim()?.lowercase()?.toBooleanStrictOrNull(),
+            supportUrl = header(HEADER_SUPPORT_URL),
+            servedBy = header(HEADER_X_SERVED_BY),
+            userInfo = userInfoHeader?.let(::parseSubscriptionUserInfo),
         )
     }
 
