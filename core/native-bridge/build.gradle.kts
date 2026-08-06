@@ -21,6 +21,12 @@ kotlin {
             implementation(project(":common"))
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
         }
+        androidMain.dependencies {
+            // compileOnly: AGP forbids packaging local .aar into another AAR; :app supplies libv2ray at runtime.
+            compileOnly(
+                files(rootProject.file("app/libs/libv2ray.aar")),
+            )
+        }
     }
 }
 
