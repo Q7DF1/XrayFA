@@ -15,7 +15,6 @@ import com.android.xrayfa.viewmodel.SettingsViewmodelFactory
 import com.android.xrayfa.viewmodel.SubscriptionViewmodelFactory
 import com.android.xrayfa.viewmodel.XrayViewmodelFactory
 import org.koin.core.module.Module
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val appViewModelDiModule: Module = module {
@@ -27,14 +26,13 @@ val appViewModelDiModule: Module = module {
             xrayCore = get(),
             settingsRepository = get(),
             parserFactory = get(),
-            okHttp = get(named(KoinQualifiers.SHORT_TIME)),
             subscriptionParser = get(),
         )
     }
     single {
         SettingsViewmodelFactory(
             repository = get(),
-            okHttpClient = get(named(KoinQualifiers.LONG_TIME)),
+            fileDownloader = get(),
             xrayBaseServiceManager = get(),
             assetPaths = get<XrayAssetPaths>(),
         )
