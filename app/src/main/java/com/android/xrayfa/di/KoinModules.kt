@@ -5,7 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import com.android.xrayfa.common.core.GeoIpProvider
 import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.repository.ConfigParserSettingsProvider
-import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.common.utils.Logger
 import com.android.xrayfa.core.AndroidGeoIpProvider
 import com.android.xrayfa.core.AndroidLogger

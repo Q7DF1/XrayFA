@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.repository.AppInfoRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

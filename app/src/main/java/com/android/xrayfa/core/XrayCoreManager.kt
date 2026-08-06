@@ -9,7 +9,7 @@ import com.android.xrayfa.common.core.CoreStartOptions
 import com.android.xrayfa.common.core.TrafficDetector
 import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.core.XrayCore
-import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.utils.Device
 import kotlinx.coroutines.CoroutineScope

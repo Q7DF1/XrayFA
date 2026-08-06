@@ -11,8 +11,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.xrayfa.common.repository.Theme
-import com.android.xrayfa.common.repository.SettingsRepository
-import com.android.xrayfa.common.repository.SettingsState
+import com.android.xrayfa.datastore.SettingsRepository
+import com.android.xrayfa.datastore.SettingsState
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch

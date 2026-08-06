@@ -16,7 +16,7 @@ import com.android.xrayfa.MainActivity.Companion.ACTION_START_SERVICE
 import com.android.xrayfa.MainActivity.Companion.ACTION_STOP_SERVICE
 import com.android.xrayfa.R
 import com.android.xrayfa.common.core.XrayCore
-import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.core.StartOptions.Companion.EXTRA_START_OPTIONS
 import com.android.xrayfa.helper.NotificationHelper
 import xrayfa.tun2socks.utils.NetPreferences

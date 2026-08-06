@@ -2,7 +2,7 @@ package xrayfa.tun2socks.utils
 
 import android.content.Context
 import android.util.Log
-import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.datastore.SettingsRepository
 import kotlinx.coroutines.flow.first
 import java.io.File
 import java.io.IOException

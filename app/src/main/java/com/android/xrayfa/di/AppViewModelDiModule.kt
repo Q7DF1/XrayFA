@@ -2,7 +2,7 @@ package com.android.xrayfa.di
 
 import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.core.XrayCore
-import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.core.XrayBaseServiceManager
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.parser.SubscriptionParser
