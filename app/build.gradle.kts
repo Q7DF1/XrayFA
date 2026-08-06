@@ -173,6 +173,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":core:database"))
     implementation(project(":core:network"))
+    implementation(project(":core:datastore"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
