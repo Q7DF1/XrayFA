@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -21,9 +22,14 @@ kotlin {
             implementation(project(":common"))
             implementation(libs.androidx.datastore.preferences.core)
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
         }
         androidMain.dependencies {
             implementation(libs.androidx.datastore.preferences)
+        }
+        androidUnitTest.dependencies {
+            implementation(libs.junit)
+            implementation(libs.gson)
         }
     }
 }

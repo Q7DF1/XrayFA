@@ -1,4 +1,4 @@
-package com.android.xrayfa.common.repository
+package com.android.xrayfa.datastore
 
 enum class Theme(val code: Int) {
     LIGHT_MODE(0),

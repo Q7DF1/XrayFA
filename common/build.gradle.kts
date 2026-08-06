@@ -1,8 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.ksp)
-    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -21,15 +19,12 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
         }
         androidMain.dependencies {
             implementation(libs.gson)
             implementation(libs.androidx.core.ktx)
             implementation(libs.androidx.appcompat)
             implementation(libs.material)
-            implementation(libs.dagger)
-            implementation(libs.dagger.android)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
@@ -43,11 +38,6 @@ kotlin {
             implementation(libs.androidx.espresso.core)
         }
     }
-}
-
-dependencies {
-    add("kspAndroid", libs.dagger.compiler)
-    add("kspAndroid", libs.dagger.android.processor)
 }
 
 android {

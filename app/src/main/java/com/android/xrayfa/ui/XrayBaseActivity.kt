@@ -12,7 +12,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalConfiguration
 import com.android.xrayfa.XrayFAApplication
-import com.android.xrayfa.common.repository.Theme
+import com.android.xrayfa.datastore.Theme
 import com.android.xrayfa.ui.theme.V2rayForAndroidUITheme
 
 abstract class XrayBaseActivity: ComponentActivity(){

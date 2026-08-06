@@ -1,4 +1,4 @@
-package com.android.xrayfa.common.repository
+package com.android.xrayfa.datastore
 
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
