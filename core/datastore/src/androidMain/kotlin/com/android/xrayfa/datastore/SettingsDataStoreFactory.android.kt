@@ -1,4 +1,4 @@
-package com.android.xrayfa.common.datastore
+package com.android.xrayfa.datastore
 
 import android.content.Context
 import androidx.datastore.core.DataStore

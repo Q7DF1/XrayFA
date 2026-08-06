@@ -30,10 +30,8 @@ val appDataDiModule: Module = module {
     }
 }
 
-/** Koin qualifier names aligned with Dagger [@ShortTime] / [@LongTime] and coroutine scopes. */
+/** Koin qualifier names for coroutine scopes. */
 object KoinQualifiers {
-    const val SHORT_TIME = "ShortTime"
-    const val LONG_TIME = "LongTime"
     const val MAIN_SCOPE = "MainScope"
     const val BACKGROUND_SCOPE = "BackgroundScope"
 }
