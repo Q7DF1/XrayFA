@@ -8,14 +8,6 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.android.xrayfa.common.repository.ConfigParserSettings
 import com.android.xrayfa.common.repository.ConfigParserSettingsProvider
-import com.android.xrayfa.common.repository.DomainStrategy
-import com.android.xrayfa.common.repository.RoutingMode
-import com.android.xrayfa.common.repository.Rule
-import com.android.xrayfa.common.repository.Theme
-import com.android.xrayfa.common.repository.decodeStringList
-import com.android.xrayfa.common.repository.defaultRoutes
-import com.android.xrayfa.common.repository.encodeRules
-import com.android.xrayfa.common.repository.encodeStringList
 import com.android.xrayfa.common.utils.Logger
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map

@@ -1,4 +1,4 @@
-package com.android.xrayfa.common.repository
+package com.android.xrayfa.datastore
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken

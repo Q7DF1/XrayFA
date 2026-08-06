@@ -21,7 +21,7 @@ import androidx.core.content.ContextCompat
 import com.android.xrayfa.MainActivity
 import com.android.xrayfa.R
 import com.android.xrayfa.datastore.SettingsRepository
-import com.android.xrayfa.common.repository.Theme
+import com.android.xrayfa.datastore.Theme
 import com.android.xrayfa.core.XrayBaseService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first

@@ -10,7 +10,7 @@ import androidx.annotation.IntDef
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.android.xrayfa.common.repository.Theme
+import com.android.xrayfa.datastore.Theme
 import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.datastore.SettingsState
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,9 +19,9 @@ import kotlinx.coroutines.launch
 import androidx.core.net.toUri
 import com.android.xrayfa.R
 import com.android.xrayfa.common.core.XrayAssetPaths
-import com.android.xrayfa.common.repository.DomainStrategy
-import com.android.xrayfa.common.repository.RoutingMode
-import com.android.xrayfa.common.repository.Rule
+import com.android.xrayfa.datastore.DomainStrategy
+import com.android.xrayfa.datastore.RoutingMode
+import com.android.xrayfa.datastore.Rule
 import com.android.xrayfa.common.utils.calculateFileHash
 import com.android.xrayfa.core.XrayBaseServiceManager
 import kotlinx.coroutines.Dispatchers

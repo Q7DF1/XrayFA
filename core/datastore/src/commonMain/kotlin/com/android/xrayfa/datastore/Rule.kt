@@ -1,4 +1,4 @@
-package com.android.xrayfa.common.repository
+package com.android.xrayfa.datastore
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 /**
  * Routing rule stored in DataStore; structurally identical to [com.android.xrayfa.model.RuleObject].
  *
- * Lives in commonMain so iOS can share the model; JSON field names match legacy Gson output.
+ * JSON field names match legacy Gson output for upgrade compatibility.
  */
 @Serializable
 data class Rule(

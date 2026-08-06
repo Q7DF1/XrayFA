@@ -17,10 +17,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.R
-import com.android.xrayfa.common.repository.DomainStrategy
-import com.android.xrayfa.common.repository.RoutingMode
-import com.android.xrayfa.common.repository.Rule
-import com.android.xrayfa.common.repository.decodeRules
+import com.android.xrayfa.datastore.DomainStrategy
+import com.android.xrayfa.datastore.RoutingMode
+import com.android.xrayfa.datastore.Rule
+import com.android.xrayfa.datastore.decodeRules
 import com.android.xrayfa.ui.navigation.RouteSettings
 import com.android.xrayfa.viewmodel.SettingsViewmodel
 
