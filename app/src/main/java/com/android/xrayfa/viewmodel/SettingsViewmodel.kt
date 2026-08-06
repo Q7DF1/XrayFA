@@ -31,11 +31,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okio.IOException
-import okio.buffer
-import okio.sink
+import com.android.xrayfa.network.FileDownloader
+import com.android.xrayfa.network.downloadToFile
 import java.io.File
 
 const val LOCAL_PROXY_LISTEN_ADDRESS = "127.0.0.1"
@@ -71,7 +68,7 @@ data class GithubAsset(
 )
 class SettingsViewmodel(
     val repository: SettingsRepository,
-    val okHttpClient: OkHttpClient,
+    private val fileDownloader: FileDownloader,
     val xrayBaseServiceManager: XrayBaseServiceManager,
     private val assetPaths: XrayAssetPaths,
 ): ViewModel() {
@@ -313,36 +310,13 @@ class SettingsViewmodel(
     ): Boolean = withContext(Dispatchers.IO) {
 
 
-        val request = Request.Builder()
-            .url(url)
-            .build()
         Log.i(TAG, "$url: downloading")
         try {
-            okHttpClient.newCall(request).execute().use { res ->
-                if (!res.isSuccessful) throw IOException("Unexpected code $res")
-
-                res.body?.let { body ->
-                    val contentLength = body.contentLength()
-                    val file = File(targetPath)
-                    var totalRead = 0L
-                    val buffer = ByteArray(8192)
-
-                    body.byteStream().use { inputStream ->
-                        file.outputStream().use { outputStream ->
-                            var read: Int
-                            while (inputStream.read(buffer).also { read = it } != -1) {
-                                outputStream.write(buffer, 0, read)
-                                totalRead += read
-                                if (contentLength > 0) {
-                                    progressFlow.value = totalRead.toFloat() / contentLength
-                                }
-                            }
-                        }
-                    }
-                }
+            fileDownloader.downloadToFile(url, targetPath) { progress ->
+                progressFlow.value = progress
             }
             return@withContext true
-        }catch (e: Exception) {
+        } catch (e: Exception) {
             statusFlow.value = false
             launch {
                 _downloadException.value = true
@@ -430,14 +404,14 @@ class SettingsViewmodel(
 
 class SettingsViewmodelFactory(
     val repository: SettingsRepository,
-    val okHttpClient: OkHttpClient,
+    val fileDownloader: FileDownloader,
     val xrayBaseServiceManager: XrayBaseServiceManager,
     val assetPaths: XrayAssetPaths,
 ): ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SettingsViewmodel::class.java)) {
-            return SettingsViewmodel(repository, okHttpClient, xrayBaseServiceManager, assetPaths) as T
+            return SettingsViewmodel(repository, fileDownloader, xrayBaseServiceManager, assetPaths) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
