@@ -1,4 +1,4 @@
-package com.android.xrayfa.common.repository
+package com.android.xrayfa.datastore
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -6,6 +6,16 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.android.xrayfa.common.repository.ConfigParserSettings
+import com.android.xrayfa.common.repository.ConfigParserSettingsProvider
+import com.android.xrayfa.common.repository.DomainStrategy
+import com.android.xrayfa.common.repository.RoutingMode
+import com.android.xrayfa.common.repository.Rule
+import com.android.xrayfa.common.repository.Theme
+import com.android.xrayfa.common.repository.decodeStringList
+import com.android.xrayfa.common.repository.defaultRoutes
+import com.android.xrayfa.common.repository.encodeRules
+import com.android.xrayfa.common.repository.encodeStringList
 import com.android.xrayfa.common.utils.Logger
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -38,8 +48,9 @@ data class SettingsState(
     val routingRules: String = defaultRoutes,
     val routingMode: Int = RoutingMode.ROUTE.code,
     val hwid: String = "",
-    val sendHwid: Boolean = true
+    val sendHwid: Boolean = true,
 )
+
 object SettingsKeys {
     val DARK_MODE = intPreferencesKey("dark_mode")
     val IPV6_ENABLE = booleanPreferencesKey("ipv6_enable")
@@ -53,15 +64,12 @@ object SettingsKeys {
     val DNS_IPV6 = stringPreferencesKey("dns_ipv6")
     val VERSION = stringPreferencesKey("version")
     val DELAY_TEST_URL = stringPreferencesKey("delay_test_site")
-    //to json
     val ALLOW_PACKAGES = stringPreferencesKey("allow_packages")
     val XRAY_CORE_VERSION = stringPreferencesKey("xray_version")
     val GEO_LITE_INSTALL = booleanPreferencesKey("geo_lite_install")
     val LIVE_UPDATE_NOTIFICATION = booleanPreferencesKey("live_update_notification")
     val BOOT_AUTO_START = booleanPreferencesKey("boot_auto_start")
-
     val HEX_TUN_ENABLE = booleanPreferencesKey("hex_tun_open")
-
     val HIDE_FROM_RECENTS = booleanPreferencesKey("hide_from_recents")
     val DOMAIN_STRATEGY = intPreferencesKey("DOMAIN_STRATEGY")
     val ROUTING_RULES = stringPreferencesKey("ROUTING_RULES")
@@ -88,26 +96,25 @@ class SettingsRepository(
             socksPort = prefs[SettingsKeys.SOCKS_PORT] ?: 10808,
             httpPort = prefs[SettingsKeys.HTTP_PORT] ?: 10809,
             lanHttpProxyEnable = prefs[SettingsKeys.LAN_HTTP_PROXY_ENABLE] == true,
-            socksUserName = prefs[SettingsKeys.SOCKS_USERNAME]?:"",
-            socksPassword = prefs[SettingsKeys.SOCKS_PASSWORD]?:"",
-            socksListen = prefs[SettingsKeys.SOCKS_LISTEN]?:"127.0.0.1",
+            socksUserName = prefs[SettingsKeys.SOCKS_USERNAME] ?: "",
+            socksPassword = prefs[SettingsKeys.SOCKS_PASSWORD] ?: "",
+            socksListen = prefs[SettingsKeys.SOCKS_LISTEN] ?: "127.0.0.1",
             dnsIPv4 = prefs[SettingsKeys.DNS_IPV4] ?: "8.8.8.8,1.1.1.1",
             dnsIPv6 = prefs[SettingsKeys.DNS_IPV6] ?: "2001:4860:4860::8888",
             delayTestUrl = prefs[SettingsKeys.DELAY_TEST_URL] ?: DEFAULT_DELAY_TEST_URL,
             version = prefs[SettingsKeys.VERSION] ?: "1.0.0",
-            xrayCoreVersion = prefs[SettingsKeys.XRAY_CORE_VERSION]?:"unknown",
+            xrayCoreVersion = prefs[SettingsKeys.XRAY_CORE_VERSION] ?: "unknown",
             geoLiteInstall = prefs[SettingsKeys.GEO_LITE_INSTALL] == true,
             liveUpdateNotification = prefs[SettingsKeys.LIVE_UPDATE_NOTIFICATION] == true,
             bootAutoStart = prefs[SettingsKeys.BOOT_AUTO_START] == true,
-            hexTunEnable =  prefs[SettingsKeys.HEX_TUN_ENABLE]?:true,
+            hexTunEnable = prefs[SettingsKeys.HEX_TUN_ENABLE] ?: true,
             hideFromRecents = prefs[SettingsKeys.HIDE_FROM_RECENTS] == true,
             domainStrategy = prefs[SettingsKeys.DOMAIN_STRATEGY] ?: DomainStrategy.IP_IF_NON_MATCH.code,
-            routingRules = prefs[SettingsKeys.ROUTING_RULES]?: defaultRoutes,
+            routingRules = prefs[SettingsKeys.ROUTING_RULES] ?: defaultRoutes,
             routingMode = prefs[SettingsKeys.ROUTING_MODE] ?: RoutingMode.ROUTE.code,
             hwid = prefs[SettingsKeys.HWID] ?: "",
-            sendHwid = prefs[SettingsKeys.SEND_HWID] ?: true
+            sendHwid = prefs[SettingsKeys.SEND_HWID] ?: true,
         )
-
     }
 
     val packagesFlow = dataStore.data.map { prefs ->
@@ -138,6 +145,7 @@ class SettingsRepository(
             it[SettingsKeys.ROUTING_RULES] = rulesString
         }
     }
+
     suspend fun setIpV6Enable(enable: Boolean) {
         dataStore.edit {
             it[SettingsKeys.IPV6_ENABLE] = enable
@@ -173,13 +181,14 @@ class SettingsRepository(
             it[SettingsKeys.DNS_IPV6] = dns
         }
     }
+
     suspend fun setXrayCoreVersion(version: String) {
         dataStore.edit {
             it[SettingsKeys.XRAY_CORE_VERSION] = version
         }
     }
 
-    suspend fun setDelayTestUrl(url:String) {
+    suspend fun setDelayTestUrl(url: String) {
         dataStore.edit {
             it[SettingsKeys.DELAY_TEST_URL] = url
         }
@@ -292,5 +301,4 @@ class SettingsRepository(
             geoLiteInstall = settings.geoLiteInstall,
         )
     }
-
 }

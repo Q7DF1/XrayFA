@@ -18,7 +18,7 @@ import com.android.xrayfa.model.protocol.protocolsPrefix
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.core.XrayBaseServiceManager
 import com.android.xrayfa.common.core.XrayCore
-import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.utils.BarcodeUtils

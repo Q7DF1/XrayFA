@@ -1,6 +1,6 @@
 package com.android.xrayfa.di
 
-import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.network.SocksProxyConfig
 import com.android.xrayfa.network.createProxyFileDownloader
 import com.android.xrayfa.network.createSubscriptionFetcher

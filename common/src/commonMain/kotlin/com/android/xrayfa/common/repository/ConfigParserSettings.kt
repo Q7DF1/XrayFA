@@ -3,7 +3,7 @@ package com.android.xrayfa.common.repository
 /**
  * Settings snapshot consumed by Xray config parsers.
  *
- * Decouples `:domain` parsers from Android [SettingsRepository] / DataStore while
+ * Decouples `:domain` parsers from [SettingsRepository] / DataStore while
  * preserving the same field values used when building Xray JSON.
  */
 data class ConfigParserSettings(

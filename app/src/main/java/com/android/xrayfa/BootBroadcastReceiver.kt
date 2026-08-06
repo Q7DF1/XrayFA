@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.android.xrayfa.common.repository.SettingsRepository
+import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.core.XrayBaseServiceManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first

@@ -91,6 +91,7 @@ tasks.whenTaskAdded {
 dependencies {
 
     implementation(project(":common"))
+    implementation(project(":core:datastore"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

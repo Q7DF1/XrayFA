@@ -18,7 +18,9 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(project(":common"))
             implementation(libs.androidx.datastore.preferences.core)
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
         }
         androidMain.dependencies {
             implementation(libs.androidx.datastore.preferences)

@@ -10,7 +10,7 @@ import com.android.xrayfa.common.GEO_IP
 import com.android.xrayfa.common.GEO_SITE
 import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.repository.Theme
-import com.android.xrayfa.common.repository.SettingsKeys
+import com.android.xrayfa.datastore.SettingsKeys
 import com.android.xrayfa.data.settingsDataStore
 import com.android.xrayfa.di.androidKoinModules
 import com.android.xrayfa.common.utils.SocksConfigGenerator

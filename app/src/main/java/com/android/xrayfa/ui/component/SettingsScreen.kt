@@ -95,7 +95,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
-import com.android.xrayfa.common.repository.SettingsKeys
+import com.android.xrayfa.datastore.SettingsKeys
 import com.android.xrayfa.core.XrayBaseService
 import com.android.xrayfa.helper.NotificationHelper
 import com.android.xrayfa.ui.navigation.Apps
