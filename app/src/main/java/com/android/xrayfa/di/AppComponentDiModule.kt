@@ -6,6 +6,7 @@ import com.android.xrayfa.MainActivity
 import com.android.xrayfa.core.BridgedTun2SocksService
 import com.android.xrayfa.core.QuickStartTileService
 import com.android.xrayfa.core.XrayBaseService
+import com.android.xrayfa.vpn.VpnController
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
@@ -46,11 +47,11 @@ val appComponentDiModule: Module = module {
         )
     }
     factory {
-        QuickStartTileService(xrayBaseServiceManager = get())
+        QuickStartTileService(vpnController = get())
     }
     factory {
         BootBroadcastReceiver(
-            manager = get(),
+            vpnController = get(),
             coroutineScope = get(named(KoinQualifiers.BACKGROUND_SCOPE)),
             settingsRepository = get(),
         )

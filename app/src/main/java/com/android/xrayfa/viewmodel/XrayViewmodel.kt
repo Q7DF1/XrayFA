@@ -11,16 +11,16 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.android.xrayfa.core.XrayBaseService
 import com.android.xrayfa.dto.ParseLinkInput
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.protocol.protocolsPrefix
 import com.android.xrayfa.parser.ParserFactory
-import com.android.xrayfa.core.XrayBaseServiceManager
 import com.android.xrayfa.common.core.XrayCore
 import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.repository.NodeRepository
+import com.android.xrayfa.vpn.VpnController
+import com.android.xrayfa.vpn.isConnected
 import com.android.xrayfa.utils.BarcodeUtils
 import com.google.zxing.BarcodeFormat
 import kotlinx.coroutines.Dispatchers
@@ -59,7 +59,7 @@ import com.android.xrayfa.utils.LinkUtils
 class XrayViewmodel(
     private val repository: NodeRepository,
     private val subscriptionRepository: SubscriptionRepository,
-    private val xrayBaseServiceManager: XrayBaseServiceManager,
+    private val vpnController: VpnController,
     private val xrayCore: XrayCore,
     private val settingsRepository: SettingsRepository,
     private val parserFactory: ParserFactory,
@@ -163,7 +163,7 @@ class XrayViewmodel(
     private val _downSpeed = MutableStateFlow(0.0)
     val downSpeed: StateFlow<Double> = _downSpeed.asStateFlow()
 
-    private val _isServiceRunning = MutableStateFlow(XrayBaseService.statusFlow.value)
+    private val _isServiceRunning = MutableStateFlow(vpnController.state.value.isConnected)
     val isServiceRunning: StateFlow<Boolean> = _isServiceRunning.asStateFlow()
 
     private val _qrcodeBitmap = MutableStateFlow<Bitmap?>(null)
@@ -270,8 +270,8 @@ class XrayViewmodel(
             }
         }
         viewModelScope.launch {
-            XrayBaseService.statusFlow.collect {
-                _isServiceRunning.value = it
+            vpnController.state.collect { state ->
+                _isServiceRunning.value = state.isConnected
             }
         }
     }
@@ -321,17 +321,17 @@ class XrayViewmodel(
 
     fun startXrayService(context: Context) {
         viewModelScope.launch {
-            xrayBaseServiceManager.startXrayBaseService()
+            vpnController.connect()
         }
     }
 
     fun stopXrayService(context: Context) {
-        xrayBaseServiceManager.stopXrayBaseService()
+        vpnController.disconnect()
     }
 
 
     fun isServiceRunning(): Boolean {
-        return XrayBaseService.statusFlow.value
+        return vpnController.state.value.isConnected
     }
 
 
@@ -392,7 +392,7 @@ class XrayViewmodel(
     }
 
     suspend fun onConfigChanged() {
-        xrayBaseServiceManager.restartXrayBaseServiceIfNeed()
+        vpnController.restartIfNeeded()
     }
 
 
@@ -714,7 +714,7 @@ class XrayViewmodel(
 class XrayViewmodelFactory(
     private val repository: NodeRepository,
     private val subscriptionRepository: SubscriptionRepository,
-    private val xrayBaseServiceManager: XrayBaseServiceManager,
+    private val vpnController: VpnController,
     private val xrayCore: XrayCore,
     private val settingsRepository: SettingsRepository,
     private val parserFactory: ParserFactory,
@@ -726,7 +726,7 @@ class XrayViewmodelFactory(
             return XrayViewmodel(
                 repository,
                 subscriptionRepository,
-                xrayBaseServiceManager,
+                vpnController,
                 xrayCore,
                 settingsRepository,
                 parserFactory,

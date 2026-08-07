@@ -96,7 +96,6 @@ import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.datastore.SettingsKeys
-import com.android.xrayfa.core.XrayBaseService
 import com.android.xrayfa.helper.NotificationHelper
 import com.android.xrayfa.ui.navigation.Apps
 import com.android.xrayfa.ui.navigation.Logcat
@@ -135,6 +134,7 @@ fun SettingsScreen(
     )
 
     val settingsState by viewmodel.settingsState.collectAsState()
+    val isVpnConnected by viewmodel.isVpnConnected.collectAsState()
     val context = LocalContext.current
     var isShowEditDialog by remember { mutableStateOf(false) }
     var editInitValue by remember { mutableStateOf("") }
@@ -408,7 +408,7 @@ fun SettingsScreen(
                         downloading = geoIPDownloading,
                         progress = geoIPProgress,
                         onDownloadClick = {viewmodel.downloadGeoIP(context = context)},
-                        downloadEnable = XrayBaseService.statusFlow.collectAsState().value,
+                        downloadEnable = isVpnConnected,
                         downloadDisabledHint = R.string.geo_download_need_service_hint,
                         onImportClick = {
                             val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
@@ -427,7 +427,7 @@ fun SettingsScreen(
                         onDownloadClick = {viewmodel.downloadGeoSite(context)},
                         downloading = geoSiteDownloading,
                         progress = geoSiteProgress,
-                        downloadEnable = XrayBaseService.statusFlow.collectAsState().value,
+                        downloadEnable = isVpnConnected,
                         downloadDisabledHint = R.string.geo_download_need_service_hint,
                         onImportClick = {
                             val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
@@ -445,7 +445,7 @@ fun SettingsScreen(
                         icon = Icons.Outlined.DataUsage,
                         onDownloadClick = {viewmodel.downloadGeoLite(context)},
                         downloading = geoLiteDownloading,
-                        downloadEnable = XrayBaseService.statusFlow.collectAsState().value,
+                        downloadEnable = isVpnConnected,
                         downloadDisabledHint = R.string.geo_download_need_service_hint,
                         progress = geoLiteProgress,
                         enable = settingsState.geoLiteInstall

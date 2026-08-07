@@ -3,12 +3,12 @@ package com.android.xrayfa.di
 import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.core.XrayCore
 import com.android.xrayfa.datastore.SettingsRepository
-import com.android.xrayfa.core.XrayBaseServiceManager
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.parser.SubscriptionParser
 import com.android.xrayfa.repository.AppInfoRepository
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.repository.SubscriptionRepository
+import com.android.xrayfa.vpn.VpnController
 import com.android.xrayfa.viewmodel.AppsViewmodelFactory
 import com.android.xrayfa.viewmodel.DetailViewmodelFactory
 import com.android.xrayfa.viewmodel.SettingsViewmodelFactory
@@ -22,7 +22,7 @@ val appViewModelDiModule: Module = module {
         XrayViewmodelFactory(
             repository = get(),
             subscriptionRepository = get(),
-            xrayBaseServiceManager = get(),
+            vpnController = get(),
             xrayCore = get(),
             settingsRepository = get(),
             parserFactory = get(),
@@ -33,7 +33,7 @@ val appViewModelDiModule: Module = module {
         SettingsViewmodelFactory(
             repository = get(),
             fileDownloader = get(),
-            xrayBaseServiceManager = get(),
+            vpnController = get(),
             assetPaths = get<XrayAssetPaths>(),
         )
     }

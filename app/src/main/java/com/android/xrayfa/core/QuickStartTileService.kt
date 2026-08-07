@@ -4,47 +4,53 @@ import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import android.widget.Toast
 import com.android.xrayfa.R
+import com.android.xrayfa.vpn.VpnController
+import com.android.xrayfa.vpn.isConnected
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-class QuickStartTileService constructor(
-    private val xrayBaseServiceManager: XrayBaseServiceManager
-): TileService() {
+
+class QuickStartTileService(
+    private val vpnController: VpnController,
+) : TileService() {
 
     companion object {
         const val TAG = "QuickStartTileService"
     }
-    private val serviceScope =  CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     init {
-
-        xrayBaseServiceManager.qsStateCallBack = { running ->
-            qsTile.state = if (running)
-                Tile.STATE_ACTIVE
-            else
-                Tile.STATE_INACTIVE
-            qsTile.updateTile()
+        serviceScope.launch {
+            vpnController.state.collect { state ->
+                qsTile.state = if (state.isConnected) {
+                    Tile.STATE_ACTIVE
+                } else {
+                    Tile.STATE_INACTIVE
+                }
+                qsTile.updateTile()
+            }
         }
     }
+
     override fun onClick() {
-        if (!XrayBaseService.statusFlow.value) {
+        if (!vpnController.state.value.isConnected) {
             serviceScope.launch {
-                if (!xrayBaseServiceManager.startXrayBaseService()) {
-                    Toast.makeText(applicationContext, R.string.config_not_ready,Toast.LENGTH_SHORT)
-                        .show()
+                if (!vpnController.connect()) {
+                    Toast.makeText(
+                        applicationContext,
+                        R.string.config_not_ready,
+                        Toast.LENGTH_SHORT,
+                    ).show()
                 }
             }
-        }else {
-            xrayBaseServiceManager.stopXrayBaseService()
+        } else {
+            vpnController.disconnect()
         }
-
-        // stop Service
     }
 
     override fun onTileAdded() {
-
         super.onTileAdded()
     }
 
@@ -53,5 +59,4 @@ class QuickStartTileService constructor(
         qsTile.updateTile()
         super.onDestroy()
     }
-
 }
