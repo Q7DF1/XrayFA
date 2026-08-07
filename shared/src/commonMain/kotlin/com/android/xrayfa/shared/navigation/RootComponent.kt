@@ -8,6 +8,10 @@ interface RootComponent {
 
     fun selectTab(index: Int)
 
+    fun selectTab(tab: RootTab) {
+        selectTab(tab.ordinal)
+    }
+
     sealed class Child {
         class Config(val component: PlaceholderTabComponent) : Child()
 
