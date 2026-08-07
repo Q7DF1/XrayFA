@@ -7,6 +7,7 @@ shared logic is exported via `:shared` → `XrayFAShared.framework`.
 
 - Xcode 16+
 - `./scripts/build_libxray_ios.sh` (produces `AndroidLibXrayLite/LibXrayLite.xcframework`)
+- `./scripts/build_hev_tun_ios.sh` (produces `tun2socks/.../HevSocks5Tunnel.xcframework`)
 - Gradle iOS framework:
   ```bash
   ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
@@ -45,4 +46,6 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp \
 - **E.5a** ✅ `:shared` exports `XrayFAShared.framework`
 - **E.5b** ✅ Xcode skeleton + Gradle `embedAndSignAppleFrameworkForXcode`
 - **E.5c** ✅ `IosXrayBridge` cinterop + LibXrayLite link in `:core:native-bridge`
-- **E.5d** ✅ App Group IPC + `IosVpnController` + PacketTunnel TUN bootstrap (Tun2socksKit ⬜)
+- **E.5d** ✅ App Group IPC + `IosVpnController` + PacketTunnel TUN bootstrap
+- **E.5e** ✅ startLoop + HevSocks5Tunnel (hexTun path) + trial Connect in ContentView
+- **E.6** ⬜ Compose Multiplatform shared UI
