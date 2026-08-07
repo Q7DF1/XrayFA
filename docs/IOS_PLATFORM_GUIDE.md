@@ -9,7 +9,7 @@
 ### Xcode 项目组织
 
 ```
-app-ios/
+iosApp/
 ├── iosApp/                          # 主应用 Target
 │   ├── AppDelegate.swift
 │   ├── ContentView.swift            # SwiftUI → ComposeUIViewController

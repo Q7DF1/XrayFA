@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Android library stub — real implementation lives in `:app` as [com.android.xrayfa.core.AppVpnController]
+ * Android library stub — real implementation lives in `:androidApp` as [com.android.xrayfa.core.AppVpnController]
  * to avoid a platform → app dependency cycle.
  */
 internal class AndroidVpnControllerStub : VpnController {

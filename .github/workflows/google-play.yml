@@ -34,7 +34,7 @@ jobs:
 
     - name: Decode keystore
       run: |
-        echo "$KEYSTORE_BASE64" | base64 --decode > app/xrayfa.jks
+        echo "$KEYSTORE_BASE64" | base64 --decode > androidApp/xrayfa.jks
       env:
         KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
@@ -97,8 +97,8 @@ jobs:
         export CGO_CFLAGS="-ffile-prefix-map=$CURRENT_PATH=."
         export CGO_CXXFLAGS="-ffile-prefix-map=$CURRENT_PATH=."
         gomobile bind -v -trimpath -androidapi 21 -ldflags="-s -w -buildid= -checklinkname=0" ./
-        mkdir -p ../app/libs
-        cp libv2ray.aar ../app/libs/
+        mkdir -p ../androidApp/libs
+        cp libv2ray.aar ../androidApp/libs/
 
     - name: Grant execute permission for gradlew
       working-directory: /home/vagrant/build/${{ env.PLAY_APPLICATION_ID }}
@@ -129,11 +129,11 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: google-play-aab
-        path: /home/vagrant/build/${{ env.PLAY_APPLICATION_ID }}/app/build/outputs/bundle/release/*.aab
+        path: /home/vagrant/build/${{ env.PLAY_APPLICATION_ID }}/androidApp/build/outputs/bundle/release/*.aab
 
     - name: Upload APK
       if: ${{ github.event.inputs.build_type == 'apk' }}
       uses: actions/upload-artifact@v4
       with:
         name: google-play-apk
-        path: /home/vagrant/build/${{ env.PLAY_APPLICATION_ID }}/app/build/outputs/apk/release/*.apk
+        path: /home/vagrant/build/${{ env.PLAY_APPLICATION_ID }}/androidApp/build/outputs/apk/release/*.apk

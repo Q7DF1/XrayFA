@@ -62,7 +62,7 @@ This repository contains two git submodules (see `.gitmodules`):
 
 ### 3.2 Build `libv2ray.aar` (prerequisite for the Gradle build)
 
-`:app` depends on `app/libs/*.aar`. This AAR is **not checked into the repo** and must be generated from Go sources first:
+`:androidApp` depends on `androidApp/libs/*.aar`. This AAR is **not checked into the repo** and must be generated from Go sources first:
 
 ```bash
 cd AndroidLibXrayLite
@@ -70,10 +70,10 @@ gomobile init
 go mod tidy -v
 gomobile bind -v -trimpath -androidapi 21 \
   -ldflags="-s -w -buildid= -checklinkname=0" ./
-mkdir -p ../app/libs && cp libv2ray.aar ../app/libs/
+mkdir -p ../androidApp/libs && cp libv2ray.aar ../androidApp/libs/
 ```
 
-> You can also use the built-in Gradle task `./gradlew copyXrayLib` (which chains `initGoMobile → goMod → bindXrayLib → copyXrayLib`). Note: the `preBuild` dependency on `copyXrayLib` is **intentionally commented out** in `app/build.gradle.kts`, so local development requires running it once manually.
+> You can also use the built-in Gradle task `./gradlew copyXrayLib` (which chains `initGoMobile → goMod → bindXrayLib → copyXrayLib`). Note: the `preBuild` dependency on `copyXrayLib` is **intentionally commented out** in `androidApp/build.gradle.kts`, so local development requires running it once manually.
 
 ### 3.3 Gradle build commands
 
@@ -83,7 +83,7 @@ mkdir -p ../app/libs && cp libv2ray.aar ../app/libs/
 ./gradlew clean             # Clean
 ```
 
-- Release signing reads the `KEYSTORE_PASSWORD` / `KEY_ALIAS` / `KEY_PASSWORD` env vars and `app/xrayfa.jks`; if missing, an **unsigned** release APK is built.
+- Release signing reads the `KEYSTORE_PASSWORD` / `KEY_ALIAS` / `KEY_PASSWORD` env vars and `androidApp/xrayfa.jks`; if missing, an **unsigned** release APK is built.
 - ~~`./gradlew bundleRelease -PAPPLICATION_ID=com.q7df1.xrayfa` — Play Store AAB (different package)~~ _(no Google Play release planned for now; not used)_
 - Use `-PAPPLICATION_ID=<id>` to override the applicationId per channel; default is `com.android.xrayfa`.
 
@@ -101,7 +101,7 @@ Native builds require fixing the `#include` paths in C headers first. `tun2socks
 ```
 
 - Test frameworks: JUnit 4.13.2, AndroidX Test JUnit 1.3.0, Espresso 3.7.0, Compose UI Test.
-- **Current test coverage is thin** and mostly consists of Android Studio default templates. The one with real value is `app/src/test/java/com/android/xrayfa/parser/AbstractConfigParserTest.kt` (unit tests for config generation).
+- **Current test coverage is thin** and mostly consists of Android Studio default templates. The one with real value is `androidApp/src/test/java/com/android/xrayfa/parser/AbstractConfigParserTest.kt` (unit tests for config generation).
 - **Convention**: When adding business logic (especially pure logic in `parser/`, `model/`, `utils/`, `repository/`), add unit tests following the style of `AbstractConfigParserTest`.
 
 ---
@@ -110,7 +110,7 @@ Native builds require fixing the `#include` paths in C headers first. `tun2socks
 
 ```
 XrayFA/
-├── app/                      # :app main application module (namespace com.android.xrayfa)
+├── androidApp/               # :androidApp main application module (namespace com.android.xrayfa)
 │   ├── build.gradle.kts      # Includes gomobile build tasks (buildGoMobile/bindXrayLib/copyXrayLib)
 │   ├── libs/                 # Where libv2ray.aar goes (build artifact, not version-controlled)
 │   ├── proguard-rules.pro    # R8/ProGuard keep rules
@@ -128,13 +128,15 @@ XrayFA/
 │       ├── MainActivity.kt   # Entry Activity
 │       ├── XrayFAApplication.kt
 │       └── XrayAppCompatFactory.kt  # AppComponentFactory, DI injection for Activity/Service
+├── iosApp/                   # iOS shell (Xcode: SwiftUI + Network Extension)
+├── shared/                   # KMP umbrella → XrayFAShared.framework for iOS
 ├── common/                   # :common shared library (Constant, SettingsRepository, Socks generator, DI qualifiers)
 ├── tun2socks/                # :tun2socks module (TProxyService JNI wrapper + hev-socks5-tunnel submodule)
 │   └── src/main/jni/         # Android.mk / Application.mk (ndk-build, no CMake)
 ├── AndroidLibXrayLite/       # submodule: gomobile bindings for Xray-core (go.mod, gen_assets.sh)
 ├── gradle/libs.versions.toml # Dependency version catalog (single source of truth)
 ├── gradle.properties         # VERSION_NAME/CODE, APPLICATION_ID_PLAY, GEO versions, etc.
-├── settings.gradle.kts       # Module registration: :app, :tun2socks, :common
+├── settings.gradle.kts       # Module registration: :androidApp, :tun2socks, :common, :shared, …
 ├── docs/                     # Internal technical docs (incl. KMP migration plan)
 ├── fastlane/                 # F-Droid / Play Store metadata (multilingual)
 └── .github/workflows/        # CI (android.yml, google-play.yml, update_submodules.yaml)
@@ -143,9 +145,9 @@ XrayFA/
 ### Module dependencies
 
 ```
-:app ─→ :tun2socks ─→ :common
+:androidApp ─→ :tun2socks ─→ :common
   └───→ :common
-  └───→ app/libs/libv2ray.aar
+  └───→ androidApp/libs/libv2ray.aar
 ```
 
 ---
@@ -165,10 +167,10 @@ Config generation lives in `parser/` + `model/`; app settings are stored in Data
 
 - **Kotlin style**: `kotlin.code.style=official` (`gradle.properties`). Follow the official Kotlin coding conventions.
 - This project has **no** ktlint / detekt / spotless / `.editorconfig` configured; match the naming, indentation (4 spaces), and formatting of surrounding code.
-- **Dependency management**: All dependency versions are declared **only** in `gradle/libs.versions.toml` and referenced via `libs.xxx` aliases. **Do not** hardcode versions in `build.gradle.kts` (the `leakcanary` debug dependency in `app/build.gradle.kts` is a pre-existing exception).
+- **Dependency management**: All dependency versions are declared **only** in `gradle/libs.versions.toml` and referenced via `libs.xxx` aliases. **Do not** hardcode versions in `build.gradle.kts` (the `leakcanary` debug dependency in `androidApp/build.gradle.kts` is a pre-existing exception).
 - **DI**: When adding an injectable component, register it in the corresponding Dagger module under `di/`; Activities/Services are injected via `XrayAppCompatFactory`.
-- **Naming**: Package root is `com.android.xrayfa.*`; config models mirror the Xray JSON structure — consult `app/.../model/README.md` before changing them.
-- **ProGuard**: When adding classes accessed via reflection/JNI/serialization, update `app/proguard-rules.pro` accordingly (Release enables `minify` + `shrinkResources`).
+- **Naming**: Package root is `com.android.xrayfa.*`; config models mirror the Xray JSON structure — consult `androidApp/.../model/README.md` before changing them.
+- **ProGuard**: When adding classes accessed via reflection/JNI/serialization, update `androidApp/proguard-rules.pro` accordingly (Release enables `minify` + `shrinkResources`).
 - **Comments**: Only add comments to explain non-obvious intent, trade-offs, or constraints; avoid redundant comments that merely restate the code.
 
 ---
@@ -191,9 +193,9 @@ CI is defined under `.github/workflows/`:
 
 ## 9. Security & Gotchas (AI assistants MUST follow)
 
-- **Never commit secrets/credentials**: `app/xrayfa.jks`, `local.properties`, keystore passwords, and any `secrets` must never be written to the repo or logs.
+- **Never commit secrets/credentials**: `androidApp/xrayfa.jks`, `local.properties`, keystore passwords, and any `secrets` must never be written to the repo or logs.
 - **Submodules are external upstreams**: `AndroidLibXrayLite/` and `hev-socks5-tunnel/` are independent repos. Unless the task explicitly requires it, **do not** modify files inside submodules; make changes on the main-repo side.
-- **Do not commit build artifacts**: `app/libs/*.aar`, `build/`, `.gradle/`, etc. are generated and must not be committed.
+- **Do not commit build artifacts**: `androidApp/libs/*.aar`, `build/`, `.gradle/`, etc. are generated and must not be committed.
 - **Version bumps**: To change the app version, edit `VERSION_NAME` / `VERSION_CODE` in `gradle.properties`; do not hardcode them in `build.gradle.kts`.
 - **Distribution channels**: Currently released only via GitHub Releases and F-Droid (package `com.android.xrayfa`). ~~Google Play (`com.q7df1.xrayfa`)~~ is **not planned**; `APPLICATION_ID_PLAY`, `google-play.yml`, and related config are kept but disabled. If re-enabled later, control it via `-PAPPLICATION_ID`.
 - **Networking tool nature**: This is a legitimate open-source proxy/VPN client. Be careful when changing networking, routing, or protocol-parsing logic to avoid harming user privacy or introducing insecure defaults.
@@ -248,7 +250,7 @@ build(deps): bump room to 2.7.0
 - [ ] `./gradlew test` passes; new business logic has unit tests (see Section 4).
 - [ ] CI (`android.yml`) is green.
 - [ ] Dependency versions changed only in `gradle/libs.versions.toml`; no hardcoded versions.
-- [ ] No secrets, keystores, `local.properties`, `app/libs/*.aar`, or other sensitive files/artifacts committed.
+- [ ] No secrets, keystores, `local.properties`, `androidApp/libs/*.aar`, or other sensitive files/artifacts committed.
 - [ ] Version bumps (if any) updated in `gradle.properties` (`VERSION_NAME` / `VERSION_CODE`).
 - [ ] **No unsanctioned submodule changes** (`AndroidLibXrayLite/`, `hev-socks5-tunnel/`); if an update is genuinely needed, call it out in the PR description.
 - [ ] Code follows the official Kotlin style and matches surrounding code.
@@ -294,5 +296,5 @@ build(deps): bump room to 2.7.0
 
 - `README.md` / `README_zh-CN.md` / `README_RU.md` / `README_KR.md` — user/contributor intro and build guide
 - `docs/KMP_MIGRATION_PLAN.md`, `docs/FILE_MIGRATION_MAP.md`, `docs/IOS_PLATFORM_GUIDE.md`, `docs/DEPENDENCY_MIGRATION_GUIDE.md` — Kotlin Multiplatform (iOS) migration plan; consult before changing shared logic
-- `app/src/main/java/com/android/xrayfa/model/README.md` — Xray config object documentation
+- `androidApp/src/main/java/com/android/xrayfa/model/README.md` — Xray config object documentation
 - `AndroidLibXrayLite/README.md` — gomobile build instructions
