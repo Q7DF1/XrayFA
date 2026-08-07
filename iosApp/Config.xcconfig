@@ -1,0 +1,4 @@
+// Base Xcode settings for XrayFA iOS shell (E.5b).
+
+SWIFT_VERSION = 5.0
+IPHONEOS_DEPLOYMENT_TARGET = 15.0

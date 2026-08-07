@@ -20,7 +20,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "xrayfa"
-include(":app")
+include(":androidApp")
 include(":tun2socks")
 include(":common")
 include(":domain")

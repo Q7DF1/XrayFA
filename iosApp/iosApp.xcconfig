@@ -1,0 +1,6 @@
+// iosApp target — links KMP XrayFAShared.framework built by Gradle embed task.
+
+#include "Config.xcconfig"
+
+FRAMEWORK_SEARCH_PATHS = $(inherited) $(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME) $(SRCROOT)/../AndroidLibXrayLite
+OTHER_LDFLAGS = $(inherited) -framework XrayFAShared

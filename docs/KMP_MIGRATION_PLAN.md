@@ -15,7 +15,7 @@
 ### 模块结构
 | 模块 | 说明 | 代码量 |
 |------|------|--------|
-| `:app` | 主应用（Compose UI, VPN 服务, ViewModel） | ~5160 LOC |
+| `:androidApp` | 主应用（Compose UI, VPN 服务, ViewModel） | ~5160 LOC |
 | `:common` | 共享工具类 | ~150 LOC |
 | `:tun2socks` | Native TUN2Socks JNI 封装 | ~100 LOC |
 | `AndroidLibXrayLite/` | Xray-core Go 绑定（git submodule） | 外部 |
@@ -147,17 +147,16 @@ xrayfa/
 │       ├── androidMain/
 │       └── iosMain/                     #   iOS 特有 Kotlin 胶水代码
 │
-├── app-android/                          # Android 应用壳
+├── androidApp/                           # Android 应用壳 (:androidApp)
 │   └── src/main/
 │       ├── AndroidManifest.xml
 │       ├── XrayFAApplication.kt         #   Koin 初始化
 │       ├── MainActivity.kt              #   入口
 │       └── service/                     #   VpnService, TileService, BootReceiver
 │
-├── app-ios/                              # iOS 应用壳
+├── iosApp/                               # iOS 应用壳 (Xcode)
 │   ├── iosApp/
-│   │   ├── AppDelegate.swift
-│   │   ├── ContentView.swift            #   ComposeUIViewController 包装
+│   │   ├── ContentView.swift            #   SwiftUI → ComposeUIViewController (E.6+)
 │   │   └── Info.plist
 │   ├── PacketTunnel/                    #   Network Extension Target
 │   │   ├── PacketTunnelProvider.swift
@@ -379,7 +378,7 @@ actual fun generateUUID(): String = platform.Foundation.NSUUID().UUIDString()
 
 **1.5 接回 Android App**
 
-更新 `:app` 依赖使用新共享模块：
+更新 `:androidApp` 依赖使用新共享模块：
 ```kotlin
 dependencies {
     implementation(project(":core:model"))
@@ -393,7 +392,7 @@ dependencies {
 ```bash
 ./gradlew :domain:allTests          # JVM + iOS Simulator 双平台运行
 ./gradlew :core:model:allTests      # 序列化往返测试
-./gradlew :app:assembleDebug        # Android 回归验证
+./gradlew :androidApp:assembleDebug        # Android 回归验证
 ```
 
 #### 风险评估
@@ -572,7 +571,7 @@ interface VpnController {
 **3.3 iOS VPN 实现（NEPacketTunnelProvider）**
 
 ```swift
-// app-ios/PacketTunnel/PacketTunnelProvider.swift
+// iosApp/PacketTunnel/PacketTunnelProvider.swift
 class PacketTunnelProvider: NEPacketTunnelProvider {
     override func startTunnel(options: [String: NSObject]?,
                              completionHandler: @escaping (Error?) -> Void) {
@@ -960,8 +959,8 @@ feature:qrcode (← domain, platform:system)
     ↓
 shared (汇聚: 导出所有 feature + platform)
     ↓
-app-android (← shared + Android 特有)
-app-ios (← shared framework)
+androidApp (← shared + Android 特有)
+iosApp (← shared framework)
 ```
 
 ---

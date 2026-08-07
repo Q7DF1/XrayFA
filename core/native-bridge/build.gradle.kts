@@ -22,11 +22,11 @@ kotlin {
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
         }
         androidMain.dependencies {
-            // compileOnly: AGP forbids packaging local .aar into another AAR; :app supplies libv2ray at runtime.
+            // compileOnly: AGP forbids packaging local .aar into another AAR; :androidApp supplies libv2ray at runtime.
             compileOnly(
-                files(rootProject.file("app/libs/libv2ray.aar")),
+                files(rootProject.file("androidApp/libs/libv2ray.aar")),
             )
-            // compileOnly: JNI .so comes from :tun2socks / :app at runtime; compile against TProxyService API.
+            // compileOnly: JNI .so comes from :tun2socks / :androidApp at runtime; compile against TProxyService API.
             compileOnly(project(":tun2socks"))
         }
     }
