@@ -48,4 +48,4 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp \
 - **E.5c** ✅ `IosXrayBridge` cinterop + LibXrayLite link in `:core:native-bridge`
 - **E.5d** ✅ App Group IPC + `IosVpnController` + PacketTunnel TUN bootstrap
 - **E.5e** ✅ startLoop + HevSocks5Tunnel (hexTun path) + trial Connect in ContentView
-- **E.6** ⬜ Compose Multiplatform shared UI
+- **E.6** ✅ Compose Multiplatform `AppShell` + `MainViewController` + iOS Koin bootstrap

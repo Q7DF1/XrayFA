@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.android.library)
 }
 
@@ -29,6 +31,14 @@ kotlin {
             api(project(":core:network"))
             api(project(":core:database"))
             api(project(":common"))
+            implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.material3)
+            implementation(compose.ui)
+            implementation(libs.koin.core)
+        }
+        iosMain.dependencies {
+            implementation(libs.koin.core)
         }
     }
 }

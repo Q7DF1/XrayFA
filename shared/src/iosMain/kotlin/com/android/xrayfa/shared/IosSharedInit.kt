@@ -6,14 +6,15 @@ import com.android.xrayfa.vpn.setPendingConfig
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 /**
- * iOS-side entry until Compose Multiplatform [MainViewController] lands (E.6).
- * Exposes [IosVpnController] to Swift for VPN smoke tests (E.5e).
+ * iOS-side helpers until Compose screens inject [VpnController] via Koin (E.6+).
  */
-object IosSharedInit {
+object IosSharedInit : KoinComponent {
     private val scope = MainScope()
-    private val vpnController = IosVpnController(scope)
+    private val vpnController: IosVpnController by inject()
 
     fun platformName(): String = "ios"
 
