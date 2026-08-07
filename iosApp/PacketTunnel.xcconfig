@@ -1,0 +1,7 @@
+// PacketTunnel — links LibXrayLite.xcframework (built by ./scripts/build_libxray_ios.sh).
+
+#include "Config.xcconfig"
+
+FRAMEWORK_SEARCH_PATHS[sdk=iphonesimulator*] = $(inherited) $(SRCROOT)/../AndroidLibXrayLite/LibXrayLite.xcframework/ios-arm64_x86_64-simulator
+FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*] = $(inherited) $(SRCROOT)/../AndroidLibXrayLite/LibXrayLite.xcframework/ios-arm64
+OTHER_LDFLAGS = $(inherited) -framework LibXrayLite -lresolv
