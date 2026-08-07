@@ -3,13 +3,13 @@ package com.android.xrayfa.di
 import com.android.xrayfa.BootBroadcastReceiver
 import com.android.xrayfa.ComponentResolver
 import com.android.xrayfa.MainActivity
+import com.android.xrayfa.core.BridgedTun2SocksService
 import com.android.xrayfa.core.QuickStartTileService
 import com.android.xrayfa.core.XrayBaseService
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
-import xrayfa.tun2socks.TProxyService
 import xrayfa.tun2socks.Tun2SocksService
 import xrayfa.tun2socks.utils.Tun2SocksConfigUtil
 
@@ -21,9 +21,10 @@ import xrayfa.tun2socks.utils.Tun2SocksConfigUtil
 val appComponentDiModule: Module = module {
     factory { Tun2SocksConfigUtil(settingsRepo = get()) }
     single<Tun2SocksService> {
-        TProxyService(
+        BridgedTun2SocksService(
             context = androidContext(),
             util = get(),
+            tunBridge = get(),
         )
     }
 

@@ -10,6 +10,9 @@ import com.android.xrayfa.common.core.TrafficDetector
 import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.core.XrayCore
 import com.android.xrayfa.datastore.SettingsRepository
+import com.android.xrayfa.nativebridge.XrayBridge
+import com.android.xrayfa.nativebridge.XrayCoreCallback
+import com.android.xrayfa.nativebridge.XrayCoreController
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.utils.Device
 import kotlinx.coroutines.CoroutineScope
@@ -22,9 +25,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import libv2ray.CoreCallbackHandler
-import libv2ray.CoreController
-import libv2ray.Libv2ray
 
 const val TAG_PROXY = "proxy"
 const val TAG_DIRECT = "direct"
@@ -49,47 +49,47 @@ class XrayCoreManager(
     private val parserFactory: ParserFactory,
     private val settingsRepository: SettingsRepository,
     private val assetPaths: XrayAssetPaths,
+    private val xrayBridge: XrayBridge,
 ): XrayCore {
 
     companion object {
         const val TAG = "XrayCoreManager"
     }
-    private var coreController: CoreController? = null
+    private var coreController: XrayCoreController? = null
     private var job: Job? = null
 
     private val _trafficFlow = MutableSharedFlow<Pair<Double, Double>>(replay = 1)
     override val trafficFlow: SharedFlow<Pair<Double, Double>> = _trafficFlow.asSharedFlow()
 
-    val controllerHandler = object: CoreCallbackHandler {
-        override fun onEmitStatus(p0: Long, p1: String?): Long {
-            Log.i(TAG, "onEmitStatus: $p0 $p1")
+    private val controllerCallback = object : XrayCoreCallback {
+        override fun onEmitStatus(code: Long, message: String?): Long {
+            Log.i(TAG, "onEmitStatus: $code $message")
             return 0L
         }
 
-        override fun shutdown(): Long {
+        override fun onShutdown(): Long {
             Log.i(TAG, "shutdown: end")
             return 0L
         }
 
-        override fun startup(): Long {
+        override fun onStartup(): Long {
             Log.i(TAG, "startup: start")
             return 0L
         }
-
     }
-    init {
 
+    init {
         Log.i(TAG, assetPaths.basePath)
-        Libv2ray.initCoreEnv(
+        xrayBridge.initCoreEnv(
             assetPaths.basePath, Device.getDeviceIdForXUDPBaseKey()
         )
         coroutineScope.launch {
-            val xrayCoreVersion = Libv2ray.checkVersionX()
+            val xrayCoreVersion = xrayBridge.checkVersion()
             if (settingsRepository.settingsFlow.first().xrayCoreVersion != xrayCoreVersion) {
                 settingsRepository.setXrayCoreVersion(xrayCoreVersion)
             }
         }
-        coreController = Libv2ray.newCoreController(controllerHandler)
+        coreController = xrayBridge.newCoreController(controllerCallback)
     }
 
 
@@ -104,7 +104,7 @@ class XrayCoreManager(
     }
 
     override fun measureOutboundDelay(config: String, url: String): Long {
-        return Libv2ray.measureOutboundDelay(config, url)
+        return xrayBridge.measureOutboundDelay(config, url)
     }
 
     override suspend fun startXrayCore(startOptions: CoreStartOptions, tunFd: Int?): Boolean {
