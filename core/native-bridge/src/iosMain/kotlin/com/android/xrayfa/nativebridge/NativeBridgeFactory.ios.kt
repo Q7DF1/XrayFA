@@ -1,8 +1,8 @@
 package com.android.xrayfa.nativebridge
 
 /**
- * iOS TunBridge stub until packet-based tun2socks (Tun2socksKit / NEPacketFlow) lands in E.5d.
- * Xray-core wiring uses [Libv2rayXrayBridge] via gomobile LibXrayLite cinterop.
+ * iOS TunBridge stub — tun2socks runs in PacketTunnel via HevSocks5Tunnel (E.5e), not KMP.
+ * Xray-core in NE uses LibXrayLite Swift API; KMP [TunBridge] stays unused on iOS.
  */
 private class IosStubTunBridge : TunBridge {
     override fun startTun2Socks(configPath: String, tunFd: Int): Boolean = false

@@ -52,6 +52,10 @@ targets:
       - path: PacketTunnel
         excludes:
           - Entitlements
+        includes:
+          - "**/*.swift"
+          - "**/*.m"
+          - "**/*.h"
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.android.xrayfa.ios.PacketTunnel
       INFOPLIST_FILE: PacketTunnel/Info.plist
@@ -59,6 +63,7 @@ targets:
       PRODUCT_NAME: PacketTunnel
       SKIP_INSTALL: YES
       LD_RUNPATH_SEARCH_PATHS: $(inherited) @executable_path/Frameworks @executable_path/../../Frameworks
+      SWIFT_OBJC_BRIDGING_HEADER: PacketTunnel/PacketTunnel-Bridging-Header.h
 
 schemes:
   iosApp:

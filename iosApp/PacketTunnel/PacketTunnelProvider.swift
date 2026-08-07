@@ -7,9 +7,13 @@ private enum AppGroup {
     static let tunnelConnectedKey = "vpn_tunnel_connected"
 }
 
-/// Packet tunnel: App Group config + TUN settings + LibXrayLite env init.
-/// Full startLoop / tun2socks lands when Tun2socksKit is wired (E.5d+).
+/// Packet tunnel: App Group config, TUN, Xray startLoop (tunFd=0) + hev-socks5-tunnel on utun.
+/// Mirrors Android hexTun path: Xray SOCKS inbound + tun2socks on TUN fd.
 final class PacketTunnelProvider: NEPacketTunnelProvider {
+    private var coreController: Libv2rayCoreController?
+    private var callbackHandler: TunnelCoreCallbackHandler?
+    private var tun2SocksQueue: DispatchQueue?
+
     override func startTunnel(
         options: [String: NSObject]?,
         completionHandler: @escaping (Error?) -> Void
@@ -27,11 +31,12 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
             }
 
             do {
-                try self?.bootstrapXrayEnvironment(configJson: configJson)
+                try self?.startVpnPipeline(configJson: configJson)
                 self?.setTunnelConnected(true)
                 completionHandler(nil)
             } catch {
                 self?.setTunnelConnected(false)
+                self?.stopVpnPipeline()
                 completionHandler(error)
             }
         }
@@ -41,8 +46,54 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         with reason: NEProviderStopReason,
         completionHandler: @escaping () -> Void
     ) {
+        stopVpnPipeline()
         setTunnelConnected(false)
         completionHandler()
+    }
+
+    private func startVpnPipeline(configJson: String) throws {
+        guard let container = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: AppGroup.suiteName
+        ) else {
+            throw TunnelError.noAppGroup
+        }
+
+        Libv2rayInitCoreEnv(container.path, "ios-device")
+
+        let handler = TunnelCoreCallbackHandler()
+        callbackHandler = handler
+        guard let controller = Libv2rayNewCoreController(handler) else {
+            throw TunnelError.xrayInitFailed
+        }
+        coreController = controller
+
+        try controller.startLoop(configJson, tunFd: 0)
+
+        guard let tunFd = UtunFileDescriptor.from(packetFlow: packetFlow) else {
+            throw TunnelError.noUtunFd
+        }
+
+        let configPath = try Tun2SocksConfigBuilder.writeConfig(
+            to: container,
+            xrayConfigJson: configJson
+        )
+
+        let queue = DispatchQueue(label: "com.android.xrayfa.tun2socks", qos: .userInitiated)
+        tun2SocksQueue = queue
+        queue.async {
+            _ = HevSocks5TunnelHelper.run(configPath: configPath, tunFd: tunFd)
+        }
+    }
+
+    private func stopVpnPipeline() {
+        HevSocks5TunnelHelper.quit()
+        tun2SocksQueue = nil
+
+        if let controller = coreController {
+            try? controller.stopLoop()
+        }
+        coreController = nil
+        callbackHandler = nil
     }
 
     private func loadPendingConfig() -> String? {
@@ -66,25 +117,14 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         settings.mtu = NSNumber(value: 1500)
         return settings
     }
-
-    private func bootstrapXrayEnvironment(configJson: String) throws {
-        guard let container = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: AppGroup.suiteName
-        ) else {
-            throw TunnelError.noAppGroup
-        }
-
-        Libv2rayInitCoreEnv(container.path, "ios-device")
-
-        // startLoop needs a TUN fd; iOS NE uses packetFlow — Tun2socksKit in a follow-up step.
-        _ = Libv2rayCheckVersionX()
-        _ = configJson
-    }
 }
 
 private enum TunnelError: LocalizedError {
     case noConfig
     case noAppGroup
+    case xrayInitFailed
+    case xrayStartFailed
+    case noUtunFd
 
     var errorDescription: String? {
         switch self {
@@ -92,6 +132,12 @@ private enum TunnelError: LocalizedError {
             return "No pending VPN config in App Group"
         case .noAppGroup:
             return "App Group container unavailable"
+        case .xrayInitFailed:
+            return "Failed to create Xray core controller"
+        case .xrayStartFailed:
+            return "Xray startLoop failed"
+        case .noUtunFd:
+            return "Could not resolve utun file descriptor"
         }
     }
 }
