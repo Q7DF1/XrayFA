@@ -25,6 +25,8 @@ import com.android.xrayfa.vpn.isConnected
 fun HomeConnectionPanel(
     vpnState: VpnState,
     socksPort: Int,
+    selectedNodeLabel: String,
+    hasSelectedNode: Boolean,
     busy: Boolean,
     statusMessage: String?,
     onConnect: () -> Unit,
@@ -50,6 +52,11 @@ fun HomeConnectionPanel(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            Text(
+                text = "Node: $selectedNodeLabel",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             statusMessage?.let {
                 Text(
                     text = it,
@@ -58,7 +65,7 @@ fun HomeConnectionPanel(
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
-            Button(onClick = onConnect, enabled = !busy && !vpnState.isConnected) {
+            Button(onClick = onConnect, enabled = !busy && !vpnState.isConnected && hasSelectedNode) {
                 Text("Connect")
             }
             Button(onClick = onDisconnect, enabled = !busy && vpnState.isConnected) {
