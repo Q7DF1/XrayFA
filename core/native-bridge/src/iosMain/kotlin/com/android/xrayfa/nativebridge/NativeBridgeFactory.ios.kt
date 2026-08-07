@@ -1,31 +1,9 @@
 package com.android.xrayfa.nativebridge
 
 /**
- * iOS compile-only stub until gomobile xcframework is linked (E.2+).
+ * iOS TunBridge stub until packet-based tun2socks (Tun2socksKit / NEPacketFlow) lands in E.5d.
+ * Xray-core wiring uses [Libv2rayXrayBridge] via gomobile LibXrayLite cinterop.
  */
-private class IosStubXrayCoreController : XrayCoreController {
-    override val isRunning: Boolean = false
-
-    override fun startLoop(configJson: String, tunFd: Int) = Unit
-
-    override fun stopLoop() = Unit
-
-    override fun measureDelay(url: String): Long = -1L
-
-    override fun queryStats(tag: String, stream: String): Long = 0L
-}
-
-private class IosStubXrayBridge : XrayBridge {
-    override fun initCoreEnv(basePath: String, deviceId: String) = Unit
-
-    override fun newCoreController(callback: XrayCoreCallback): XrayCoreController =
-        IosStubXrayCoreController()
-
-    override fun checkVersion(): String = "ios-stub"
-
-    override fun measureOutboundDelay(configJson: String, url: String): Long = -1L
-}
-
 private class IosStubTunBridge : TunBridge {
     override fun startTun2Socks(configPath: String, tunFd: Int): Boolean = false
 
@@ -35,7 +13,7 @@ private class IosStubTunBridge : TunBridge {
 }
 
 actual object NativeBridgeFactory {
-    actual fun createXrayBridge(): XrayBridge = IosStubXrayBridge()
+    actual fun createXrayBridge(): XrayBridge = Libv2rayXrayBridge()
 
     actual fun createTunBridge(): TunBridge = IosStubTunBridge()
 }

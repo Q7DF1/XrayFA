@@ -3,6 +3,21 @@ plugins {
     alias(libs.plugins.android.library)
 }
 
+val libXrayXcframework = rootProject.file("AndroidLibXrayLite/LibXrayLite.xcframework")
+
+if (gradle.startParameter.taskNames.any { it.contains("Ios", ignoreCase = true) }) {
+    check(libXrayXcframework.isDirectory) {
+        "LibXrayLite.xcframework not found. Run ./scripts/build_libxray_ios.sh first."
+    }
+}
+
+fun iosXcframeworkSlice(targetName: String): String =
+    when (targetName) {
+        "iosArm64" -> "ios-arm64"
+        "iosSimulatorArm64" -> "ios-arm64_x86_64-simulator"
+        else -> error("Unsupported iOS target for LibXrayLite: $targetName")
+    }
+
 kotlin {
     androidTarget {
         compilations.all {
@@ -13,8 +28,24 @@ kotlin {
             }
         }
     }
-    iosArm64()
-    iosSimulatorArm64()
+    listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
+        target.compilations.getByName("main") {
+            cinterops {
+                val libv2ray by creating {
+                    defFile(project.file("src/nativeInterop/cinterop/libv2ray.def"))
+                    val slice = iosXcframeworkSlice(target.name)
+                    val frameworkDir = libXrayXcframework.resolve("$slice/LibXrayLite.framework")
+                    includeDirs(project.file("src/nativeInterop/cinterop/headers"))
+                    compilerOpts("-F${frameworkDir.parent}")
+                }
+            }
+        }
+        target.binaries.all {
+            val slice = iosXcframeworkSlice(target.name)
+            linkerOpts("-F${libXrayXcframework.resolve(slice)}")
+            linkerOpts("-framework", "LibXrayLite")
+        }
+    }
 
     sourceSets {
         commonMain.dependencies {
