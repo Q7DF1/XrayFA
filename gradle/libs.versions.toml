@@ -29,6 +29,9 @@ maxmindGeoip2 = "4.2.0"
 koin = "4.0.1"
 ktor = "3.0.3"
 composeMultiplatform = "1.7.3"
+decompose = "3.2.2"
+essenty = "2.3.0"
+kotlinxSerialization = "1.7.3"
 
 
 [libraries]
@@ -80,6 +83,11 @@ koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
+decompose-extensions-compose = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
+essenty-lifecycle = { module = "com.arkivanov.essenty:lifecycle", version.ref = "essenty" }
+essenty-state-keeper = { module = "com.arkivanov.essenty:state-keeper", version.ref = "essenty" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 
 
 [plugins]

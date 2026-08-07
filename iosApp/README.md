@@ -10,8 +10,11 @@ shared logic is exported via `:shared` → `XrayFAShared.framework`.
 - `./scripts/build_hev_tun_ios.sh` (produces `tun2socks/.../HevSocks5Tunnel.xcframework`)
 - Gradle iOS framework:
   ```bash
+  # Apple Silicon simulator
   ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
-  # Output: shared/build/bin/iosSimulatorArm64/debugFramework/XrayFAShared.framework
+  # Intel Mac simulator
+  ./gradlew :shared:linkDebugFrameworkIosX64
+  # Output: shared/build/bin/<target>/debugFramework/XrayFAShared.framework
   ```
 
 ## Layout (KMP convention: `androidApp/` + `iosApp/`)
@@ -33,13 +36,16 @@ brew install xcodegen   # once
 ./scripts/generate_ios_xcodeproj.sh
 ```
 
-Build (simulator, no signing):
+Build (simulator, no signing — auto-selects arm64 on Apple Silicon, x86_64 on Intel):
 
 ```bash
 xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp \
-  -sdk iphonesimulator -configuration Debug -arch arm64 \
+  -sdk iphonesimulator -configuration Debug \
   ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO build
 ```
+
+KMP iOS simulator targets: `iosSimulatorArm64` (Apple Silicon Mac) + `iosX64` (Intel Mac).
+Both link the universal `ios-arm64_x86_64-simulator` xcframework slice.
 
 ## Current status
 
@@ -52,3 +58,4 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp \
 - **E.6b** ✅ iOS Koin 补全 + 共享 `HomeConnectionPanel`
 - **E.6c** ✅ Room/Subscription iOS Koin + ParserFactory connect
 - **E.6d** ✅ 共享 Home 节点卡片 + 流量 UI（iOS 流量 stub 0）
+- **E.6e** ✅ Decompose 根导航（Config / Home / Settings Tab；Home 接 SharedHomeSection）
