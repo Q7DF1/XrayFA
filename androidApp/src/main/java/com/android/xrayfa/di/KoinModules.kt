@@ -13,6 +13,7 @@ import com.android.xrayfa.core.AndroidXrayAssetPaths
 import com.android.xrayfa.data.settingsDataStore
 import org.koin.android.ext.koin.androidContext
 import com.android.xrayfa.shared.di.androidSharedDiModule
+import com.android.xrayfa.shared.di.sharedServicesDiModule
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -34,6 +35,7 @@ fun androidKoinModules(): List<Module> = listOf(
     appNetworkDiModule,
     appDataDiModule,
     appCoreDiModule,
+    sharedServicesDiModule,
     androidSharedDiModule,
     appViewModelDiModule,
     appComponentDiModule,

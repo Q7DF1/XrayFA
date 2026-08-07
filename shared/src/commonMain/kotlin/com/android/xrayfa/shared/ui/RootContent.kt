@@ -24,10 +24,12 @@ import androidx.compose.ui.unit.dp
 import com.android.xrayfa.shared.navigation.ConfigComponent
 import com.android.xrayfa.shared.navigation.RootComponent
 import com.android.xrayfa.shared.navigation.RootTab
+import com.android.xrayfa.shared.navigation.SettingsComponent
+import com.android.xrayfa.shared.ui.config.SharedConfigImportMenu
 import com.android.xrayfa.shared.ui.config.SharedConfigSection
 import com.android.xrayfa.shared.ui.home.HomeTopBar
 import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
-import com.android.xrayfa.shared.ui.placeholder.PlaceholderScreen
+import com.android.xrayfa.shared.ui.settings.SharedSettingsGeneralSection
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -95,6 +97,11 @@ private fun ConfigTabScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Config", fontWeight = FontWeight.Bold) },
+                actions = {
+                    SharedConfigImportMenu(
+                        onImportFromClipboard = component::onImportFromClipboard,
+                    )
+                },
                 colors =
                     TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
@@ -115,6 +122,7 @@ private fun ConfigTabScreen(
                 component.onSelectNode(node.id)
                 onNodeSelectedNavigateHome()
             },
+            onEmptyAddClick = component::onImportFromClipboard,
         )
     }
 }
@@ -147,13 +155,13 @@ private fun HomeTabScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsTabScreen(
-    component: com.android.xrayfa.shared.navigation.PlaceholderTabComponent,
+    component: SettingsComponent,
     onBack: () -> Unit,
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(component.title) },
+                title = { Text("Settings", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -171,9 +179,12 @@ private fun SettingsTabScreen(
         },
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
-        PlaceholderScreen(
+        SharedSettingsGeneralSection(
             component = component,
-            modifier = Modifier.padding(innerPadding),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
         )
     }
 }

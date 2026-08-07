@@ -3,6 +3,7 @@ package com.android.xrayfa.ui.config
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
+import com.android.xrayfa.shared.config.ConfigLinkImporter
 import com.android.xrayfa.shared.navigation.ConfigComponent
 import com.android.xrayfa.shared.navigation.ConfigFilterLabels
 import com.android.xrayfa.shared.navigation.DefaultConfigComponent
@@ -31,6 +32,7 @@ fun rememberAndroidConfigComponent(filterLabels: ConfigFilterLabels): ConfigComp
             nodeRepository = koin.get<NodeRepository>(),
             subscriptionRepository = koin.get<SubscriptionRepository>(),
             vpnController = koin.get<VpnController>(),
+            configLinkImporter = koin.get<ConfigLinkImporter>(),
             filterLabels = filterLabels,
         )
     }
