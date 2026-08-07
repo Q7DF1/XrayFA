@@ -42,6 +42,7 @@ kotlin {
             implementation(compose.ui)
             api(libs.decompose)
             api(libs.essenty.lifecycle)
+            implementation(libs.essenty.lifecycle.coroutines)
             api(libs.essenty.state.keeper)
             implementation(libs.decompose.extensions.compose)
             implementation(libs.kotlinx.serialization.json)

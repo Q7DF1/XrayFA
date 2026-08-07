@@ -10,6 +10,7 @@ import com.arkivanov.decompose.value.Value
 
 class DefaultRootComponent(
     componentContext: ComponentContext,
+    private val homeComponentFactory: HomeComponentFactory = defaultHomeComponentFactory(),
 ) : RootComponent,
     ComponentContext by componentContext {
     private val navigation = PagesNavigation<RootTab>()
@@ -36,7 +37,7 @@ class DefaultRootComponent(
                     )
                 RootTab.Home ->
                     RootComponent.Child.Home(
-                        DefaultHomeTabComponent(componentContext = childContext),
+                        homeComponentFactory(childContext),
                     )
                 RootTab.Settings ->
                     RootComponent.Child.Settings(

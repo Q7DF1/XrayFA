@@ -1,11 +1,12 @@
 package com.android.xrayfa.shared.navigation
 
-import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.value.Value
 
-/** Marker for the Home tab; UI renders [SharedHomeSection] until HomeComponent state migration. */
-interface HomeTabComponent
+interface HomeComponent {
+    val state: Value<HomeState>
 
-class DefaultHomeTabComponent(
-    componentContext: ComponentContext,
-) : HomeTabComponent,
-    ComponentContext by componentContext
+    fun onConnectToggle()
+}
+
+/** Typealias for E.6e naming; prefer [HomeComponent] in new code. */
+typealias HomeTabComponent = HomeComponent

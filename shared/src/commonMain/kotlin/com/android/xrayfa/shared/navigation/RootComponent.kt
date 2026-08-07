@@ -15,7 +15,7 @@ interface RootComponent {
     sealed class Child {
         class Config(val component: PlaceholderTabComponent) : Child()
 
-        class Home(val component: HomeTabComponent) : Child()
+        class Home(val component: HomeComponent) : Child()
 
         class Settings(val component: PlaceholderTabComponent) : Child()
     }

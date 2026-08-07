@@ -48,6 +48,7 @@ fun RootContent(
             when (child) {
                 is RootComponent.Child.Home ->
                     HomeTabScreen(
+                        component = child.component,
                         onSettingsClick = { component.selectTab(RootTab.Settings) },
                     )
                 is RootComponent.Child.Config -> PlaceholderScreen(child.component)
@@ -78,7 +79,10 @@ fun RootContent(
 }
 
 @Composable
-private fun HomeTabScreen(onSettingsClick: () -> Unit) {
+private fun HomeTabScreen(
+    component: com.android.xrayfa.shared.navigation.HomeComponent,
+    onSettingsClick: () -> Unit,
+) {
     Scaffold(
         topBar = {
             HomeTopBar(
@@ -89,6 +93,7 @@ private fun HomeTabScreen(onSettingsClick: () -> Unit) {
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         SharedHomeSection(
+            component = component,
             modifier =
                 Modifier
                     .fillMaxSize()
