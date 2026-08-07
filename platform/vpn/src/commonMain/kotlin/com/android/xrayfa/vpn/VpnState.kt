@@ -5,3 +5,6 @@ sealed interface VpnState {
     data object Disconnected : VpnState
     data object Connected : VpnState
 }
+
+val VpnState.isConnected: Boolean
+    get() = this is VpnState.Connected

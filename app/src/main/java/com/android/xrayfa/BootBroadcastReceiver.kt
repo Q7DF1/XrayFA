@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.android.xrayfa.datastore.SettingsRepository
-import com.android.xrayfa.core.XrayBaseServiceManager
+import com.android.xrayfa.vpn.VpnController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -15,16 +15,16 @@ import kotlinx.coroutines.launch
  * If automatic startup is enabled during power-on,
  * it will automatically shut down during power-off.
  */
-class BootBroadcastReceiver constructor(
-    val manager: XrayBaseServiceManager,
+class BootBroadcastReceiver(
+    private val vpnController: VpnController,
     private val coroutineScope: CoroutineScope,
     private val settingsRepository: SettingsRepository,
-): BroadcastReceiver() {
+) : BroadcastReceiver() {
     companion object {
         const val TAG = "BootBroadcastReceiver"
     }
-    override fun onReceive(context: Context?, intent: Intent?) {
 
+    override fun onReceive(context: Context?, intent: Intent?) {
         val action = intent?.action ?: return
 
         when (action) {
@@ -32,12 +32,11 @@ class BootBroadcastReceiver constructor(
                 Log.d("DeviceEvent", "Device Booted!")
                 context?.let {
                     coroutineScope.launch {
-                        val enable = settingsRepository.settingsFlow.first().bootAutoStart;
+                        val enable = settingsRepository.settingsFlow.first().bootAutoStart
                         Log.d(TAG, "onReceive: Boot auto start enable: $enable")
                         if (enable) {
-                            manager.startXrayBaseService()
+                            vpnController.connect()
                         }
-
                     }
                 }
             }
@@ -46,7 +45,7 @@ class BootBroadcastReceiver constructor(
                 Log.d("DeviceEvent", "Device Shutting Down!")
                 context?.let {
                     coroutineScope.launch {
-                        manager.stopXrayBaseService()
+                        vpnController.disconnect()
                     }
                 }
             }

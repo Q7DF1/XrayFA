@@ -23,11 +23,14 @@ import com.android.xrayfa.datastore.DomainStrategy
 import com.android.xrayfa.datastore.RoutingMode
 import com.android.xrayfa.datastore.Rule
 import com.android.xrayfa.common.utils.calculateFileHash
-import com.android.xrayfa.core.XrayBaseServiceManager
+import com.android.xrayfa.vpn.VpnController
+import com.android.xrayfa.vpn.isConnected
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -69,7 +72,7 @@ data class GithubAsset(
 class SettingsViewmodel(
     val repository: SettingsRepository,
     private val fileDownloader: FileDownloader,
-    val xrayBaseServiceManager: XrayBaseServiceManager,
+    private val vpnController: VpnController,
     private val assetPaths: XrayAssetPaths,
 ): ViewModel() {
 
@@ -115,6 +118,14 @@ class SettingsViewmodel(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = SettingsState()
     )
+
+    val isVpnConnected: StateFlow<Boolean> = vpnController.state
+        .map { it.isConnected }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = vpnController.state.value.isConnected,
+        )
 
 
     fun setDarkMode(darkMode: Int) {
@@ -248,7 +259,7 @@ class SettingsViewmodel(
     }
 
     suspend fun onConfigSettingsChanged() {
-        xrayBaseServiceManager.restartXrayBaseServiceIfNeed()
+        vpnController.restartIfNeeded()
     }
 
 
@@ -298,7 +309,7 @@ class SettingsViewmodel(
     }
 
     suspend fun onConfigChanged() {
-        xrayBaseServiceManager.restartXrayBaseServiceIfNeed()
+        vpnController.restartIfNeeded()
     }
 
 
@@ -405,13 +416,13 @@ class SettingsViewmodel(
 class SettingsViewmodelFactory(
     val repository: SettingsRepository,
     val fileDownloader: FileDownloader,
-    val xrayBaseServiceManager: XrayBaseServiceManager,
+    val vpnController: VpnController,
     val assetPaths: XrayAssetPaths,
 ): ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SettingsViewmodel::class.java)) {
-            return SettingsViewmodel(repository, fileDownloader, xrayBaseServiceManager, assetPaths) as T
+            return SettingsViewmodel(repository, fileDownloader, vpnController, assetPaths) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
