@@ -28,6 +28,7 @@ material3 = "1.5.0-alpha15"
 maxmindGeoip2 = "4.2.0"
 koin = "4.0.1"
 ktor = "3.0.3"
+composeMultiplatform = "1.7.3"
 
 
 [libraries]
@@ -89,4 +90,5 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-kapt = {id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin"}
 kotlin-ksp = {id = "com.google.devtools.ksp", version.ref = "ksp"}
 kotlin-serialization = {id = "org.jetbrains.kotlin.plugin.serialization",version.ref = "kotlin"}
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 
