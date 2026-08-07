@@ -26,6 +26,8 @@ kotlin {
             compileOnly(
                 files(rootProject.file("app/libs/libv2ray.aar")),
             )
+            // compileOnly: JNI .so comes from :tun2socks / :app at runtime; compile against TProxyService API.
+            compileOnly(project(":tun2socks"))
         }
     }
 }
