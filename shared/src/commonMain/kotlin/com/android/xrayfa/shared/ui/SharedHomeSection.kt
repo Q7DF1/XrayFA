@@ -20,6 +20,7 @@ import com.android.xrayfa.shared.ui.home.HomeEmptyNodeCard
 import com.android.xrayfa.shared.ui.home.HomeSectionHeader
 import com.android.xrayfa.shared.ui.home.HomeSelectedNodeCard
 import com.android.xrayfa.shared.ui.home.HomeTrafficStatusCard
+import com.android.xrayfa.shared.ui.home.HomeUiLabels
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 
 /** Shared home section driven by [HomeComponent] (E.6g). Layout matches Android `CompactHomeContent`. */
@@ -27,14 +28,24 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 fun SharedHomeSection(
     component: HomeComponent,
     modifier: Modifier = Modifier,
+    showNodeCard: Boolean = true,
+    onConnectToggle: (() -> Unit)? = null,
+    labels: HomeUiLabels = HomeUiLabels(),
+    scrollEnabled: Boolean = true,
 ) {
     val state by component.state.subscribeAsState()
+    val scrollModifier =
+        if (scrollEnabled) {
+            Modifier.verticalScroll(rememberScrollState())
+        } else {
+            Modifier
+        }
 
     Column(
         modifier =
             modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
+                .then(scrollModifier)
                 .padding(horizontal = 20.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -44,40 +55,46 @@ fun SharedHomeSection(
         HomeConnectButton(
             isConnected = state.isConnected,
             enabled = !state.busy,
-            onToggle = component::onConnectToggle,
+            onToggle = onConnectToggle ?: component::onConnectToggle,
         )
 
         HomeConnectionStatusLabel(
             isConnected = state.isConnected,
-            connectedLabel = "Connected",
-            disconnectedLabel = "Not connected",
-            connectedHint = "Tap the button to disconnect",
-            disconnectedHint = "Tap the button to connect",
+            connectedLabel = labels.connectedLabel,
+            disconnectedLabel = labels.disconnectedLabel,
+            connectedHint = labels.connectedHint,
+            disconnectedHint = labels.disconnectedHint,
         )
 
         HomeTrafficStatusCard(
             isConnected = state.isConnected,
             uploadSpeedKbps = state.uploadSpeedKbps,
             downloadSpeedKbps = state.downloadSpeedKbps,
-            uploadLabel = "Upload",
-            downloadLabel = "Download",
+            uploadLabel = labels.uploadLabel,
+            downloadLabel = labels.downloadLabel,
         )
 
         state.selectedNode?.let { node ->
-            HomeSectionHeader(
-                text = "Connection Details",
-                modifier = Modifier.fillMaxWidth(),
-            )
-            HomeSelectedNodeCard(
-                node = node,
-                unknownProtocolLabel = "Unknown",
-                enableTest = state.isConnected,
-            )
-        } ?: HomeEmptyNodeCard(message = "select configuration first")
+            if (showNodeCard) {
+                HomeSectionHeader(
+                    text = labels.connectionDetailsHeader,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                HomeSelectedNodeCard(
+                    node = node,
+                    unknownProtocolLabel = labels.unknownProtocolLabel,
+                    enableTest = state.isConnected,
+                )
+            }
+        } ?: run {
+            if (showNodeCard) {
+                HomeEmptyNodeCard(message = labels.emptyNodeMessage)
+            }
+        }
 
         if (state.showConfigError) {
             HomeSectionHeader(
-                text = "Configuration not ready",
+                text = labels.configNotReadyMessage,
                 modifier = Modifier.fillMaxWidth(),
             )
         }

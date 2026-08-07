@@ -1,10 +1,18 @@
 package com.android.xrayfa.shared.vpn
 
-/** Android host app still owns VPN orchestration via [com.android.xrayfa.viewmodel.XrayViewmodel]. */
-class AndroidVpnConnectCoordinator : VpnConnectCoordinator {
-    override suspend fun prepareConfigForConnect(): Boolean = false
+import com.android.xrayfa.vpn.VpnController
 
-    override suspend fun connect(): Boolean = false
+/**
+ * Android VPN connect orchestration via [VpnController] and [VpnStartOptionsResolver].
+ * Config is resolved at connect time inside [com.android.xrayfa.core.XrayBaseServiceManager].
+ */
+class AndroidVpnConnectCoordinator(
+    private val vpnController: VpnController,
+    private val startOptionsResolver: VpnStartOptionsResolver,
+) : VpnConnectCoordinator {
+    override suspend fun prepareConfigForConnect(): Boolean = startOptionsResolver.resolve() != null
 
-    override fun disconnect() = Unit
+    override suspend fun connect(): Boolean = vpnController.connect()
+
+    override fun disconnect() = vpnController.disconnect()
 }

@@ -1,6 +1,8 @@
 package com.android.xrayfa.shared.navigation
 
 import com.android.xrayfa.repository.NodeRepository
+import com.android.xrayfa.shared.vpn.EmptyTrafficStatsSource
+import com.android.xrayfa.shared.vpn.TrafficStatsSource
 import com.android.xrayfa.shared.vpn.VpnConnectCoordinator
 import com.android.xrayfa.vpn.VpnController
 import com.android.xrayfa.vpn.isConnected
@@ -17,6 +19,7 @@ class DefaultHomeComponent(
     private val vpnController: VpnController,
     private val nodeRepository: NodeRepository,
     private val coordinator: VpnConnectCoordinator,
+    private val trafficStatsSource: TrafficStatsSource = EmptyTrafficStatsSource,
 ) : HomeComponent,
     ComponentContext by componentContext {
     private val scope = coroutineScope()
@@ -33,6 +36,11 @@ class DefaultHomeComponent(
         scope.launch {
             nodeRepository.querySelectedNode().collect { node ->
                 _state.update { it.copy(selectedNode = node) }
+            }
+        }
+        scope.launch {
+            trafficStatsSource.speedsKbps.collect { (up, down) ->
+                _state.update { it.copy(uploadSpeedKbps = up, downloadSpeedKbps = down) }
             }
         }
     }
