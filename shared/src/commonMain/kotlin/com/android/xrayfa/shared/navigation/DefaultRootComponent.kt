@@ -11,6 +11,7 @@ import com.arkivanov.decompose.value.Value
 class DefaultRootComponent(
     componentContext: ComponentContext,
     private val homeComponentFactory: HomeComponentFactory = defaultHomeComponentFactory(),
+    private val configComponentFactory: ConfigComponentFactory = defaultConfigComponentFactory(),
 ) : RootComponent,
     ComponentContext by componentContext {
     private val navigation = PagesNavigation<RootTab>()
@@ -29,11 +30,7 @@ class DefaultRootComponent(
             when (tab) {
                 RootTab.Config ->
                     RootComponent.Child.Config(
-                        DefaultPlaceholderTabComponent(
-                            componentContext = childContext,
-                            title = "Config",
-                            message = "Node list and subscriptions will migrate here.",
-                        ),
+                        configComponentFactory(childContext),
                     )
                 RootTab.Home ->
                     RootComponent.Child.Home(

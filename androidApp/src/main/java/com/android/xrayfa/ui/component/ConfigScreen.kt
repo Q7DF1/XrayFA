@@ -97,7 +97,12 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.R
+import com.android.xrayfa.shared.navigation.ConfigFilterLabels
+import com.android.xrayfa.shared.ui.config.ConfigUiLabels
+import com.android.xrayfa.shared.ui.config.SharedConfigSection
+import com.android.xrayfa.ui.config.rememberAndroidConfigComponent
 import com.android.xrayfa.ui.navigation.Config
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.android.xrayfa.ui.navigation.Detail
 import com.android.xrayfa.ui.navigation.Edit
 import com.android.xrayfa.ui.navigation.Home
@@ -139,15 +144,46 @@ fun ConfigScreen(
     animatedVisibilityScope: AnimatedVisibilityScope,
     onNavigate: (NavigateDestination) -> Unit
 ) {
-    val nodes by xrayViewmodel.nodes.collectAsState()
+    val configComponent =
+        rememberAndroidConfigComponent(
+            filterLabels =
+                ConfigFilterLabels(
+                    manualLabel = "Manual",
+                    allLabel = "All",
+                    favoriteLabel = "Favorite",
+                ),
+        )
+    val configState by configComponent.state.subscribeAsState()
     val queryNodes by xrayViewmodel.queryNodes.collectAsState()
     val qrBitMap by xrayViewmodel.qrBitmap.collectAsState()
     val deleteDialog by xrayViewmodel.deleteDialog.collectAsState()
     val bugReportDialog by xrayViewmodel.bugReportDialog.collectAsState()
-    val subscriptions by xrayViewmodel.subscriptions.collectAsState()
-    val selectedSubId by xrayViewmodel.selectedSubscriptionId.collectAsState()
     val nodeDelayMap by xrayViewmodel.nodeDelayMap.collectAsState()
     val isTestingAll by xrayViewmodel.isTestingAll.collectAsState()
+
+    val configLabels =
+        ConfigUiLabels(
+            title = stringResource(Config.title),
+            manualFilterLabel = "Manual",
+            allFilterLabel = "All",
+            favoriteFilterLabel = "Favorite",
+            emptyTitle = stringResource(R.string.no_configuration),
+            emptyHint = stringResource(R.string.no_configuration_hint),
+            createConfigLabel = stringResource(R.string.create_a_config),
+            unknownProtocolLabel = stringResource(R.string.unknown),
+            timeoutLabel = stringResource(R.string.timeout),
+            testingLabel = "Testing...",
+            addToFavoritesLabel = stringResource(R.string.add_to_favorites),
+            removeFromFavoritesLabel = stringResource(R.string.remove_from_favorites),
+            testDelayLabel = stringResource(R.string.test_url),
+            shareLabel = stringResource(R.string.clipboard_export),
+            editLabel = stringResource(R.string.edit),
+            deleteLabel = stringResource(R.string.delete),
+        )
+
+    LaunchedEffect(configState.selectedFilterId) {
+        xrayViewmodel.selectSubscription(configState.selectedFilterId)
+    }
 
     val context = LocalContext.current
     val listState = rememberLazyListState()
@@ -165,35 +201,17 @@ fun ConfigScreen(
         targetValue = if (isScrolled) 4.dp else 0.dp,
         label = "TopBarShadowElevation"
     )
-    
-    // Build filter list
-    val filters = remember(subscriptions) {
-        val list = mutableListOf<Pair<Int, String>>()
-        if (subscriptions.isNotEmpty()) {
-            list.add(XrayViewmodel.SUB_MANUAL to "Manual")
-        }
-        list.add(XrayViewmodel.SUB_ALL to "All")
-        list.add(XrayViewmodel.FAVORITE to "Favorite")
-        subscriptions.forEach { 
-            list.add(it.id to it.mark.orEmpty())
-        }
-        list
-    }
 
-    // Function to locate and scroll to a specific item by ID
     suspend fun scrollToItemById(id: Int) {
-        val index = nodes.indexOfFirst { it.id == id }
+        val index = configState.nodes.indexOfFirst { it.id == id }
         if (index != -1) {
-            // Animate scroll to the found index
             listState.animateScrollToItem(index)
         }
     }
 
-    // Function to locate and scroll to the selected item
     suspend fun scrollToSelected() {
-        val index = nodes.indexOfFirst { it.selected }
+        val index = configState.nodes.indexOfFirst { it.selected }
         if (index != -1) {
-            // Scroll to the selected item
             listState.animateScrollToItem(index)
         }
     }
@@ -205,7 +223,7 @@ fun ConfigScreen(
         Column(modifier = Modifier.fillMaxSize()){
             Surface(
                 shadowElevation = appBarElevation,
-                color = MaterialTheme.colorScheme.surface, // Use surface instead of background
+                color = MaterialTheme.colorScheme.surface,
                 modifier = Modifier.zIndex(1f)
             ) {
                 Column {
@@ -346,123 +364,52 @@ fun ConfigScreen(
                         ),
                         scrollBehavior = scrollBehavior,
                     )
-                    
-                    // Filter Chips Row
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                }
+            }
+            SharedConfigSection(
+                component = configComponent,
+                modifier = Modifier.weight(1f),
+                labels = configLabels,
+                listState = listState,
+                nodeDelayMap = nodeDelayMap,
+                listModifier = Modifier.columnVerticalScrollbar(listState, 4.dp),
+                nestedScrollConnection = scrollBehavior.nestedScrollConnection,
+                onEmptyAddClick = { onNavigate(Edit) },
+                onNodeSelected = { node ->
+                    configComponent.onSelectNode(node.id)
+                    onNavigate(Home)
+                },
+                onShareNode = { node -> xrayViewmodel.generateQRCode(node.id) },
+                onEditNode = { node ->
+                    onNavigate(
+                        Detail(
+                            id = node.id,
+                            remark = node.remark,
+                            protocol = node.protocolPrefix,
+                            content = node.url,
+                        ),
+                    )
+                },
+                onDeleteNode = { node -> xrayViewmodel.showDeleteDialog(node.id) },
+                filterTrailingContent = {
+                    IconButton(
+                        onClick = { xrayViewmodel.measureAllNodesDelay(context) },
+                        modifier = Modifier.padding(end = 12.dp).size(32.dp),
                     ) {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            contentPadding = PaddingValues(start = 16.dp, end = 8.dp),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            items(filters.size) { index ->
-                                val (id, label) = filters[index]
-                                FilterChip(
-                                    selected = selectedSubId == id,
-                                    onClick = { xrayViewmodel.selectSubscription(id) },
-                                    label = { Text(label) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    ),
-                                    border = FilterChipDefaults.filterChipBorder(
-                                        enabled = true,
-                                        selected = selectedSubId == id,
-                                        borderColor = MaterialTheme.colorScheme.outlineVariant,
-                                        selectedBorderColor = Color.Transparent
-                                    )
-                                )
-                            }
-                        }
-
-                        IconButton(
-                            onClick = { 
-                                xrayViewmodel.measureAllNodesDelay(context) 
-                            },
-                            modifier = Modifier.padding(end = 12.dp).size(32.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Speed,
-                                contentDescription = "Speed Test All",
-                                tint = if (isTestingAll) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Outlined.Speed,
+                            contentDescription = "Speed Test All",
+                            tint =
+                                if (isTestingAll) {
+                                    MaterialTheme.colorScheme.secondary
+                                } else {
+                                    MaterialTheme.colorScheme.primary
+                                },
+                            modifier = Modifier.size(20.dp),
+                        )
                     }
-                }
-            }
-            if (nodes.isEmpty()) {
-                EmptyConfigContent(
-                    modifier = Modifier.weight(1f),
-                    selectedSubId = selectedSubId
-                ) {
-                    onNavigate(Edit)
-                }
-            }else {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
-                        .columnVerticalScrollbar(listState,4.dp)
-                ) {
-                    items(nodes, key = {it.id}) { node ->
-                        val delayMs = nodeDelayMap[node.id] ?: 0L
-                        Column(modifier = Modifier.animateItem()) {
-                            with(sharedTransitionScope) {
-                                NodeCard(
-                                    node = node,
-                                    delete = {
-                                        xrayViewmodel.showDeleteDialog(node.id)
-                                    },
-                                    onChoose = {
-                                        xrayViewmodel.setSelectedNode(node.id)
-                                        onNavigate(Home)
-                                    },
-                                    onShare = {
-                                        xrayViewmodel.generateQRCode(node.id)
-                                    },
-                                    onEdit = {
-                                        onNavigate(
-                                            Detail (
-                                                id = node.id,
-                                                remark = node.remark,
-                                                protocol = node.protocolPrefix,
-                                                content = node.url
-                                            )
-                                        )
-                                    },
-                                    selected =node.selected,
-                                    favorite = node.favorite,
-                                    delayMs = delayMs,
-                                    testing = delayMs == -1L,
-                                    onFavorite = {
-                                        xrayViewmodel.updateFavoriteById(node.id, !node.favorite)
-                                    },
-                                    roundCorner = false,
-                                    countryEmoji = node.countryISO,
-                                    modifier = Modifier.sharedElement(
-                                        sharedTransitionScope.rememberSharedContentState(key = node.id),
-                                        animatedVisibilityScope = LocalNavAnimatedContentScope.current,
-                                    )
-                                )
-                            }
-
-                            if(node != nodes.last()) {
-                                HorizontalDivider(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(start = 86.dp, end = 16.dp),
-                                    thickness = 0.6.dp,
-                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+                },
+            )
         }
 
         qrBitMap?.let {
@@ -557,7 +504,7 @@ fun ConfigScreen(
         AnimatedVisibility(
             visible = !listState.isAtBottom { isAtBottom ->
                 if (isAtBottom) xrayViewmodel.hideNavigationBar() else xrayViewmodel.showNavigationBar()
-            } && nodes.isNotEmpty(),
+            } && configState.nodes.isNotEmpty(),
             enter = fadeIn(),
             exit = fadeOut(),
             modifier = Modifier.align (BiasAlignment(0.8f,0.9f))
@@ -723,71 +670,5 @@ fun Modifier.columnVerticalScrollbar(
             alpha = currentAlpha,
             cornerRadius = CornerRadius(width.toPx() / 2, width.toPx() / 2)
         )
-    }
-}
-
-@Composable
-private fun EmptyConfigContent(
-    modifier: Modifier = Modifier,
-    selectedSubId: Int,
-    onAddClick: () -> Unit
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // 使用 Material 3 的容器色调
-        Surface(
-            modifier = Modifier.size(120.dp),
-            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-            shape = CircleShape
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Subscriptions,
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(30.dp)
-                    .fillMaxSize(),
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = stringResource(R.string.no_configuration),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = stringResource(R.string.no_configuration_hint),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-        AnimatedVisibility(
-            visible = selectedSubId == SUB_MANUAL || selectedSubId == SUB_ALL
-        ) {
-            Button(
-                onClick = onAddClick,
-                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.create_a_config))
-            }
-        }
-
     }
 }

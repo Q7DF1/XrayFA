@@ -19,9 +19,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.android.xrayfa.shared.navigation.ConfigComponent
 import com.android.xrayfa.shared.navigation.RootComponent
 import com.android.xrayfa.shared.navigation.RootTab
+import com.android.xrayfa.shared.ui.config.SharedConfigSection
 import com.android.xrayfa.shared.ui.home.HomeTopBar
 import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
 import com.android.xrayfa.shared.ui.placeholder.PlaceholderScreen
@@ -51,7 +54,11 @@ fun RootContent(
                         component = child.component,
                         onSettingsClick = { component.selectTab(RootTab.Settings) },
                     )
-                is RootComponent.Child.Config -> PlaceholderScreen(child.component)
+                is RootComponent.Child.Config ->
+                    ConfigTabScreen(
+                        component = child.component,
+                        onNodeSelectedNavigateHome = { component.selectTab(RootTab.Home) },
+                    )
                 is RootComponent.Child.Settings ->
                     SettingsTabScreen(
                         component = child.component,
@@ -75,6 +82,40 @@ fun RootContent(
                         .padding(bottom = 16.dp, start = 16.dp, end = 16.dp),
             )
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ConfigTabScreen(
+    component: ConfigComponent,
+    onNodeSelectedNavigateHome: () -> Unit,
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Config", fontWeight = FontWeight.Bold) },
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = MaterialTheme.colorScheme.surface,
+                    ),
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background,
+    ) { innerPadding ->
+        SharedConfigSection(
+            component = component,
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(bottom = 88.dp),
+            onNodeSelected = { node ->
+                component.onSelectNode(node.id)
+                onNodeSelectedNavigateHome()
+            },
+        )
     }
 }
 
