@@ -39,11 +39,7 @@ fun AppShell() {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            PlatformVpnControls()
+            SharedHomeSection()
         }
     }
 }
-
-/** Platform-specific VPN trial controls (iOS only for now). */
-@Composable
-expect fun PlatformVpnControls()

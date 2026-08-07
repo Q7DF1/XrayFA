@@ -36,9 +36,15 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.ui)
             implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+        }
+        androidMain.dependencies {
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
         }
         iosMain.dependencies {
             implementation(libs.koin.core)
+            implementation(libs.koin.compose)
         }
     }
 }
