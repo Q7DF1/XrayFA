@@ -2,6 +2,7 @@ package com.android.xrayfa.shared.navigation
 
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.repository.SubscriptionRepository
+import com.android.xrayfa.shared.config.ConfigLinkImporter
 import com.android.xrayfa.vpn.VpnController
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
@@ -17,6 +18,7 @@ class DefaultConfigComponent(
     private val nodeRepository: NodeRepository,
     subscriptionRepository: SubscriptionRepository,
     private val vpnController: VpnController,
+    private val configLinkImporter: ConfigLinkImporter,
     private val filterLabels: ConfigFilterLabels = ConfigFilterLabels(),
 ) : ConfigComponent,
     ComponentContext by componentContext {
@@ -70,6 +72,12 @@ class DefaultConfigComponent(
     ) {
         scope.launch {
             nodeRepository.updateFavoriteById(nodeId, favorite)
+        }
+    }
+
+    override fun onImportFromClipboard() {
+        scope.launch {
+            configLinkImporter.importFromClipboard()
         }
     }
 

@@ -17,6 +17,6 @@ interface RootComponent {
 
         class Home(val component: HomeComponent) : Child()
 
-        class Settings(val component: PlaceholderTabComponent) : Child()
+        class Settings(val component: SettingsComponent) : Child()
     }
 }

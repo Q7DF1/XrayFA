@@ -13,6 +13,8 @@ interface ConfigComponent {
         nodeId: Int,
         favorite: Boolean,
     )
+
+    fun onImportFromClipboard()
 }
 
 /** Typealias for E.6e naming; prefer [ConfigComponent] in new code. */

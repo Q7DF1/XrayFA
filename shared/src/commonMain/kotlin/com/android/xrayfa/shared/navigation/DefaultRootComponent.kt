@@ -12,6 +12,7 @@ class DefaultRootComponent(
     componentContext: ComponentContext,
     private val homeComponentFactory: HomeComponentFactory = defaultHomeComponentFactory(),
     private val configComponentFactory: ConfigComponentFactory = defaultConfigComponentFactory(),
+    private val settingsComponentFactory: SettingsComponentFactory = defaultSettingsComponentFactory(),
 ) : RootComponent,
     ComponentContext by componentContext {
     private val navigation = PagesNavigation<RootTab>()
@@ -38,11 +39,7 @@ class DefaultRootComponent(
                     )
                 RootTab.Settings ->
                     RootComponent.Child.Settings(
-                        DefaultPlaceholderTabComponent(
-                            componentContext = childContext,
-                            title = "Settings",
-                            message = "Settings screens will migrate here.",
-                        ),
+                        settingsComponentFactory(childContext),
                     )
             }
         }
