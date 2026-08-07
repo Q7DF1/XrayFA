@@ -51,3 +51,4 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp \
 - **E.6** ✅ Compose Multiplatform `AppShell` + `MainViewController` + iOS Koin bootstrap
 - **E.6b** ✅ iOS Koin 补全 + 共享 `HomeConnectionPanel`
 - **E.6c** ✅ Room/Subscription iOS Koin + ParserFactory connect
+- **E.6d** ✅ 共享 Home 节点卡片 + 流量 UI（iOS 流量 stub 0）
