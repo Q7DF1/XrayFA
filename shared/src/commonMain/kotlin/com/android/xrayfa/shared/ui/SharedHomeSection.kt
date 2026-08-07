@@ -9,42 +9,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.android.xrayfa.datastore.SettingsRepository
-import com.android.xrayfa.repository.NodeRepository
+import com.android.xrayfa.shared.navigation.HomeComponent
 import com.android.xrayfa.shared.ui.home.HomeConnectButton
 import com.android.xrayfa.shared.ui.home.HomeConnectionStatusLabel
 import com.android.xrayfa.shared.ui.home.HomeEmptyNodeCard
 import com.android.xrayfa.shared.ui.home.HomeSectionHeader
 import com.android.xrayfa.shared.ui.home.HomeSelectedNodeCard
 import com.android.xrayfa.shared.ui.home.HomeTrafficStatusCard
-import com.android.xrayfa.shared.vpn.VpnConnectCoordinator
-import com.android.xrayfa.vpn.VpnController
-import com.android.xrayfa.vpn.isConnected
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import org.koin.compose.koinInject
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
 
-/** Shared home section wired through Koin (E.6b+). Layout matches Android `CompactHomeContent`. */
+/** Shared home section driven by [HomeComponent] (E.6g). Layout matches Android `CompactHomeContent`. */
 @Composable
-fun SharedHomeSection(modifier: Modifier = Modifier) {
-    val vpnController: VpnController = koinInject()
-    val nodeRepository: NodeRepository = koinInject()
-    val coordinator: VpnConnectCoordinator = koinInject()
-    val scope = rememberCoroutineScope()
-
-    val vpnState by vpnController.state.collectAsState()
-    val selectedNode by nodeRepository.querySelectedNode().collectAsState(initial = null)
-    var busy by remember { mutableStateOf(false) }
-    var showConfigError by remember { mutableStateOf(false) }
+fun SharedHomeSection(
+    component: HomeComponent,
+    modifier: Modifier = Modifier,
+) {
+    val state by component.state.subscribeAsState()
 
     Column(
         modifier =
@@ -58,37 +42,13 @@ fun SharedHomeSection(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(8.dp))
 
         HomeConnectButton(
-            isConnected = vpnState.isConnected,
-            enabled = !busy,
-            onToggle = {
-                if (selectedNode == null) {
-                    scope.launch {
-                        showConfigError = true
-                        delay(2000L)
-                        showConfigError = false
-                    }
-                    return@HomeConnectButton
-                }
-
-                if (vpnState.isConnected) {
-                    coordinator.disconnect()
-                } else {
-                    busy = true
-                    scope.launch {
-                        val prepared = coordinator.prepareConfigForConnect()
-                        if (!prepared) {
-                            busy = false
-                            return@launch
-                        }
-                        coordinator.connect()
-                        busy = false
-                    }
-                }
-            },
+            isConnected = state.isConnected,
+            enabled = !state.busy,
+            onToggle = component::onConnectToggle,
         )
 
         HomeConnectionStatusLabel(
-            isConnected = vpnState.isConnected,
+            isConnected = state.isConnected,
             connectedLabel = "Connected",
             disconnectedLabel = "Not connected",
             connectedHint = "Tap the button to disconnect",
@@ -96,14 +56,14 @@ fun SharedHomeSection(modifier: Modifier = Modifier) {
         )
 
         HomeTrafficStatusCard(
-            isConnected = vpnState.isConnected,
-            uploadSpeedKbps = 0.0,
-            downloadSpeedKbps = 0.0,
+            isConnected = state.isConnected,
+            uploadSpeedKbps = state.uploadSpeedKbps,
+            downloadSpeedKbps = state.downloadSpeedKbps,
             uploadLabel = "Upload",
             downloadLabel = "Download",
         )
 
-        selectedNode?.let { node ->
+        state.selectedNode?.let { node ->
             HomeSectionHeader(
                 text = "Connection Details",
                 modifier = Modifier.fillMaxWidth(),
@@ -111,11 +71,11 @@ fun SharedHomeSection(modifier: Modifier = Modifier) {
             HomeSelectedNodeCard(
                 node = node,
                 unknownProtocolLabel = "Unknown",
-                enableTest = vpnState.isConnected,
+                enableTest = state.isConnected,
             )
         } ?: HomeEmptyNodeCard(message = "select configuration first")
 
-        if (showConfigError) {
+        if (state.showConfigError) {
             HomeSectionHeader(
                 text = "Configuration not ready",
                 modifier = Modifier.fillMaxWidth(),
