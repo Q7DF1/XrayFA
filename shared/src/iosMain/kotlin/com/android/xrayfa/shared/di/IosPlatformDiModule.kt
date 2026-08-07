@@ -33,5 +33,11 @@ val iosPlatformDiModule: Module = module {
         IosVpnController(scope = get(named(KoinQualifiers.MAIN_SCOPE)))
     }
     single<VpnController> { get<IosVpnController>() }
-    single<VpnConnectCoordinator> { IosVpnConnectCoordinator(get()) }
+    single<VpnConnectCoordinator> {
+        IosVpnConnectCoordinator(
+            vpnController = get(),
+            parserFactory = get(),
+            startOptionsResolver = get(),
+        )
+    }
 }

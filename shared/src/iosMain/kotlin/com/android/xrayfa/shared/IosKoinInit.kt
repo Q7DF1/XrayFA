@@ -2,6 +2,7 @@ package com.android.xrayfa.shared
 
 import com.android.xrayfa.di.iosDomainDiModule
 import com.android.xrayfa.di.parserDiModule
+import com.android.xrayfa.shared.di.iosDataDiModule
 import com.android.xrayfa.shared.di.iosNetworkDiModule
 import com.android.xrayfa.shared.di.iosPlatformDiModule
 import com.android.xrayfa.shared.di.sharedCoroutineDiModule
@@ -19,6 +20,7 @@ object IosKoinInit {
             modules(
                 sharedCoroutineDiModule,
                 iosPlatformDiModule,
+                iosDataDiModule,
                 iosNetworkDiModule,
                 iosDomainDiModule,
                 parserDiModule(),
