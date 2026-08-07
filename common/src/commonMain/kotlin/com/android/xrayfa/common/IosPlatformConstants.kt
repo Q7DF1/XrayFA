@@ -10,4 +10,10 @@ object IosPlatformConstants {
 
     /** `"true"` / `"false"` — Network Extension updates; host app observes for connection state. */
     const val VPN_TUNNEL_CONNECTED_KEY: String = "vpn_tunnel_connected"
+
+    /** Upload speed in KB/s — PacketTunnel writes; host app polls for home traffic UI. */
+    const val VPN_UPLOAD_SPEED_KBPS_KEY: String = "vpn_upload_speed_kbps"
+
+    /** Download speed in KB/s — PacketTunnel writes; host app polls for home traffic UI. */
+    const val VPN_DOWNLOAD_SPEED_KBPS_KEY: String = "vpn_download_speed_kbps"
 }

@@ -71,6 +71,7 @@ class IosVpnController(
     override fun disconnect() {
         manager?.connection?.stopVPNTunnel()
         IosAppGroupStorage.setTunnelConnected(false)
+        IosAppGroupStorage.clearTrafficSpeeds()
         _state.value = VpnState.Disconnected
     }
 

@@ -12,7 +12,9 @@ import com.android.xrayfa.datastore.createSettingsDataStore
 import com.android.xrayfa.shared.platform.IosGeoIpProvider
 import com.android.xrayfa.shared.platform.IosLogger
 import com.android.xrayfa.shared.platform.IosXrayAssetPaths
+import com.android.xrayfa.shared.vpn.IosTrafficStatsSource
 import com.android.xrayfa.shared.vpn.IosVpnConnectCoordinator
+import com.android.xrayfa.shared.vpn.TrafficStatsSource
 import com.android.xrayfa.shared.vpn.VpnConnectCoordinator
 import com.android.xrayfa.vpn.IosVpnController
 import com.android.xrayfa.vpn.VpnController
@@ -39,5 +41,8 @@ val iosPlatformDiModule: Module = module {
             parserFactory = get(),
             startOptionsResolver = get(),
         )
+    }
+    single<TrafficStatsSource> {
+        IosTrafficStatsSource(scope = get(named(KoinQualifiers.BACKGROUND_SCOPE)))
     }
 }

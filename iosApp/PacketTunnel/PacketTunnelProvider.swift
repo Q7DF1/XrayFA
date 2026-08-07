@@ -5,6 +5,15 @@ private enum AppGroup {
     static let suiteName = "group.com.android.xrayfa"
     static let pendingConfigKey = "pending_vpn_config_json"
     static let tunnelConnectedKey = "vpn_tunnel_connected"
+    static let uploadSpeedKbpsKey = "vpn_upload_speed_kbps"
+    static let downloadSpeedKbpsKey = "vpn_download_speed_kbps"
+}
+
+private enum TrafficStats {
+    static let proxyTag = "proxy"
+    static let uplink = "uplink"
+    static let downlink = "downlink"
+    static let pollIntervalSec: TimeInterval = 3
 }
 
 /// Packet tunnel: App Group config, TUN, Xray startLoop (tunFd=0) + hev-socks5-tunnel on utun.
@@ -13,6 +22,8 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
     private var coreController: Libv2rayCoreController?
     private var callbackHandler: TunnelCoreCallbackHandler?
     private var tun2SocksQueue: DispatchQueue?
+    private var trafficTimer: DispatchSourceTimer?
+    private var lastTrafficSampleTime: Date?
 
     override func startTunnel(
         options: [String: NSObject]?,
@@ -33,6 +44,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
             do {
                 try self?.startVpnPipeline(configJson: configJson)
                 self?.setTunnelConnected(true)
+                self?.startTrafficPolling()
                 completionHandler(nil)
             } catch {
                 self?.setTunnelConnected(false)
@@ -86,6 +98,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
     }
 
     private func stopVpnPipeline() {
+        stopTrafficPolling()
         HevSocks5TunnelHelper.quit()
         tun2SocksQueue = nil
 
@@ -104,6 +117,56 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
     private func setTunnelConnected(_ connected: Bool) {
         UserDefaults(suiteName: AppGroup.suiteName)?
             .set(connected ? "true" : "false", forKey: AppGroup.tunnelConnectedKey)
+    }
+
+    private func startTrafficPolling() {
+        stopTrafficPolling()
+        writeTrafficSpeedsKbps(upload: 0, download: 0)
+        lastTrafficSampleTime = Date()
+
+        let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .utility))
+        timer.schedule(deadline: .now() + TrafficStats.pollIntervalSec, repeating: TrafficStats.pollIntervalSec)
+        timer.setEventHandler { [weak self] in
+            self?.sampleTrafficSpeeds()
+        }
+        timer.resume()
+        trafficTimer = timer
+    }
+
+    private func stopTrafficPolling() {
+        trafficTimer?.cancel()
+        trafficTimer = nil
+        lastTrafficSampleTime = nil
+        writeTrafficSpeedsKbps(upload: 0, download: 0)
+    }
+
+    private func sampleTrafficSpeeds() {
+        guard let controller = coreController, controller.isRunning else {
+            writeTrafficSpeedsKbps(upload: 0, download: 0)
+            return
+        }
+
+        let now = Date()
+        let last = lastTrafficSampleTime ?? now
+        lastTrafficSampleTime = now
+        let deltaSec = now.timeIntervalSince(last)
+        guard deltaSec > 0 else {
+            return
+        }
+
+        let upBytes = controller.queryStats(TrafficStats.proxyTag, direct: TrafficStats.uplink)
+        let downBytes = controller.queryStats(TrafficStats.proxyTag, direct: TrafficStats.downlink)
+        let upKbps = Double(upBytes) / deltaSec / 1024.0
+        let downKbps = Double(downBytes) / deltaSec / 1024.0
+        writeTrafficSpeedsKbps(upload: upKbps, download: downKbps)
+    }
+
+    private func writeTrafficSpeedsKbps(upload: Double, download: Double) {
+        guard let defaults = UserDefaults(suiteName: AppGroup.suiteName) else {
+            return
+        }
+        defaults.set(upload, forKey: AppGroup.uploadSpeedKbpsKey)
+        defaults.set(download, forKey: AppGroup.downloadSpeedKbpsKey)
     }
 
     private func createTunnelSettings() -> NEPacketTunnelNetworkSettings {
