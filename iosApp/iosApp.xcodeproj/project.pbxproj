@@ -44,6 +44,7 @@
 		6453CEFCB6E517DF3D6ECFC2 /* XrayFAApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XrayFAApp.swift; sourceTree = "<group>"; };
 		86038AE1032E284E79B32AD6 /* iosApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A75EC9D605F463E39FABDE2A /* iosApp.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = iosApp.xcconfig; sourceTree = "<group>"; };
+		B3D890AE9AF6E1DD6B7068A5 /* PacketTunnel.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = PacketTunnel.xcconfig; sourceTree = "<group>"; };
 		C117AD187833E2513BD2F553 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		CE8509E5A49E4A5CAAEB3ADB /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		E5A8C6C6BCA0CCEEFF497138 /* PacketTunnelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketTunnelProvider.swift; sourceTree = "<group>"; };
@@ -93,6 +94,7 @@
 			children = (
 				343488E477CB7C977BDDC8FF /* Config.xcconfig */,
 				A75EC9D605F463E39FABDE2A /* iosApp.xcconfig */,
+				B3D890AE9AF6E1DD6B7068A5 /* PacketTunnel.xcconfig */,
 			);
 			name = iosApp;
 			path = .;
@@ -278,6 +280,7 @@
 		};
 		3C4E627421C77B19ED5D8309 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B3D890AE9AF6E1DD6B7068A5 /* PacketTunnel.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PacketTunnel/Entitlements/PacketTunnel.entitlements;
 				INFOPLIST_FILE = PacketTunnel/Info.plist;
@@ -292,6 +295,7 @@
 		};
 		453C0CF9C4AFF05F72009A04 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = B3D890AE9AF6E1DD6B7068A5 /* PacketTunnel.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = PacketTunnel/Entitlements/PacketTunnel.entitlements;
 				INFOPLIST_FILE = PacketTunnel/Info.plist;

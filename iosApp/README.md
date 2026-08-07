@@ -45,4 +45,4 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp \
 - **E.5a** ✅ `:shared` exports `XrayFAShared.framework`
 - **E.5b** ✅ Xcode skeleton + Gradle `embedAndSignAppleFrameworkForXcode`
 - **E.5c** ✅ `IosXrayBridge` cinterop + LibXrayLite link in `:core:native-bridge`
-- **E.5d** ⬜ PacketTunnel / IosVpnController / Tun2socksKit / App Group
+- **E.5d** ✅ App Group IPC + `IosVpnController` + PacketTunnel TUN bootstrap (Tun2socksKit ⬜)

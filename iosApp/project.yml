@@ -45,6 +45,9 @@ targets:
   PacketTunnel:
     type: app-extension
     platform: iOS
+    configFiles:
+      Debug: PacketTunnel.xcconfig
+      Release: PacketTunnel.xcconfig
     sources:
       - path: PacketTunnel
         excludes:
