@@ -1,5 +1,11 @@
 package com.android.xrayfa.shared.ui.home
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
@@ -16,15 +22,19 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Dns
+import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,6 +48,9 @@ fun HomeSelectedNodeCard(
     unknownProtocolLabel: String,
     countryEmoji: String = "",
     delayMs: Long = -1L,
+    testing: Boolean = false,
+    enableTest: Boolean = false,
+    onTest: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     ElevatedCard(
@@ -100,10 +113,59 @@ fun HomeSelectedNodeCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (delayMs >= 0L) {
+                    if (delayMs != -1L && (delayMs > 0 || delayMs == -2L)) {
                         Spacer(Modifier.width(8.dp))
-                        HomeDelayChip(delayMs = delayMs)
+                        HomeDelayChip(delayMs = delayMs, isTesting = false)
+                    } else if (onTest != null && (delayMs == -1L || testing)) {
+                        Spacer(Modifier.width(8.dp))
+                        HomeDelayChip(delayMs = -1L, isTesting = true)
                     }
+                }
+            }
+
+            if (onTest != null) {
+                val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+                val scale by
+                    infiniteTransition.animateFloat(
+                        initialValue = 1f,
+                        targetValue = if (testing) 1.2f else 1f,
+                        animationSpec =
+                            infiniteRepeatable(
+                                animation = tween(800, easing = LinearEasing),
+                                repeatMode = RepeatMode.Reverse,
+                            ),
+                        label = "scale",
+                    )
+                val alpha by
+                    infiniteTransition.animateFloat(
+                        initialValue = 1f,
+                        targetValue = if (testing) 0.4f else 1f,
+                        animationSpec =
+                            infiniteRepeatable(
+                                animation = tween(800, easing = LinearEasing),
+                                repeatMode = RepeatMode.Reverse,
+                            ),
+                        label = "alpha",
+                    )
+                IconButton(
+                    onClick = onTest,
+                    enabled = enableTest,
+                    modifier = Modifier.size(36.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Speed,
+                        contentDescription = "Test delay",
+                        modifier =
+                            Modifier
+                                .size(20.dp)
+                                .scale(scale),
+                        tint =
+                            if (enableTest) {
+                                MaterialTheme.colorScheme.primary.copy(alpha = alpha)
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                            },
+                    )
                 }
             }
         }
@@ -156,12 +218,23 @@ fun HomeEmptyNodeCard(
 }
 
 @Composable
-private fun HomeDelayChip(delayMs: Long) {
+private fun HomeDelayChip(
+    delayMs: Long,
+    isTesting: Boolean = false,
+) {
     val delayColor =
         when {
+            isTesting -> MaterialTheme.colorScheme.primary
+            delayMs == -2L -> MaterialTheme.colorScheme.error
             delayMs < 300 -> Color(0xFF2E7D32)
             delayMs < 900 -> Color(0xFFE65100)
             else -> MaterialTheme.colorScheme.error
+        }
+    val displayText =
+        when {
+            isTesting -> "Testing..."
+            delayMs == -2L -> "Timeout"
+            else -> "${delayMs}ms"
         }
 
     Box(
@@ -172,7 +245,7 @@ private fun HomeDelayChip(delayMs: Long) {
                 .padding(horizontal = 6.dp, vertical = 2.dp),
     ) {
         Text(
-            text = "${delayMs}ms",
+            text = displayText,
             style = MaterialTheme.typography.labelSmall,
             color = delayColor,
             fontWeight = FontWeight.SemiBold,

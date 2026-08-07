@@ -35,8 +35,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material3.CardDefaults
@@ -49,7 +47,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -76,6 +73,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import androidx.window.core.layout.WindowWidthSizeClass
 import com.android.xrayfa.R
+import com.android.xrayfa.shared.ui.home.HomeConnectionStatusLabel
+import com.android.xrayfa.shared.ui.home.HomeSectionHeader
+import com.android.xrayfa.shared.ui.home.HomeTrafficStatusCard
 import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.ui.navigation.Settings
 import com.android.xrayfa.viewmodel.XrayViewmodel
@@ -182,14 +182,26 @@ fun CompactHomeContent(
             } else true
         }
 
-        ConnectionStatusLabel(isRunning = isRunning)
+        HomeConnectionStatusLabel(
+            isConnected = isRunning,
+            connectedLabel = stringResource(R.string.connected),
+            disconnectedLabel = stringResource(R.string.not_connected),
+            connectedHint = stringResource(R.string.tap_to_disconnect),
+            disconnectedHint = stringResource(R.string.tap_to_connect),
+        )
 
-        StatusCard(isRunning, upSpeed, downSpeed)
+        HomeTrafficStatusCard(
+            isConnected = isRunning,
+            uploadSpeedKbps = upSpeed,
+            downloadSpeedKbps = downSpeed,
+            uploadLabel = stringResource(R.string.upload_data),
+            downloadLabel = stringResource(R.string.download_data),
+        )
 
         selectedNode?.let { node ->
-            SectionHeader(
+            HomeSectionHeader(
                 text = stringResource(R.string.connection_detail),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
             NodeCard(
                 node = node,
@@ -244,9 +256,22 @@ fun ExpandedHomeContent(
             ) {
                 V2rayStarterLarge(xrayViewmodel) { selectedNode != null }
                 Spacer(modifier = Modifier.height(28.dp))
-                ConnectionStatusLabel(isRunning = isRunning, large = true)
+                HomeConnectionStatusLabel(
+                    isConnected = isRunning,
+                    connectedLabel = stringResource(R.string.connected),
+                    disconnectedLabel = stringResource(R.string.not_connected),
+                    connectedHint = stringResource(R.string.tap_to_disconnect),
+                    disconnectedHint = stringResource(R.string.tap_to_connect),
+                    large = true,
+                )
                 Spacer(modifier = Modifier.height(36.dp))
-                StatusCard(isRunning, upSpeed, downSpeed)
+                HomeTrafficStatusCard(
+                    isConnected = isRunning,
+                    uploadSpeedKbps = upSpeed,
+                    downloadSpeedKbps = downSpeed,
+                    uploadLabel = stringResource(R.string.upload_data),
+                    downloadLabel = stringResource(R.string.download_data),
+                )
             }
         }
 
@@ -276,48 +301,6 @@ fun ExpandedHomeContent(
                 contentPadding = 40.dp
             )
         }
-    }
-}
-
-@Composable
-fun SectionHeader(text: String, modifier: Modifier = Modifier) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleSmall,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier
-    )
-}
-
-@Composable
-fun ConnectionStatusLabel(isRunning: Boolean, large: Boolean = false) {
-    val statusColor = if (isRunning) MaterialTheme.colorScheme.primary
-    else MaterialTheme.colorScheme.outline
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(if (large) 12.dp else 10.dp)
-                    .clip(CircleShape)
-                    .background(statusColor)
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                text = stringResource(if (isRunning) R.string.connected else R.string.not_connected),
-                style = if (large) MaterialTheme.typography.headlineSmall
-                else MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = statusColor
-            )
-        }
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = stringResource(if (isRunning) R.string.tap_to_disconnect else R.string.tap_to_connect),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }
 
@@ -355,83 +338,6 @@ fun EmptyNodeCard(text: String, contentPadding: Dp = 28.dp) {
                 text = text,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-fun StatusCard(isRunning: Boolean, upSpeed: Double, downSpeed: Double) {
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 20.dp, vertical = 18.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            SpeedItem(
-                modifier = Modifier.weight(1f),
-                label = stringResource(R.string.upload_data),
-                speed = upSpeed,
-                icon = Icons.Default.KeyboardArrowUp,
-                active = isRunning,
-                color = MaterialTheme.colorScheme.primary
-            )
-            VerticalDivider(modifier = Modifier.height(36.dp).width(1.dp))
-            SpeedItem(
-                modifier = Modifier.weight(1f),
-                label = stringResource(R.string.download_data),
-                speed = downSpeed,
-                icon = Icons.Default.KeyboardArrowDown,
-                active = isRunning,
-                color = MaterialTheme.colorScheme.secondary
-            )
-        }
-    }
-}
-
-@Composable
-fun SpeedItem(
-    label: String,
-    speed: Double,
-    icon: ImageVector,
-    color: Color,
-    active: Boolean,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(color.copy(alpha = 0.12f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(20.dp))
-        }
-        Spacer(Modifier.width(10.dp))
-        Column {
-            Text(
-                text = label.replaceFirstChar { it.uppercase() },
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = "${String.format("%.1f", if (active) speed else 0.0)} KB/s",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }

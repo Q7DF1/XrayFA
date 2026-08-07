@@ -47,6 +47,10 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp \
 KMP iOS simulator targets: `iosSimulatorArm64` (Apple Silicon Mac) + `iosX64` (Intel Mac).
 Both link the universal `ios-arm64_x86_64-simulator` xcframework slice.
 
+**Compose iOS requirement**: `Info.plist` must include `CADisableMinimumFrameDurationOnPhone = true`
+(Compose Multiplatform 1.7+ crashes without it). Room KSP must run for every iOS target
+(`kspIosX64` when using Intel simulator).
+
 ## Current status
 
 - **E.5a** ✅ `:shared` exports `XrayFAShared.framework`
@@ -59,3 +63,4 @@ Both link the universal `ios-arm64_x86_64-simulator` xcframework slice.
 - **E.6c** ✅ Room/Subscription iOS Koin + ParserFactory connect
 - **E.6d** ✅ 共享 Home 节点卡片 + 流量 UI（iOS 流量 stub 0）
 - **E.6e** ✅ Decompose 根导航（Config / Home / Settings Tab；Home 接 SharedHomeSection）
+- **E.6e-b** ✅ Intel Mac 模拟器 `iosX64` 目标
