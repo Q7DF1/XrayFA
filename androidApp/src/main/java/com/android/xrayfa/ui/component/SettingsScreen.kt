@@ -104,7 +104,10 @@ import com.android.xrayfa.ui.navigation.RouteSettings
 import com.android.xrayfa.ui.navigation.Settings
 import com.android.xrayfa.viewmodel.GEOFileType
 import com.android.xrayfa.viewmodel.GEOFileType.Companion.FILE_TYPE_IP
-import com.android.xrayfa.viewmodel.LAN_PROXY_LISTEN_ADDRESS
+import com.android.xrayfa.shared.ui.settings.SharedSettingsGeneralSection
+import com.android.xrayfa.shared.ui.settings.SharedSettingsSubscriptionSection
+import com.android.xrayfa.shared.ui.settings.SettingsUiLabels
+import com.android.xrayfa.ui.settings.rememberAndroidSettingsComponent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -168,6 +171,28 @@ fun SettingsScreen(
     val pm = context.packageManager
     val packageInfo = pm.getPackageInfo(packageName, 0)
     val versionName = packageInfo.versionName?:"unknown"
+    val sharedSettingsComponent = rememberAndroidSettingsComponent()
+    val sharedSettingsLabels =
+        SettingsUiLabels(
+            generalSectionTitle = stringResource(R.string.general_part),
+            networkSectionTitle = stringResource(R.string.network_part),
+            themeTitle = stringResource(R.string.theme_select),
+            themeDescription = stringResource(R.string.dark_mode_description),
+            lightModeLabel = stringResource(R.string.light_mode),
+            darkModeLabel = stringResource(R.string.dark_mode),
+            autoModeLabel = stringResource(R.string.auto_mode),
+            bootAutoStartTitle = stringResource(R.string.boot_auto_start),
+            bootAutoStartDescription = stringResource(R.string.boot_auto_start_desc),
+            hideFromRecentsTitle = stringResource(R.string.hide_from_recents_title),
+            hideFromRecentsDescription = stringResource(R.string.hide_from_recents_desc),
+            lanSocksProxyTitle = stringResource(R.string.lan_socks_proxy_title),
+            lanSocksProxyDescription = stringResource(R.string.lan_socks_proxy_desc),
+            lanHttpProxyTitle = stringResource(R.string.lan_http_proxy_title),
+            lanHttpProxyDescription = stringResource(R.string.lan_http_proxy_desc),
+            subscriptionSectionTitle = stringResource(R.string.subscription_part),
+            sendHwidTitle = stringResource(R.string.send_hwid),
+            sendHwidDescription = stringResource(R.string.send_hwid_desc),
+        )
 
     Scaffold(
         topBar = {
@@ -203,28 +228,11 @@ fun SettingsScreen(
                 .padding(innerPadding)
                 .verticalScroll(scrollState)
         ) {
-                SettingsGroup(
-                    groupName = stringResource(R.string.general_part)
-                ) {
-                    SettingsSelectBox(
-                        title = R.string.theme_select,
-                        description = R.string.dark_mode_description,
-                        icon = Icons.Outlined.Palette,
-                        onSelected = { mode ->
-                            viewmodel.setDarkMode(mode)
-                        },
-                        selected = when(settingsState.darkMode) {
-                            0 -> stringResource(R.string.light_mode)
-                            1 -> stringResource(R.string.dark_mode)
-                            2 -> stringResource(R.string.auto_mode)
-                            else -> stringResource(R.string.auto_mode)
-                        },
-                        options = mapOf(
-                            0 to stringResource(R.string.light_mode),
-                            1 to stringResource(R.string.dark_mode),
-                            2 to stringResource(R.string.auto_mode)
-                        )
-                    )
+                SharedSettingsGeneralSection(
+                    component = sharedSettingsComponent,
+                    labels = sharedSettingsLabels,
+                    scrollEnabled = false,
+                    additionalGeneralContent = {
                     with(sharedTransitionScope) {
                         SettingsFieldBox(
                             title = R.string.allow_app_settings,
@@ -256,24 +264,6 @@ fun SettingsScreen(
                         }
                     }
 
-                    SettingsCheckBox(
-                        title = R.string.boot_auto_start,
-                        description = R.string.boot_auto_start_desc,
-                        icon = Icons.Outlined.PowerSettingsNew,
-                        checked = settingsState.bootAutoStart,
-                        onCheckedChange = { checked ->
-                            viewmodel.setEnableBootAutoStart(checked)
-                        }
-                    )
-                    SettingsCheckBox(
-                        title = R.string.hide_from_recents_title,
-                        description = R.string.hide_from_recents_desc,
-                        icon = Icons.Outlined.VisibilityOff,
-                        checked = settingsState.hideFromRecents,
-                        onCheckedChange = { checked ->
-                            viewmodel.setHideFromRecents(checked)
-                        }
-                    )
                     if (NotificationHelper.canPostPromotionsEnabled(LocalContext.current)) {
                         SettingsCheckBox(
                             title = R.string.live_update_notification,
@@ -285,29 +275,8 @@ fun SettingsScreen(
                             }
                         )
                     }
-                }
-
-                SettingsGroup(
-                    groupName = stringResource(R.string.network_part)
-                ) {
-                    SettingsCheckBox(
-                        title = R.string.lan_socks_proxy_title,
-                        description = R.string.lan_socks_proxy_desc,
-                        icon = Icons.Outlined.Router,
-                        checked = settingsState.socksListen == LAN_PROXY_LISTEN_ADDRESS,
-                        onCheckedChange = { checked ->
-                            viewmodel.setLanSocksProxyEnable(checked)
-                        }
-                    )
-                    SettingsCheckBox(
-                        title = R.string.lan_http_proxy_title,
-                        description = R.string.lan_http_proxy_desc,
-                        icon = Icons.Outlined.Public,
-                        checked = settingsState.lanHttpProxyEnable,
-                        onCheckedChange = { checked ->
-                            viewmodel.setLanHttpProxyEnable(checked)
-                        }
-                    )
+                    },
+                    additionalNetworkContent = {
                     SettingsFieldBox(
                         title = R.string.http_proxy_port,
                         content = settingsState.httpPort.toString(),
@@ -472,20 +441,12 @@ fun SettingsScreen(
                             if (it.isBlank()) context.getString(R.string.can_not_be_empty) else null
                         }
                     }
-                }
-                SettingsGroup(
-                    groupName = stringResource(R.string.subscription_part)
-                ) {
-                    SettingsCheckBox(
-                        title = R.string.send_hwid,
-                        description = R.string.send_hwid_desc,
-                        icon = Icons.Outlined.Security,
-                        checked = settingsState.sendHwid,
-                        onCheckedChange = {
-                            viewmodel.setSendHwid(it)
-                        }
-                    )
-                }
+                    },
+                )
+                SharedSettingsSubscriptionSection(
+                    component = sharedSettingsComponent,
+                    labels = sharedSettingsLabels,
+                )
                 SettingsGroup(
                     groupName = stringResource(R.string.about_part)
                 ) {

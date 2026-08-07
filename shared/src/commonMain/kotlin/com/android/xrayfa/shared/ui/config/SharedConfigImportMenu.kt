@@ -3,6 +3,7 @@ package com.android.xrayfa.shared.ui.config
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.outlined.Subscriptions
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -18,8 +19,10 @@ import androidx.compose.ui.Modifier
 @Composable
 fun SharedConfigImportMenu(
     onImportFromClipboard: () -> Unit,
+    onManageSubscriptions: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     importFromClipboardLabel: String = "Import from clipboard",
+    manageSubscriptionsLabel: String = "Manage subscriptions",
 ) {
     var expanded by remember { mutableStateOf(false) }
     IconButton(onClick = { expanded = true }, modifier = modifier) {
@@ -39,5 +42,17 @@ fun SharedConfigImportMenu(
                 onImportFromClipboard()
             },
         )
+        if (onManageSubscriptions != null) {
+            DropdownMenuItem(
+                text = { Text(manageSubscriptionsLabel) },
+                leadingIcon = {
+                    Icon(Icons.Outlined.Subscriptions, contentDescription = null)
+                },
+                onClick = {
+                    expanded = false
+                    onManageSubscriptions()
+                },
+            )
+        }
     }
 }
