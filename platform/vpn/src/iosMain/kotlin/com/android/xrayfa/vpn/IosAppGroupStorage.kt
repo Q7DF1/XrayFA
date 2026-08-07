@@ -28,7 +28,29 @@ internal object IosAppGroupStorage {
 
     fun isTunnelConnected(): Boolean =
         defaults?.stringForKey(IosPlatformConstants.VPN_TUNNEL_CONNECTED_KEY) == "true"
+
+    fun writeTrafficSpeedsKbps(
+        uploadKbps: Double,
+        downloadKbps: Double,
+    ) {
+        defaults?.setDouble(uploadKbps, IosPlatformConstants.VPN_UPLOAD_SPEED_KBPS_KEY)
+        defaults?.setDouble(downloadKbps, IosPlatformConstants.VPN_DOWNLOAD_SPEED_KBPS_KEY)
+        defaults?.synchronize()
+    }
+
+    fun readTrafficSpeedsKbps(): Pair<Double, Double> {
+        val up = defaults?.doubleForKey(IosPlatformConstants.VPN_UPLOAD_SPEED_KBPS_KEY) ?: 0.0
+        val down = defaults?.doubleForKey(IosPlatformConstants.VPN_DOWNLOAD_SPEED_KBPS_KEY) ?: 0.0
+        return up to down
+    }
+
+    fun clearTrafficSpeeds() {
+        writeTrafficSpeedsKbps(0.0, 0.0)
+    }
 }
+
+/** Host app reads KB/s speeds written by PacketTunnel (mirrors Android [TrafficDetector]). */
+fun readVpnTrafficSpeedsKbps(): Pair<Double, Double> = IosAppGroupStorage.readTrafficSpeedsKbps()
 
 /** Host app writes Xray JSON here before [IosVpnController.connect]. */
 fun IosVpnController.setPendingConfig(configJson: String) {

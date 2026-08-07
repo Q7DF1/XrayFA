@@ -13,5 +13,6 @@ fun defaultHomeComponentFactory(): HomeComponentFactory =
             vpnController = koin.get(),
             nodeRepository = koin.get(),
             coordinator = koin.get(),
+            trafficStatsSource = koin.get(),
         )
     }

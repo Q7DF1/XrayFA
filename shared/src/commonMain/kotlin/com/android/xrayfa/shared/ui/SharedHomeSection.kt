@@ -32,6 +32,7 @@ fun SharedHomeSection(
     onConnectToggle: (() -> Unit)? = null,
     labels: HomeUiLabels = HomeUiLabels(),
     scrollEnabled: Boolean = true,
+    largeStatusLabel: Boolean = false,
 ) {
     val state by component.state.subscribeAsState()
     val scrollModifier =
@@ -64,6 +65,7 @@ fun SharedHomeSection(
             disconnectedLabel = labels.disconnectedLabel,
             connectedHint = labels.connectedHint,
             disconnectedHint = labels.disconnectedHint,
+            large = largeStatusLabel,
         )
 
         HomeTrafficStatusCard(

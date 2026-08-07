@@ -4,21 +4,11 @@ import android.app.Activity
 import android.net.VpnService
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.StartOffset
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,13 +18,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material3.CardDefaults
@@ -49,24 +37,14 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -76,16 +54,10 @@ import com.android.xrayfa.R
 import com.android.xrayfa.ui.home.rememberAndroidHomeComponent
 import com.android.xrayfa.shared.ui.SharedHomeSection
 import com.android.xrayfa.shared.ui.home.HomeUiLabels
-import com.android.xrayfa.shared.ui.home.HomeConnectionStatusLabel
 import com.android.xrayfa.shared.ui.home.HomeSectionHeader
-import com.android.xrayfa.shared.ui.home.HomeTrafficStatusCard
 import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.ui.navigation.Settings
 import com.android.xrayfa.viewmodel.XrayViewmodel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-
-import androidx.compose.animation.AnimatedVisibilityScope
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -233,13 +205,33 @@ fun CompactHomeContent(xrayViewmodel: XrayViewmodel) {
 fun ExpandedHomeContent(
     xrayViewmodel: XrayViewmodel
 ) {
+    val homeComponent = rememberAndroidHomeComponent()
     val selectedNode by xrayViewmodel.getSelectedNode().collectAsState(null)
     val isRunning by xrayViewmodel.isServiceRunning.collectAsState()
-    val upSpeed by xrayViewmodel.upSpeed.collectAsState()
-    val downSpeed by xrayViewmodel.downSpeed.collectAsState()
     val delayMs by xrayViewmodel.delay.collectAsState()
     val testing by xrayViewmodel.testing.collectAsState()
     val context = LocalContext.current
+
+    val homeLabels =
+        HomeUiLabels(
+            connectedLabel = stringResource(R.string.connected),
+            disconnectedLabel = stringResource(R.string.not_connected),
+            connectedHint = stringResource(R.string.tap_to_disconnect),
+            disconnectedHint = stringResource(R.string.tap_to_connect),
+            uploadLabel = stringResource(R.string.upload_data),
+            downloadLabel = stringResource(R.string.download_data),
+            connectionDetailsHeader = stringResource(R.string.connection_detail),
+            configNotReadyMessage = stringResource(R.string.config_not_ready),
+        )
+
+    val vpnPermissionLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.StartActivityForResult(),
+        ) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                homeComponent.onConnectToggle()
+            }
+        }
 
     Row(
         modifier = Modifier
@@ -257,32 +249,29 @@ fun ExpandedHomeContent(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow
             )
         ) {
-            Column(
+            SharedHomeSection(
+                component = homeComponent,
+                showNodeCard = false,
+                scrollEnabled = false,
+                largeStatusLabel = true,
+                labels = homeLabels,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                V2rayStarterLarge(xrayViewmodel) { selectedNode != null }
-                Spacer(modifier = Modifier.height(28.dp))
-                HomeConnectionStatusLabel(
-                    isConnected = isRunning,
-                    connectedLabel = stringResource(R.string.connected),
-                    disconnectedLabel = stringResource(R.string.not_connected),
-                    connectedHint = stringResource(R.string.tap_to_disconnect),
-                    disconnectedHint = stringResource(R.string.tap_to_connect),
-                    large = true,
-                )
-                Spacer(modifier = Modifier.height(36.dp))
-                HomeTrafficStatusCard(
-                    isConnected = isRunning,
-                    uploadSpeedKbps = upSpeed,
-                    downloadSpeedKbps = downSpeed,
-                    uploadLabel = stringResource(R.string.upload_data),
-                    downloadLabel = stringResource(R.string.download_data),
-                )
-            }
+                onConnectToggle = {
+                    val state = homeComponent.state.value
+                    if (state.isConnected) {
+                        homeComponent.onConnectToggle()
+                        return@SharedHomeSection
+                    }
+                    val prepare = VpnService.prepare(context)
+                    if (prepare != null) {
+                        vpnPermissionLauncher.launch(prepare)
+                    } else {
+                        homeComponent.onConnectToggle()
+                    }
+                },
+            )
         }
 
         Column(
@@ -350,131 +339,5 @@ fun EmptyNodeCard(text: String, contentPadding: Dp = 28.dp) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-    }
-}
-
-@Composable
-fun V2rayStarterLarge(
-    xrayViewmodel: XrayViewmodel,
-    onCheck: () -> Boolean
-) {
-    val isRunning by xrayViewmodel.isServiceRunning.collectAsState()
-    val context = LocalContext.current
-
-    val primary = MaterialTheme.colorScheme.primary
-    val tertiary = MaterialTheme.colorScheme.tertiary
-    val surfaceVariant = MaterialTheme.colorScheme.surfaceVariant
-
-    val buttonBrush = if (isRunning) {
-        Brush.linearGradient(colors = listOf(primary, tertiary))
-    } else {
-        Brush.linearGradient(
-            colors = listOf(
-                surfaceVariant,
-                surfaceVariant.copy(alpha = 0.65f)
-            )
-        )
-    }
-
-    val shadowColor = if (isRunning) primary.copy(alpha = 0.45f) else Color.Transparent
-
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            xrayViewmodel.startXrayService(context)
-        }
-    }
-    val scale = remember { Animatable(1.0f) }
-
-    // Re-launch the effect whenever the 'running' variable changes
-    LaunchedEffect(isRunning) {
-        // Step 1: Animate the scale up to 1.1f quickly
-        scale.animateTo(
-            targetValue = 1.2f,
-            animationSpec = tween(durationMillis = 150)
-        )
-
-        // Step 2: Bounce back to 1.0f with a spring effect
-        scale.animateTo(
-            targetValue = 1.0f,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessLow
-            )
-        )
-    }
-
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.size(200.dp)
-    ) {
-        // Expanding pulse rings while connected
-        if (isRunning) {
-            PulseRings(color = primary)
-        }
-
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(148.dp)
-                .scale(scale.value)
-                .shadow(
-                    elevation = if (isRunning) 24.dp else 4.dp,
-                    shape = CircleShape,
-                    spotColor = shadowColor,
-                    ambientColor = shadowColor
-                )
-                .clip(CircleShape)
-                .background(buttonBrush)
-        ) {
-            IconButton(
-                onClick = {
-                    if (!onCheck()) return@IconButton
-                    if (!isRunning) {
-                        val prepare = VpnService.prepare(context)
-                        if (prepare != null) launcher.launch(prepare)
-                        else xrayViewmodel.startXrayService(context)
-                    } else {
-                        xrayViewmodel.stopXrayService(context)
-                    }
-                },
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Icon(
-                    imageVector = if (isRunning) Icons.Default.Done else ImageVector.vectorResource(R.drawable.ic_power),
-                    contentDescription = "Toggle Service",
-                    tint = if (isRunning) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(60.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun BoxScope.PulseRings(color: Color) {
-    val transition = rememberInfiniteTransition(label = "pulse")
-    repeat(2) { index ->
-        val progress by transition.animateFloat(
-            initialValue = 0f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = 2400, easing = LinearEasing),
-                initialStartOffset = StartOffset(index * 1200)
-            ),
-            label = "ring$index"
-        )
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .scale(0.74f + progress * 0.26f)
-                .clip(CircleShape)
-                .border(
-                    width = 2.dp,
-                    color = color.copy(alpha = (1f - progress) * 0.5f),
-                    shape = CircleShape
-                )
-        )
     }
 }
