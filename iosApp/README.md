@@ -49,3 +49,4 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp \
 - **E.5d** ✅ App Group IPC + `IosVpnController` + PacketTunnel TUN bootstrap
 - **E.5e** ✅ startLoop + HevSocks5Tunnel (hexTun path) + trial Connect in ContentView
 - **E.6** ✅ Compose Multiplatform `AppShell` + `MainViewController` + iOS Koin bootstrap
+- **E.6b** ✅ iOS Koin 补全 + 共享 `HomeConnectionPanel`

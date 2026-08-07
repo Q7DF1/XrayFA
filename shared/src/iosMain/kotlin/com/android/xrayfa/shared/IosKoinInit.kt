@@ -1,16 +1,11 @@
 package com.android.xrayfa.shared
 
 import com.android.xrayfa.di.iosDomainDiModule
-import com.android.xrayfa.vpn.IosVpnController
-import com.android.xrayfa.vpn.VpnController
+import com.android.xrayfa.di.parserDiModule
+import com.android.xrayfa.shared.di.iosNetworkDiModule
+import com.android.xrayfa.shared.di.iosPlatformDiModule
+import com.android.xrayfa.shared.di.sharedCoroutineDiModule
 import org.koin.core.context.startKoin
-import org.koin.dsl.module
-
-private val iosPlatformDiModule =
-    module {
-        single { IosVpnController() }
-        single<VpnController> { get<IosVpnController>() }
-    }
 
 /** Idempotent Koin bootstrap for iOS host app (Compose shell). */
 object IosKoinInit {
@@ -21,7 +16,13 @@ object IosKoinInit {
             return
         }
         startKoin {
-            modules(iosDomainDiModule, iosPlatformDiModule)
+            modules(
+                sharedCoroutineDiModule,
+                iosPlatformDiModule,
+                iosNetworkDiModule,
+                iosDomainDiModule,
+                parserDiModule(),
+            )
         }
         started = true
     }

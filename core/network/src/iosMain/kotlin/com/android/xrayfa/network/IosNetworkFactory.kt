@@ -22,3 +22,7 @@ private fun createStandardHttpClient(userAgent: String): HttpClient {
 fun createStandardFileDownloader(userAgent: String): FileDownloader {
     return FileDownloader(createStandardHttpClient(userAgent))
 }
+
+fun createSubscriptionFetcher(userAgent: String): SubscriptionFetcher {
+    return SubscriptionFetcher(createSubscriptionHttpClient(userAgent))
+}
