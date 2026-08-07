@@ -14,7 +14,7 @@ if (gradle.startParameter.taskNames.any { it.contains("Ios", ignoreCase = true) 
 fun iosXcframeworkSlice(targetName: String): String =
     when (targetName) {
         "iosArm64" -> "ios-arm64"
-        "iosSimulatorArm64" -> "ios-arm64_x86_64-simulator"
+        "iosSimulatorArm64", "iosX64" -> "ios-arm64_x86_64-simulator"
         else -> error("Unsupported iOS target for LibXrayLite: $targetName")
     }
 
@@ -28,7 +28,7 @@ kotlin {
             }
         }
     }
-    listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
+    listOf(iosArm64(), iosSimulatorArm64(), iosX64()).forEach { target ->
         target.compilations.getByName("main") {
             cinterops {
                 val libv2ray by creating {

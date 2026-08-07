@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.android.library)
 }
 
@@ -15,10 +16,13 @@ kotlin {
             }
         }
     }
-    listOf(iosArm64(), iosSimulatorArm64()).forEach { target ->
+    listOf(iosArm64(), iosSimulatorArm64(), iosX64()).forEach { target ->
         target.binaries.framework {
             baseName = "XrayFAShared"
             isStatic = true
+            export(libs.decompose)
+            export(libs.essenty.lifecycle)
+            export(libs.essenty.state.keeper)
         }
     }
 
@@ -36,6 +40,11 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
             implementation(compose.ui)
+            api(libs.decompose)
+            api(libs.essenty.lifecycle)
+            api(libs.essenty.state.keeper)
+            implementation(libs.decompose.extensions.compose)
+            implementation(libs.kotlinx.serialization.json)
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
         }
