@@ -73,6 +73,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import androidx.window.core.layout.WindowWidthSizeClass
 import com.android.xrayfa.R
+import com.android.xrayfa.ui.home.rememberAndroidHomeComponent
+import com.android.xrayfa.shared.ui.SharedHomeSection
+import com.android.xrayfa.shared.ui.home.HomeUiLabels
 import com.android.xrayfa.shared.ui.home.HomeConnectionStatusLabel
 import com.android.xrayfa.shared.ui.home.HomeSectionHeader
 import com.android.xrayfa.shared.ui.home.HomeTrafficStatusCard
@@ -96,7 +99,6 @@ fun HomeScreen(
     val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
     val isExpanded = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.EXPANDED
     val isMedium = windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.MEDIUM
-    var showError by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -135,87 +137,95 @@ fun HomeScreen(
             if (isExpanded || isMedium) {
                 ExpandedHomeContent(xrayViewmodel)
             } else {
-                CompactHomeContent(xrayViewmodel) { showError = it }
+                CompactHomeContent(xrayViewmodel)
             }
-
-            ExceptionMessage(
-                shown = showError,
-                msg = stringResource(R.string.config_not_ready),
-                modifier = Modifier.align(Alignment.TopCenter)
-            )
         }
     }
 }
 
 @Composable
-fun CompactHomeContent(
-    xrayViewmodel: XrayViewmodel,
-    onShowError: (Boolean) -> Unit
-) {
+fun CompactHomeContent(xrayViewmodel: XrayViewmodel) {
+    val homeComponent = rememberAndroidHomeComponent()
     val selectedNode by xrayViewmodel.getSelectedNode().collectAsState(null)
     val isRunning by xrayViewmodel.isServiceRunning.collectAsState()
-    val upSpeed by xrayViewmodel.upSpeed.collectAsState()
-    val downSpeed by xrayViewmodel.downSpeed.collectAsState()
     val delayMs by xrayViewmodel.delay.collectAsState()
     val testing by xrayViewmodel.testing.collectAsState()
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
-        Spacer(modifier = Modifier.height(8.dp))
-
-        V2rayStarterLarge(xrayViewmodel) {
-            if (selectedNode == null) {
-                coroutineScope.launch {
-                    onShowError(true)
-                    delay(2000L)
-                    onShowError(false)
-                }
-                false
-            } else true
-        }
-
-        HomeConnectionStatusLabel(
-            isConnected = isRunning,
+    val homeLabels =
+        HomeUiLabels(
             connectedLabel = stringResource(R.string.connected),
             disconnectedLabel = stringResource(R.string.not_connected),
             connectedHint = stringResource(R.string.tap_to_disconnect),
             disconnectedHint = stringResource(R.string.tap_to_connect),
-        )
-
-        HomeTrafficStatusCard(
-            isConnected = isRunning,
-            uploadSpeedKbps = upSpeed,
-            downloadSpeedKbps = downSpeed,
             uploadLabel = stringResource(R.string.upload_data),
             downloadLabel = stringResource(R.string.download_data),
+            connectionDetailsHeader = stringResource(R.string.connection_detail),
+            configNotReadyMessage = stringResource(R.string.config_not_ready),
         )
 
-        selectedNode?.let { node ->
-            HomeSectionHeader(
-                text = stringResource(R.string.connection_detail),
-                modifier = Modifier.fillMaxWidth(),
-            )
-            NodeCard(
-                node = node,
-                onTest = { xrayViewmodel.measureDelay(context) },
-                delayMs = delayMs,
-                testing = testing,
-                roundCorner = true,
-                enableTest = isRunning,
-            )
-        } ?: EmptyNodeCard(
-            text = stringResource(R.string.select_configuration_notify)
+    val vpnPermissionLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.StartActivityForResult(),
+        ) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                homeComponent.onConnectToggle()
+            }
+        }
+
+    Column(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        SharedHomeSection(
+            component = homeComponent,
+            showNodeCard = false,
+            scrollEnabled = false,
+            labels = homeLabels,
+            onConnectToggle = {
+                val state = homeComponent.state.value
+                if (state.isConnected) {
+                    homeComponent.onConnectToggle()
+                    return@SharedHomeSection
+                }
+                val prepare = VpnService.prepare(context)
+                if (prepare != null) {
+                    vpnPermissionLauncher.launch(prepare)
+                } else {
+                    homeComponent.onConnectToggle()
+                }
+            },
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+        ) {
+            selectedNode?.let { node ->
+                HomeSectionHeader(
+                    text = stringResource(R.string.connection_detail),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                NodeCard(
+                    node = node,
+                    onTest = { xrayViewmodel.measureDelay(context) },
+                    delayMs = delayMs,
+                    testing = testing,
+                    roundCorner = true,
+                    enableTest = isRunning,
+                )
+            } ?: EmptyNodeCard(
+                text = stringResource(R.string.select_configuration_notify),
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
     }
 }
 
