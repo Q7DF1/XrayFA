@@ -1,5 +1,6 @@
 package com.android.xrayfa.shared.ui.settings
 
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -21,6 +22,9 @@ fun SharedSettingsGeneralSection(
     component: SettingsComponent,
     modifier: Modifier = Modifier,
     labels: SettingsUiLabels = SettingsUiLabels(),
+    scrollEnabled: Boolean = true,
+    additionalGeneralContent: @Composable ColumnScope.() -> Unit = {},
+    additionalNetworkContent: @Composable ColumnScope.() -> Unit = {},
 ) {
     val state by component.state.subscribeAsState()
     val themeOptions =
@@ -34,9 +38,15 @@ fun SharedSettingsGeneralSection(
     val lanSocksEnabled =
         state.socksListen == DefaultSettingsComponent.LAN_PROXY_LISTEN_ADDRESS
 
+    val columnModifier =
+        if (scrollEnabled) {
+            modifier.verticalScroll(rememberScrollState())
+        } else {
+            modifier
+        }
+
     androidx.compose.foundation.layout.Column(
-        modifier =
-            modifier.verticalScroll(rememberScrollState()),
+        modifier = columnModifier,
     ) {
         SharedSettingsGroup(groupName = labels.generalSectionTitle) {
             SharedSettingsSelectRow(
@@ -61,6 +71,7 @@ fun SharedSettingsGeneralSection(
                 onCheckedChange = component::onSetHideFromRecents,
                 icon = Icons.Outlined.VisibilityOff,
             )
+            additionalGeneralContent()
         }
 
         SharedSettingsGroup(groupName = labels.networkSectionTitle) {
@@ -78,6 +89,7 @@ fun SharedSettingsGeneralSection(
                 onCheckedChange = component::onSetLanHttpProxyEnable,
                 icon = Icons.Outlined.Public,
             )
+            additionalNetworkContent()
         }
     }
 }

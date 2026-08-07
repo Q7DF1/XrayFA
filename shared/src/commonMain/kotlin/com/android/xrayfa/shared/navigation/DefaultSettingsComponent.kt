@@ -61,6 +61,12 @@ class DefaultSettingsComponent(
         }
     }
 
+    override fun onSetSendHwid(enable: Boolean) {
+        scope.launch {
+            settingsRepository.setSendHwid(enable)
+        }
+    }
+
     companion object {
         const val LOCAL_PROXY_LISTEN_ADDRESS = "127.0.0.1"
         const val LAN_PROXY_LISTEN_ADDRESS = "0.0.0.0"

@@ -15,6 +15,8 @@ interface SettingsComponent {
     fun onSetLanSocksProxyEnable(enable: Boolean)
 
     fun onSetLanHttpProxyEnable(enable: Boolean)
+
+    fun onSetSendHwid(enable: Boolean)
 }
 
 /** Typealias for tab naming consistency with [HomeTabComponent]. */

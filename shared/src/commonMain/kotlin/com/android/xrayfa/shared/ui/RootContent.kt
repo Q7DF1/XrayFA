@@ -16,6 +16,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,7 +32,10 @@ import com.android.xrayfa.shared.ui.config.SharedConfigImportMenu
 import com.android.xrayfa.shared.ui.config.SharedConfigSection
 import com.android.xrayfa.shared.ui.home.HomeTopBar
 import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
+import com.android.xrayfa.shared.navigation.rememberSubscriptionComponent
 import com.android.xrayfa.shared.ui.settings.SharedSettingsGeneralSection
+import com.android.xrayfa.shared.ui.settings.SharedSettingsSubscriptionSection
+import com.android.xrayfa.shared.ui.subscription.SharedSubscriptionScreen
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -93,6 +99,21 @@ private fun ConfigTabScreen(
     component: ConfigComponent,
     onNodeSelectedNavigateHome: () -> Unit,
 ) {
+    var showSubscriptions by remember { mutableStateOf(false) }
+    val subscriptionComponent = rememberSubscriptionComponent()
+
+    if (showSubscriptions) {
+        SharedSubscriptionScreen(
+            component = subscriptionComponent,
+            onBack = { showSubscriptions = false },
+            onSubscriptionApplied = { subscriptionId ->
+                component.onSelectFilter(subscriptionId)
+                showSubscriptions = false
+            },
+        )
+        return
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -100,6 +121,7 @@ private fun ConfigTabScreen(
                 actions = {
                     SharedConfigImportMenu(
                         onImportFromClipboard = component::onImportFromClipboard,
+                        onManageSubscriptions = { showSubscriptions = true },
                     )
                 },
                 colors =
@@ -179,12 +201,17 @@ private fun SettingsTabScreen(
         },
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
-        SharedSettingsGeneralSection(
-            component = component,
+        androidx.compose.foundation.layout.Column(
             modifier =
                 Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
-        )
+        ) {
+            SharedSettingsGeneralSection(
+                component = component,
+                scrollEnabled = true,
+            )
+            SharedSettingsSubscriptionSection(component = component)
+        }
     }
 }

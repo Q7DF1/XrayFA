@@ -17,4 +17,7 @@ data class SettingsUiLabels(
     val lanSocksProxyDescription: String = "Listen on all interfaces for SOCKS proxy",
     val lanHttpProxyTitle: String = "LAN HTTP proxy",
     val lanHttpProxyDescription: String = "Enable HTTP proxy on local network",
+    val subscriptionSectionTitle: String = "Subscription",
+    val sendHwidTitle: String = "Send HWID",
+    val sendHwidDescription: String = "Include device HWID in subscription requests",
 )
