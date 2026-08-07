@@ -3,6 +3,7 @@ package com.android.xrayfa.di
 import com.android.xrayfa.common.core.TrafficDetector
 import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.core.XrayCore
+import com.android.xrayfa.core.AppVpnController
 import com.android.xrayfa.core.XrayBaseServiceManager
 import com.android.xrayfa.core.XrayCoreManager
 import com.android.xrayfa.helper.NotificationHelper
@@ -10,6 +11,7 @@ import com.android.xrayfa.nativebridge.NativeBridgeFactory
 import com.android.xrayfa.nativebridge.TunBridge
 import com.android.xrayfa.nativebridge.XrayBridge
 import com.android.xrayfa.repository.AppInfoRepository
+import com.android.xrayfa.vpn.VpnController
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
@@ -44,6 +46,12 @@ val appCoreDiModule: Module = module {
             subscriptionRepository = get(),
             trafficDetector = get<TrafficDetector>(),
             context = androidContext(),
+        )
+    }
+    single<VpnController> {
+        AppVpnController(
+            manager = get(),
+            scope = get(named(KoinQualifiers.BACKGROUND_SCOPE)),
         )
     }
 }
