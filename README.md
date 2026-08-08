@@ -115,12 +115,3 @@ Special thanks to these projects that make XrayFA possible:
 ## 📄 License
 
 Distributed under the **Apache-2.0 License**. See [LICENSE](LICENSE) for details.
-
----
-<div align="center">
-
-### 🌟 Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=q7df1/xrayFA&type=Date)](https://star-history.com/q7df1/xrayFA)
-
-</div>
