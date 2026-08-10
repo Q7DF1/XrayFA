@@ -81,6 +81,12 @@ class DefaultConfigComponent(
         }
     }
 
+    override fun onImportFromLink(link: String) {
+        scope.launch {
+            configLinkImporter.addLink(link)
+        }
+    }
+
     private fun refreshNodes() {
         scope.launch {
             val allNodes = nodeRepository.allNodes.first()

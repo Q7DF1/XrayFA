@@ -28,11 +28,13 @@ import com.android.xrayfa.shared.navigation.ConfigComponent
 import com.android.xrayfa.shared.navigation.RootComponent
 import com.android.xrayfa.shared.navigation.RootTab
 import com.android.xrayfa.shared.navigation.SettingsComponent
+import com.android.xrayfa.shared.navigation.rememberSubscriptionComponent
 import com.android.xrayfa.shared.ui.config.SharedConfigImportMenu
 import com.android.xrayfa.shared.ui.config.SharedConfigSection
 import com.android.xrayfa.shared.ui.home.HomeTopBar
 import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
-import com.android.xrayfa.shared.navigation.rememberSubscriptionComponent
+import com.android.xrayfa.shared.ui.qr.SharedQrScannerScreen
+import com.android.xrayfa.shared.ui.settings.SettingsUiLabels
 import com.android.xrayfa.shared.ui.settings.SharedSettingsGeneralSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsSubscriptionSection
 import com.android.xrayfa.shared.ui.subscription.SharedSubscriptionScreen
@@ -100,7 +102,22 @@ private fun ConfigTabScreen(
     onNodeSelectedNavigateHome: () -> Unit,
 ) {
     var showSubscriptions by remember { mutableStateOf(false) }
+    var showQrScanner by remember { mutableStateOf(false) }
     val subscriptionComponent = rememberSubscriptionComponent()
+    val settingsLabels = remember { SettingsUiLabels() }
+
+    if (showQrScanner) {
+        SharedQrScannerScreen(
+            onResult = { result ->
+                component.onImportFromLink(result)
+                showQrScanner = false
+            },
+            onBack = { showQrScanner = false },
+            title = settingsLabels.qrScannerTitle,
+            permissionRequiredMessage = settingsLabels.qrPermissionRequired,
+        )
+        return
+    }
 
     if (showSubscriptions) {
         SharedSubscriptionScreen(
@@ -122,6 +139,8 @@ private fun ConfigTabScreen(
                     SharedConfigImportMenu(
                         onImportFromClipboard = component::onImportFromClipboard,
                         onManageSubscriptions = { showSubscriptions = true },
+                        onScanQr = { showQrScanner = true },
+                        scanQrLabel = settingsLabels.scanQrLabel,
                     )
                 },
                 colors =

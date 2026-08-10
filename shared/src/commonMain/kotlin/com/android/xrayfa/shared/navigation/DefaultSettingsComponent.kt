@@ -67,6 +67,54 @@ class DefaultSettingsComponent(
         }
     }
 
+    override fun onSetSocksPort(port: Int) {
+        scope.launch {
+            settingsRepository.setSocksPort(port)
+            vpnController.restartIfNeeded()
+        }
+    }
+
+    override fun onSetHttpPort(port: Int) {
+        scope.launch {
+            settingsRepository.setHttpPort(port)
+            vpnController.restartIfNeeded()
+        }
+    }
+
+    override fun onSetSocksUsername(username: String) {
+        scope.launch {
+            settingsRepository.setSocksUsername(username)
+            vpnController.restartIfNeeded()
+        }
+    }
+
+    override fun onSetSocksPassword(password: String) {
+        scope.launch {
+            settingsRepository.setSocksPassword(password)
+            vpnController.restartIfNeeded()
+        }
+    }
+
+    override fun onSetDnsIPv4(dns: String) {
+        scope.launch {
+            settingsRepository.setDnsIPv4(dns)
+            vpnController.restartIfNeeded()
+        }
+    }
+
+    override fun onSetDnsIPv6(dns: String) {
+        scope.launch {
+            settingsRepository.setDnsIPv6(dns)
+            vpnController.restartIfNeeded()
+        }
+    }
+
+    override fun onSetIpV6Enable(enable: Boolean) {
+        scope.launch {
+            settingsRepository.setIpV6Enable(enable)
+        }
+    }
+
     companion object {
         const val LOCAL_PROXY_LISTEN_ADDRESS = "127.0.0.1"
         const val LAN_PROXY_LISTEN_ADDRESS = "0.0.0.0"

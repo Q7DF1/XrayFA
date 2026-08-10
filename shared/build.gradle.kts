@@ -24,6 +24,9 @@ kotlin {
             export(libs.essenty.lifecycle)
             export(libs.essenty.state.keeper)
         }
+        target.binaries.all {
+            linkerOpts("-framework", "AVFoundation")
+        }
     }
 
     sourceSets {

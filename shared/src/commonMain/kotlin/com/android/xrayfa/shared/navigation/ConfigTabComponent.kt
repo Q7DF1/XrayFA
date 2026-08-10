@@ -15,6 +15,8 @@ interface ConfigComponent {
     )
 
     fun onImportFromClipboard()
+
+    fun onImportFromLink(link: String)
 }
 
 /** Typealias for E.6e naming; prefer [ConfigComponent] in new code. */

@@ -3,6 +3,7 @@ package com.android.xrayfa.shared.ui.config
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.outlined.Subscriptions
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -20,9 +21,11 @@ import androidx.compose.ui.Modifier
 fun SharedConfigImportMenu(
     onImportFromClipboard: () -> Unit,
     onManageSubscriptions: (() -> Unit)? = null,
+    onScanQr: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     importFromClipboardLabel: String = "Import from clipboard",
     manageSubscriptionsLabel: String = "Manage subscriptions",
+    scanQrLabel: String = "Scan QR code",
 ) {
     var expanded by remember { mutableStateOf(false) }
     IconButton(onClick = { expanded = true }, modifier = modifier) {
@@ -42,6 +45,18 @@ fun SharedConfigImportMenu(
                 onImportFromClipboard()
             },
         )
+        if (onScanQr != null) {
+            DropdownMenuItem(
+                text = { Text(scanQrLabel) },
+                leadingIcon = {
+                    Icon(Icons.Default.QrCodeScanner, contentDescription = null)
+                },
+                onClick = {
+                    expanded = false
+                    onScanQr()
+                },
+            )
+        }
         if (onManageSubscriptions != null) {
             DropdownMenuItem(
                 text = { Text(manageSubscriptionsLabel) },

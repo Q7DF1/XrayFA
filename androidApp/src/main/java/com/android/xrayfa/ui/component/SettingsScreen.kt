@@ -192,6 +192,31 @@ fun SettingsScreen(
             subscriptionSectionTitle = stringResource(R.string.subscription_part),
             sendHwidTitle = stringResource(R.string.send_hwid),
             sendHwidDescription = stringResource(R.string.send_hwid_desc),
+            httpProxyPortTitle = stringResource(R.string.http_proxy_port),
+            socksPortTitle = stringResource(R.string.socks_port),
+            socksUsernameTitle = stringResource(R.string.socks_username_title),
+            socksPasswordTitle = stringResource(R.string.socks_password_title),
+            dnsIpv4Title = stringResource(R.string.dns_ipv4),
+            enableIpv6Title = stringResource(R.string.enable_ipv6),
+            enableIpv6Description = stringResource(R.string.enable_ipv6_description),
+            dnsIpv6Title = stringResource(R.string.dns_ipv6),
+            editDialogTitle = stringResource(R.string.edit),
+            saveLabel = stringResource(R.string.save),
+            cancelLabel = stringResource(R.string.cancel),
+            cannotBeEmpty = stringResource(R.string.can_not_be_empty),
+            portInvalid = stringResource(R.string.err_port_invalid),
+            ipv4Empty = stringResource(R.string.err_ipv4_empty),
+            ipv4ItemEmpty = stringResource(R.string.err_ipv4_item_empty),
+            ipv4Invalid = stringResource(R.string.err_ipv4_invalid),
+            ipv4Duplicate = stringResource(R.string.err_ipv4_duplicate),
+            ipv6Empty = stringResource(R.string.err_ipv6_empty),
+            ipv6ItemEmpty = stringResource(R.string.err_ipv6_item_empty),
+            ipv6Invalid = stringResource(R.string.err_ipv6_invalid),
+            ipv6Duplicate = stringResource(R.string.err_ipv6_duplicate),
+            socksUsernameEmpty = stringResource(R.string.err_socks_user_empty),
+            socksPasswordEmpty = stringResource(R.string.err_socks_pass_empty),
+            socksLengthExceeded = stringResource(R.string.err_socks_length_exceeded),
+            socksInvalidChars = stringResource(R.string.err_socks_invalid_chars),
         )
 
     Scaffold(
@@ -277,85 +302,6 @@ fun SettingsScreen(
                     }
                     },
                     additionalNetworkContent = {
-                    SettingsFieldBox(
-                        title = R.string.http_proxy_port,
-                        content = settingsState.httpPort.toString(),
-                        icon = Icons.Outlined.Numbers,
-                        enable = settingsState.lanHttpProxyEnable
-                    ) {
-                        editInitValue = settingsState.httpPort.toString()
-                        isShowEditDialog = true
-                        editType = SettingsKeys.HTTP_PORT
-                        validator = {
-                            validatePort(it, context)
-                        }
-                    }
-                    SettingsFieldBox(
-                        title = R.string.socks_port,
-                        content = settingsState.socksPort.toString(),
-                        icon = Icons.Outlined.Numbers
-                    ) {
-                        editInitValue = settingsState.socksPort.toString()
-                        isShowEditDialog = true
-                        editType = SettingsKeys.SOCKS_PORT
-                        validator = {
-                            if (it.isBlank()) context.getString(R.string.can_not_be_empty) else null
-                        }
-                    }
-                    SettingsFieldBox(
-                        title = R.string.socks_username_title,
-                        content = settingsState.socksUserName,
-                        icon = Icons.Outlined.Person
-                    ) {
-                        editInitValue = settingsState.socksUserName
-                        isShowEditDialog = true
-                        editType = SettingsKeys.SOCKS_USERNAME
-                        validator = {validateSocks(it,context,false)}
-                    }
-                    SettingsFieldBox(
-                        title = R.string.socks_password_title,
-                        content = settingsState.socksPassword,
-                        icon = Icons.Outlined.Password
-                    ) {
-                        editInitValue = settingsState.socksPassword
-                        isShowEditDialog = true
-                        editType = SettingsKeys.SOCKS_PASSWORD
-                        validator = {validateSocks(it,context,true)}
-                    }
-
-                    SettingsFieldBox(
-                        title = R.string.dns_ipv4,
-                        content = settingsState.dnsIPv4,
-                        icon = Icons.Outlined.Dns
-                    ) {
-                        editInitValue = settingsState.dnsIPv4
-                        isShowEditDialog = true
-                        editType = SettingsKeys.DNS_IPV4
-                        validator = {validateIpv4List(it,context)}
-                    }
-                    SettingsCheckBox(
-                        title = R.string.enable_ipv6,
-                        description = R.string.enable_ipv6_description,
-                        icon = Icons.Outlined.NetworkCheck,
-                        checked = settingsState.ipV6Enable,
-                        onCheckedChange = { checked->
-                            viewmodel.setIpV6Enable(checked)
-                        }
-                    )
-                    SettingsFieldBox(
-                        title = R.string.dns_ipv6,
-                        content = settingsState.dnsIPv6,
-                        icon = Icons.Outlined.Dns,
-                        enable = settingsState.ipV6Enable,
-                        onClick = {
-                            if (settingsState.ipV6Enable) {
-                                editInitValue = settingsState.dnsIPv6
-                                isShowEditDialog = true
-                                editType = SettingsKeys.DNS_IPV6
-                                validator = {validateIpv6List(it,context)}
-                            }
-                        }
-                    )
                     with(sharedTransitionScope) {
                         SettingsFieldBox(
                             title = R.string.route_settings_title,
@@ -485,29 +431,10 @@ fun SettingsScreen(
                         dismissText = stringResource(R.string.cancel),
                         confirmText = stringResource(R.string.save),
                         initialText = editInitValue,
-                        isNumeric = editType.name == SettingsKeys.SOCKS_PORT.name ||
-                                editType.name == SettingsKeys.HTTP_PORT.name,
+                        isNumeric = false,
                         validator = validator,
                         onConfirm = {
                             when(editType.name) {
-
-                                SettingsKeys.SOCKS_PORT.name ->
-                                    viewmodel.setSocksPort(it.toIntOrNull()?:10808)
-
-                                SettingsKeys.HTTP_PORT.name ->
-                                    viewmodel.setHttpPort(it.toIntOrNull()?:10809)
-
-                                SettingsKeys.SOCKS_USERNAME.name ->
-                                    viewmodel.setSocksUsername(it)
-
-                                SettingsKeys.SOCKS_PASSWORD.name ->
-                                    viewmodel.setSocksPassword(it)
-                                SettingsKeys.DNS_IPV4.name ->
-                                    viewmodel.setDnsIpV4(it)
-
-                                SettingsKeys.DNS_IPV6.name ->
-                                    viewmodel.setDnsIpV6(it)
-
                                 SettingsKeys.DELAY_TEST_URL.name ->
                                     viewmodel.setDelayTestUrl(it)
                             }

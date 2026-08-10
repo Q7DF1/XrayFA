@@ -89,6 +89,10 @@ fun SharedSettingsGeneralSection(
                 onCheckedChange = component::onSetLanHttpProxyEnable,
                 icon = Icons.Outlined.Public,
             )
+            SharedSettingsNetworkDetailsSection(
+                component = component,
+                labels = labels,
+            )
             additionalNetworkContent()
         }
     }
