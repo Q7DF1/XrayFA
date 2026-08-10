@@ -10,7 +10,6 @@ import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.repository.SubscriptionRepository
 import com.android.xrayfa.vpn.VpnController
 import com.android.xrayfa.viewmodel.AppsViewmodelFactory
-import com.android.xrayfa.viewmodel.DetailViewmodelFactory
 import com.android.xrayfa.viewmodel.SettingsViewmodelFactory
 import com.android.xrayfa.viewmodel.SubscriptionViewmodelFactory
 import com.android.xrayfa.viewmodel.XrayViewmodelFactory
@@ -37,7 +36,6 @@ val appViewModelDiModule: Module = module {
             assetPaths = get<XrayAssetPaths>(),
         )
     }
-    single { DetailViewmodelFactory(parserFactory = get(), nodeRepository = get()) }
     single {
         SubscriptionViewmodelFactory(
             repository = get(),

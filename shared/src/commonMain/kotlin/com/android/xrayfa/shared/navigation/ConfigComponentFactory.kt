@@ -17,6 +17,7 @@ fun defaultConfigComponentFactory(
             vpnController = koin.get(),
             configLinkImporter = koin.get(),
             nodeEditor = koin.get(),
+            nodeFormEditor = koin.get(),
             filterLabels = filterLabels,
         )
     }

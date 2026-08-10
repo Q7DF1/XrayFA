@@ -8,15 +8,21 @@ data class ConfigFilterOption(
     val label: String,
 )
 
+sealed interface NodeEditTarget {
+    data object Create : NodeEditTarget
+
+    data class Edit(
+        val node: Node,
+    ) : NodeEditTarget
+}
+
 /** Config tab presentation state owned by [ConfigComponent]. */
 data class ConfigState(
     val nodes: List<Node> = emptyList(),
     val subscriptions: List<Subscription> = emptyList(),
     val filters: List<ConfigFilterOption> = emptyList(),
     val selectedFilterId: Int = ConfigFilterIds.SUB_ALL,
-    val editTarget: Node? = null,
+    val nodeEditTarget: NodeEditTarget? = null,
     val deleteTarget: Node? = null,
     val editError: Boolean = false,
-    val showCreateSheet: Boolean = false,
-    val createError: Boolean = false,
 )

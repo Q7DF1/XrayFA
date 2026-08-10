@@ -4,7 +4,9 @@ import com.android.xrayfa.model.Node
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.repository.SubscriptionRepository
 import com.android.xrayfa.shared.config.ConfigLinkImporter
+import com.android.xrayfa.shared.config.NodeEditForm
 import com.android.xrayfa.shared.config.NodeEditor
+import com.android.xrayfa.shared.config.NodeFormEditor
 import com.android.xrayfa.vpn.VpnController
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
@@ -22,6 +24,7 @@ class DefaultConfigComponent(
     private val vpnController: VpnController,
     private val configLinkImporter: ConfigLinkImporter,
     private val nodeEditor: NodeEditor,
+    private val nodeFormEditor: NodeFormEditor,
     private val filterLabels: ConfigFilterLabels = ConfigFilterLabels(),
 ) : ConfigComponent,
     ComponentContext by componentContext {
@@ -96,27 +99,35 @@ class DefaultConfigComponent(
         scope.launch {
             val node = nodeRepository.loadLinksById(nodeId).first() ?: return@launch
             _state.update {
-                it.copy(editTarget = node, editError = false)
+                it.copy(nodeEditTarget = NodeEditTarget.Edit(node), editError = false)
             }
         }
     }
 
-    override fun onCloseEditNode() {
+    override fun onOpenCreateNode() {
         _state.update {
-            it.copy(editTarget = null, editError = false)
+            it.copy(nodeEditTarget = NodeEditTarget.Create, editError = false)
         }
     }
 
-    override fun onSaveEditNode(
-        remark: String,
-        link: String,
-    ) {
-        val nodeId = _state.value.editTarget?.id ?: return
+    override fun onCloseNodeEdit() {
+        _state.update {
+            it.copy(nodeEditTarget = null, editError = false)
+        }
+    }
+
+    override fun onSaveNodeEdit(form: NodeEditForm) {
+        val target = _state.value.nodeEditTarget ?: return
+        val nodeId =
+            when (target) {
+                is NodeEditTarget.Create -> 0
+                is NodeEditTarget.Edit -> target.node.id
+            }
         scope.launch {
-            val success = nodeEditor.updateNode(nodeId, remark, link)
+            val success = nodeFormEditor.saveForm(nodeId, form)
             if (success) {
                 _state.update {
-                    it.copy(editTarget = null, editError = false)
+                    it.copy(nodeEditTarget = null, editError = false)
                 }
             } else {
                 _state.update {
@@ -144,36 +155,6 @@ class DefaultConfigComponent(
             nodeEditor.deleteNode(nodeId)
             _state.update {
                 it.copy(deleteTarget = null)
-            }
-        }
-    }
-
-    override fun onOpenCreateNode() {
-        _state.update {
-            it.copy(showCreateSheet = true, createError = false)
-        }
-    }
-
-    override fun onCloseCreateNode() {
-        _state.update {
-            it.copy(showCreateSheet = false, createError = false)
-        }
-    }
-
-    override fun onSaveCreateNode(
-        remark: String,
-        link: String,
-    ) {
-        scope.launch {
-            val success = nodeEditor.createNode(remark, link)
-            if (success) {
-                _state.update {
-                    it.copy(showCreateSheet = false, createError = false)
-                }
-            } else {
-                _state.update {
-                    it.copy(createError = true)
-                }
             }
         }
     }

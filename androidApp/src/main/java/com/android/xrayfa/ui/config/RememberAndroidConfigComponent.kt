@@ -35,6 +35,7 @@ fun rememberAndroidConfigComponent(filterLabels: ConfigFilterLabels): ConfigComp
             vpnController = koin.get<VpnController>(),
             configLinkImporter = koin.get<ConfigLinkImporter>(),
             nodeEditor = koin.get<NodeEditor>(),
+            nodeFormEditor = koin.get(),
             filterLabels = filterLabels,
         )
     }

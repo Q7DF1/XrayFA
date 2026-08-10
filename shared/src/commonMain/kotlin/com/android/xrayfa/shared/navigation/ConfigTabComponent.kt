@@ -1,7 +1,8 @@
 package com.android.xrayfa.shared.navigation
 
-import com.arkivanov.decompose.value.Value
 import com.android.xrayfa.model.Node
+import com.android.xrayfa.shared.config.NodeEditForm
+import com.arkivanov.decompose.value.Value
 
 interface ConfigComponent {
     val state: Value<ConfigState>
@@ -21,27 +22,17 @@ interface ConfigComponent {
 
     fun onOpenEditNode(nodeId: Int)
 
-    fun onCloseEditNode()
+    fun onOpenCreateNode()
 
-    fun onSaveEditNode(
-        remark: String,
-        link: String,
-    )
+    fun onCloseNodeEdit()
+
+    fun onSaveNodeEdit(form: NodeEditForm)
 
     fun onShowDeleteNode(node: Node)
 
     fun onDismissDeleteNode()
 
     fun onConfirmDeleteNode()
-
-    fun onOpenCreateNode()
-
-    fun onCloseCreateNode()
-
-    fun onSaveCreateNode(
-        remark: String,
-        link: String,
-    )
 }
 
 /** Typealias for E.6e naming; prefer [ConfigComponent] in new code. */

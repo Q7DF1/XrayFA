@@ -72,7 +72,6 @@ import com.android.xrayfa.ui.navigation.Subscription
 import com.android.xrayfa.ui.scene.XrayFASceneStrategy
 import com.android.xrayfa.ui.scene.rememberXrayFASceneStrategy
 import com.android.xrayfa.viewmodel.AppsViewmodel
-import com.android.xrayfa.viewmodel.DetailViewmodel
 import com.android.xrayfa.viewmodel.SettingsViewmodel
 import com.android.xrayfa.viewmodel.SubscriptionViewmodel
 import kotlin.collections.listOf
@@ -89,7 +88,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun XrayFAContainer(
     xrayViewmodel: XrayViewmodel,
-    detailViewmodel: DetailViewmodel,
     settingsViewmodel: SettingsViewmodel,
     subscriptViewmodel: SubscriptionViewmodel,
     appViewmodel: AppsViewmodel,
@@ -221,7 +219,6 @@ fun XrayFAContainer(
                         }
                         is Edit -> NavEntry(key) { 
                             EditScreen(
-                                detailViewmodel = detailViewmodel,
                                 onBack = { navBackStack.routeBack() },
                                 sharedTransitionScope = this@SharedTransitionLayout
                             ) 
@@ -235,9 +232,8 @@ fun XrayFAContainer(
                                 remark = key.remark,
                                 protocol = key.protocol,
                                 initialContent = key.content,
-                                detailViewmodel = detailViewmodel,
+                                onBack = { navBackStack.routeBack() },
                                 sharedTransitionScope = this@SharedTransitionLayout,
-                                onBack = { navBackStack.routeBack() }
                             )
                         }
                         is ScanQR -> NavEntry(

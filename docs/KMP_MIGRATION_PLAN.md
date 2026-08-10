@@ -907,8 +907,8 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | E.6r | iOS Config 轻量创建 sheet（**临时**） | ✅ |
 | E.6s | 共享 Route Settings + iOS 接入 | ✅ |
 | E.6t | iOS Apps 信息桥接 + allow list | ✅ |
-| E.6u | SharedModalBottomSheet 崩溃修复（Dialog 替代 ModalBottomSheet） | ✅ 待 commit |
-| E.6v | **共享完整 EditScreen → iOS 与 Android 统一** | ⬜ 下一步 |
+| E.6u | SharedModalBottomSheet 崩溃修复（Dialog 替代 ModalBottomSheet） | ✅ |
+| E.6v | **共享完整 EditScreen → iOS 与 Android 统一** | ✅ 待 commit |
 
 ### EditScreen / 节点创建：产品与技术决策（2026-08-10）
 
@@ -928,7 +928,7 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 4. Android：`Edit` / `Detail` 路由改为嵌入共享 EditScreen（Strangler 瘦包装），行为与现网一致
 5. iOS 轻量 sheet：共享 EditScreen 落地后可**移除创建入口**；编辑是否保留 sheet 视迁移成本再定
 
-**已知技术债**：shared 模块勿在 commonMain 直接调用 `ModalBottomSheet`（CMP material3 1.3.1 vs androidApp 1.5.0-alpha15 → `NoSuchMethodError`）；共享 sheet 用 `SharedModalBottomSheet`（Dialog 模拟）直至 CMP/BOM 对齐或 EditScreen 全屏替代。
+**已知技术债**：shared 模块勿在 commonMain 直接调用 `ModalBottomSheet`、`ExposedDropdownMenuBox`（CMP material3 1.3.1 vs androidApp 1.5.0-alpha15 → `NoSuchMethodError`）；共享 sheet/下拉用 Dialog 模拟直至 CMP/BOM 对齐。
 
 ---
 

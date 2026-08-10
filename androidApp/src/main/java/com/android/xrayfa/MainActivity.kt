@@ -22,8 +22,6 @@ import com.android.xrayfa.ui.XrayBaseActivity
 import com.android.xrayfa.ui.navigation.ScanQR
 import com.android.xrayfa.viewmodel.AppsViewmodel
 import com.android.xrayfa.viewmodel.AppsViewmodelFactory
-import com.android.xrayfa.viewmodel.DetailViewmodel
-import com.android.xrayfa.viewmodel.DetailViewmodelFactory
 import com.android.xrayfa.viewmodel.SettingsViewmodel
 import com.android.xrayfa.viewmodel.SettingsViewmodelFactory
 import com.android.xrayfa.viewmodel.SubscriptionViewmodel
@@ -34,7 +32,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 class MainActivity constructor(
     val xrayViewmodelFactory: XrayViewmodelFactory,
-    val detailViewmodelFactory: DetailViewmodelFactory,
     val settingsViewmodelFactory: SettingsViewmodelFactory,
     val subscriptionViewmodelFactory: SubscriptionViewmodelFactory,
     val appViewmodelFactory: AppsViewmodelFactory
@@ -46,18 +43,14 @@ class MainActivity constructor(
     @SuppressLint("SourceLockedOrientationActivity")
     @Composable
     override fun Content(isLandscape: Boolean) {
-
-        val detailViewmodel =
-            ViewModelProvider.create(this,detailViewmodelFactory)[DetailViewmodel::class.java]
-        val subscriptionViewmodel = ViewModelProvider
-            .create(this, subscriptionViewmodelFactory)[SubscriptionViewmodel::class.java]
+        val subscriptionViewmodel =
+            ViewModelProvider.create(this, subscriptionViewmodelFactory)[SubscriptionViewmodel::class.java]
         val appViewmodel =
             ViewModelProvider.create(this, appViewmodelFactory)[AppsViewmodel::class.java]
 
         checkNotificationPermission()
         XrayFAContainer(
             xrayViewmodel,
-            detailViewmodel,
             settingsViewmodel,
             subscriptionViewmodel,
             appViewmodel

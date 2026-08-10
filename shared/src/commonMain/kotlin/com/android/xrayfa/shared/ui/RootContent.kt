@@ -28,14 +28,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.shared.navigation.ConfigComponent
+import com.android.xrayfa.shared.navigation.NodeEditTarget
 import com.android.xrayfa.shared.navigation.RootComponent
 import com.android.xrayfa.shared.navigation.RootTab
 import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.navigation.rememberSubscriptionComponent
 import com.android.xrayfa.shared.ui.config.SharedConfigImportMenu
 import com.android.xrayfa.shared.ui.config.SharedConfigSection
-import com.android.xrayfa.shared.ui.config.SharedNodeEditSheet
+import com.android.xrayfa.shared.ui.config.SharedEditScreen
 import com.android.xrayfa.shared.ui.config.ConfigUiLabels
+import com.android.xrayfa.shared.config.NodeFormEditor
 import com.android.xrayfa.shared.ui.home.HomeTopBar
 import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
 import com.android.xrayfa.shared.ui.qr.SharedQrScannerScreen
@@ -52,6 +54,7 @@ import com.android.xrayfa.shared.ui.subscription.SharedSubscriptionScreen
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import org.koin.mp.KoinPlatform
 
 @Composable
 fun RootContent(
@@ -118,6 +121,33 @@ private fun ConfigTabScreen(
     val settingsLabels = remember { SettingsUiLabels() }
     val configLabels = remember { ConfigUiLabels() }
     val configState by component.state.subscribeAsState()
+
+    configState.nodeEditTarget?.let { target ->
+        val nodeFormEditor = remember { KoinPlatform.getKoin().get<NodeFormEditor>() }
+        when (target) {
+            is NodeEditTarget.Create ->
+                SharedEditScreen(
+                    nodeId = 0,
+                    protocol = null,
+                    initialContent = null,
+                    initialRemark = null,
+                    nodeFormEditor = nodeFormEditor,
+                    onBack = component::onCloseNodeEdit,
+                    onSave = component::onSaveNodeEdit,
+                )
+            is NodeEditTarget.Edit ->
+                SharedEditScreen(
+                    nodeId = target.node.id,
+                    protocol = target.node.protocolPrefix,
+                    initialContent = target.node.url,
+                    initialRemark = target.node.remark,
+                    nodeFormEditor = nodeFormEditor,
+                    onBack = component::onCloseNodeEdit,
+                    onSave = component::onSaveNodeEdit,
+                )
+        }
+        return
+    }
 
     if (showQrScanner) {
         SharedQrScannerScreen(
@@ -186,28 +216,6 @@ private fun ConfigTabScreen(
             onEmptyAddClick = component::onOpenCreateNode,
             onEditNode = { node -> component.onOpenEditNode(node.id) },
             onDeleteNode = component::onShowDeleteNode,
-        )
-    }
-
-    configState.editTarget?.let { node ->
-        SharedNodeEditSheet(
-            sheetTitle = configLabels.editNodeTitle,
-            initialRemark = node.remark.orEmpty(),
-            initialLink = node.url,
-            labels = configLabels,
-            showError = configState.editError,
-            onDismiss = component::onCloseEditNode,
-            onSave = component::onSaveEditNode,
-        )
-    }
-
-    if (configState.showCreateSheet) {
-        SharedNodeEditSheet(
-            sheetTitle = configLabels.createNodeTitle,
-            labels = configLabels,
-            showError = configState.createError,
-            onDismiss = component::onCloseCreateNode,
-            onSave = component::onSaveCreateNode,
         )
     }
 

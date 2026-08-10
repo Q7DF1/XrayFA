@@ -32,7 +32,6 @@ val appComponentDiModule: Module = module {
     factory {
         MainActivity(
             xrayViewmodelFactory = get(),
-            detailViewmodelFactory = get(),
             settingsViewmodelFactory = get(),
             subscriptionViewmodelFactory = get(),
             appViewmodelFactory = get(),
