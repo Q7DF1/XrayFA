@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +33,8 @@ import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.navigation.rememberSubscriptionComponent
 import com.android.xrayfa.shared.ui.config.SharedConfigImportMenu
 import com.android.xrayfa.shared.ui.config.SharedConfigSection
+import com.android.xrayfa.shared.ui.config.SharedNodeEditSheet
+import com.android.xrayfa.shared.ui.config.ConfigUiLabels
 import com.android.xrayfa.shared.ui.home.HomeTopBar
 import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
 import com.android.xrayfa.shared.ui.qr.SharedQrScannerScreen
@@ -106,6 +110,8 @@ private fun ConfigTabScreen(
     var showQrScanner by remember { mutableStateOf(false) }
     val subscriptionComponent = rememberSubscriptionComponent()
     val settingsLabels = remember { SettingsUiLabels() }
+    val configLabels = remember { ConfigUiLabels() }
+    val configState by component.state.subscribeAsState()
 
     if (showQrScanner) {
         SharedQrScannerScreen(
@@ -160,11 +166,42 @@ private fun ConfigTabScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
                     .padding(bottom = 88.dp),
+            labels = configLabels,
             onNodeSelected = { node ->
                 component.onSelectNode(node.id)
                 onNodeSelectedNavigateHome()
             },
             onEmptyAddClick = component::onImportFromClipboard,
+            onEditNode = { node -> component.onOpenEditNode(node.id) },
+            onDeleteNode = component::onShowDeleteNode,
+        )
+    }
+
+    configState.editTarget?.let { node ->
+        SharedNodeEditSheet(
+            node = node,
+            labels = configLabels,
+            showError = configState.editError,
+            onDismiss = component::onCloseEditNode,
+            onSave = component::onSaveEditNode,
+        )
+    }
+
+    configState.deleteTarget?.let { node ->
+        AlertDialog(
+            onDismissRequest = component::onDismissDeleteNode,
+            title = { Text(configLabels.deleteNodeTitle) },
+            text = { Text(node.remark?.ifBlank { node.url } ?: node.url) },
+            confirmButton = {
+                TextButton(onClick = component::onConfirmDeleteNode) {
+                    Text(configLabels.deleteLabel)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = component::onDismissDeleteNode) {
+                    Text(configLabels.cancelLabel)
+                }
+            },
         )
     }
 }

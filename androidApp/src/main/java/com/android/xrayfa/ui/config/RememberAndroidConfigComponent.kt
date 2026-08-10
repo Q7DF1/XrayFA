@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import com.android.xrayfa.shared.config.ConfigLinkImporter
+import com.android.xrayfa.shared.config.NodeEditor
 import com.android.xrayfa.shared.navigation.ConfigComponent
 import com.android.xrayfa.shared.navigation.ConfigFilterLabels
 import com.android.xrayfa.shared.navigation.DefaultConfigComponent
@@ -33,6 +34,7 @@ fun rememberAndroidConfigComponent(filterLabels: ConfigFilterLabels): ConfigComp
             subscriptionRepository = koin.get<SubscriptionRepository>(),
             vpnController = koin.get<VpnController>(),
             configLinkImporter = koin.get<ConfigLinkImporter>(),
+            nodeEditor = koin.get<NodeEditor>(),
             filterLabels = filterLabels,
         )
     }

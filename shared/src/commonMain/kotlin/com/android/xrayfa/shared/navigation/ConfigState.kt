@@ -14,4 +14,7 @@ data class ConfigState(
     val subscriptions: List<Subscription> = emptyList(),
     val filters: List<ConfigFilterOption> = emptyList(),
     val selectedFilterId: Int = ConfigFilterIds.SUB_ALL,
+    val editTarget: Node? = null,
+    val deleteTarget: Node? = null,
+    val editError: Boolean = false,
 )

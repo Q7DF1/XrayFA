@@ -1,8 +1,10 @@
 package com.android.xrayfa.shared.navigation
 
+import com.android.xrayfa.model.Node
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.repository.SubscriptionRepository
 import com.android.xrayfa.shared.config.ConfigLinkImporter
+import com.android.xrayfa.shared.config.NodeEditor
 import com.android.xrayfa.vpn.VpnController
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
@@ -19,6 +21,7 @@ class DefaultConfigComponent(
     subscriptionRepository: SubscriptionRepository,
     private val vpnController: VpnController,
     private val configLinkImporter: ConfigLinkImporter,
+    private val nodeEditor: NodeEditor,
     private val filterLabels: ConfigFilterLabels = ConfigFilterLabels(),
 ) : ConfigComponent,
     ComponentContext by componentContext {
@@ -36,16 +39,18 @@ class DefaultConfigComponent(
                 nodeRepository.favorites,
                 subscriptionRepository.allSubscriptions,
             ) { allNodes, favorites, subscriptions ->
+                Triple(allNodes, favorites, subscriptions)
+            }.collect { (allNodes, favorites, subscriptions) ->
                 val filters = buildFilters(subscriptions)
                 val filteredNodes = filterNodes(allNodes, favorites, selectedFilterId)
-                ConfigState(
-                    nodes = filteredNodes,
-                    subscriptions = subscriptions,
-                    filters = filters,
-                    selectedFilterId = selectedFilterId,
-                )
-            }.collect { configState ->
-                _state.value = configState
+                _state.update { current ->
+                    current.copy(
+                        nodes = filteredNodes,
+                        subscriptions = subscriptions,
+                        filters = filters,
+                        selectedFilterId = selectedFilterId,
+                    )
+                }
             }
         }
     }
@@ -87,12 +92,68 @@ class DefaultConfigComponent(
         }
     }
 
+    override fun onOpenEditNode(nodeId: Int) {
+        scope.launch {
+            val node = nodeRepository.loadLinksById(nodeId).first() ?: return@launch
+            _state.update {
+                it.copy(editTarget = node, editError = false)
+            }
+        }
+    }
+
+    override fun onCloseEditNode() {
+        _state.update {
+            it.copy(editTarget = null, editError = false)
+        }
+    }
+
+    override fun onSaveEditNode(
+        remark: String,
+        link: String,
+    ) {
+        val nodeId = _state.value.editTarget?.id ?: return
+        scope.launch {
+            val success = nodeEditor.updateNode(nodeId, remark, link)
+            if (success) {
+                _state.update {
+                    it.copy(editTarget = null, editError = false)
+                }
+            } else {
+                _state.update {
+                    it.copy(editError = true)
+                }
+            }
+        }
+    }
+
+    override fun onShowDeleteNode(node: Node) {
+        _state.update {
+            it.copy(deleteTarget = node)
+        }
+    }
+
+    override fun onDismissDeleteNode() {
+        _state.update {
+            it.copy(deleteTarget = null)
+        }
+    }
+
+    override fun onConfirmDeleteNode() {
+        val nodeId = _state.value.deleteTarget?.id ?: return
+        scope.launch {
+            nodeEditor.deleteNode(nodeId)
+            _state.update {
+                it.copy(deleteTarget = null)
+            }
+        }
+    }
+
     private fun refreshNodes() {
         scope.launch {
             val allNodes = nodeRepository.allNodes.first()
             val favorites = nodeRepository.favorites.first()
-            _state.update {
-                it.copy(
+            _state.update { current ->
+                current.copy(
                     nodes = filterNodes(allNodes, favorites, selectedFilterId),
                     selectedFilterId = selectedFilterId,
                 )

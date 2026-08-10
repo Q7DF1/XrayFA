@@ -1,6 +1,7 @@
 package com.android.xrayfa.shared.di
 
 import com.android.xrayfa.shared.config.ConfigLinkImporter
+import com.android.xrayfa.shared.config.NodeEditor
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -11,6 +12,14 @@ val sharedServicesDiModule: Module =
                 nodeRepository = get(),
                 parserFactory = get(),
                 clipboardReader = get(),
+                logger = get(),
+            )
+        }
+        single {
+            NodeEditor(
+                nodeRepository = get(),
+                parserFactory = get(),
+                vpnController = get(),
                 logger = get(),
             )
         }

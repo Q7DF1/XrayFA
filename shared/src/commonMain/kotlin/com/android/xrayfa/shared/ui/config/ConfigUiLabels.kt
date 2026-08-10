@@ -17,4 +17,12 @@ data class ConfigUiLabels(
     val shareLabel: String = "Share",
     val editLabel: String = "Edit",
     val deleteLabel: String = "Delete",
+    val editNodeTitle: String = "Edit node",
+    val nodeRemarkLabel: String = "Remark",
+    val nodeUrlLabel: String = "Node URL",
+    val saveLabel: String = "Save",
+    val cancelLabel: String = "Cancel",
+    val editNodeFailed: String = "Failed to save node. Check the URL.",
+    val deleteNodeTitle: String = "Delete node",
+    val deleteNodeConfirm: String = "Delete this node?",
 )
