@@ -18,4 +18,6 @@ data class SubscriptionUiLabels(
     val duplicateMarkError: String = "Duplicate subscription name",
     val manageSubscriptions: String = "Manage subscriptions",
     val importFromClipboard: String = "Import from clipboard",
+    val shareSubscriptionUrl: String = "Copy subscription URL",
+    val subscriptionUrlCopied: String = "Subscription URL copied",
 )

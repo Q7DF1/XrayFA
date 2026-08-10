@@ -35,6 +35,7 @@ import com.android.xrayfa.shared.ui.home.HomeTopBar
 import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
 import com.android.xrayfa.shared.ui.qr.SharedQrScannerScreen
 import com.android.xrayfa.shared.ui.settings.SettingsUiLabels
+import com.android.xrayfa.shared.ui.settings.SharedSettingsAboutSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsGeneralSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsSubscriptionSection
 import com.android.xrayfa.shared.ui.subscription.SharedSubscriptionScreen
@@ -231,6 +232,7 @@ private fun SettingsTabScreen(
                 scrollEnabled = true,
             )
             SharedSettingsSubscriptionSection(component = component)
+            SharedSettingsAboutSection(component = component)
         }
     }
 }

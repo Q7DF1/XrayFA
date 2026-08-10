@@ -9,8 +9,12 @@ import com.android.xrayfa.common.utils.Logger
 import com.android.xrayfa.datastore.SettingsDataStoreContext
 import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.datastore.createSettingsDataStore
+import com.android.xrayfa.shared.platform.AppMetadataProvider
 import com.android.xrayfa.shared.platform.ClipboardReader
+import com.android.xrayfa.shared.platform.ClipboardWriter
+import com.android.xrayfa.shared.platform.IosAppMetadataProvider
 import com.android.xrayfa.shared.platform.IosClipboardReader
+import com.android.xrayfa.shared.platform.IosClipboardWriter
 import com.android.xrayfa.shared.platform.IosGeoIpProvider
 import com.android.xrayfa.shared.platform.IosLogger
 import com.android.xrayfa.shared.platform.IosXrayAssetPaths
@@ -27,6 +31,8 @@ import org.koin.dsl.module
 /** iOS platform Koin bindings (subset of Android [appPlatformDiModule]). */
 val iosPlatformDiModule: Module = module {
     single<ClipboardReader> { IosClipboardReader() }
+    single<ClipboardWriter> { IosClipboardWriter() }
+    single<AppMetadataProvider> { IosAppMetadataProvider() }
     single<Logger> { IosLogger() }
     single { SettingsDataStoreContext() }
     single<DataStore<Preferences>> { createSettingsDataStore(get()) }

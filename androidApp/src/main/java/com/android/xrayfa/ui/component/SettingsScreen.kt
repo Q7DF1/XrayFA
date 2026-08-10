@@ -104,6 +104,7 @@ import com.android.xrayfa.ui.navigation.RouteSettings
 import com.android.xrayfa.ui.navigation.Settings
 import com.android.xrayfa.viewmodel.GEOFileType
 import com.android.xrayfa.viewmodel.GEOFileType.Companion.FILE_TYPE_IP
+import com.android.xrayfa.shared.ui.settings.SharedSettingsAboutSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsGeneralSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsSubscriptionSection
 import com.android.xrayfa.shared.ui.settings.SettingsUiLabels
@@ -168,9 +169,6 @@ fun SettingsScreen(
             }
         }
     val packageName = context.packageName
-    val pm = context.packageManager
-    val packageInfo = pm.getPackageInfo(packageName, 0)
-    val versionName = packageInfo.versionName?:"unknown"
     val sharedSettingsComponent = rememberAndroidSettingsComponent()
     val sharedSettingsLabels =
         SettingsUiLabels(
@@ -217,6 +215,12 @@ fun SettingsScreen(
             socksPasswordEmpty = stringResource(R.string.err_socks_pass_empty),
             socksLengthExceeded = stringResource(R.string.err_socks_length_exceeded),
             socksInvalidChars = stringResource(R.string.err_socks_invalid_chars),
+            aboutSectionTitle = stringResource(R.string.about_part),
+            appVersionTitle = stringResource(R.string.xrayfa_version),
+            hwidTitle = stringResource(R.string.hwid),
+            xrayCoreVersionTitle = stringResource(R.string.xray_core_version),
+            repoTitle = stringResource(R.string.repo_site),
+            repoDescription = stringResource(R.string.repo_description),
         )
 
     Scaffold(
@@ -393,38 +397,10 @@ fun SettingsScreen(
                     component = sharedSettingsComponent,
                     labels = sharedSettingsLabels,
                 )
-                SettingsGroup(
-                    groupName = stringResource(R.string.about_part)
-                ) {
-
-                    SettingsFieldBox(
-                        title = R.string.xrayfa_version,
-                        content = versionName,
-                        icon = Icons.Outlined.Info,
-                        onClick = {}
-                    )
-
-                    SettingsFieldBox(
-                        title = R.string.hwid,
-                        content = settingsState.hwid,
-                        icon = Icons.Outlined.Info,
-                        onClick = {}
-                    )
-
-                    SettingsFieldBox(
-                        title = R.string.xray_core_version,
-                        content = settingsState.xrayCoreVersion,
-                        icon = Icons.Outlined.Info
-                    ) {
-                    }
-                    SettingsFieldBox(
-                        title = R.string.repo_site,
-                        content = stringResource(R.string.repo_description),
-                        icon = ImageVector.vectorResource(R.drawable.ic_github)
-                    ) {
-                        viewmodel.openRepo(context)
-                    }
-                }
+                SharedSettingsAboutSection(
+                    component = sharedSettingsComponent,
+                    labels = sharedSettingsLabels,
+                )
                 if (isShowEditDialog) {
                     EditTextDialog(
                         title = stringResource(R.string.edit),

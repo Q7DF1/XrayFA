@@ -48,4 +48,12 @@ data class SettingsUiLabels(
     val scanQrLabel: String = "Scan QR code",
     val qrScannerTitle: String = "Scan QR code",
     val qrPermissionRequired: String = "Camera permission is required to scan QR codes",
+    val aboutSectionTitle: String = "About",
+    val appVersionTitle: String = "App version",
+    val hwidTitle: String = "HWID",
+    val xrayCoreVersionTitle: String = "Xray core version",
+    val repoTitle: String = "Repository",
+    val repoDescription: String = "GitHub — Q7DF1/XrayFA",
+    val unknownLabel: String = "unknown",
+    val subscriptionUrlCopied: String = "Subscription URL copied",
 )

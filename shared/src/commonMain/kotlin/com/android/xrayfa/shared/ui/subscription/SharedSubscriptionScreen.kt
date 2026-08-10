@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Link
@@ -62,8 +63,10 @@ import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.Subscription
 import com.android.xrayfa.shared.navigation.EmptySubscription
 import com.android.xrayfa.shared.navigation.SubscriptionComponent
+import com.android.xrayfa.shared.platform.ClipboardWriter
 import com.android.xrayfa.shared.subscription.validateSubscriptionUrl
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import org.koin.mp.KoinPlatform
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,6 +78,8 @@ fun SharedSubscriptionScreen(
     labels: SubscriptionUiLabels = SubscriptionUiLabels(),
 ) {
     val state by component.state.subscribeAsState()
+    val clipboardWriter = remember { KoinPlatform.getKoin().get<ClipboardWriter>() }
+    var copiedMessage by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         modifier = modifier,
@@ -147,6 +152,11 @@ fun SharedSubscriptionScreen(
                                 },
                                 onEdit = { component.openEditSheet(item.id) },
                                 onDelete = { component.showDeleteDialog(item) },
+                                onShareUrl = {
+                                    clipboardWriter.writeText(item.url)
+                                    copiedMessage = labels.subscriptionUrlCopied
+                                },
+                                shareUrlLabel = labels.shareSubscriptionUrl,
                             )
                         }
                     }
@@ -166,6 +176,27 @@ fun SharedSubscriptionScreen(
                         text = labels.subscribeFailed,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                         color = MaterialTheme.colorScheme.onErrorContainer,
+                    )
+                }
+            }
+
+            copiedMessage?.let { message ->
+                LaunchedEffect(message) {
+                    kotlinx.coroutines.delay(2000)
+                    copiedMessage = null
+                }
+                Surface(
+                    modifier =
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(16.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.inverseSurface,
+                ) {
+                    Text(
+                        text = message,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        color = MaterialTheme.colorScheme.inverseOnSurface,
                     )
                 }
             }
@@ -214,6 +245,8 @@ private fun SharedSubscriptionCard(
     onRefresh: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    onShareUrl: () -> Unit,
+    shareUrlLabel: String,
 ) {
     OutlinedCard(
         onClick = onRefresh,
@@ -263,6 +296,13 @@ private fun SharedSubscriptionCard(
             },
             trailingContent = {
                 Row {
+                    IconButton(onClick = onShareUrl) {
+                        Icon(
+                            Icons.Outlined.ContentCopy,
+                            contentDescription = shareUrlLabel,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
                     IconButton(onClick = onEdit) {
                         Icon(Icons.Outlined.Edit, contentDescription = null, modifier = Modifier.size(20.dp))
                     }
