@@ -1,5 +1,8 @@
 package com.android.xrayfa.shared.navigation
 
+import com.android.xrayfa.datastore.DomainStrategy
+import com.android.xrayfa.datastore.RoutingMode
+import com.android.xrayfa.datastore.Rule
 import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.datastore.SettingsState
 import com.android.xrayfa.datastore.Theme
@@ -112,6 +115,27 @@ class DefaultSettingsComponent(
     override fun onSetIpV6Enable(enable: Boolean) {
         scope.launch {
             settingsRepository.setIpV6Enable(enable)
+        }
+    }
+
+    override fun onSetRoutingMode(mode: RoutingMode) {
+        scope.launch {
+            settingsRepository.setRoutingMode(mode)
+            vpnController.restartIfNeeded()
+        }
+    }
+
+    override fun onSetDomainStrategy(strategy: DomainStrategy) {
+        scope.launch {
+            settingsRepository.setDomainStrategy(strategy)
+            vpnController.restartIfNeeded()
+        }
+    }
+
+    override fun onSetRoutingRules(rules: List<Rule>) {
+        scope.launch {
+            settingsRepository.setRoutingRules(rules)
+            vpnController.restartIfNeeded()
         }
     }
 

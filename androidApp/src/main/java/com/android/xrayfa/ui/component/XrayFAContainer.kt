@@ -265,7 +265,6 @@ fun XrayFAContainer(
                             metadata = XrayFASceneStrategy.subscreen()
                         ) {
                             RouteSettingsScreen(
-                                viewmodel = settingsViewmodel,
                                 sharedTransitionScope = this@SharedTransitionLayout
                             )
                         }

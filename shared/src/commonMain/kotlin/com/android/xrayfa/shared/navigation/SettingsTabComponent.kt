@@ -1,7 +1,11 @@
 package com.android.xrayfa.shared.navigation
 
-import com.arkivanov.decompose.value.Value
+import com.android.xrayfa.datastore.DomainStrategy
+import com.android.xrayfa.datastore.RoutingMode
+import com.android.xrayfa.datastore.Rule
 import com.android.xrayfa.datastore.SettingsState
+
+import com.arkivanov.decompose.value.Value
 
 interface SettingsComponent {
     val state: Value<SettingsState>
@@ -31,6 +35,12 @@ interface SettingsComponent {
     fun onSetDnsIPv6(dns: String)
 
     fun onSetIpV6Enable(enable: Boolean)
+
+    fun onSetRoutingMode(mode: RoutingMode)
+
+    fun onSetDomainStrategy(strategy: DomainStrategy)
+
+    fun onSetRoutingRules(rules: List<Rule>)
 }
 
 /** Typealias for tab naming consistency with [HomeTabComponent]. */

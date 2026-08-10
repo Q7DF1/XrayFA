@@ -40,7 +40,9 @@ import com.android.xrayfa.shared.ui.home.HomeTopBar
 import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
 import com.android.xrayfa.shared.ui.qr.SharedQrScannerScreen
 import com.android.xrayfa.shared.ui.settings.SettingsUiLabels
+import com.android.xrayfa.shared.ui.settings.RouteSettingsUiLabels
 import com.android.xrayfa.shared.ui.settings.SharedAppLogScreen
+import com.android.xrayfa.shared.ui.settings.SharedRouteSettingsScreen
 import com.android.xrayfa.shared.ui.settings.SharedSettingsAboutSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsGeneralSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsPlatformSection
@@ -259,7 +261,18 @@ private fun SettingsTabScreen(
     onBack: () -> Unit,
 ) {
     var showAppLog by remember { mutableStateOf(false) }
+    var showRouteSettings by remember { mutableStateOf(false) }
     val settingsLabels = remember { SettingsUiLabels() }
+    val routeSettingsLabels = remember { RouteSettingsUiLabels() }
+
+    if (showRouteSettings) {
+        SharedRouteSettingsScreen(
+            component = component,
+            labels = routeSettingsLabels,
+            onBack = { showRouteSettings = false },
+        )
+        return
+    }
 
     if (showAppLog) {
         SharedAppLogScreen(
@@ -304,6 +317,7 @@ private fun SettingsTabScreen(
             SharedSettingsPlatformSection(
                 labels = settingsLabels,
                 onLogcatClick = { showAppLog = true },
+                onRouteClick = { showRouteSettings = true },
             )
             SharedSettingsSubscriptionSection(component = component, labels = settingsLabels)
             SharedSettingsAboutSection(component = component, labels = settingsLabels)
