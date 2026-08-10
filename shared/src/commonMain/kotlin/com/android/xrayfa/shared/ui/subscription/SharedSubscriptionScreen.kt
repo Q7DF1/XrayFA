@@ -24,7 +24,6 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,7 +36,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -63,6 +61,7 @@ import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.Subscription
 import com.android.xrayfa.shared.navigation.EmptySubscription
 import com.android.xrayfa.shared.navigation.SubscriptionComponent
+import com.android.xrayfa.shared.ui.widgets.SharedModalBottomSheet
 import com.android.xrayfa.shared.platform.ClipboardWriter
 import com.android.xrayfa.shared.subscription.validateSubscriptionUrl
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -345,10 +344,7 @@ private fun SharedSubscriptionEditSheet(
         nickNameIsDuplicate = isMarkDuplicate(resolved)
     }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        dragHandle = { BottomSheetDefaults.DragHandle() },
-    ) {
+    SharedModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier =
                 Modifier

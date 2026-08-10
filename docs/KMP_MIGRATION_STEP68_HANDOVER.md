@@ -47,7 +47,8 @@
 | 步骤 | 内容 | 状态 |
 |------|------|------|
 | E.6t | iOS Apps 信息桥接 + allow list 暴露 | ✅（本步，**待你确认后 commit**） |
-| E.6u | EditScreen 渐进共享 或 Android Apps 共享化 | ⬜ 下一步 |
+| E.6u | ModalBottomSheet 崩溃修复；Android Edit 保持全屏 | 见 Step 69 |
+| E.6v | 共享完整 EditScreen，iOS 对齐 Android | ⬜ 下一步 |
 
 ---
 

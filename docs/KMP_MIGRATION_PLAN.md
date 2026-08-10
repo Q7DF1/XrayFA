@@ -899,6 +899,39 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 
 ---
 
+## 阶段 E.6 进度（Config / Settings iOS parity）
+
+| 步骤 | 内容 | 状态 |
+|------|------|------|
+| E.6o | 共享节点编辑/删除 sheet + iOS Config | ✅ |
+| E.6r | iOS Config 轻量创建 sheet（**临时**） | ✅ |
+| E.6s | 共享 Route Settings + iOS 接入 | ✅ |
+| E.6t | iOS Apps 信息桥接 + allow list | ✅ |
+| E.6u | SharedModalBottomSheet 崩溃修复（Dialog 替代 ModalBottomSheet） | ✅ 待 commit |
+| E.6v | **共享完整 EditScreen → iOS 与 Android 统一** | ⬜ 下一步 |
+
+### EditScreen / 节点创建：产品与技术决策（2026-08-10）
+
+**原则：Android 为参照，iOS 最终对齐 Android，不在 Android 上叠轻量创建入口。**
+
+| 平台 | 创建节点 | 编辑节点 | 说明 |
+|------|----------|----------|------|
+| **Android** | 顶栏 Edit / 空态添加 → 全屏 `EditScreen`（`Edit` 路由） | 节点行 Edit → `Detail` → 全屏 `EditScreen` | **保持不变**；剪贴板/QR 导入覆盖「粘贴 URL」场景 |
+| **iOS（当前）** | 顶栏 Edit → `SharedNodeEditSheet`（remark + URL） | 节点行 Edit → 同上 sheet | **临时**；E.6o/E.6r 渐进方案 |
+| **iOS（目标）** | 与 Android 相同的全屏共享 `EditScreen` | 与 Android 相同 | E.6v：迁入 `shared`，接 Decompose 子屏导航 |
+
+**E.6v 范围（规划）**：
+
+1. `androidApp/.../EditScreen.kt` + `DetailViewmodel` 表单/保存逻辑 → `shared`（或 `feature:nodes`）
+2. 去掉对 Navigation3 / Android `ViewModel` 的绑定；保存走 `NodeRepository` + `ParserFactory`（可扩展 `NodeEditor`）
+3. iOS `ConfigTabScreen`：顶栏 Edit / 节点 Edit → 全屏共享 EditScreen（替代轻量 sheet 作为**主路径**）
+4. Android：`Edit` / `Detail` 路由改为嵌入共享 EditScreen（Strangler 瘦包装），行为与现网一致
+5. iOS 轻量 sheet：共享 EditScreen 落地后可**移除创建入口**；编辑是否保留 sheet 视迁移成本再定
+
+**已知技术债**：shared 模块勿在 commonMain 直接调用 `ModalBottomSheet`（CMP material3 1.3.1 vs androidApp 1.5.0-alpha15 → `NoSuchMethodError`）；共享 sheet 用 `SharedModalBottomSheet`（Dialog 模拟）直至 CMP/BOM 对齐或 EditScreen 全屏替代。
+
+---
+
 ## 迁移时间线
 
 ```

@@ -17,7 +17,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Label
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -34,13 +33,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +53,7 @@ import com.android.xrayfa.datastore.RoutingMode
 import com.android.xrayfa.datastore.Rule
 import com.android.xrayfa.datastore.decodeRules
 import com.android.xrayfa.shared.navigation.SettingsComponent
+import com.android.xrayfa.shared.ui.widgets.SharedModalBottomSheet
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 
 private object RoutePresetTags {
@@ -330,18 +328,13 @@ private fun SharedAddRuleBottomSheet(
     onDismiss: () -> Unit,
     onConfirm: (Rule) -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState()
     var ruleTag by remember { mutableStateOf("") }
     var outboundTag by remember { mutableStateOf("proxy") }
     var domains by remember { mutableStateOf("") }
     var ips by remember { mutableStateOf("") }
     var port by remember { mutableStateOf("") }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        dragHandle = { BottomSheetDefaults.DragHandle() },
-    ) {
+    SharedModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier =
                 Modifier
