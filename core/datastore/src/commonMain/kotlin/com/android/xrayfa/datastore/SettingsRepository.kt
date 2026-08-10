@@ -41,6 +41,7 @@ data class SettingsState(
     val routingMode: Int = RoutingMode.ROUTE.code,
     val hwid: String = "",
     val sendHwid: Boolean = true,
+    val allowedPackages: List<String> = emptyList(),
 )
 
 object SettingsKeys {

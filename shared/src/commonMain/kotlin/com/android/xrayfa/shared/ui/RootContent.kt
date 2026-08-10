@@ -40,6 +40,7 @@ import com.android.xrayfa.shared.ui.home.HomeTopBar
 import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
 import com.android.xrayfa.shared.ui.qr.SharedQrScannerScreen
 import com.android.xrayfa.shared.ui.settings.SettingsUiLabels
+import com.android.xrayfa.shared.ui.settings.SharedAppsInfoScreen
 import com.android.xrayfa.shared.ui.settings.RouteSettingsUiLabels
 import com.android.xrayfa.shared.ui.settings.SharedAppLogScreen
 import com.android.xrayfa.shared.ui.settings.SharedRouteSettingsScreen
@@ -262,8 +263,18 @@ private fun SettingsTabScreen(
 ) {
     var showAppLog by remember { mutableStateOf(false) }
     var showRouteSettings by remember { mutableStateOf(false) }
+    var showAppsInfo by remember { mutableStateOf(false) }
     val settingsLabels = remember { SettingsUiLabels() }
     val routeSettingsLabels = remember { RouteSettingsUiLabels() }
+
+    if (showAppsInfo) {
+        SharedAppsInfoScreen(
+            component = component,
+            onBack = { showAppsInfo = false },
+            labels = settingsLabels,
+        )
+        return
+    }
 
     if (showRouteSettings) {
         SharedRouteSettingsScreen(
@@ -316,6 +327,7 @@ private fun SettingsTabScreen(
             )
             SharedSettingsPlatformSection(
                 labels = settingsLabels,
+                onAppsClick = { showAppsInfo = true },
                 onLogcatClick = { showAppLog = true },
                 onRouteClick = { showRouteSettings = true },
             )

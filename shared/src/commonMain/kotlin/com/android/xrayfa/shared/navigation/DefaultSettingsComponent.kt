@@ -11,6 +11,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 class DefaultSettingsComponent(
@@ -26,7 +27,12 @@ class DefaultSettingsComponent(
 
     init {
         scope.launch {
-            settingsRepository.settingsFlow.collect { settings ->
+            combine(
+                settingsRepository.settingsFlow,
+                settingsRepository.packagesFlow,
+            ) { settings, packages ->
+                settings.copy(allowedPackages = packages)
+            }.collect { settings ->
                 _state.value = settings
             }
         }
