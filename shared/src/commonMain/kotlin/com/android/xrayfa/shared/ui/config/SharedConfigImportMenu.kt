@@ -26,8 +26,10 @@ fun SharedConfigImportMenu(
     importFromClipboardLabel: String = "Import from clipboard",
     manageSubscriptionsLabel: String = "Manage subscriptions",
     scanQrLabel: String = "Scan QR code",
+    additionalMenuItems: (@Composable (dismiss: () -> Unit) -> Unit)? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val dismiss = { expanded = false }
     IconButton(onClick = { expanded = true }, modifier = modifier) {
         Icon(Icons.Default.Add, contentDescription = importFromClipboardLabel)
     }
@@ -41,7 +43,7 @@ fun SharedConfigImportMenu(
                 Icon(Icons.Default.ContentPaste, contentDescription = null)
             },
             onClick = {
-                expanded = false
+                dismiss()
                 onImportFromClipboard()
             },
         )
@@ -52,7 +54,7 @@ fun SharedConfigImportMenu(
                     Icon(Icons.Default.QrCodeScanner, contentDescription = null)
                 },
                 onClick = {
-                    expanded = false
+                    dismiss()
                     onScanQr()
                 },
             )
@@ -64,10 +66,11 @@ fun SharedConfigImportMenu(
                     Icon(Icons.Outlined.Subscriptions, contentDescription = null)
                 },
                 onClick = {
-                    expanded = false
+                    dismiss()
                     onManageSubscriptions()
                 },
             )
         }
+        additionalMenuItems?.invoke(dismiss)
     }
 }

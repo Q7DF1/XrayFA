@@ -99,6 +99,7 @@ import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.R
 import com.android.xrayfa.shared.navigation.ConfigFilterLabels
 import com.android.xrayfa.shared.ui.config.ConfigUiLabels
+import com.android.xrayfa.shared.ui.config.SharedConfigImportMenu
 import com.android.xrayfa.shared.ui.config.SharedConfigSection
 import com.android.xrayfa.ui.config.rememberAndroidConfigComponent
 import com.android.xrayfa.ui.navigation.Config
@@ -232,131 +233,65 @@ fun ConfigScreen(
                             Text(stringResource(Config.title), fontWeight = FontWeight.Bold)
                         },
                         actions = {
-                            var checked by remember { mutableStateOf(false) }
-
-                            Box(
-                                modifier = Modifier.padding(end = 8.dp)
-                            ) {
-                                SplitButtonLayout(
-                                    leadingButton = {
-                                        SplitButtonDefaults.LeadingButton(onClick = {
-                                            onNavigate(Edit)
-                                        }) {
-                                            Icon(
-                                                Icons.Filled.Edit,
-                                                modifier = Modifier.size(SplitButtonDefaults.LeadingIconSize),
-                                                contentDescription = "Localized description",
-                                            )
-                                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                            Text("Add")
-                                        }
-                                    },
-                                    trailingButton = {
-                                        val description = "Toggle Button"
-                                        // Icon-only trailing button should have a tooltip for a11y.
-                                        TooltipBox(
-                                            positionProvider =
-                                                TooltipDefaults.rememberTooltipPositionProvider(
-                                                    TooltipAnchorPosition.Above
-                                                ),
-                                            tooltip = { PlainTooltip { Text(description) } },
-                                            state = rememberTooltipState(),
-                                        ) {
-                                            SplitButtonDefaults.TrailingButton(
-                                                checked = checked,
-                                                onCheckedChange = { checked = it },
-                                                modifier =
-                                                    Modifier.semantics {
-                                                        stateDescription = if (checked) "Expanded" else "Collapsed"
-                                                        contentDescription = description
-                                                    },
-                                            ) {
-                                                val rotation: Float by
-                                                animateFloatAsState(
-                                                    targetValue = if (checked) 180f else 0f,
-                                                    label = "Trailing Icon Rotation",
-                                                )
-                                                Icon(
-                                                    Icons.Filled.KeyboardArrowDown,
-                                                    modifier =
-                                                        Modifier.size(SplitButtonDefaults.TrailingIconSize).graphicsLayer {
-                                                            this.rotationZ = rotation
-                                                        },
-                                                    contentDescription = "Localized description",
-                                                )
-                                            }
-                                        }
-                                    },
+                            IconButton(onClick = { onNavigate(Edit) }) {
+                                Icon(
+                                    Icons.Filled.Edit,
+                                    contentDescription = stringResource(R.string.create_a_config),
                                 )
-
-                                DropdownMenu(
-                                    expanded = checked,
-                                    onDismissRequest = { checked = false },
-                                    containerColor = MaterialTheme.colorScheme.surface
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.clipboard_import)) },
-                                        onClick = {
-                                            xrayViewmodel.addXrayConfigFromClipboard(context)
-                                            checked = false
+                            }
+                            SharedConfigImportMenu(
+                                onImportFromClipboard = configComponent::onImportFromClipboard,
+                                onManageSubscriptions = { onNavigate(Subscription) },
+                                onScanQr = {
+                                    onNavigate(
+                                        ScanQR { result ->
+                                            if (result.isEmpty()) {
+                                                Toast
+                                                    .makeText(context, "Cancelled", Toast.LENGTH_LONG)
+                                                    .show()
+                                            } else {
+                                                configComponent.onImportFromLink(result)
+                                            }
                                         },
-                                        leadingIcon = { Icon(Icons.Outlined.ContentCut, contentDescription = null) }
                                     )
+                                },
+                                importFromClipboardLabel = stringResource(R.string.clipboard_import),
+                                manageSubscriptionsLabel = stringResource(R.string.menu_subscription),
+                                scanQrLabel = stringResource(R.string.qrcode_import),
+                                additionalMenuItems = { dismiss ->
                                     DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.qrcode_import)) },
+                                        text = { Text(stringResource(R.string.locate_selected_node)) },
                                         onClick = {
-                                            onNavigate(ScanQR { result ->
-                                                if (result.isEmpty()) {
-                                                    Toast.makeText(context, "Cancelled", Toast.LENGTH_LONG).show();
-                                                }else {
-                                                    xrayViewmodel.addLink(result)
-                                                }
-                                            })
-                                            checked = false
-                                        },
-                                        leadingIcon = { Icon(Icons.Outlined.QrCodeScanner, contentDescription = null) },
-                                    )
-                                    DropdownMenuItem(
-                                        text = {Text(stringResource(R.string.menu_subscription))},
-                                        onClick = {
-                                            checked = false
-                                            onNavigate(Subscription)
-                                            //xrayViewmodel.startSubscriptionActivity(context)
-                                        },
-                                        leadingIcon = {Icon(Icons.Outlined.Subscriptions, contentDescription = null)}
-                                    )
-                                    DropdownMenuItem(
-                                        text = {Text(stringResource(R.string.locate_selected_node))},
-                                        onClick = {
-                                            checked = false
+                                            dismiss()
                                             scope.launch { scrollToSelected() }
                                         },
-                                        leadingIcon = {Icon(Icons.Outlined.Star, contentDescription = null)}
+                                        leadingIcon = {
+                                            Icon(Icons.Outlined.Star, contentDescription = null)
+                                        },
                                     )
                                     DropdownMenuItem(
-                                        text = {Text(stringResource(R.string.menu_delete_all))},
+                                        text = { Text(stringResource(R.string.menu_delete_all)) },
                                         onClick = {
-                                            checked = false
-                                            xrayViewmodel.showDeleteDialog(/*delete all*/)
+                                            dismiss()
+                                            xrayViewmodel.showDeleteDialog()
                                         },
-                                        leadingIcon = {Icon(Icons.Outlined.DeleteForever, contentDescription = null)}
+                                        leadingIcon = {
+                                            Icon(Icons.Outlined.DeleteForever, contentDescription = null)
+                                        },
                                     )
                                     HorizontalDivider()
                                     DropdownMenuItem(
                                         text = { Text("Bug Report") },
                                         onClick = {
-                                            checked = false
+                                            dismiss()
                                             xrayViewmodel.bugReport(context)
                                         },
                                         leadingIcon = {
-                                            Icon(
-                                                Icons.Outlined.BugReport,
-                                                contentDescription = null
-                                            )
-                                        }
+                                            Icon(Icons.Outlined.BugReport, contentDescription = null)
+                                        },
                                     )
-                                }
-                            }
+                                },
+                            )
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = Color.Transparent, // Transparent to show Surface color

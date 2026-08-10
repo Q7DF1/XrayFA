@@ -56,4 +56,12 @@ data class SettingsUiLabels(
     val repoDescription: String = "GitHub — Q7DF1/XrayFA",
     val unknownLabel: String = "unknown",
     val subscriptionUrlCopied: String = "Subscription URL copied",
+    val platformSectionTitle: String = "Platform",
+    val appsTitle: String = "Per-app proxy",
+    val appsDescription: String = "Choose apps to route through VPN",
+    val logcatTitle: String = "Logcat",
+    val logcatDescription: String = "View runtime logs",
+    val routeSettingsTitle: String = "Route settings",
+    val routeSettingsDescription: String = "Custom routing rules",
+    val platformUnavailableDescription: String = "Available on Android only",
 )

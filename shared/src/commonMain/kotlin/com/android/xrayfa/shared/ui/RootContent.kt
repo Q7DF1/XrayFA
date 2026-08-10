@@ -41,6 +41,7 @@ import com.android.xrayfa.shared.ui.qr.SharedQrScannerScreen
 import com.android.xrayfa.shared.ui.settings.SettingsUiLabels
 import com.android.xrayfa.shared.ui.settings.SharedSettingsAboutSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsGeneralSection
+import com.android.xrayfa.shared.ui.settings.SharedSettingsPlatformSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsSubscriptionSection
 import com.android.xrayfa.shared.ui.subscription.SharedSubscriptionScreen
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
@@ -268,6 +269,7 @@ private fun SettingsTabScreen(
                 component = component,
                 scrollEnabled = true,
             )
+            SharedSettingsPlatformSection()
             SharedSettingsSubscriptionSection(component = component)
             SharedSettingsAboutSection(component = component)
         }
