@@ -39,6 +39,7 @@ import com.android.xrayfa.shared.ui.home.HomeTopBar
 import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
 import com.android.xrayfa.shared.ui.qr.SharedQrScannerScreen
 import com.android.xrayfa.shared.ui.settings.SettingsUiLabels
+import com.android.xrayfa.shared.ui.settings.SharedAppLogScreen
 import com.android.xrayfa.shared.ui.settings.SharedSettingsAboutSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsGeneralSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsPlatformSection
@@ -238,6 +239,17 @@ private fun SettingsTabScreen(
     component: SettingsComponent,
     onBack: () -> Unit,
 ) {
+    var showAppLog by remember { mutableStateOf(false) }
+    val settingsLabels = remember { SettingsUiLabels() }
+
+    if (showAppLog) {
+        SharedAppLogScreen(
+            onBack = { showAppLog = false },
+            labels = settingsLabels,
+        )
+        return
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -268,10 +280,14 @@ private fun SettingsTabScreen(
             SharedSettingsGeneralSection(
                 component = component,
                 scrollEnabled = true,
+                labels = settingsLabels,
             )
-            SharedSettingsPlatformSection()
-            SharedSettingsSubscriptionSection(component = component)
-            SharedSettingsAboutSection(component = component)
+            SharedSettingsPlatformSection(
+                labels = settingsLabels,
+                onLogcatClick = { showAppLog = true },
+            )
+            SharedSettingsSubscriptionSection(component = component, labels = settingsLabels)
+            SharedSettingsAboutSection(component = component, labels = settingsLabels)
         }
     }
 }

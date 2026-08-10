@@ -64,4 +64,7 @@ data class SettingsUiLabels(
     val routeSettingsTitle: String = "Route settings",
     val routeSettingsDescription: String = "Custom routing rules",
     val platformUnavailableDescription: String = "Available on Android only",
+    val appLogEmptyMessage: String = "No app logs yet",
+    val appLogClearLabel: String = "Clear",
+    val appLogCopyLabel: String = "Copy all",
 )

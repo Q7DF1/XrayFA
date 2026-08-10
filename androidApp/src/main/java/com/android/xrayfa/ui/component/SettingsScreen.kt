@@ -106,6 +106,7 @@ import com.android.xrayfa.viewmodel.GEOFileType
 import com.android.xrayfa.viewmodel.GEOFileType.Companion.FILE_TYPE_IP
 import com.android.xrayfa.shared.ui.settings.SharedSettingsAboutSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsGeneralSection
+import com.android.xrayfa.shared.ui.settings.SharedSettingsPlatformSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsSubscriptionSection
 import com.android.xrayfa.shared.ui.settings.SettingsUiLabels
 import com.android.xrayfa.ui.settings.rememberAndroidSettingsComponent
@@ -221,6 +222,12 @@ fun SettingsScreen(
             xrayCoreVersionTitle = stringResource(R.string.xray_core_version),
             repoTitle = stringResource(R.string.repo_site),
             repoDescription = stringResource(R.string.repo_description),
+            appsTitle = stringResource(R.string.allow_app_settings),
+            appsDescription = stringResource(R.string.select_app_settings),
+            logcatTitle = stringResource(R.string.logcat),
+            logcatDescription = stringResource(R.string.logcat_desc),
+            routeSettingsTitle = stringResource(R.string.route_settings_title),
+            routeSettingsDescription = stringResource(R.string.route_settings_desc),
         )
 
     Scaffold(
@@ -262,37 +269,6 @@ fun SettingsScreen(
                     labels = sharedSettingsLabels,
                     scrollEnabled = false,
                     additionalGeneralContent = {
-                    with(sharedTransitionScope) {
-                        SettingsFieldBox(
-                            title = R.string.allow_app_settings,
-                            content = stringResource(R.string.select_app_settings),
-                            icon = Icons.Outlined.Apps,
-                            trailingIcon = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-                            modifier = Modifier.sharedElement(
-                                sharedTransitionScope.rememberSharedContentState(key = Apps.route),
-                                animatedVisibilityScope = LocalNavAnimatedContentScope.current,
-                            )
-                        ) {
-                            //viewmodel.startAppsActivity(context)
-                            onNavigate(Apps)
-                        }
-                    }
-
-                    with(sharedTransitionScope) {
-                        SettingsFieldBox(
-                            title = R.string.logcat,
-                            content = stringResource(R.string.logcat_desc),
-                            icon = Icons.Outlined.BugReport,
-                            trailingIcon = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-                            modifier = Modifier.sharedElement(
-                                sharedTransitionScope.rememberSharedContentState(key = Logcat.route),
-                                animatedVisibilityScope = LocalNavAnimatedContentScope.current
-                            )
-                        ) {
-                            onNavigate(Logcat)
-                        }
-                    }
-
                     if (NotificationHelper.canPostPromotionsEnabled(LocalContext.current)) {
                         SettingsCheckBox(
                             title = R.string.live_update_notification,
@@ -306,20 +282,6 @@ fun SettingsScreen(
                     }
                     },
                     additionalNetworkContent = {
-                    with(sharedTransitionScope) {
-                        SettingsFieldBox(
-                            title = R.string.route_settings_title,
-                            content = stringResource(R.string.route_settings_desc),
-                            icon = Icons.Outlined.Route,
-                            trailingIcon = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-                            modifier = Modifier.sharedElement(
-                                sharedTransitionScope.rememberSharedContentState(key = RouteSettings.route),
-                                animatedVisibilityScope = LocalNavAnimatedContentScope.current,
-                            )
-                        ) {
-                            onNavigate(RouteSettings)
-                        }
-                    }
                     SettingsWithBtnBox(
                         title = R.string.geo_ip,
                         description = R.string.geo_ip_description,
@@ -393,6 +355,29 @@ fun SettingsScreen(
                     }
                     },
                 )
+                with(sharedTransitionScope) {
+                    SharedSettingsPlatformSection(
+                        labels = sharedSettingsLabels,
+                        onAppsClick = { onNavigate(Apps) },
+                        onLogcatClick = { onNavigate(Logcat) },
+                        onRouteClick = { onNavigate(RouteSettings) },
+                        appsModifier =
+                            Modifier.sharedElement(
+                                sharedTransitionScope.rememberSharedContentState(key = Apps.route),
+                                animatedVisibilityScope = LocalNavAnimatedContentScope.current,
+                            ),
+                        logcatModifier =
+                            Modifier.sharedElement(
+                                sharedTransitionScope.rememberSharedContentState(key = Logcat.route),
+                                animatedVisibilityScope = LocalNavAnimatedContentScope.current,
+                            ),
+                        routeModifier =
+                            Modifier.sharedElement(
+                                sharedTransitionScope.rememberSharedContentState(key = RouteSettings.route),
+                                animatedVisibilityScope = LocalNavAnimatedContentScope.current,
+                            ),
+                    )
+                }
                 SharedSettingsSubscriptionSection(
                     component = sharedSettingsComponent,
                     labels = sharedSettingsLabels,

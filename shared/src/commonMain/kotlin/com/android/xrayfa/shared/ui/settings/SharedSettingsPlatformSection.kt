@@ -15,6 +15,9 @@ fun SharedSettingsPlatformSection(
     onAppsClick: (() -> Unit)? = null,
     onLogcatClick: (() -> Unit)? = null,
     onRouteClick: (() -> Unit)? = null,
+    appsModifier: Modifier = Modifier,
+    logcatModifier: Modifier = Modifier,
+    routeModifier: Modifier = Modifier,
 ) {
     SharedSettingsGroup(groupName = labels.platformSectionTitle, modifier = modifier) {
         SharedSettingsFieldRow(
@@ -29,6 +32,7 @@ fun SharedSettingsPlatformSection(
             trailingIcon = if (onAppsClick != null) Icons.AutoMirrored.Outlined.KeyboardArrowRight else null,
             enabled = onAppsClick != null,
             onClick = { onAppsClick?.invoke() },
+            modifier = appsModifier,
         )
         SharedSettingsFieldRow(
             title = labels.logcatTitle,
@@ -42,6 +46,7 @@ fun SharedSettingsPlatformSection(
             trailingIcon = if (onLogcatClick != null) Icons.AutoMirrored.Outlined.KeyboardArrowRight else null,
             enabled = onLogcatClick != null,
             onClick = { onLogcatClick?.invoke() },
+            modifier = logcatModifier,
         )
         SharedSettingsFieldRow(
             title = labels.routeSettingsTitle,
@@ -55,6 +60,7 @@ fun SharedSettingsPlatformSection(
             trailingIcon = if (onRouteClick != null) Icons.AutoMirrored.Outlined.KeyboardArrowRight else null,
             enabled = onRouteClick != null,
             onClick = { onRouteClick?.invoke() },
+            modifier = routeModifier,
         )
     }
 }
