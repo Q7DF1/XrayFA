@@ -8,6 +8,7 @@ data class ConfigUiLabels(
     val emptyTitle: String = "No configuration",
     val emptyHint: String = "Add a node to get started",
     val createConfigLabel: String = "Create configuration",
+    val createNodeTitle: String = "Create node",
     val unknownProtocolLabel: String = "Unknown",
     val timeoutLabel: String = "Timeout",
     val testingLabel: String = "Testing...",

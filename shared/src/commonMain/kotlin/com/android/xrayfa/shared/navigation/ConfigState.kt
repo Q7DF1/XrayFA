@@ -17,4 +17,6 @@ data class ConfigState(
     val editTarget: Node? = null,
     val deleteTarget: Node? = null,
     val editError: Boolean = false,
+    val showCreateSheet: Boolean = false,
+    val createError: Boolean = false,
 )

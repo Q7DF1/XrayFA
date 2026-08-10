@@ -33,6 +33,15 @@ interface ConfigComponent {
     fun onDismissDeleteNode()
 
     fun onConfirmDeleteNode()
+
+    fun onOpenCreateNode()
+
+    fun onCloseCreateNode()
+
+    fun onSaveCreateNode(
+        remark: String,
+        link: String,
+    )
 }
 
 /** Typealias for E.6e naming; prefer [ConfigComponent] in new code. */

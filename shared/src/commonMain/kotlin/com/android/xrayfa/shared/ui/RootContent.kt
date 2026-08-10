@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TextButton
@@ -145,6 +146,12 @@ private fun ConfigTabScreen(
             TopAppBar(
                 title = { Text("Config", fontWeight = FontWeight.Bold) },
                 actions = {
+                    IconButton(onClick = component::onOpenCreateNode) {
+                        Icon(
+                            imageVector = Icons.Filled.Edit,
+                            contentDescription = configLabels.createConfigLabel,
+                        )
+                    }
                     SharedConfigImportMenu(
                         onImportFromClipboard = component::onImportFromClipboard,
                         onManageSubscriptions = { showSubscriptions = true },
@@ -173,7 +180,7 @@ private fun ConfigTabScreen(
                 component.onSelectNode(node.id)
                 onNodeSelectedNavigateHome()
             },
-            onEmptyAddClick = component::onImportFromClipboard,
+            onEmptyAddClick = component::onOpenCreateNode,
             onEditNode = { node -> component.onOpenEditNode(node.id) },
             onDeleteNode = component::onShowDeleteNode,
         )
@@ -181,11 +188,23 @@ private fun ConfigTabScreen(
 
     configState.editTarget?.let { node ->
         SharedNodeEditSheet(
-            node = node,
+            sheetTitle = configLabels.editNodeTitle,
+            initialRemark = node.remark.orEmpty(),
+            initialLink = node.url,
             labels = configLabels,
             showError = configState.editError,
             onDismiss = component::onCloseEditNode,
             onSave = component::onSaveEditNode,
+        )
+    }
+
+    if (configState.showCreateSheet) {
+        SharedNodeEditSheet(
+            sheetTitle = configLabels.createNodeTitle,
+            labels = configLabels,
+            showError = configState.createError,
+            onDismiss = component::onCloseCreateNode,
+            onSave = component::onSaveCreateNode,
         )
     }
 

@@ -23,21 +23,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.protocol.protocolsPrefix
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SharedNodeEditSheet(
-    node: Node,
     labels: ConfigUiLabels,
     showError: Boolean,
     onDismiss: () -> Unit,
     onSave: (remark: String, link: String) -> Unit,
+    sheetTitle: String = labels.editNodeTitle,
+    initialRemark: String = "",
+    initialLink: String = "",
 ) {
-    var remark by remember(node) { mutableStateOf(node.remark.orEmpty()) }
-    var link by remember(node) { mutableStateOf(node.url) }
-    var linkInvalid by remember(node) { mutableStateOf(false) }
+    var remark by remember(sheetTitle, initialRemark, initialLink) { mutableStateOf(initialRemark) }
+    var link by remember(sheetTitle, initialRemark, initialLink) { mutableStateOf(initialLink) }
+    var linkInvalid by remember(sheetTitle, initialRemark, initialLink) { mutableStateOf(false) }
 
     fun validateLink(value: String): Boolean {
         val trimmed = value.trim()
@@ -59,7 +60,7 @@ fun SharedNodeEditSheet(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                text = labels.editNodeTitle,
+                text = sheetTitle,
                 style = androidx.compose.material3.MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
             )

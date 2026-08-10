@@ -148,6 +148,36 @@ class DefaultConfigComponent(
         }
     }
 
+    override fun onOpenCreateNode() {
+        _state.update {
+            it.copy(showCreateSheet = true, createError = false)
+        }
+    }
+
+    override fun onCloseCreateNode() {
+        _state.update {
+            it.copy(showCreateSheet = false, createError = false)
+        }
+    }
+
+    override fun onSaveCreateNode(
+        remark: String,
+        link: String,
+    ) {
+        scope.launch {
+            val success = nodeEditor.createNode(remark, link)
+            if (success) {
+                _state.update {
+                    it.copy(showCreateSheet = false, createError = false)
+                }
+            } else {
+                _state.update {
+                    it.copy(createError = true)
+                }
+            }
+        }
+    }
+
     private fun refreshNodes() {
         scope.launch {
             val allNodes = nodeRepository.allNodes.first()

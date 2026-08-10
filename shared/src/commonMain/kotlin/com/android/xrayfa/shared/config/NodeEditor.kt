@@ -5,6 +5,7 @@ import com.android.xrayfa.dto.ParseLinkInput
 import com.android.xrayfa.model.protocol.protocolsPrefix
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.repository.NodeRepository
+import com.android.xrayfa.shared.navigation.ConfigFilterIds
 import com.android.xrayfa.vpn.VpnController
 import kotlinx.coroutines.flow.first
 
@@ -75,6 +76,37 @@ class NodeEditor(
         if (selectedId == nodeId) {
             vpnController.restartIfNeeded()
         }
+    }
+
+    suspend fun createNode(
+        remark: String,
+        link: String,
+    ): Boolean {
+        val trimmedLink = link.trim()
+        if (trimmedLink.isBlank()) {
+            return false
+        }
+
+        val protocolPrefix = trimmedLink.substringBefore("://").lowercase()
+        if (!protocolsPrefix.contains(protocolPrefix)) {
+            logger.i(TAG, "Unsupported protocol prefix: $protocolPrefix")
+            return false
+        }
+
+        val parsed =
+            parserFactory.getParser(trimmedLink).preParse(
+                ParseLinkInput(
+                    protocolPrefix = protocolPrefix,
+                    content = trimmedLink,
+                    subscriptionId = ConfigFilterIds.SUB_MANUAL,
+                ),
+            )
+
+        val trimmedRemark = remark.trim()
+        nodeRepository.addNode(
+            parsed.copy(remark = trimmedRemark.ifBlank { parsed.remark }),
+        )
+        return true
     }
 
     private companion object {
