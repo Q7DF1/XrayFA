@@ -164,4 +164,38 @@
     <string name="apps_permission_required_desc">Чтобы отобразить список установленных приложений для прокси отдельных приложений, предоставьте разрешение «Все приложения» / «Запрос всех пакетов» для %1$s в настройках системы.</string>
     <string name="apps_permission_open_settings">Открыть настройки</string>
     <string name="apps_permission_retry">Повторить</string>
+
+    <!-- Node edit screen (shared EditScreen) -->
+    <string name="edit_add_title">Добавить</string>
+    <string name="edit_protocol_section">Протокол</string>
+    <string name="edit_basic_settings">Основные настройки</string>
+    <string name="edit_remarks">Заметка</string>
+    <string name="edit_address">Адрес</string>
+    <string name="edit_port">Порт (0-65535)</string>
+    <string name="edit_protocol_settings">%1$s — настройки</string>
+    <string name="edit_uuid">UUID</string>
+    <string name="edit_encryption">Шифрование (по умолчанию: none)</string>
+    <string name="edit_flow">Flow</string>
+    <string name="edit_security">Безопасность</string>
+    <string name="edit_password">Пароль</string>
+    <string name="edit_method">Метод</string>
+    <string name="edit_username_optional">Имя пользователя (необяз.)</string>
+    <string name="edit_password_optional">Пароль (необяз.)</string>
+    <string name="edit_auth">Аутентификация</string>
+    <string name="edit_sni">SNI</string>
+    <string name="edit_alpn">ALPN</string>
+    <string name="edit_obfuscation">Обфускация</string>
+    <string name="edit_obfuscation_password">Пароль обфускации</string>
+    <string name="edit_allow_insecure">Разрешить небезопасное</string>
+    <string name="edit_transport_settings">Настройки транспорта</string>
+    <string name="edit_network">Сеть</string>
+    <string name="edit_ws_path">WS путь</string>
+    <string name="edit_ws_host">WS хост</string>
+    <string name="edit_grpc_service_name">Имя gRPC-сервиса</string>
+    <string name="edit_sni_server_name">SNI (Server Name Indication)</string>
+    <string name="edit_fingerprint">Fingerprint</string>
+    <string name="edit_public_key">Публичный ключ</string>
+    <string name="edit_short_id">Short ID</string>
+    <string name="edit_back_cd">Назад</string>
+    <string name="edit_save_cd">Сохранить</string>
 </resources>

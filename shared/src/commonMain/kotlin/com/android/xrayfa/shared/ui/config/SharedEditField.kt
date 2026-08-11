@@ -35,9 +35,10 @@ fun SharedEditDropdownField(
     label: String,
     options: List<String>,
     modifier: Modifier = Modifier,
+    noneOptionLabel: String = "none",
 ) {
     var showPicker by remember { mutableStateOf(false) }
-    val displayValue = value.ifEmpty { "none" }
+    val displayValue = value.ifEmpty { noneOptionLabel }
 
     OutlinedTextField(
         value = displayValue,
@@ -80,7 +81,7 @@ fun SharedEditDropdownField(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(
-                            text = option.ifEmpty { "none" },
+                            text = option.ifEmpty { noneOptionLabel },
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }

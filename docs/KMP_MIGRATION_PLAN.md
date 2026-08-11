@@ -908,7 +908,8 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | E.6s | 共享 Route Settings + iOS 接入 | ✅ |
 | E.6t | iOS Apps 信息桥接 + allow list | ✅ |
 | E.6u | SharedModalBottomSheet 崩溃修复（Dialog 替代 ModalBottomSheet） | ✅ |
-| E.6v | **共享完整 EditScreen → iOS 与 Android 统一** | ✅ 待 commit |
+| E.6v | **共享完整 EditScreen → iOS 与 Android 统一** | ✅ |
+| E.6w | **删除废弃 SharedNodeEditSheet + EditScreen i18n 标签体系** | ✅ 待 commit |
 
 ### EditScreen / 节点创建：产品与技术决策（2026-08-10）
 
@@ -917,8 +918,7 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | 平台 | 创建节点 | 编辑节点 | 说明 |
 |------|----------|----------|------|
 | **Android** | 顶栏 Edit / 空态添加 → 全屏 `EditScreen`（`Edit` 路由） | 节点行 Edit → `Detail` → 全屏 `EditScreen` | **保持不变**；剪贴板/QR 导入覆盖「粘贴 URL」场景 |
-| **iOS（当前）** | 顶栏 Edit → `SharedNodeEditSheet`（remark + URL） | 节点行 Edit → 同上 sheet | **临时**；E.6o/E.6r 渐进方案 |
-| **iOS（目标）** | 与 Android 相同的全屏共享 `EditScreen` | 与 Android 相同 | E.6v：迁入 `shared`，接 Decompose 子屏导航 |
+| **iOS（当前）** | 与 Android 相同的全屏共享 `EditScreen` | 与 Android 相同 | E.6v 已完成 |
 
 **E.6v 范围（规划）**：
 

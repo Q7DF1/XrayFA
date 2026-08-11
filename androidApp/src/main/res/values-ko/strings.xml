@@ -165,4 +165,38 @@
     <string name="apps_permission_required_desc">개별 앱 프록시를 위해 설치된 앱 목록을 표시하려면, 시스템 설정에서 %1$s에 대해 "모든 앱" / "모든 패키지 요청" 권한을 허용하십시오.</string>
     <string name="apps_permission_open_settings">설정 열기</string>
     <string name="apps_permission_retry">다시 시도</string>
+
+    <!-- Node edit screen (shared EditScreen) -->
+    <string name="edit_add_title">추가</string>
+    <string name="edit_protocol_section">프로토콜</string>
+    <string name="edit_basic_settings">기본 설정</string>
+    <string name="edit_remarks">비고</string>
+    <string name="edit_address">주소</string>
+    <string name="edit_port">포트 (0-65535)</string>
+    <string name="edit_protocol_settings">%1$s 설정</string>
+    <string name="edit_uuid">UUID</string>
+    <string name="edit_encryption">암호화 (기본값: none)</string>
+    <string name="edit_flow">Flow</string>
+    <string name="edit_security">보안</string>
+    <string name="edit_password">비밀번호</string>
+    <string name="edit_method">방법</string>
+    <string name="edit_username_optional">사용자 이름 (선택)</string>
+    <string name="edit_password_optional">비밀번호 (선택)</string>
+    <string name="edit_auth">인증</string>
+    <string name="edit_sni">SNI</string>
+    <string name="edit_alpn">ALPN</string>
+    <string name="edit_obfuscation">난독화</string>
+    <string name="edit_obfuscation_password">난독화 비밀번호</string>
+    <string name="edit_allow_insecure">비보안 허용</string>
+    <string name="edit_transport_settings">전송 설정</string>
+    <string name="edit_network">네트워크</string>
+    <string name="edit_ws_path">WS 경로</string>
+    <string name="edit_ws_host">WS 호스트</string>
+    <string name="edit_grpc_service_name">gRPC 서비스 이름</string>
+    <string name="edit_sni_server_name">SNI (서버 이름 표시)</string>
+    <string name="edit_fingerprint">Fingerprint</string>
+    <string name="edit_public_key">공개 키</string>
+    <string name="edit_short_id">Short ID</string>
+    <string name="edit_back_cd">뒤로</string>
+    <string name="edit_save_cd">저장</string>
 </resources>

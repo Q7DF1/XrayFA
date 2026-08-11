@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,7 +34,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -55,6 +55,7 @@ fun SharedEditScreen(
     onSave: (NodeEditForm) -> Unit,
     modifier: Modifier = Modifier,
     protocolChangeEnabled: Boolean = nodeId <= 0,
+    labels: EditUiLabels = EditUiLabels(),
 ) {
     var form by remember(nodeId, protocol, initialContent, initialRemark) {
         mutableStateOf(
@@ -94,7 +95,7 @@ fun SharedEditScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (nodeId > 0) "Edit" else "Add",
+                        text = if (nodeId > 0) labels.editTitle else labels.addTitle,
                         fontWeight = FontWeight.Bold,
                     )
                 },
@@ -102,7 +103,7 @@ fun SharedEditScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = labels.backContentDescription,
                         )
                     }
                 },
@@ -111,7 +112,7 @@ fun SharedEditScreen(
                         onClick = { onSave(form) },
                         modifier = Modifier.size(48.dp),
                     ) {
-                        Icon(Icons.Filled.Done, contentDescription = "Save")
+                        Icon(Icons.Filled.Done, contentDescription = labels.saveContentDescription)
                     }
                 },
                 scrollBehavior = scrollBehavior,
@@ -130,7 +131,7 @@ fun SharedEditScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                "Protocol",
+                labels.protocolSectionTitle,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -163,12 +164,12 @@ fun SharedEditScreen(
             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
             Text(
-                "Basic Settings",
+                labels.basicSettingsTitle,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
             )
-            SharedEditTextField(form.remarks, { form = form.copy(remarks = it) }, "Remarks")
-            SharedEditTextField(form.address, { form = form.copy(address = it) }, "Address")
+            SharedEditTextField(form.remarks, { form = form.copy(remarks = it) }, labels.remarksLabel)
+            SharedEditTextField(form.address, { form = form.copy(address = it) }, labels.addressLabel)
             SharedEditTextField(
                 form.port,
                 { input ->
@@ -178,46 +179,48 @@ fun SharedEditScreen(
                         form = form.copy(port = input)
                     }
                 },
-                "Port (0-65535)",
+                labels.portLabel,
             )
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
             Text(
-                "${form.selectedProtocol.name} Settings",
+                labels.protocolSettingsTitle(form.selectedProtocol.name),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
             )
             when (form.selectedProtocol) {
                 Protocol.VLESS -> {
-                    SharedEditTextField(form.uuidOrPassword, { form = form.copy(uuidOrPassword = it) }, "UUID")
+                    SharedEditTextField(form.uuidOrPassword, { form = form.copy(uuidOrPassword = it) }, labels.uuidLabel)
                     SharedEditTextField(
                         form.vlessEncryption,
                         { form = form.copy(vlessEncryption = it) },
-                        "Encryption (default: none)",
+                        labels.encryptionLabel,
                     )
                     SharedEditDropdownField(
                         form.flow,
                         { form = form.copy(flow = it) },
-                        "Flow",
+                        labels.flowLabel,
                         listOf("", "xtls-rprx-vision"),
+                        noneOptionLabel = labels.noneOptionLabel,
                     )
                 }
                 Protocol.VMESS -> {
-                    SharedEditTextField(form.uuidOrPassword, { form = form.copy(uuidOrPassword = it) }, "UUID")
+                    SharedEditTextField(form.uuidOrPassword, { form = form.copy(uuidOrPassword = it) }, labels.uuidLabel)
                     SharedEditDropdownField(
                         form.vmessSecurity,
                         { form = form.copy(vmessSecurity = it) },
-                        "Security",
+                        labels.securityLabel,
                         listOf("auto", "aes-128-gcm", "chacha20-poly1305", "none"),
+                        noneOptionLabel = labels.noneOptionLabel,
                     )
                 }
                 Protocol.SHADOWSOCKS -> {
-                    SharedEditTextField(form.uuidOrPassword, { form = form.copy(uuidOrPassword = it) }, "Password")
+                    SharedEditTextField(form.uuidOrPassword, { form = form.copy(uuidOrPassword = it) }, labels.passwordLabel)
                     SharedEditDropdownField(
                         form.ssMethod,
                         { form = form.copy(ssMethod = it) },
-                        "Method",
+                        labels.methodLabel,
                         listOf(
                             "aes-256-gcm",
                             "aes-128-gcm",
@@ -225,49 +228,52 @@ fun SharedEditScreen(
                             "2022-blake3-aes-128-gcm",
                             "2022-blake3-aes-256-gcm",
                         ),
+                        noneOptionLabel = labels.noneOptionLabel,
                     )
                 }
                 Protocol.TROJAN -> {
-                    SharedEditTextField(form.uuidOrPassword, { form = form.copy(uuidOrPassword = it) }, "Password")
+                    SharedEditTextField(form.uuidOrPassword, { form = form.copy(uuidOrPassword = it) }, labels.passwordLabel)
                 }
                 Protocol.SOCKS -> {
-                    SharedEditTextField(form.username, { form = form.copy(username = it) }, "Username (optional)")
+                    SharedEditTextField(form.username, { form = form.copy(username = it) }, labels.usernameOptionalLabel)
                     SharedEditTextField(
                         form.uuidOrPassword,
                         { form = form.copy(uuidOrPassword = it) },
-                        "Password (optional)",
+                        labels.passwordOptionalLabel,
                     )
                 }
                 Protocol.HTTP -> {
-                    SharedEditTextField(form.username, { form = form.copy(username = it) }, "Username (optional)")
+                    SharedEditTextField(form.username, { form = form.copy(username = it) }, labels.usernameOptionalLabel)
                     SharedEditTextField(
                         form.uuidOrPassword,
                         { form = form.copy(uuidOrPassword = it) },
-                        "Password (optional)",
+                        labels.passwordOptionalLabel,
                     )
                 }
                 Protocol.HYSTERIA2 -> {
-                    SharedEditTextField(form.uuidOrPassword, { form = form.copy(uuidOrPassword = it) }, "Auth")
-                    SharedEditTextField(form.sni, { form = form.copy(sni = it) }, "SNI")
-                    SharedEditTextField(form.hysteria2Alpn, { form = form.copy(hysteria2Alpn = it) }, "ALPN")
+                    SharedEditTextField(form.uuidOrPassword, { form = form.copy(uuidOrPassword = it) }, labels.authLabel)
+                    SharedEditTextField(form.sni, { form = form.copy(sni = it) }, labels.sniLabel)
+                    SharedEditTextField(form.hysteria2Alpn, { form = form.copy(hysteria2Alpn = it) }, labels.alpnLabel)
                     SharedEditDropdownField(
                         form.hysteria2Obfs,
                         { form = form.copy(hysteria2Obfs = it) },
-                        "Obfuscation",
+                        labels.obfuscationLabel,
                         listOf("", "salamander"),
+                        noneOptionLabel = labels.noneOptionLabel,
                     )
                     if (form.hysteria2Obfs.isNotBlank()) {
                         SharedEditTextField(
                             form.hysteria2ObfsPassword,
                             { form = form.copy(hysteria2ObfsPassword = it) },
-                            "Obfuscation Password",
+                            labels.obfuscationPasswordLabel,
                         )
                     }
                     SharedEditDropdownField(
                         if (form.allowInsecure) "true" else "false",
                         { form = form.copy(allowInsecure = it == "true") },
-                        "Allow Insecure",
+                        labels.allowInsecureLabel,
                         listOf("false", "true"),
+                        noneOptionLabel = labels.noneOptionLabel,
                     )
                 }
             }
@@ -280,25 +286,26 @@ fun SharedEditScreen(
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
                 Text(
-                    "Transport Settings",
+                    labels.transportSettingsTitle,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                 )
                 SharedEditDropdownField(
                     form.network,
                     { form = form.copy(network = it) },
-                    "Network",
+                    labels.networkLabel,
                     listOf("tcp", "ws", "grpc", "h2", "quic"),
+                    noneOptionLabel = labels.noneOptionLabel,
                 )
 
                 if (form.network == "ws") {
-                    SharedEditTextField(form.wsPath, { form = form.copy(wsPath = it) }, "WS Path")
-                    SharedEditTextField(form.wsHost, { form = form.copy(wsHost = it) }, "WS Host")
+                    SharedEditTextField(form.wsPath, { form = form.copy(wsPath = it) }, labels.wsPathLabel)
+                    SharedEditTextField(form.wsHost, { form = form.copy(wsHost = it) }, labels.wsHostLabel)
                 } else if (form.network == "grpc") {
                     SharedEditTextField(
                         form.grpcServiceName,
                         { form = form.copy(grpcServiceName = it) },
-                        "gRPC Service Name",
+                        labels.grpcServiceNameLabel,
                     )
                 }
 
@@ -307,30 +314,33 @@ fun SharedEditScreen(
                 SharedEditDropdownField(
                     form.transportSecurity,
                     { form = form.copy(transportSecurity = it) },
-                    "Security",
+                    labels.securityLabel,
                     listOf("none", "tls", "reality"),
+                    noneOptionLabel = labels.noneOptionLabel,
                 )
 
                 if (form.transportSecurity == "tls" || form.transportSecurity == "reality") {
-                    SharedEditTextField(form.sni, { form = form.copy(sni = it) }, "SNI (Server Name Indication)")
+                    SharedEditTextField(form.sni, { form = form.copy(sni = it) }, labels.sniServerNameLabel)
                     SharedEditDropdownField(
                         form.fingerprint,
                         { form = form.copy(fingerprint = it) },
-                        "Fingerprint",
+                        labels.fingerprintLabel,
                         listOf("chrome", "firefox", "safari", "edge", "android", "ios", "random", "randomized"),
+                        noneOptionLabel = labels.noneOptionLabel,
                     )
 
                     if (form.transportSecurity == "reality") {
-                        SharedEditTextField(form.publicKey, { form = form.copy(publicKey = it) }, "Public Key")
-                        SharedEditTextField(form.shortId, { form = form.copy(shortId = it) }, "Short ID")
+                        SharedEditTextField(form.publicKey, { form = form.copy(publicKey = it) }, labels.publicKeyLabel)
+                        SharedEditTextField(form.shortId, { form = form.copy(shortId = it) }, labels.shortIdLabel)
                     }
 
                     if (form.transportSecurity == "tls") {
                         SharedEditDropdownField(
                             if (form.allowInsecure) "true" else "false",
                             { form = form.copy(allowInsecure = it == "true") },
-                            "Allow Insecure",
+                            labels.allowInsecureLabel,
                             listOf("false", "true"),
+                            noneOptionLabel = labels.noneOptionLabel,
                         )
                     }
                 }

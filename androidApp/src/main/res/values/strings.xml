@@ -168,4 +168,38 @@
     <string name="apps_permission_required_desc">To list installed apps for per-app proxy, please grant the "All apps" / "Query all packages" permission to %1$s in system settings.</string>
     <string name="apps_permission_open_settings">Open settings</string>
     <string name="apps_permission_retry">Retry</string>
+
+    <!-- Node edit screen (shared EditScreen) -->
+    <string name="edit_add_title">Add</string>
+    <string name="edit_protocol_section">Protocol</string>
+    <string name="edit_basic_settings">Basic Settings</string>
+    <string name="edit_remarks">Remarks</string>
+    <string name="edit_address">Address</string>
+    <string name="edit_port">Port (0-65535)</string>
+    <string name="edit_protocol_settings">%1$s Settings</string>
+    <string name="edit_uuid">UUID</string>
+    <string name="edit_encryption">Encryption (default: none)</string>
+    <string name="edit_flow">Flow</string>
+    <string name="edit_security">Security</string>
+    <string name="edit_password">Password</string>
+    <string name="edit_method">Method</string>
+    <string name="edit_username_optional">Username (optional)</string>
+    <string name="edit_password_optional">Password (optional)</string>
+    <string name="edit_auth">Auth</string>
+    <string name="edit_sni">SNI</string>
+    <string name="edit_alpn">ALPN</string>
+    <string name="edit_obfuscation">Obfuscation</string>
+    <string name="edit_obfuscation_password">Obfuscation Password</string>
+    <string name="edit_allow_insecure">Allow Insecure</string>
+    <string name="edit_transport_settings">Transport Settings</string>
+    <string name="edit_network">Network</string>
+    <string name="edit_ws_path">WS Path</string>
+    <string name="edit_ws_host">WS Host</string>
+    <string name="edit_grpc_service_name">gRPC Service Name</string>
+    <string name="edit_sni_server_name">SNI (Server Name Indication)</string>
+    <string name="edit_fingerprint">Fingerprint</string>
+    <string name="edit_public_key">Public Key</string>
+    <string name="edit_short_id">Short ID</string>
+    <string name="edit_back_cd">Back</string>
+    <string name="edit_save_cd">Save</string>
 </resources>

@@ -37,6 +37,7 @@ import com.android.xrayfa.shared.ui.config.SharedConfigImportMenu
 import com.android.xrayfa.shared.ui.config.SharedConfigSection
 import com.android.xrayfa.shared.ui.config.SharedEditScreen
 import com.android.xrayfa.shared.ui.config.ConfigUiLabels
+import com.android.xrayfa.shared.ui.config.EditUiLabels
 import com.android.xrayfa.shared.config.NodeFormEditor
 import com.android.xrayfa.shared.ui.home.HomeTopBar
 import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
@@ -120,6 +121,7 @@ private fun ConfigTabScreen(
     val subscriptionComponent = rememberSubscriptionComponent()
     val settingsLabels = remember { SettingsUiLabels() }
     val configLabels = remember { ConfigUiLabels() }
+    val editLabels = remember { EditUiLabels() }
     val configState by component.state.subscribeAsState()
 
     configState.nodeEditTarget?.let { target ->
@@ -134,6 +136,7 @@ private fun ConfigTabScreen(
                     nodeFormEditor = nodeFormEditor,
                     onBack = component::onCloseNodeEdit,
                     onSave = component::onSaveNodeEdit,
+                    labels = editLabels,
                 )
             is NodeEditTarget.Edit ->
                 SharedEditScreen(
@@ -144,6 +147,7 @@ private fun ConfigTabScreen(
                     nodeFormEditor = nodeFormEditor,
                     onBack = component::onCloseNodeEdit,
                     onSave = component::onSaveNodeEdit,
+                    labels = editLabels,
                 )
         }
         return

@@ -151,4 +151,38 @@
     <string name="apps_permission_required_desc">为了显示已安装的应用列表以便选择代理对象，请在系统设置中为 %1$s 授予"读取应用列表"权限。</string>
     <string name="apps_permission_open_settings">前往设置</string>
     <string name="apps_permission_retry">重试</string>
+
+    <!-- Node edit screen (shared EditScreen) -->
+    <string name="edit_add_title">添加</string>
+    <string name="edit_protocol_section">协议</string>
+    <string name="edit_basic_settings">基本设置</string>
+    <string name="edit_remarks">备注</string>
+    <string name="edit_address">地址</string>
+    <string name="edit_port">端口 (0-65535)</string>
+    <string name="edit_protocol_settings">%1$s 设置</string>
+    <string name="edit_uuid">UUID</string>
+    <string name="edit_encryption">加密 (默认: none)</string>
+    <string name="edit_flow">流控</string>
+    <string name="edit_security">安全</string>
+    <string name="edit_password">密码</string>
+    <string name="edit_method">加密方式</string>
+    <string name="edit_username_optional">用户名 (可选)</string>
+    <string name="edit_password_optional">密码 (可选)</string>
+    <string name="edit_auth">认证</string>
+    <string name="edit_sni">SNI</string>
+    <string name="edit_alpn">ALPN</string>
+    <string name="edit_obfuscation">混淆</string>
+    <string name="edit_obfuscation_password">混淆密码</string>
+    <string name="edit_allow_insecure">允许不安全连接</string>
+    <string name="edit_transport_settings">传输设置</string>
+    <string name="edit_network">网络</string>
+    <string name="edit_ws_path">WS 路径</string>
+    <string name="edit_ws_host">WS 主机</string>
+    <string name="edit_grpc_service_name">gRPC 服务名</string>
+    <string name="edit_sni_server_name">SNI (服务器名称指示)</string>
+    <string name="edit_fingerprint">指纹</string>
+    <string name="edit_public_key">公钥</string>
+    <string name="edit_short_id">Short ID</string>
+    <string name="edit_back_cd">返回</string>
+    <string name="edit_save_cd">保存</string>
 </resources>
