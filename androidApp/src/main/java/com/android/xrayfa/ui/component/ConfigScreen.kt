@@ -97,11 +97,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.R
-import com.android.xrayfa.shared.navigation.ConfigFilterLabels
-import com.android.xrayfa.shared.ui.config.ConfigUiLabels
 import com.android.xrayfa.shared.ui.config.SharedConfigImportMenu
 import com.android.xrayfa.shared.ui.config.SharedConfigSection
 import com.android.xrayfa.ui.config.rememberAndroidConfigComponent
+import com.android.xrayfa.ui.config.rememberConfigFilterLabels
+import com.android.xrayfa.ui.config.rememberConfigUiLabels
 import com.android.xrayfa.ui.navigation.Config
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.android.xrayfa.ui.navigation.Detail
@@ -147,12 +147,7 @@ fun ConfigScreen(
 ) {
     val configComponent =
         rememberAndroidConfigComponent(
-            filterLabels =
-                ConfigFilterLabels(
-                    manualLabel = "Manual",
-                    allLabel = "All",
-                    favoriteLabel = "Favorite",
-                ),
+            filterLabels = rememberConfigFilterLabels(),
         )
     val configState by configComponent.state.subscribeAsState()
     val queryNodes by xrayViewmodel.queryNodes.collectAsState()
@@ -162,25 +157,7 @@ fun ConfigScreen(
     val nodeDelayMap by xrayViewmodel.nodeDelayMap.collectAsState()
     val isTestingAll by xrayViewmodel.isTestingAll.collectAsState()
 
-    val configLabels =
-        ConfigUiLabels(
-            title = stringResource(Config.title),
-            manualFilterLabel = "Manual",
-            allFilterLabel = "All",
-            favoriteFilterLabel = "Favorite",
-            emptyTitle = stringResource(R.string.no_configuration),
-            emptyHint = stringResource(R.string.no_configuration_hint),
-            createConfigLabel = stringResource(R.string.create_a_config),
-            unknownProtocolLabel = stringResource(R.string.unknown),
-            timeoutLabel = stringResource(R.string.timeout),
-            testingLabel = "Testing...",
-            addToFavoritesLabel = stringResource(R.string.add_to_favorites),
-            removeFromFavoritesLabel = stringResource(R.string.remove_from_favorites),
-            testDelayLabel = stringResource(R.string.test_url),
-            shareLabel = stringResource(R.string.clipboard_export),
-            editLabel = stringResource(R.string.edit),
-            deleteLabel = stringResource(R.string.delete),
-        )
+    val configLabels = rememberConfigUiLabels()
 
     LaunchedEffect(configState.selectedFilterId) {
         xrayViewmodel.selectSubscription(configState.selectedFilterId)
@@ -281,7 +258,7 @@ fun ConfigScreen(
                                     )
                                     HorizontalDivider()
                                     DropdownMenuItem(
-                                        text = { Text("Bug Report") },
+                                        text = { Text(stringResource(R.string.bug_report_header)) },
                                         onClick = {
                                             dismiss()
                                             xrayViewmodel.bugReport(context)
@@ -333,7 +310,7 @@ fun ConfigScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Speed,
-                            contentDescription = "Speed Test All",
+                            contentDescription = stringResource(R.string.config_speed_test_all_cd),
                             tint =
                                 if (isTestingAll) {
                                     MaterialTheme.colorScheme.secondary

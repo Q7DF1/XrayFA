@@ -137,6 +137,17 @@
     <string name="routing_mode_route">Режим маршрута</string>
     <string name="import_manually">Вручную</string>
 
+    <string name="config_filter_all">Все</string>
+    <string name="config_filter_favorite">Избранное</string>
+    <string name="config_testing">Тестирование…</string>
+    <string name="config_create_node">Создать узел</string>
+    <string name="config_edit_node">Изменить узел</string>
+    <string name="config_node_url">URL узла</string>
+    <string name="config_edit_node_failed">Не удалось сохранить узел. Проверьте URL.</string>
+    <string name="config_delete_node_title">Удалить узел</string>
+    <string name="config_delete_node_confirm">Удалить этот узел?</string>
+    <string name="config_speed_test_all_cd">Тест скорости всех</string>
+
     <string name="bug_report_header">Отчет об ошибке</string>
     <string name="bug_report_title_label">Заголовок</string>
     <string name="bug_report_desc_label">Описание проблемы</string>

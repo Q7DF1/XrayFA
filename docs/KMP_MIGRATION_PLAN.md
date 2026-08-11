@@ -909,7 +909,8 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | E.6t | iOS Apps 信息桥接 + allow list | ✅ |
 | E.6u | SharedModalBottomSheet 崩溃修复（Dialog 替代 ModalBottomSheet） | ✅ |
 | E.6v | **共享完整 EditScreen → iOS 与 Android 统一** | ✅ |
-| E.6w | **删除废弃 SharedNodeEditSheet + EditScreen i18n 标签体系** | ✅ 待 commit |
+| E.6w | **删除废弃 SharedNodeEditSheet + EditScreen i18n 标签体系** | ✅ |
+| E.6x | **Android ConfigUiLabels / ConfigFilterLabels 本地化补全** | ✅ 待 commit |
 
 ### EditScreen / 节点创建：产品与技术决策（2026-08-10）
 

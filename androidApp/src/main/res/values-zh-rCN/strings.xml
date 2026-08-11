@@ -124,6 +124,17 @@
     <string name="routing_mode_route">路由模式</string>
     <string name="import_manually">手动</string>
 
+    <string name="config_filter_all">全部</string>
+    <string name="config_filter_favorite">收藏</string>
+    <string name="config_testing">测试中…</string>
+    <string name="config_create_node">创建节点</string>
+    <string name="config_edit_node">编辑节点</string>
+    <string name="config_node_url">节点 URL</string>
+    <string name="config_edit_node_failed">保存节点失败，请检查 URL。</string>
+    <string name="config_delete_node_title">删除节点</string>
+    <string name="config_delete_node_confirm">确定删除此节点？</string>
+    <string name="config_speed_test_all_cd">全部测速</string>
+
     <string name="bug_report_header">问题反馈</string>
     <string name="bug_report_title_label">标题</string>
     <string name="bug_report_desc_label">问题描述</string>

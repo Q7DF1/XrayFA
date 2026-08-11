@@ -141,6 +141,17 @@
     <string name="routing_mode_route">Route Mode</string>
     <string name="import_manually">manual</string>
 
+    <string name="config_filter_all">All</string>
+    <string name="config_filter_favorite">Favorite</string>
+    <string name="config_testing">Testing…</string>
+    <string name="config_create_node">Create node</string>
+    <string name="config_edit_node">Edit node</string>
+    <string name="config_node_url">Node URL</string>
+    <string name="config_edit_node_failed">Failed to save node. Check the URL.</string>
+    <string name="config_delete_node_title">Delete node</string>
+    <string name="config_delete_node_confirm">Delete this node?</string>
+    <string name="config_speed_test_all_cd">Speed test all</string>
+
     <string name="bug_report_header">Bug Report</string>
     <string name="bug_report_title_label">Title</string>
     <string name="bug_report_desc_label">Description</string>

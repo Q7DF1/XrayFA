@@ -138,6 +138,17 @@
     <string name="routing_mode_route">라우트 모드</string>
     <string name="import_manually">수동</string>
 
+    <string name="config_filter_all">전체</string>
+    <string name="config_filter_favorite">즐겨찾기</string>
+    <string name="config_testing">테스트 중…</string>
+    <string name="config_create_node">노드 추가</string>
+    <string name="config_edit_node">노드 편집</string>
+    <string name="config_node_url">노드 URL</string>
+    <string name="config_edit_node_failed">노드 저장 실패. URL을 확인하세요.</string>
+    <string name="config_delete_node_title">노드 삭제</string>
+    <string name="config_delete_node_confirm">이 노드를 삭제하시겠습니까?</string>
+    <string name="config_speed_test_all_cd">전체 속도 테스트</string>
+
     <string name="bug_report_header">버그 보고</string>
     <string name="bug_report_title_label">제목</string>
     <string name="bug_report_desc_label">문제 설명</string>
