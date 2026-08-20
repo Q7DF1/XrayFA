@@ -1,5 +1,6 @@
 package com.android.xrayfa.di
 
+import com.android.xrayfa.shared.di.KoinQualifiers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

@@ -7,6 +7,7 @@ import com.android.xrayfa.core.BridgedTun2SocksService
 import com.android.xrayfa.core.QuickStartTileService
 import com.android.xrayfa.core.XrayBaseService
 import com.android.xrayfa.vpn.VpnController
+import com.android.xrayfa.shared.di.KoinQualifiers
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named

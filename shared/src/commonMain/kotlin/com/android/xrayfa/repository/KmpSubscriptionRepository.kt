@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.map
 private const val XHWID = "x-hwid"
 private const val TAG = "KmpSubscriptionRepository"
 
-/** KMP [SubscriptionRepository] (mirrors Android app implementation without Android APIs). */
+/** KMP [SubscriptionRepository] for Android and iOS. */
 class KmpSubscriptionRepository(
     private val subscriptionDao: SubscriptionDao,
     private val subscriptionFetcher: SubscriptionFetcher,

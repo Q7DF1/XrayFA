@@ -910,7 +910,21 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | E.6u | SharedModalBottomSheet 崩溃修复（Dialog 替代 ModalBottomSheet） | ✅ |
 | E.6v | **共享完整 EditScreen → iOS 与 Android 统一** | ✅ |
 | E.6w | **删除废弃 SharedNodeEditSheet + EditScreen i18n 标签体系** | ✅ |
-| E.6x | **Android ConfigUiLabels / ConfigFilterLabels 本地化补全** | ✅ 待 commit |
+| E.6x | **Android ConfigUiLabels / ConfigFilterLabels 本地化补全** | ✅ |
+
+---
+
+## 期中后查漏补缺（2026-08-20）
+
+对照 `docs/KMP_MIGRATION_MIDTERM_REVIEW.md`。交接文档仍按 Step 编号维护（STEP73+）。
+
+| 步骤 | 内容 | 状态 |
+|------|------|------|
+| 73 | `:domain` `commonTest` parser / 配置生成黄金用例 | ✅ `94a88b6` |
+| 74 | CI：`kmp-unit-tests.yml` + ios-shared xcframework + android.yml `test` | ✅ `29ca665` |
+| 75 | 修正 unpublished `AndroidLibXrayLite` gitlink；submodule URL 保持 SSH | ✅ `6f547fc` `048c36d` |
+| 76 | R-2 去重：`EntityMappers` / `RoomNodeRepository` / `KoinQualifiers` / SubscriptionRepository | ✅ |
+| 77+ | `:core:data`、断 `:domain → :core:datastore`、Android 收敛 `RootContent`、i18n、AGENT 全量重写 | ⬜ |
 
 ### EditScreen / 节点创建：产品与技术决策（2026-08-10）
 

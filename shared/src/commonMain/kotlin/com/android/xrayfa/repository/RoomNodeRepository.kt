@@ -7,7 +7,7 @@ import com.android.xrayfa.model.Node
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-/** KMP Room-backed [NodeRepository] (shared by iOS Koin; Android keeps app-local copy). */
+/** KMP Room-backed [NodeRepository] used by Android and iOS Koin. */
 class RoomNodeRepository(
     private val nodeDao: NodeDao,
 ) : NodeRepository {
