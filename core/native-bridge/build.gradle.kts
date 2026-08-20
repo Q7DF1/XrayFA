@@ -5,9 +5,20 @@ plugins {
 
 val libXrayXcframework = rootProject.file("AndroidLibXrayLite/LibXrayLite.xcframework")
 
-if (gradle.startParameter.taskNames.any { it.contains("Ios", ignoreCase = true) }) {
-    check(libXrayXcframework.isDirectory) {
-        "LibXrayLite.xcframework not found. Run ./scripts/build_libxray_ios.sh first."
+gradle.taskGraph.whenReady {
+    val compilingThisIos = allTasks.any { task ->
+        task.project == project &&
+            task.name.contains("Ios", ignoreCase = true) &&
+            (
+                task.name.startsWith("compile") ||
+                    task.name.startsWith("cinterop") ||
+                    task.name.startsWith("link")
+                )
+    }
+    if (compilingThisIos) {
+        check(libXrayXcframework.isDirectory) {
+            "LibXrayLite.xcframework not found. Run ./scripts/build_libxray_ios.sh first."
+        }
     }
 }
 

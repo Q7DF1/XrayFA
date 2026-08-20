@@ -96,13 +96,17 @@ Native builds require fixing the `#include` paths in C headers first. `tun2socks
 ## 4. Testing
 
 ```bash
-./gradlew test                 # JVM unit tests
-./gradlew connectedAndroidTest # Instrumented tests (requires a device/emulator)
+./gradlew test                              # JVM / Android unit tests
+./gradlew :domain:testDebugUnitTest         # parser goldens + Gson↔kotlinx (no libv2ray.aar)
+./gradlew :domain:iosSimulatorArm64Test     # same commonTest on iOS Simulator (Apple Silicon)
+./gradlew :domain:iosX64Test                # same commonTest on x86_64 Kotlin/Native
+./gradlew connectedAndroidTest              # instrumented tests (requires a device/emulator)
 ```
 
-- Test frameworks: JUnit 4.13.2, AndroidX Test JUnit 1.3.0, Espresso 3.7.0, Compose UI Test.
-- **Current test coverage is thin** and mostly consists of Android Studio default templates. The one with real value is `androidApp/src/test/java/com/android/xrayfa/parser/AbstractConfigParserTest.kt` (unit tests for config generation).
-- **Convention**: When adding business logic (especially pure logic in `parser/`, `model/`, `utils/`, `repository/`), add unit tests following the style of `AbstractConfigParserTest`.
+- Test frameworks: JUnit 4.13.2, `kotlin.test` in `commonTest`, AndroidX Test JUnit 1.3.0, Espresso 3.7.0, Compose UI Test.
+- **Shared business logic lives in `commonTest`**, not `androidUnitTest`. Gson comparison tests stay on Android because Gson is JVM-only.
+- Parser / Xray config generation goldens: `domain/src/commonTest/kotlin/com/android/xrayfa/parser/` (`ProtocolParserGoldenTest`, `AbstractConfigParserGoldenTest`). Gson parity: `domain/src/androidUnitTest/.../XrayConfigurationSerializationTest.kt`.
+- **Convention**: When adding parser, model, routing, or subscription logic, add a `commonTest` case (share link → kotlinx JSON) before changing the encoder.
 
 ---
 
@@ -139,7 +143,7 @@ XrayFA/
 ├── settings.gradle.kts       # Module registration: :androidApp, :tun2socks, :common, :shared, …
 ├── docs/                     # Internal technical docs (incl. KMP migration plan)
 ├── fastlane/                 # F-Droid / Play Store metadata (multilingual)
-└── .github/workflows/        # CI (android.yml, google-play.yml, update_submodules.yaml)
+└── .github/workflows/        # CI (android.yml, kmp-unit-tests.yml, ios-shared.yml, google-play.yml, update_submodules.yaml)
 ```
 
 ### Module dependencies
@@ -181,13 +185,16 @@ CI is defined under `.github/workflows/`:
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| `android.yml` | push `main` / tag `v*` / PR | JDK 17 + pinned NDK r28c → download geo data → gomobile bind → `assembleRelease` → upload APK; auto GitHub Release on tag |
+| `kmp-unit-tests.yml` | push/PR `main` + `feat/**` | JDK 17 → `:common` / `:domain` / `:core:datastore` `testDebugUnitTest` (no gomobile / NDK) |
+| `ios-shared.yml` | push/PR `main` + `feat/**` | `:domain:iosSimulatorArm64Test`; cache/build `LibXrayLite.xcframework` then `:shared:compileKotlinIosSimulatorArm64` |
+| `android.yml` | push `main` / tag `v*` / PR to `main` | JDK 17 + pinned NDK r28c → download geo data → gomobile bind → `./gradlew test` → `assembleRelease` → upload APK; auto GitHub Release on tag |
 | ~~`google-play.yml`~~ | ~~`workflow_dispatch`~~ | ~~Builds the Play variant (AAB/APK) using `APPLICATION_ID_PLAY`~~ _(no Google Play release planned; workflow kept but unused)_ |
 | `update_submodules.yaml` | daily cron + manual | Updates submodules and opens a PR automatically |
 
 - **F-Droid compatibility**: `dependenciesInfo.includeInApk/Bundle = false` (disables dependency metadata).
 - CI reads the Go version from `AndroidLibXrayLite/go.mod` and pins NDK r28c for reproducible builds.
 - Required secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
+- Feature-branch CI is intentionally **not** `assembleRelease`: that job is too heavy (NDK + gomobile + signing). Shared-module tests run on `feat/**` via `kmp-unit-tests.yml`.
 
 ---
 
@@ -195,7 +202,7 @@ CI is defined under `.github/workflows/`:
 
 - **Never commit secrets/credentials**: `androidApp/xrayfa.jks`, `local.properties`, keystore passwords, and any `secrets` must never be written to the repo or logs.
 - **Submodules are external upstreams**: `AndroidLibXrayLite/` and `hev-socks5-tunnel/` are independent repos. Unless the task explicitly requires it, **do not** modify files inside submodules; make changes on the main-repo side.
-- **Do not commit build artifacts**: `androidApp/libs/*.aar`, `build/`, `.gradle/`, etc. are generated and must not be committed.
+- **Do not commit build artifacts**: `androidApp/libs/*.aar`, `build/`, `.gradle/`, `.kotlin/`, `AndroidLibXrayLite/LibXrayLite.xcframework`, etc. are generated and must not be committed.
 - **Version bumps**: To change the app version, edit `VERSION_NAME` / `VERSION_CODE` in `gradle.properties`; do not hardcode them in `build.gradle.kts`.
 - **Distribution channels**: Currently released only via GitHub Releases and F-Droid (package `com.android.xrayfa`). ~~Google Play (`com.q7df1.xrayfa`)~~ is **not planned**; `APPLICATION_ID_PLAY`, `google-play.yml`, and related config are kept but disabled. If re-enabled later, control it via `-PAPPLICATION_ID`.
 - **Networking tool nature**: This is a legitimate open-source proxy/VPN client. Be careful when changing networking, routing, or protocol-parsing logic to avoid harming user privacy or introducing insecure defaults.
@@ -248,7 +255,7 @@ build(deps): bump room to 2.7.0
 
 - [ ] `./gradlew assembleDebug` builds locally (full build required when touching native/Go layers).
 - [ ] `./gradlew test` passes; new business logic has unit tests (see Section 4).
-- [ ] CI (`android.yml`) is green.
+- [ ] CI (`kmp-unit-tests.yml` / `ios-shared.yml`; `android.yml` on `main`) is green.
 - [ ] Dependency versions changed only in `gradle/libs.versions.toml`; no hardcoded versions.
 - [ ] No secrets, keystores, `local.properties`, `androidApp/libs/*.aar`, or other sensitive files/artifacts committed.
 - [ ] Version bumps (if any) updated in `gradle.properties` (`VERSION_NAME` / `VERSION_CODE`).

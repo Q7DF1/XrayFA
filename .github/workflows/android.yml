@@ -106,6 +106,9 @@ jobs:
     - name: Grant execute permission for gradlew
       working-directory: /home/vagrant/build/com.android.xrayfa
       run: chmod +x gradlew
+    - name: Run unit tests
+      working-directory: /home/vagrant/build/com.android.xrayfa
+      run: ./gradlew test --max-workers=1 --no-daemon
     - name: Build with Gradle
       working-directory: /home/vagrant/build/com.android.xrayfa
       env:
