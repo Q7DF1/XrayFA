@@ -320,9 +320,7 @@ abstract class AbstractConfigParser<T : AbsOutboundConfigurationObject, P> {
             outbounds = outbounds,
             routing = getBaseRoutingObject(settings, tcpOnlyProxy),
         )
-        val config = configEncoder.encode(xrayConfig)
-        println(config)
-        return config
+        return configEncoder.encode(xrayConfig)
     }
 
     fun parsePreNodeIfNeeded(startOptions: CoreStartOptions): OutboundObject<*>? {

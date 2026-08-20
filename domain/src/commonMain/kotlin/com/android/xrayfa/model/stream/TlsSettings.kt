@@ -1,5 +1,8 @@
 package com.android.xrayfa.model.stream
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class TlsSettings(
     val serverName: String? = null,
     val verifyPeerCertInNames: List<String>? = null,
@@ -18,13 +21,14 @@ data class TlsSettings(
     val masterKeyLog: String? = null,
     val echServerKeys: String? = null,
     val echConfigList: String? = null,
-    val echForceQuery: String? = null
+    val echForceQuery: String? = null,
 )
 
+@Serializable
 data class CertificateObject(
     val certificateFile: String? = null,
     val certificate: List<String>? = null,
     val keyFile: String? = null,
     val key: List<String>? = null,
-    val usage: String? = "encipherment"
+    val usage: String? = "encipherment",
 )

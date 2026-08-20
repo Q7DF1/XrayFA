@@ -1,23 +1,28 @@
 package com.android.xrayfa.model.stream
 
+import com.android.xrayfa.model.serialization.HeaderObjectSerializer
+import kotlinx.serialization.Serializable
+
 data class RawSettings(
     val acceptProxyProtocol: Boolean? = null,
-    val header: HeaderObject = NoneHeaderObject()
+    val header: @Serializable(with = HeaderObjectSerializer::class) HeaderObject = NoneHeaderObject(),
 )
 
+abstract class HeaderObject
 
-abstract class HeaderObject{}
+@Serializable
 data class NoneHeaderObject(
-    val type: String = "none"
-):HeaderObject()
+    val type: String = "none",
+) : HeaderObject()
 
+@Serializable
 data class HttpHeaderObject(
     val type: String = "http",
     val request: HttpRequestObject? = null,
-    val response: HttpResponseObject? = null
-):HeaderObject()
+    val response: HttpResponseObject? = null,
+) : HeaderObject()
 
-
+@Serializable
 data class HttpRequestObject(
     val version: String = "1.1",
     val method: String = "GET",
@@ -26,16 +31,15 @@ data class HttpRequestObject(
         "Host" to listOf(""),
         "User-Agent" to listOf(
             "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36",
-            "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0_2 like Mac OS X) AppleWebKit/601.1 (KHTML, like Gecko) CriOS/53.0.2785.109 Mobile/14A456 Safari/601.1.46"
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0_2 like Mac OS X) AppleWebKit/601.1 (KHTML, like Gecko) CriOS/53.0.2785.109 Mobile/14A456 Safari/601.1.46",
         ),
         "Accept-Encoding" to listOf("gzip, deflate"),
         "Connection" to listOf("keep-alive"),
-        "Pragma" to listOf("no-cache")
-    )
+        "Pragma" to listOf("no-cache"),
+    ),
 )
 
-
-
+@Serializable
 data class HttpResponseObject(
     val version: String = "1.1",
     val status: String = "200",
@@ -44,7 +48,6 @@ data class HttpResponseObject(
         "Content-Type" to listOf("application/octet-stream", "video/mpeg"),
         "Transfer-Encoding" to listOf("chunked"),
         "Connection" to listOf("keep-alive"),
-        "Pragma" to listOf("no-cache")
-    )
+        "Pragma" to listOf("no-cache"),
+    ),
 )
-

@@ -1,5 +1,8 @@
 package com.android.xrayfa.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class HappyEyeballs(
     val tryDelayMs: Int = 250,
     val prioritizeIPv6: Boolean = false,

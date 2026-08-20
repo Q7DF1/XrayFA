@@ -1,8 +1,11 @@
 package com.android.xrayfa.model.stream
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class GrpcSettings(
     val authority: String? = null,
-    val serviceName:String? = null,
+    val serviceName: String? = null,
     val multiMode: Boolean = false,
     val user_agent: String? = null,
     val idle_timeout: Long = 60,

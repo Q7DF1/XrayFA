@@ -1,5 +1,8 @@
 package com.android.xrayfa.model.stream
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class KcpSettings(
     val mtu: Int = 1350,
     val tti: Int = 20,
@@ -9,10 +12,11 @@ data class KcpSettings(
     val readBufferSize: Int = 1,
     val writeBufferSize: Int = 1,
     val header: KcpHeaderObject,
-    val seed: String? = null
+    val seed: String? = null,
 )
 
+@Serializable
 data class KcpHeaderObject(
     val type: String? = null,
-    val domain: String? = null
+    val domain: String? = null,
 )
