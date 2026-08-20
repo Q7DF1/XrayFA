@@ -23,7 +23,7 @@ kotlin {
             implementation(project(":common"))
             implementation(project(":core:datastore"))
             implementation(libs.koin.core)
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+            implementation(libs.kotlinx.serialization.json)
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
         }
         androidMain.dependencies {
@@ -31,6 +31,7 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
+            implementation(libs.kotlinx.serialization.json)
         }
         androidUnitTest.dependencies {
             implementation(libs.junit)

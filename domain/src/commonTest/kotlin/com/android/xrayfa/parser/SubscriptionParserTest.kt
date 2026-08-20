@@ -1,8 +1,8 @@
 package com.android.xrayfa.parser
 
-import org.junit.Assert.assertEquals
-import org.junit.Test
 import com.android.xrayfa.common.utils.Base64Compat
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class SubscriptionParserTest {
 
