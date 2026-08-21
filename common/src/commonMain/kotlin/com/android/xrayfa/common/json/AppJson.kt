@@ -1,4 +1,4 @@
-package com.android.xrayfa.datastore
+package com.android.xrayfa.common.json
 
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
@@ -15,13 +15,7 @@ val AppJson: Json = Json {
     explicitNulls = false
 }
 
-private val ruleListSerializer = ListSerializer(Rule.serializer())
 private val stringListSerializer = ListSerializer(String.serializer())
-
-fun encodeRules(rules: List<Rule>): String = AppJson.encodeToString(ruleListSerializer, rules)
-
-fun decodeRules(json: String): List<Rule> =
-    AppJson.decodeFromString(ruleListSerializer, json)
 
 fun encodeStringList(values: List<String>): String =
     AppJson.encodeToString(stringListSerializer, values)

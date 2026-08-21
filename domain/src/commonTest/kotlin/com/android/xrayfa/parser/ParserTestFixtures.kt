@@ -5,8 +5,8 @@ import com.android.xrayfa.common.repository.ConfigParserSettings
 import com.android.xrayfa.common.repository.ConfigParserSettingsProvider
 import com.android.xrayfa.config.KotlinxXrayConfigEncoder
 import com.android.xrayfa.config.XrayJson
-import com.android.xrayfa.datastore.DomainStrategy
-import com.android.xrayfa.datastore.RoutingMode
+import com.android.xrayfa.common.routing.DomainStrategy
+import com.android.xrayfa.common.routing.RoutingMode
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.serialization.OutboundObjectSerializer
 import kotlinx.serialization.json.Json

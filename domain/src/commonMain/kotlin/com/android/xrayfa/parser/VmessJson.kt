@@ -1,6 +1,6 @@
 package com.android.xrayfa.parser
 
-import com.android.xrayfa.datastore.AppJson
+import com.android.xrayfa.common.json.AppJson
 import com.android.xrayfa.common.utils.Base64Compat
 import com.android.xrayfa.dto.VMESSConfig
 import kotlinx.serialization.json.JsonObject

@@ -1,7 +1,9 @@
-package com.android.xrayfa.datastore
+package com.android.xrayfa.common.routing
 
+import com.android.xrayfa.common.json.AppJson
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
 
 /**
  * Routing rule stored in DataStore; structurally identical to [com.android.xrayfa.model.RuleObject].
@@ -29,6 +31,13 @@ data class Rule(
     @SerialName("domainMatcher") val domainMatcher: String? = null,
     @SerialName("type") val type: String = "field",
 )
+
+private val ruleListSerializer = ListSerializer(Rule.serializer())
+
+fun encodeRules(rules: List<Rule>): String = AppJson.encodeToString(ruleListSerializer, rules)
+
+fun decodeRules(json: String): List<Rule> =
+    AppJson.decodeFromString(ruleListSerializer, json)
 
 val defaultRouteList = listOf(
     Rule(

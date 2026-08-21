@@ -97,6 +97,7 @@ Native builds require fixing the `#include` paths in C headers first. `tun2socks
 
 ```bash
 ./gradlew test                              # JVM / Android unit tests
+./gradlew :common:testDebugUnitTest         # Rule JSON Gson↔kotlinx (DataStore disk format)
 ./gradlew :domain:testDebugUnitTest         # parser goldens + Gson↔kotlinx (no libv2ray.aar)
 ./gradlew :domain:iosSimulatorArm64Test     # same commonTest on iOS Simulator (Apple Silicon)
 ./gradlew :domain:iosX64Test                # same commonTest on x86_64 Kotlin/Native
@@ -134,7 +135,7 @@ XrayFA/
 │       └── XrayAppCompatFactory.kt  # AppComponentFactory, DI injection for Activity/Service
 ├── iosApp/                   # iOS shell (Xcode: SwiftUI + Network Extension)
 ├── shared/                   # KMP umbrella → XrayFAShared.framework for iOS
-├── common/                   # :common shared library (Constant, SettingsRepository, Socks generator, DI qualifiers)
+├── common/                   # :common kernel (routing enums, Rule JSON, AppJson, Logger, ConfigParserSettings)
 ├── tun2socks/                # :tun2socks module (TProxyService JNI wrapper + hev-socks5-tunnel submodule)
 │   └── src/main/jni/         # Android.mk / Application.mk (ndk-build, no CMake)
 ├── AndroidLibXrayLite/       # submodule: gomobile bindings for Xray-core (go.mod, gen_assets.sh)
@@ -172,6 +173,7 @@ Config generation lives in `parser/` + `model/`; app settings are stored in Data
 - **Kotlin style**: `kotlin.code.style=official` (`gradle.properties`). Follow the official Kotlin coding conventions.
 - This project has **no** ktlint / detekt / spotless / `.editorconfig` configured; match the naming, indentation (4 spaces), and formatting of surrounding code.
 - **Dependency management**: All dependency versions are declared **only** in `gradle/libs.versions.toml` and referenced via `libs.xxx` aliases. **Do not** hardcode versions in `build.gradle.kts` (the `leakcanary` debug dependency in `androidApp/build.gradle.kts` is a pre-existing exception).
+- **Layering**: `:domain` must not depend on `:core:*` or `:platform:*`. Routing enums (`RoutingMode`, `DomainStrategy`), persisted `Rule` JSON, and `AppJson` live in `:common`. DataStore persistence stays in `:core:datastore`.
 - **DI**: When adding an injectable component, register it in the corresponding Dagger module under `di/`; Activities/Services are injected via `XrayAppCompatFactory`.
 - **Naming**: Package root is `com.android.xrayfa.*`; config models mirror the Xray JSON structure — consult `androidApp/.../model/README.md` before changing them.
 - **ProGuard**: When adding classes accessed via reflection/JNI/serialization, update `androidApp/proguard-rules.pro` accordingly (Release enables `minify` + `shrinkResources`).

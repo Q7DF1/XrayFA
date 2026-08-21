@@ -21,7 +21,6 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":common"))
-            implementation(project(":core:datastore"))
             implementation(libs.koin.core)
             implementation(libs.kotlinx.serialization.json)
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")

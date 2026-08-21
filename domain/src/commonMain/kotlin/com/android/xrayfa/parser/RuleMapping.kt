@@ -1,6 +1,6 @@
 package com.android.xrayfa.parser
 
-import com.android.xrayfa.datastore.Rule
+import com.android.xrayfa.common.routing.Rule
 import com.android.xrayfa.model.RuleObject
 
 fun Rule.toRuleObject(): RuleObject = RuleObject(

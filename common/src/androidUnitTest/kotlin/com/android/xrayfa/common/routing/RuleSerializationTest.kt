@@ -1,5 +1,7 @@
-package com.android.xrayfa.datastore
+package com.android.xrayfa.common.routing
 
+import com.android.xrayfa.common.json.decodeStringList
+import com.android.xrayfa.common.json.encodeStringList
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import org.junit.Assert.assertEquals

@@ -4,10 +4,10 @@ import com.android.xrayfa.common.core.CoreStartOptions
 import com.android.xrayfa.common.core.GeoIpProvider
 import com.android.xrayfa.common.repository.ConfigParserSettings
 import com.android.xrayfa.common.repository.ConfigParserSettingsProvider
-import com.android.xrayfa.datastore.DomainStrategy
-import com.android.xrayfa.datastore.RoutingMode
-import com.android.xrayfa.datastore.decodeRules
-import com.android.xrayfa.datastore.defaultRoutes
+import com.android.xrayfa.common.routing.DomainStrategy
+import com.android.xrayfa.common.routing.RoutingMode
+import com.android.xrayfa.common.routing.decodeRules
+import com.android.xrayfa.common.routing.defaultRoutes
 import com.android.xrayfa.config.XrayConfigEncoder
 import com.android.xrayfa.dto.ParseLinkInput
 import com.android.xrayfa.dto.ParsedNode

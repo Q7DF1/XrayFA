@@ -48,10 +48,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.android.xrayfa.datastore.DomainStrategy
-import com.android.xrayfa.datastore.RoutingMode
-import com.android.xrayfa.datastore.Rule
-import com.android.xrayfa.datastore.decodeRules
+import com.android.xrayfa.common.routing.DomainStrategy
+import com.android.xrayfa.common.routing.RoutingMode
+import com.android.xrayfa.common.routing.Rule
+import com.android.xrayfa.common.routing.decodeRules
 import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.ui.widgets.SharedModalBottomSheet
 import com.arkivanov.decompose.extensions.compose.subscribeAsState

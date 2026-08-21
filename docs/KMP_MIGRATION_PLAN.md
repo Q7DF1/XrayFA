@@ -923,8 +923,9 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | 73 | `:domain` `commonTest` parser / 配置生成黄金用例 | ✅ `94a88b6` |
 | 74 | CI：`kmp-unit-tests.yml` + ios-shared xcframework + android.yml `test` | ✅ `29ca665` |
 | 75 | 修正 unpublished `AndroidLibXrayLite` gitlink；submodule URL 保持 SSH | ✅ `6f547fc` `048c36d` |
-| 76 | R-2 去重：`EntityMappers` / `RoomNodeRepository` / `KoinQualifiers` / SubscriptionRepository | ✅ |
-| 77+ | `:core:data`、断 `:domain → :core:datastore`、Android 收敛 `RootContent`、i18n、AGENT 全量重写 | ⬜ |
+| 76 | R-2 去重：`EntityMappers` / `RoomNodeRepository` / `KoinQualifiers` / SubscriptionRepository | ✅ `9a95c43` |
+| 77 | 断 `:domain → :core:datastore`：路由类型 / `Rule` / `AppJson` 下沉 `:common` | ✅ |
+| 78+ | `:core:data`、Android 收敛 `RootContent`、i18n、AGENT 全量重写 | ⬜ |
 
 ### EditScreen / 节点创建：产品与技术决策（2026-08-10）
 

@@ -6,16 +6,23 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.android.xrayfa.common.json.decodeStringList
+import com.android.xrayfa.common.json.encodeStringList
 import com.android.xrayfa.common.repository.ConfigParserSettings
 import com.android.xrayfa.common.repository.ConfigParserSettingsProvider
+import com.android.xrayfa.common.routing.DomainStrategy
+import com.android.xrayfa.common.routing.RoutingMode
+import com.android.xrayfa.common.routing.Rule
+import com.android.xrayfa.common.routing.defaultRoutes
+import com.android.xrayfa.common.routing.encodeRules
 import com.android.xrayfa.common.utils.Logger
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 /**
- * Due to module dependencies, we cannot directly use the `com.android.xrayfa.model.RuleObject` object here.
- * Therefore, we can only define an identical one, serialize it into JSON,
- * and then deserialize it back into `RuleObject` when needed.
+ * [Rule] lives in `:common` so `:domain` parsers can decode routing JSON without
+ * depending on this DataStore module. [com.android.xrayfa.model.RuleObject] stays
+ * in `:domain`; map at the parser boundary.
  */
 data class SettingsState(
     val darkMode: Int = 0,

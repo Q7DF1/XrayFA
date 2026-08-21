@@ -19,9 +19,9 @@ import kotlinx.coroutines.launch
 import androidx.core.net.toUri
 import com.android.xrayfa.R
 import com.android.xrayfa.common.core.XrayAssetPaths
-import com.android.xrayfa.datastore.DomainStrategy
-import com.android.xrayfa.datastore.RoutingMode
-import com.android.xrayfa.datastore.Rule
+import com.android.xrayfa.common.routing.DomainStrategy
+import com.android.xrayfa.common.routing.RoutingMode
+import com.android.xrayfa.common.routing.Rule
 import com.android.xrayfa.common.utils.calculateFileHash
 import com.android.xrayfa.vpn.VpnController
 import com.android.xrayfa.vpn.isConnected

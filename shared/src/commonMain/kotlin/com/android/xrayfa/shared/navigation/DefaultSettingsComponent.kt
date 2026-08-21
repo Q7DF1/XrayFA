@@ -1,8 +1,8 @@
 package com.android.xrayfa.shared.navigation
 
-import com.android.xrayfa.datastore.DomainStrategy
-import com.android.xrayfa.datastore.RoutingMode
-import com.android.xrayfa.datastore.Rule
+import com.android.xrayfa.common.routing.DomainStrategy
+import com.android.xrayfa.common.routing.RoutingMode
+import com.android.xrayfa.common.routing.Rule
 import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.datastore.SettingsState
 import com.android.xrayfa.datastore.Theme
