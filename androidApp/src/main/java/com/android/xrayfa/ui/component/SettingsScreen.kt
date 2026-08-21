@@ -224,6 +224,8 @@ fun SettingsScreen(
             repoDescription = stringResource(R.string.repo_description),
             appsTitle = stringResource(R.string.allow_app_settings),
             appsDescription = stringResource(R.string.select_app_settings),
+            appsSearchLabel = "Search",
+            appsClearAllLabel = "Clear all",
             logcatTitle = stringResource(R.string.logcat),
             logcatDescription = stringResource(R.string.logcat_desc),
             routeSettingsTitle = stringResource(R.string.route_settings_title),

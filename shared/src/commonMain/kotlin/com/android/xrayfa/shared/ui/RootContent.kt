@@ -41,11 +41,12 @@ import com.android.xrayfa.shared.ui.config.EditUiLabels
 import com.android.xrayfa.shared.config.NodeFormEditor
 import com.android.xrayfa.shared.ui.home.HomeTopBar
 import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
+import com.android.xrayfa.shared.ui.nav.toFloatingNavItem
 import com.android.xrayfa.shared.ui.qr.SharedQrScannerScreen
 import com.android.xrayfa.shared.ui.settings.SettingsUiLabels
 import com.android.xrayfa.shared.ui.settings.SharedAppsInfoScreen
 import com.android.xrayfa.shared.ui.settings.RouteSettingsUiLabels
-import com.android.xrayfa.shared.ui.settings.SharedAppLogScreen
+import com.android.xrayfa.shared.ui.settings.SharedInProcessAppLogScreen
 import com.android.xrayfa.shared.ui.settings.SharedRouteSettingsScreen
 import com.android.xrayfa.shared.ui.settings.SharedSettingsAboutSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsGeneralSection
@@ -93,13 +94,16 @@ fun RootContent(
         }
 
         if (showBottomNav) {
+            val navTab = if (selectedTab == RootTab.Config) RootTab.Config else RootTab.Home
+            val navItems = listOf(RootTab.Config.toFloatingNavItem(), RootTab.Home.toFloatingNavItem())
             XrayFloatingNav(
-                selectedTab =
-                    when (selectedTab) {
-                        RootTab.Config -> RootTab.Config
-                        else -> RootTab.Home
-                    },
-                onTabSelected = component::selectTab,
+                items = navItems,
+                selectedId = navTab.name,
+                onItemSelected = { item ->
+                    component.selectTab(
+                        if (item.id == RootTab.Config.name) RootTab.Config else RootTab.Home,
+                    )
+                },
                 modifier =
                     Modifier
                         .align(Alignment.BottomCenter)
@@ -298,7 +302,7 @@ private fun SettingsTabScreen(
     }
 
     if (showAppLog) {
-        SharedAppLogScreen(
+        SharedInProcessAppLogScreen(
             onBack = { showAppLog = false },
             labels = settingsLabels,
         )

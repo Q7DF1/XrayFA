@@ -1,11 +1,16 @@
 package com.android.xrayfa.shared.ui.nav
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -39,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -47,20 +53,32 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.xrayfa.shared.navigation.RootTab
 
-/** Floating pill bottom nav — visual parity with Android `XrayModernFloatingNav`. */
+data class FloatingNavItem(
+    val id: String,
+    val icon: ImageVector,
+    val label: String,
+)
+
+fun RootTab.toFloatingNavItem(): FloatingNavItem =
+    when (this) {
+        RootTab.Config -> FloatingNavItem(id = name, icon = Icons.Default.Tune, label = "Config")
+        RootTab.Home -> FloatingNavItem(id = name, icon = Icons.Default.Language, label = "Home")
+        RootTab.Settings -> FloatingNavItem(id = name, icon = Icons.Default.Tune, label = "Settings")
+    }
+
+/** Floating pill bottom nav shared by Android and iOS. */
 @Composable
 fun XrayFloatingNav(
-    selectedTab: RootTab,
-    onTabSelected: (RootTab) -> Unit,
+    items: List<FloatingNavItem>,
+    selectedId: String,
+    onItemSelected: (FloatingNavItem) -> Unit,
     modifier: Modifier = Modifier,
-    selectedColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary,
-    unselectedColor: androidx.compose.ui.graphics.Color =
-        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+    selectedColor: Color = MaterialTheme.colorScheme.primary,
+    unselectedColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
 ) {
-    val items = listOf(RootTab.Config, RootTab.Home)
     val density = LocalDensity.current
-    val itemCount = items.size
-    val selectedIndex = items.indexOf(selectedTab).coerceAtLeast(0)
+    val itemCount = items.size.coerceAtLeast(1)
+    val selectedIndex = items.indexOfFirst { it.id == selectedId }.coerceAtLeast(0)
     val animOffsetX = remember { Animatable(0f) }
 
     BoxWithConstraints(
@@ -91,85 +109,90 @@ fun XrayFloatingNav(
                 shadowElevation = 2.dp,
                 tonalElevation = 4.dp,
             ) {
-            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                val maxWidthPx = constraints.maxWidth.toFloat()
-                val itemWidthPx = maxWidthPx / itemCount
-                val itemWidthDp = with(density) { itemWidthPx.toDp() }
+                BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                    val maxWidthPx = constraints.maxWidth.toFloat()
+                    val itemWidthPx = maxWidthPx / itemCount
+                    val itemWidthDp = with(density) { itemWidthPx.toDp() }
 
-                LaunchedEffect(selectedIndex) {
-                    animOffsetX.animateTo(
-                        targetValue = selectedIndex * itemWidthPx,
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioLowBouncy,
-                                stiffness = Spring.StiffnessMediumLow,
-                            ),
+                    LaunchedEffect(selectedIndex, itemWidthPx) {
+                        animOffsetX.animateTo(
+                            targetValue = selectedIndex * itemWidthPx,
+                            animationSpec =
+                                spring(
+                                    dampingRatio = Spring.DampingRatioLowBouncy,
+                                    stiffness = Spring.StiffnessMediumLow,
+                                ),
+                        )
+                    }
+
+                    Box(
+                        modifier =
+                            Modifier
+                                .offset { IntOffset(animOffsetX.value.toInt(), 0) }
+                                .width(itemWidthDp)
+                                .fillMaxHeight()
+                                .padding(6.dp)
+                                .background(
+                                    color = selectedColor.copy(alpha = 0.12f),
+                                    shape = RoundedCornerShape(28.dp),
+                                ),
                     )
-                }
 
-                Box(
-                    modifier =
-                        Modifier
-                            .offset { IntOffset(animOffsetX.value.toInt(), 0) }
-                            .width(itemWidthDp)
-                            .fillMaxHeight()
-                            .padding(6.dp)
-                            .background(
-                                color = selectedColor.copy(alpha = 0.12f),
-                                shape = RoundedCornerShape(28.dp),
-                            ),
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    items.forEachIndexed { index, tab ->
-                        val selected = index == selectedIndex
-                        val iconScale by
-                            animateFloatAsState(
-                                targetValue = if (selected) 1.2f else 1f,
-                                animationSpec = tween(300),
-                            )
-                        val contentColor by
-                            animateColorAsState(
-                                targetValue = if (selected) selectedColor else unselectedColor,
-                                animationSpec = tween(300),
-                            )
-
-                        Box(
-                            modifier =
-                                Modifier
-                                    .weight(1f)
-                                    .fillMaxHeight()
-                                    .clickable(
-                                        indication = null,
-                                        interactionSource = remember { MutableInteractionSource() },
-                                    ) { onTabSelected(tab) },
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                            ) {
-                                Icon(
-                                    imageVector = tab.toNavIcon(),
-                                    contentDescription = tab.toNavLabel(),
-                                    tint = contentColor,
-                                    modifier =
-                                        Modifier
-                                            .size(26.dp)
-                                            .scale(iconScale),
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        items.forEachIndexed { index, item ->
+                            val selected = index == selectedIndex
+                            val iconScale by
+                                animateFloatAsState(
+                                    targetValue = if (selected) 1.2f else 1f,
+                                    animationSpec = tween(300),
                                 )
-                                if (selected) {
-                                    Text(
-                                        text = tab.toNavLabel(),
-                                        color = contentColor,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(top = 2.dp),
+                            val contentColor by
+                                animateColorAsState(
+                                    targetValue = if (selected) selectedColor else unselectedColor,
+                                    animationSpec = tween(300),
+                                )
+
+                            Box(
+                                modifier =
+                                    Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                        .clickable(
+                                            indication = null,
+                                            interactionSource = remember { MutableInteractionSource() },
+                                        ) { onItemSelected(item) },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center,
+                                ) {
+                                    Icon(
+                                        imageVector = item.icon,
+                                        contentDescription = item.label,
+                                        tint = contentColor,
+                                        modifier =
+                                            Modifier
+                                                .size(26.dp)
+                                                .scale(iconScale),
                                     )
+                                    AnimatedVisibility(
+                                        visible = selected,
+                                        enter = fadeIn() + expandVertically(),
+                                        exit = fadeOut() + shrinkVertically(),
+                                    ) {
+                                        Text(
+                                            text = item.label,
+                                            color = contentColor,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.padding(top = 2.dp),
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -177,20 +200,5 @@ fun XrayFloatingNav(
                 }
             }
         }
-        }
     }
 }
-
-private fun RootTab.toNavIcon(): ImageVector =
-    when (this) {
-        RootTab.Config -> Icons.Default.Tune
-        RootTab.Home -> Icons.Default.Language
-        RootTab.Settings -> Icons.Default.Tune
-    }
-
-private fun RootTab.toNavLabel(): String =
-    when (this) {
-        RootTab.Config -> "Config"
-        RootTab.Home -> "Home"
-        RootTab.Settings -> "Settings"
-    }

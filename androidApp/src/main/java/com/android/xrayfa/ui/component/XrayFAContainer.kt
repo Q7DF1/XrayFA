@@ -26,7 +26,9 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -81,6 +83,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.ui.navigation.RouteSettings
 import com.android.xrayfa.ui.navigation.ScanQR
+import com.android.xrayfa.shared.ui.nav.FloatingNavItem
+import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -291,31 +295,42 @@ fun XrayFAContainer(
                 (top as? NavigateDestination) ?: list_navigation[pagerState.currentPage]
             }
 
-            XrayModernFloatingNav(
-                items = list_navigation,
-                currentScreen = currentDestination,
+            val navItems =
+                list_navigation.map { dest ->
+                    FloatingNavItem(
+                        id = dest.route,
+                        icon =
+                            when (dest) {
+                                is Home -> Icons.Default.Language
+                                is Config -> Icons.Default.Tune
+                                else -> Icons.Default.Tune
+                            },
+                        label = dest.route,
+                    )
+                }
+            XrayFloatingNav(
+                items = navItems,
+                selectedId = currentDestination.route,
                 onItemSelected = { item ->
-                    if (pagerState.isScrollInProgress) return@XrayModernFloatingNav
-                    
-                    if (navBackStack.lastOrNull() == item) {
-                        val targetPage = list_navigation.indexOf(item)
+                    val dest = list_navigation.firstOrNull { it.route == item.id } ?: return@XrayFloatingNav
+                    if (pagerState.isScrollInProgress) return@XrayFloatingNav
+
+                    if (navBackStack.lastOrNull() == dest) {
+                        val targetPage = list_navigation.indexOf(dest)
                         if (targetPage != -1 && pagerState.currentPage != targetPage) {
                             scope.launch { pagerState.animateScrollToPage(targetPage) }
                         }
                     } else {
-                        navBackStack.routeTo(item)
+                        navBackStack.routeTo(dest)
                     }
                 },
-                labelProvider = { item -> item.route },
                 modifier = Modifier
                     .padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
                     .clip(RoundedCornerShape(24.dp))
-//                    .hazeEffect(state = hazeState, style = HazeMaterials.ultraThin())
                     .padding(vertical = 3.dp)
             )
         }
 
-        //XrayBottomNav(modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
 

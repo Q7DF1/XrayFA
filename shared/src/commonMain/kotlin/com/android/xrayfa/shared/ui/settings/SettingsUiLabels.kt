@@ -69,6 +69,8 @@ data class SettingsUiLabels(
         "Per-app proxy management is available on Android. iOS Network Extension integration is not yet available in this build.",
     val appsConfiguredSummary: String = "Allowed packages (read-only)",
     val appsNoPackagesMessage: String = "No per-app allow list configured yet.",
+    val appsSearchLabel: String = "Search",
+    val appsClearAllLabel: String = "Clear all",
     val appLogEmptyMessage: String = "No app logs yet",
     val appLogClearLabel: String = "Clear",
     val appLogCopyLabel: String = "Copy all",

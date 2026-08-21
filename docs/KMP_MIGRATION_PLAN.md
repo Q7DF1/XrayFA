@@ -926,8 +926,12 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | 76 | R-2 去重：`EntityMappers` / `RoomNodeRepository` / `KoinQualifiers` / SubscriptionRepository | ✅ `9a95c43` |
 | 77 | 断 `:domain → :core:datastore`：路由类型 / `Rule` / `AppJson` 下沉 `:common` | ✅ `c4b4d9f` |
 | 78 | 拆 `:core:data`：repository / EntityMappers 迁出 `:shared` | ✅ `b0c0670` |
-| 79 | R-1：Android `SubscriptionScreen` → `SharedSubscriptionScreen` 薄封装 | ✅ |
-| 80+ | BottomNav → Logcat → Apps；i18n；AGENT 全量重写 | ⬜ |
+| 79 | R-1：Android `SubscriptionScreen` → `SharedSubscriptionScreen` 薄封装 | ✅ `e5c6333` |
+| 80 | R-1：Android 底栏 → `XrayFloatingNav` | ✅ |
+| 81 | R-1：Android `LogcatScreen` → `SharedAppLogScreen`（保留录制） | ✅ |
+| 82 | R-1：Android `AppsScreen` → `SharedAppsPickerScreen` | ✅ |
+| 83 | i18n：`strings.xml` → compose-resources | ⬜ |
+| 84 | `AGENT.md` 全量重写 | ⬜ |
 
 ### EditScreen / 节点创建：产品与技术决策（2026-08-10）
 
