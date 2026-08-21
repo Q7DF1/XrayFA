@@ -930,8 +930,8 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | 80 | R-1：Android 底栏 → `XrayFloatingNav` | ✅ |
 | 81 | R-1：Android `LogcatScreen` → `SharedAppLogScreen`（保留录制） | ✅ |
 | 82 | R-1：Android `AppsScreen` → `SharedAppsPickerScreen` | ✅ |
-| 83 | i18n：`strings.xml` → compose-resources | ⬜ |
-| 84 | `AGENT.md` 全量重写 | ⬜ |
+| 83 | i18n：`strings.xml` → compose-resources | ✅ |
+| 84 | `AGENT.md` 全量重写 | ✅ |
 
 ### EditScreen / 节点创建：产品与技术决策（2026-08-10）
 

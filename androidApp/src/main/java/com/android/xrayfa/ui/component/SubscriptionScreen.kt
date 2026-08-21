@@ -9,7 +9,7 @@ import com.android.xrayfa.R
 import com.android.xrayfa.model.Subscription
 import com.android.xrayfa.shared.navigation.rememberSubscriptionComponent
 import com.android.xrayfa.shared.ui.subscription.SharedSubscriptionScreen
-import com.android.xrayfa.shared.ui.subscription.SubscriptionUiLabels
+import com.android.xrayfa.shared.ui.rememberSubscriptionUiLabels
 import com.android.xrayfa.ui.navigation.Config
 import com.android.xrayfa.ui.navigation.NavigateDestination
 import com.android.xrayfa.ui.navigation.ScanQR
@@ -22,29 +22,7 @@ fun SubscriptionScreen(
 ) {
     val context = LocalContext.current
     val component = rememberSubscriptionComponent()
-    val labels =
-        SubscriptionUiLabels(
-            title = stringResource(R.string.menu_subscription),
-            noSubscriptions = stringResource(R.string.no_subscriptions),
-            addSubscription = stringResource(R.string.add_subscription),
-            editSubscription = stringResource(R.string.edit_subscription),
-            nickName = stringResource(R.string.nick_name),
-            subscriptionUrl = stringResource(R.string.subscription_url),
-            preNode = stringResource(R.string.pre_node),
-            nextNode = stringResource(R.string.next_node),
-            none = stringResource(R.string.none),
-            cancel = stringResource(R.string.cancel),
-            confirm = stringResource(R.string.confirm),
-            delete = stringResource(R.string.delete),
-            edit = stringResource(R.string.edit),
-            subscribeFailed = stringResource(R.string.subscribe_failed),
-            duplicateMarkError = stringResource(R.string.err_subscription_mark_duplicate),
-            manageSubscriptions = stringResource(R.string.menu_subscription),
-            importFromClipboard = stringResource(R.string.import_manually),
-            shareSubscriptionUrl = stringResource(R.string.share_subscription),
-            subscriptionUrlCopied = stringResource(R.string.copied),
-            scanQr = stringResource(R.string.scan_qr_title),
-        )
+    val labels = rememberSubscriptionUiLabels()
 
     SharedSubscriptionScreen(
         component = component,

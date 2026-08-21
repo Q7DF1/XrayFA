@@ -53,8 +53,8 @@ import androidx.window.core.layout.WindowWidthSizeClass
 import com.android.xrayfa.R
 import com.android.xrayfa.ui.home.rememberAndroidHomeComponent
 import com.android.xrayfa.shared.ui.SharedHomeSection
-import com.android.xrayfa.shared.ui.home.HomeUiLabels
 import com.android.xrayfa.shared.ui.home.HomeSectionHeader
+import com.android.xrayfa.shared.ui.rememberHomeUiLabels
 import com.android.xrayfa.ui.navigation.Home
 import com.android.xrayfa.ui.navigation.Settings
 import com.android.xrayfa.viewmodel.XrayViewmodel
@@ -124,17 +124,7 @@ fun CompactHomeContent(xrayViewmodel: XrayViewmodel) {
     val testing by xrayViewmodel.testing.collectAsState()
     val context = LocalContext.current
 
-    val homeLabels =
-        HomeUiLabels(
-            connectedLabel = stringResource(R.string.connected),
-            disconnectedLabel = stringResource(R.string.not_connected),
-            connectedHint = stringResource(R.string.tap_to_disconnect),
-            disconnectedHint = stringResource(R.string.tap_to_connect),
-            uploadLabel = stringResource(R.string.upload_data),
-            downloadLabel = stringResource(R.string.download_data),
-            connectionDetailsHeader = stringResource(R.string.connection_detail),
-            configNotReadyMessage = stringResource(R.string.config_not_ready),
-        )
+    val homeLabels = rememberHomeUiLabels()
 
     val vpnPermissionLauncher =
         rememberLauncherForActivityResult(
@@ -212,17 +202,7 @@ fun ExpandedHomeContent(
     val testing by xrayViewmodel.testing.collectAsState()
     val context = LocalContext.current
 
-    val homeLabels =
-        HomeUiLabels(
-            connectedLabel = stringResource(R.string.connected),
-            disconnectedLabel = stringResource(R.string.not_connected),
-            connectedHint = stringResource(R.string.tap_to_disconnect),
-            disconnectedHint = stringResource(R.string.tap_to_connect),
-            uploadLabel = stringResource(R.string.upload_data),
-            downloadLabel = stringResource(R.string.download_data),
-            connectionDetailsHeader = stringResource(R.string.connection_detail),
-            configNotReadyMessage = stringResource(R.string.config_not_ready),
-        )
+    val homeLabels = rememberHomeUiLabels()
 
     val vpnPermissionLauncher =
         rememberLauncherForActivityResult(

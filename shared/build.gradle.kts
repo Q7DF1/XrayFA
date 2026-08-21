@@ -44,6 +44,7 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
             implementation(compose.ui)
+            implementation(compose.components.resources)
             api(libs.decompose)
             api(libs.essenty.lifecycle)
             implementation(libs.essenty.lifecycle.coroutines)
@@ -76,4 +77,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+}
+
+compose.resources {
+    publicResClass = true
+    packageOfResClass = "com.android.xrayfa.shared.resources"
+    generateResClass = auto
 }

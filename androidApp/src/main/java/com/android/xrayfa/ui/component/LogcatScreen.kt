@@ -14,8 +14,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.R
 import com.android.xrayfa.shared.ui.settings.LogRecordingControls
-import com.android.xrayfa.shared.ui.settings.SettingsUiLabels
 import com.android.xrayfa.shared.ui.settings.SharedAppLogScreen
+import com.android.xrayfa.shared.ui.rememberSettingsUiLabels
 import com.android.xrayfa.ui.navigation.Logcat
 import com.android.xrayfa.viewmodel.XrayViewmodel
 
@@ -46,11 +46,7 @@ fun LogcatScreen(
         } else {
             stringResource(R.string.logcat_start)
         }
-    val labels =
-        SettingsUiLabels(
-            logcatTitle = stringResource(Logcat.title),
-            appLogCopyLabel = stringResource(R.string.clipboard_export),
-        )
+    val labels = rememberSettingsUiLabels()
 
     with(sharedTransitionScope) {
         SharedAppLogScreen(

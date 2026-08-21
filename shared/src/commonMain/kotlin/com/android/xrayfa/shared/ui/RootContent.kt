@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
 import com.android.xrayfa.shared.navigation.ConfigComponent
 import com.android.xrayfa.shared.navigation.NodeEditTarget
 import com.android.xrayfa.shared.navigation.RootComponent
@@ -36,16 +37,20 @@ import com.android.xrayfa.shared.navigation.rememberSubscriptionComponent
 import com.android.xrayfa.shared.ui.config.SharedConfigImportMenu
 import com.android.xrayfa.shared.ui.config.SharedConfigSection
 import com.android.xrayfa.shared.ui.config.SharedEditScreen
-import com.android.xrayfa.shared.ui.config.ConfigUiLabels
-import com.android.xrayfa.shared.ui.config.EditUiLabels
+import com.android.xrayfa.shared.ui.rememberConfigUiLabels
+import com.android.xrayfa.shared.ui.rememberEditUiLabels
+import com.android.xrayfa.shared.ui.rememberHomeUiLabels
+import com.android.xrayfa.shared.ui.rememberRouteSettingsUiLabels
+import com.android.xrayfa.shared.ui.rememberSettingsUiLabels
+import com.android.xrayfa.shared.ui.rememberSubscriptionUiLabels
 import com.android.xrayfa.shared.config.NodeFormEditor
 import com.android.xrayfa.shared.ui.home.HomeTopBar
+import com.android.xrayfa.shared.ui.nav.FloatingNavItem
 import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
 import com.android.xrayfa.shared.ui.nav.toFloatingNavItem
+import com.android.xrayfa.shared.resources.*
 import com.android.xrayfa.shared.ui.qr.SharedQrScannerScreen
-import com.android.xrayfa.shared.ui.settings.SettingsUiLabels
 import com.android.xrayfa.shared.ui.settings.SharedAppsInfoScreen
-import com.android.xrayfa.shared.ui.settings.RouteSettingsUiLabels
 import com.android.xrayfa.shared.ui.settings.SharedInProcessAppLogScreen
 import com.android.xrayfa.shared.ui.settings.SharedRouteSettingsScreen
 import com.android.xrayfa.shared.ui.settings.SharedSettingsAboutSection
@@ -95,7 +100,19 @@ fun RootContent(
 
         if (showBottomNav) {
             val navTab = if (selectedTab == RootTab.Config) RootTab.Config else RootTab.Home
-            val navItems = listOf(RootTab.Config.toFloatingNavItem(), RootTab.Home.toFloatingNavItem())
+            val navItems =
+                listOf(
+                    FloatingNavItem(
+                        id = RootTab.Config.name,
+                        icon = RootTab.Config.toFloatingNavItem().icon,
+                        label = stringResource(Res.string.config),
+                    ),
+                    FloatingNavItem(
+                        id = RootTab.Home.name,
+                        icon = RootTab.Home.toFloatingNavItem().icon,
+                        label = stringResource(Res.string.home),
+                    ),
+                )
             XrayFloatingNav(
                 items = navItems,
                 selectedId = navTab.name,
@@ -123,9 +140,9 @@ private fun ConfigTabScreen(
     var showSubscriptions by remember { mutableStateOf(false) }
     var showQrScanner by remember { mutableStateOf(false) }
     val subscriptionComponent = rememberSubscriptionComponent()
-    val settingsLabels = remember { SettingsUiLabels() }
-    val configLabels = remember { ConfigUiLabels() }
-    val editLabels = remember { EditUiLabels() }
+    val settingsLabels = rememberSettingsUiLabels()
+    val configLabels = rememberConfigUiLabels()
+    val editLabels = rememberEditUiLabels()
     val configState by component.state.subscribeAsState()
 
     configState.nodeEditTarget?.let { target ->
@@ -174,6 +191,7 @@ private fun ConfigTabScreen(
         SharedSubscriptionScreen(
             component = subscriptionComponent,
             onBack = { showSubscriptions = false },
+            labels = rememberSubscriptionUiLabels(),
             onSubscriptionApplied = { subscriptionId ->
                 component.onSelectFilter(subscriptionId)
                 showSubscriptions = false
@@ -251,10 +269,11 @@ private fun HomeTabScreen(
     component: com.android.xrayfa.shared.navigation.HomeComponent,
     onSettingsClick: () -> Unit,
 ) {
+    val homeLabels = rememberHomeUiLabels()
     Scaffold(
         topBar = {
             HomeTopBar(
-                title = "Home",
+                title = stringResource(Res.string.home),
                 onSettingsClick = onSettingsClick,
             )
         },
@@ -262,6 +281,7 @@ private fun HomeTabScreen(
     ) { innerPadding ->
         SharedHomeSection(
             component = component,
+            labels = homeLabels,
             modifier =
                 Modifier
                     .fillMaxSize()
@@ -280,8 +300,8 @@ private fun SettingsTabScreen(
     var showAppLog by remember { mutableStateOf(false) }
     var showRouteSettings by remember { mutableStateOf(false) }
     var showAppsInfo by remember { mutableStateOf(false) }
-    val settingsLabels = remember { SettingsUiLabels() }
-    val routeSettingsLabels = remember { RouteSettingsUiLabels() }
+    val settingsLabels = rememberSettingsUiLabels()
+    val routeSettingsLabels = rememberRouteSettingsUiLabels()
 
     if (showAppsInfo) {
         SharedAppsInfoScreen(

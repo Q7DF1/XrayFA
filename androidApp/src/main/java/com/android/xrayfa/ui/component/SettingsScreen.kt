@@ -108,7 +108,7 @@ import com.android.xrayfa.shared.ui.settings.SharedSettingsAboutSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsGeneralSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsPlatformSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsSubscriptionSection
-import com.android.xrayfa.shared.ui.settings.SettingsUiLabels
+import com.android.xrayfa.shared.ui.rememberSettingsUiLabels
 import com.android.xrayfa.ui.settings.rememberAndroidSettingsComponent
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -171,66 +171,7 @@ fun SettingsScreen(
         }
     val packageName = context.packageName
     val sharedSettingsComponent = rememberAndroidSettingsComponent()
-    val sharedSettingsLabels =
-        SettingsUiLabels(
-            generalSectionTitle = stringResource(R.string.general_part),
-            networkSectionTitle = stringResource(R.string.network_part),
-            themeTitle = stringResource(R.string.theme_select),
-            themeDescription = stringResource(R.string.dark_mode_description),
-            lightModeLabel = stringResource(R.string.light_mode),
-            darkModeLabel = stringResource(R.string.dark_mode),
-            autoModeLabel = stringResource(R.string.auto_mode),
-            bootAutoStartTitle = stringResource(R.string.boot_auto_start),
-            bootAutoStartDescription = stringResource(R.string.boot_auto_start_desc),
-            hideFromRecentsTitle = stringResource(R.string.hide_from_recents_title),
-            hideFromRecentsDescription = stringResource(R.string.hide_from_recents_desc),
-            lanSocksProxyTitle = stringResource(R.string.lan_socks_proxy_title),
-            lanSocksProxyDescription = stringResource(R.string.lan_socks_proxy_desc),
-            lanHttpProxyTitle = stringResource(R.string.lan_http_proxy_title),
-            lanHttpProxyDescription = stringResource(R.string.lan_http_proxy_desc),
-            subscriptionSectionTitle = stringResource(R.string.subscription_part),
-            sendHwidTitle = stringResource(R.string.send_hwid),
-            sendHwidDescription = stringResource(R.string.send_hwid_desc),
-            httpProxyPortTitle = stringResource(R.string.http_proxy_port),
-            socksPortTitle = stringResource(R.string.socks_port),
-            socksUsernameTitle = stringResource(R.string.socks_username_title),
-            socksPasswordTitle = stringResource(R.string.socks_password_title),
-            dnsIpv4Title = stringResource(R.string.dns_ipv4),
-            enableIpv6Title = stringResource(R.string.enable_ipv6),
-            enableIpv6Description = stringResource(R.string.enable_ipv6_description),
-            dnsIpv6Title = stringResource(R.string.dns_ipv6),
-            editDialogTitle = stringResource(R.string.edit),
-            saveLabel = stringResource(R.string.save),
-            cancelLabel = stringResource(R.string.cancel),
-            cannotBeEmpty = stringResource(R.string.can_not_be_empty),
-            portInvalid = stringResource(R.string.err_port_invalid),
-            ipv4Empty = stringResource(R.string.err_ipv4_empty),
-            ipv4ItemEmpty = stringResource(R.string.err_ipv4_item_empty),
-            ipv4Invalid = stringResource(R.string.err_ipv4_invalid),
-            ipv4Duplicate = stringResource(R.string.err_ipv4_duplicate),
-            ipv6Empty = stringResource(R.string.err_ipv6_empty),
-            ipv6ItemEmpty = stringResource(R.string.err_ipv6_item_empty),
-            ipv6Invalid = stringResource(R.string.err_ipv6_invalid),
-            ipv6Duplicate = stringResource(R.string.err_ipv6_duplicate),
-            socksUsernameEmpty = stringResource(R.string.err_socks_user_empty),
-            socksPasswordEmpty = stringResource(R.string.err_socks_pass_empty),
-            socksLengthExceeded = stringResource(R.string.err_socks_length_exceeded),
-            socksInvalidChars = stringResource(R.string.err_socks_invalid_chars),
-            aboutSectionTitle = stringResource(R.string.about_part),
-            appVersionTitle = stringResource(R.string.xrayfa_version),
-            hwidTitle = stringResource(R.string.hwid),
-            xrayCoreVersionTitle = stringResource(R.string.xray_core_version),
-            repoTitle = stringResource(R.string.repo_site),
-            repoDescription = stringResource(R.string.repo_description),
-            appsTitle = stringResource(R.string.allow_app_settings),
-            appsDescription = stringResource(R.string.select_app_settings),
-            appsSearchLabel = "Search",
-            appsClearAllLabel = "Clear all",
-            logcatTitle = stringResource(R.string.logcat),
-            logcatDescription = stringResource(R.string.logcat_desc),
-            routeSettingsTitle = stringResource(R.string.route_settings_title),
-            routeSettingsDescription = stringResource(R.string.route_settings_desc),
-        )
+    val sharedSettingsLabels = rememberSettingsUiLabels()
 
     Scaffold(
         topBar = {

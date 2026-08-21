@@ -40,9 +40,9 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.R
 import com.android.xrayfa.repository.AppInfoRepository.PermissionState
-import com.android.xrayfa.shared.ui.settings.SettingsUiLabels
 import com.android.xrayfa.shared.ui.settings.SharedAppListItem
 import com.android.xrayfa.shared.ui.settings.SharedAppsPickerScreen
+import com.android.xrayfa.shared.ui.rememberSettingsUiLabels
 import com.android.xrayfa.ui.navigation.Apps
 import com.android.xrayfa.viewmodel.AppsViewmodel
 
@@ -73,13 +73,7 @@ fun AppsScreen(
         }
     }
 
-    val labels =
-        SettingsUiLabels(
-            appsInfoTitle = stringResource(R.string.allow_app_settings),
-            appsNoPackagesMessage = stringResource(R.string.select_app_settings),
-            appsSearchLabel = "Search",
-            appsClearAllLabel = "Clear all",
-        )
+    val labels = rememberSettingsUiLabels()
 
     with(sharedTransitionScope) {
         SharedAppsPickerScreen(
