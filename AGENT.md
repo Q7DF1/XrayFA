@@ -136,6 +136,7 @@ XrayFA/
 ├── iosApp/                   # iOS shell (Xcode: SwiftUI + Network Extension)
 ├── shared/                   # KMP umbrella → XrayFAShared.framework for iOS
 ├── common/                   # :common kernel (routing enums, Rule JSON, AppJson, Logger, ConfigParserSettings)
+├── core/data/                # :core:data Room / subscription repository implementations (not in :shared)
 ├── tun2socks/                # :tun2socks module (TProxyService JNI wrapper + hev-socks5-tunnel submodule)
 │   └── src/main/jni/         # Android.mk / Application.mk (ndk-build, no CMake)
 ├── AndroidLibXrayLite/       # submodule: gomobile bindings for Xray-core (go.mod, gen_assets.sh)
@@ -173,7 +174,7 @@ Config generation lives in `parser/` + `model/`; app settings are stored in Data
 - **Kotlin style**: `kotlin.code.style=official` (`gradle.properties`). Follow the official Kotlin coding conventions.
 - This project has **no** ktlint / detekt / spotless / `.editorconfig` configured; match the naming, indentation (4 spaces), and formatting of surrounding code.
 - **Dependency management**: All dependency versions are declared **only** in `gradle/libs.versions.toml` and referenced via `libs.xxx` aliases. **Do not** hardcode versions in `build.gradle.kts` (the `leakcanary` debug dependency in `androidApp/build.gradle.kts` is a pre-existing exception).
-- **Layering**: `:domain` must not depend on `:core:*` or `:platform:*`. Routing enums (`RoutingMode`, `DomainStrategy`), persisted `Rule` JSON, and `AppJson` live in `:common`. DataStore persistence stays in `:core:datastore`.
+- **Layering**: `:domain` must not depend on `:core:*` or `:platform:*`. Routing enums (`RoutingMode`, `DomainStrategy`), persisted `Rule` JSON, and `AppJson` live in `:common`. DataStore persistence stays in `:core:datastore`. Repository implementations (`RoomNodeRepository`, `KmpSubscriptionRepository`, entity mappers) live in `:core:data`, not `:shared`.
 - **DI**: When adding an injectable component, register it in the corresponding Dagger module under `di/`; Activities/Services are injected via `XrayAppCompatFactory`.
 - **Naming**: Package root is `com.android.xrayfa.*`; config models mirror the Xray JSON structure — consult `androidApp/.../model/README.md` before changing them.
 - **ProGuard**: When adding classes accessed via reflection/JNI/serialization, update `androidApp/proguard-rules.pro` accordingly (Release enables `minify` + `shrinkResources`).
@@ -187,7 +188,7 @@ CI is defined under `.github/workflows/`:
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| `kmp-unit-tests.yml` | push/PR `main` + `feat/**` | JDK 17 → `:common` / `:domain` / `:core:datastore` `testDebugUnitTest` (no gomobile / NDK) |
+| `kmp-unit-tests.yml` | push/PR `main` + `feat/**` | JDK 17 → `:common` / `:domain` / `:core:datastore` `testDebugUnitTest` + `:core:data:compileDebugKotlinAndroid` (no gomobile / NDK) |
 | `ios-shared.yml` | push/PR `main` + `feat/**` | `:domain:iosSimulatorArm64Test`; cache/build `LibXrayLite.xcframework` then `:shared:compileKotlinIosSimulatorArm64` |
 | `android.yml` | push `main` / tag `v*` / PR to `main` | JDK 17 + pinned NDK r28c → download geo data → gomobile bind → `./gradlew test` → `assembleRelease` → upload APK; auto GitHub Release on tag |
 | ~~`google-play.yml`~~ | ~~`workflow_dispatch`~~ | ~~Builds the Play variant (AAB/APK) using `APPLICATION_ID_PLAY`~~ _(no Google Play release planned; workflow kept but unused)_ |

@@ -28,4 +28,5 @@ jobs:
             :common:testDebugUnitTest \
             :domain:testDebugUnitTest \
             :core:datastore:testDebugUnitTest \
+            :core:data:compileDebugKotlinAndroid \
             --no-daemon

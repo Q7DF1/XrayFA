@@ -37,6 +37,7 @@ kotlin {
             api(project(":core:datastore"))
             api(project(":core:network"))
             api(project(":core:database"))
+            api(project(":core:data"))
             api(project(":common"))
             implementation(compose.runtime)
             implementation(compose.foundation)

@@ -172,6 +172,7 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))
     implementation(project(":core:database"))
+    implementation(project(":core:data"))
     implementation(project(":core:network"))
     implementation(project(":core:datastore"))
     implementation(project(":core:native-bridge"))
