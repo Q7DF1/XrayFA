@@ -20,4 +20,5 @@ data class SubscriptionUiLabels(
     val importFromClipboard: String = "Import from clipboard",
     val shareSubscriptionUrl: String = "Copy subscription URL",
     val subscriptionUrlCopied: String = "Subscription URL copied",
+    val scanQr: String = "Scan QR code",
 )

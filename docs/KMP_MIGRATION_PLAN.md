@@ -925,8 +925,9 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | 75 | 修正 unpublished `AndroidLibXrayLite` gitlink；submodule URL 保持 SSH | ✅ `6f547fc` `048c36d` |
 | 76 | R-2 去重：`EntityMappers` / `RoomNodeRepository` / `KoinQualifiers` / SubscriptionRepository | ✅ `9a95c43` |
 | 77 | 断 `:domain → :core:datastore`：路由类型 / `Rule` / `AppJson` 下沉 `:common` | ✅ `c4b4d9f` |
-| 78 | 拆 `:core:data`：repository / EntityMappers 迁出 `:shared` | ✅ |
-| 79+ | Android 收敛 `RootContent`、i18n、AGENT 全量重写 | ⬜ |
+| 78 | 拆 `:core:data`：repository / EntityMappers 迁出 `:shared` | ✅ `b0c0670` |
+| 79 | R-1：Android `SubscriptionScreen` → `SharedSubscriptionScreen` 薄封装 | ✅ |
+| 80+ | BottomNav → Logcat → Apps；i18n；AGENT 全量重写 | ⬜ |
 
 ### EditScreen / 节点创建：产品与技术决策（2026-08-10）
 

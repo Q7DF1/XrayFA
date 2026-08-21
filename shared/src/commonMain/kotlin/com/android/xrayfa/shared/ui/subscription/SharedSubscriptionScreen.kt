@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
@@ -75,6 +76,7 @@ fun SharedSubscriptionScreen(
     onSubscriptionApplied: (Int) -> Unit,
     modifier: Modifier = Modifier,
     labels: SubscriptionUiLabels = SubscriptionUiLabels(),
+    onScanQr: (() -> Unit)? = null,
 ) {
     val state by component.state.subscribeAsState()
     val clipboardWriter = remember { KoinPlatform.getKoin().get<ClipboardWriter>() }
@@ -90,6 +92,13 @@ fun SharedSubscriptionScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    if (onScanQr != null) {
+                        IconButton(onClick = onScanQr) {
+                            Icon(Icons.Filled.QrCode, contentDescription = labels.scanQr)
+                        }
                     }
                 },
                 colors =

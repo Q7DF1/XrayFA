@@ -24,8 +24,6 @@ import com.android.xrayfa.viewmodel.AppsViewmodel
 import com.android.xrayfa.viewmodel.AppsViewmodelFactory
 import com.android.xrayfa.viewmodel.SettingsViewmodel
 import com.android.xrayfa.viewmodel.SettingsViewmodelFactory
-import com.android.xrayfa.viewmodel.SubscriptionViewmodel
-import com.android.xrayfa.viewmodel.SubscriptionViewmodelFactory
 import com.android.xrayfa.viewmodel.XrayViewmodelFactory
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
@@ -33,7 +31,6 @@ import kotlinx.coroutines.launch
 class MainActivity constructor(
     val xrayViewmodelFactory: XrayViewmodelFactory,
     val settingsViewmodelFactory: SettingsViewmodelFactory,
-    val subscriptionViewmodelFactory: SubscriptionViewmodelFactory,
     val appViewmodelFactory: AppsViewmodelFactory
 ) : XrayBaseActivity() {
 
@@ -43,8 +40,6 @@ class MainActivity constructor(
     @SuppressLint("SourceLockedOrientationActivity")
     @Composable
     override fun Content(isLandscape: Boolean) {
-        val subscriptionViewmodel =
-            ViewModelProvider.create(this, subscriptionViewmodelFactory)[SubscriptionViewmodel::class.java]
         val appViewmodel =
             ViewModelProvider.create(this, appViewmodelFactory)[AppsViewmodel::class.java]
 
@@ -52,7 +47,6 @@ class MainActivity constructor(
         XrayFAContainer(
             xrayViewmodel,
             settingsViewmodel,
-            subscriptionViewmodel,
             appViewmodel
         )
     }

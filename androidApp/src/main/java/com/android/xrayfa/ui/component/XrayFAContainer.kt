@@ -73,7 +73,6 @@ import com.android.xrayfa.ui.scene.XrayFASceneStrategy
 import com.android.xrayfa.ui.scene.rememberXrayFASceneStrategy
 import com.android.xrayfa.viewmodel.AppsViewmodel
 import com.android.xrayfa.viewmodel.SettingsViewmodel
-import com.android.xrayfa.viewmodel.SubscriptionViewmodel
 import kotlin.collections.listOf
 
 
@@ -89,7 +88,6 @@ import kotlinx.coroutines.launch
 fun XrayFAContainer(
     xrayViewmodel: XrayViewmodel,
     settingsViewmodel: SettingsViewmodel,
-    subscriptViewmodel: SubscriptionViewmodel,
     appViewmodel: AppsViewmodel,
     modifier: Modifier = Modifier
 ) {
@@ -213,7 +211,7 @@ fun XrayFAContainer(
                             key = key,
                             metadata = XrayFASceneStrategy.subscription()
                         ) {
-                            SubscriptionScreen(subscriptViewmodel, xrayViewmodel) {
+                            SubscriptionScreen(xrayViewmodel) {
                                 if (it is Config) navBackStack.routeBack() else navBackStack.routeTo(it)
                             }
                         }
