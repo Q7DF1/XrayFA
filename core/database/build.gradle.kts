@@ -28,6 +28,7 @@ kotlin {
             implementation(libs.androidx.core.ktx)
         }
         iosMain.dependencies {
+            implementation(project(":common"))
             implementation(libs.androidx.room.runtime)
             implementation(libs.androidx.sqlite.bundled)
         }

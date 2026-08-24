@@ -2,6 +2,7 @@ package com.android.xrayfa.database
 
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import com.android.xrayfa.common.IosPlatformConstants
 import com.android.xrayfa.database.dao.NodeDao
 import com.android.xrayfa.database.dao.SubscriptionDao
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -31,13 +32,23 @@ object IosXrayDatabaseFactory {
 
     @OptIn(ExperimentalForeignApi::class)
     private fun databasePath(): String {
-        val documentDirectory = NSFileManager.defaultManager.URLForDirectory(
+        return "${appGroupOrDocumentsDirectory()}/$DATABASE_NAME"
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private fun appGroupOrDocumentsDirectory(): String {
+        val appGroupDir = NSFileManager.defaultManager
+            .containerURLForSecurityApplicationGroupIdentifier(IosPlatformConstants.APP_GROUP_ID)
+            ?.path
+        if (appGroupDir != null) {
+            return appGroupDir
+        }
+        return NSFileManager.defaultManager.URLForDirectory(
             directory = NSDocumentDirectory,
             inDomain = NSUserDomainMask,
             appropriateForURL = null,
             create = true,
             error = null,
-        )
-        return requireNotNull(documentDirectory?.path) + "/$DATABASE_NAME"
+        )!!.path!!
     }
 }
