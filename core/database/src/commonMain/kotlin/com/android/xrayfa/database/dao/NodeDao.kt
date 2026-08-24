@@ -52,7 +52,7 @@ interface NodeDao {
     @Query("SELECT * FROM node WHERE subscriptionId = :subscriptionId")
     suspend fun queryNodeBySubscriptionId(subscriptionId: Int): List<NodeEntity>
 
-    @Query("SELECT * FROM node ORDER BY :subscriptionId ASC")
+    @Query("SELECT * FROM node WHERE subscriptionId = :subscriptionId ORDER BY id ASC")
     suspend fun getAllNodesSortBySubscriptionId(subscriptionId: Int): List<NodeEntity>
 
     @Query("DELETE FROM node WHERE subscriptionId = :subscriptionId")

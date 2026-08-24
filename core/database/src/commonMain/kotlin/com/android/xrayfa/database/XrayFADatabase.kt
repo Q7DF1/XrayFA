@@ -10,7 +10,7 @@ import com.android.xrayfa.database.entity.SubscriptionEntity
 
 @Database(
     entities = [SubscriptionEntity::class, NodeEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 @ConstructedBy(XrayFADatabaseConstructor::class)

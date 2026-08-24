@@ -938,6 +938,7 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | 88 | R-8：iOS 流量轮询随 VPN 连接状态启停 | ✅ `edc7c94` |
 | 89 | R-8：NE 错误回传 App Group + `startTunnel` NSError 检查 | ✅ |
 | 90 | R-8：NE Go `GOMEMLIMIT`/`GOGC` + resident 内存采样 | ✅ |
+| 91 | P2：Room Node 索引 + ORDER BY 修复 + `distinctUntilChanged` | ✅ |
 
 ### EditScreen / 节点创建：产品与技术决策（2026-08-10）
 

@@ -1,9 +1,17 @@
 package com.android.xrayfa.database.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "Node")
+@Entity(
+    tableName = "Node",
+    indices = [
+        Index(value = ["subscriptionId"]),
+        Index(value = ["favorite"]),
+        Index(value = ["selected"]),
+    ],
+)
 data class NodeEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val protocolPrefix: String,

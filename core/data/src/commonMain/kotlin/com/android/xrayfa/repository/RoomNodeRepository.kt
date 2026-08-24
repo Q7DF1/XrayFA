@@ -5,6 +5,7 @@ import com.android.xrayfa.dto.toDomain
 import com.android.xrayfa.dto.toEntity
 import com.android.xrayfa.model.Node
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 /** KMP Room-backed [NodeRepository] used by Android and iOS Koin. */
@@ -12,10 +13,14 @@ class RoomNodeRepository(
     private val nodeDao: NodeDao,
 ) : NodeRepository {
     override val allNodes: Flow<List<Node>> =
-        nodeDao.getAllNodes().map { nodes -> nodes.map { it.toDomain() } }
+        nodeDao.getAllNodes()
+            .map { nodes -> nodes.map { it.toDomain() } }
+            .distinctUntilChanged()
 
     override val favorites: Flow<List<Node>> =
-        nodeDao.getNodesSelectByFavorite(true).map { nodes -> nodes.map { it.toDomain() } }
+        nodeDao.getNodesSelectByFavorite(true)
+            .map { nodes -> nodes.map { it.toDomain() } }
+            .distinctUntilChanged()
 
     override suspend fun addNode(vararg nodes: Node) {
         nodeDao.addNode(*nodes.map { it.toEntity() }.toTypedArray())
@@ -26,7 +31,9 @@ class RoomNodeRepository(
     }
 
     override fun loadLinksById(id: Int): Flow<Node?> {
-        return nodeDao.loadNodeById(id).map { it?.toDomain() }
+        return nodeDao.loadNodeById(id)
+            .map { it?.toDomain() }
+            .distinctUntilChanged()
     }
 
     override suspend fun clearSelection() {
@@ -34,15 +41,21 @@ class RoomNodeRepository(
     }
 
     override fun querySelectedNode(): Flow<Node?> {
-        return nodeDao.querySelectedNode().map { it?.toDomain() }
+        return nodeDao.querySelectedNode()
+            .map { it?.toDomain() }
+            .distinctUntilChanged()
     }
 
     override fun queryPreNode(): Flow<Node?> {
-        return nodeDao.queryPreNode().map { it?.toDomain() }
+        return nodeDao.queryPreNode()
+            .map { it?.toDomain() }
+            .distinctUntilChanged()
     }
 
     override fun queryNextNode(): Flow<Node?> {
-        return nodeDao.queryNextNode().map { it?.toDomain() }
+        return nodeDao.queryNextNode()
+            .map { it?.toDomain() }
+            .distinctUntilChanged()
     }
 
     override suspend fun updateNode(id: Int, url: String, port: Int, remark: String?) {
