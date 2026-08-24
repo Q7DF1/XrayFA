@@ -61,7 +61,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":common"))
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+            implementation(libs.kotlinx.coroutines.core)
         }
         androidMain.dependencies {
             // compileOnly: AGP forbids packaging local .aar into another AAR; :androidApp supplies libv2ray at runtime.

@@ -931,7 +931,9 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | 81 | R-1：Android `LogcatScreen` → `SharedAppLogScreen`（保留录制） | ✅ |
 | 82 | R-1：Android `AppsScreen` → `SharedAppsPickerScreen` | ✅ |
 | 83 | i18n：`strings.xml` → compose-resources | ✅ |
-| 84 | `AGENT.md` 全量重写 | ✅ |
+| 84 | `AGENT.md` 全量重写 | ✅ `7a1abc6` |
+| 85 | iOS 底栏：隐藏逻辑 / 指示条 inset / 间距对齐 Android | ✅ `9175bde` |
+| 86 | R-6：`kotlinx-coroutines` / `serialization-json` 进 catalog | ✅ |
 
 ### EditScreen / 节点创建：产品与技术决策（2026-08-10）
 

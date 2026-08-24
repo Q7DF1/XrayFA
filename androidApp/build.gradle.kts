@@ -198,7 +198,7 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
 
     implementation(libs.gson)
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.material3.adaptive.navigation3)

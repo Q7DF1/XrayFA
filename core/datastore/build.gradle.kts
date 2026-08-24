@@ -21,7 +21,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":common"))
             implementation(libs.androidx.datastore.preferences.core)
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+            implementation(libs.kotlinx.coroutines.core)
         }
         androidMain.dependencies {
             implementation(libs.androidx.datastore.preferences)

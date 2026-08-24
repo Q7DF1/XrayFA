@@ -32,6 +32,7 @@ composeMultiplatform = "1.7.3"
 decompose = "3.2.2"
 essenty = "2.3.0"
 kotlinxSerialization = "1.7.3"
+kotlinxCoroutines = "1.9.0"
 
 
 [libraries]
@@ -89,6 +90,7 @@ essenty-lifecycle = { module = "com.arkivanov.essenty:lifecycle", version.ref = 
 essenty-lifecycle-coroutines = { module = "com.arkivanov.essenty:lifecycle-coroutines", version.ref = "essenty" }
 essenty-state-keeper = { module = "com.arkivanov.essenty:state-keeper", version.ref = "essenty" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 
 
 [plugins]
