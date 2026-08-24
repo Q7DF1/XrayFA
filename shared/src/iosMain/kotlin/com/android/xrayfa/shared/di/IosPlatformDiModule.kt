@@ -52,6 +52,9 @@ val iosPlatformDiModule: Module = module {
         )
     }
     single<TrafficStatsSource> {
-        IosTrafficStatsSource(scope = get(named(KoinQualifiers.BACKGROUND_SCOPE)))
+        IosTrafficStatsSource(
+            scope = get(named(KoinQualifiers.BACKGROUND_SCOPE)),
+            vpnController = get(),
+        )
     }
 }

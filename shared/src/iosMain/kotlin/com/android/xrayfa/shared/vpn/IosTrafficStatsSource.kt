@@ -1,33 +1,51 @@
 package com.android.xrayfa.shared.vpn
 
+import com.android.xrayfa.vpn.VpnController
+import com.android.xrayfa.vpn.isConnected
 import com.android.xrayfa.vpn.readVpnTrafficSpeedsKbps
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.shareIn
 
 /**
  * Polls App Group traffic speeds written by PacketTunnel (same 3s cadence as Android
  * [com.android.xrayfa.core.XrayCoreManager.startTrafficDetection]).
+ * Polling runs only while [VpnController.state] is connected.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class IosTrafficStatsSource(
     scope: CoroutineScope,
+    private val vpnController: VpnController,
 ) : TrafficStatsSource {
-    private val _speedsKbps = MutableSharedFlow<Pair<Double, Double>>(replay = 1)
-    override val speedsKbps: Flow<Pair<Double, Double>> = _speedsKbps.asSharedFlow()
+    override val speedsKbps: Flow<Pair<Double, Double>> =
+        vpnController.state
+            .flatMapLatest { vpnState ->
+                if (!vpnState.isConnected) {
+                    flowOf(0.0 to 0.0)
+                } else {
+                    trafficPollingFlow()
+                }
+            }
+            .shareIn(
+                scope = scope,
+                started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),
+                replay = 1,
+            )
 
-    init {
-        scope.launch {
-            _speedsKbps.emit(0.0 to 0.0)
-            delay(TRAFFIC_POLL_INTERVAL_MS)
+    private fun trafficPollingFlow(): Flow<Pair<Double, Double>> =
+        flow {
+            emit(0.0 to 0.0)
             while (true) {
-                _speedsKbps.emit(readVpnTrafficSpeedsKbps())
                 delay(TRAFFIC_POLL_INTERVAL_MS)
+                emit(readVpnTrafficSpeedsKbps())
             }
         }
-    }
 
     private companion object {
         const val TRAFFIC_POLL_INTERVAL_MS = 3_000L
