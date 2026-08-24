@@ -1,9 +1,17 @@
 package com.android.xrayfa.shared.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
@@ -18,6 +26,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,9 +80,16 @@ fun RootContent(
 ) {
     val pages by component.pages.subscribeAsState()
     val selectedTab = pages.items.getOrNull(pages.selectedIndex)?.configuration ?: RootTab.Home
-    val showBottomNav = selectedTab != RootTab.Settings
+    var configChromeCovered by remember { mutableStateOf(false) }
+    val isTopLevel = selectedTab == RootTab.Home || selectedTab == RootTab.Config
+    val showBottomNav = isTopLevel && (selectedTab == RootTab.Home || !configChromeCovered)
 
-    Box(modifier = modifier.fillMaxSize()) {
+    Box(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.navigationBars),
+    ) {
         ChildPages(
             modifier = Modifier.fillMaxSize(),
             pages = component.pages,
@@ -89,6 +106,7 @@ fun RootContent(
                     ConfigTabScreen(
                         component = child.component,
                         onNodeSelectedNavigateHome = { component.selectTab(RootTab.Home) },
+                        onChromeCovered = { configChromeCovered = it },
                     )
                 is RootComponent.Child.Settings ->
                     SettingsTabScreen(
@@ -98,7 +116,12 @@ fun RootContent(
             }
         }
 
-        if (showBottomNav) {
+        AnimatedVisibility(
+            visible = showBottomNav,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
+        ) {
             val navTab = if (selectedTab == RootTab.Config) RootTab.Config else RootTab.Home
             val navItems =
                 listOf(
@@ -121,11 +144,7 @@ fun RootContent(
                         if (item.id == RootTab.Config.name) RootTab.Config else RootTab.Home,
                     )
                 },
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp, start = 16.dp, end = 16.dp),
+                modifier = Modifier.padding(bottom = 16.dp, start = 16.dp, end = 16.dp),
             )
         }
     }
@@ -136,6 +155,7 @@ fun RootContent(
 private fun ConfigTabScreen(
     component: ConfigComponent,
     onNodeSelectedNavigateHome: () -> Unit,
+    onChromeCovered: (Boolean) -> Unit,
 ) {
     var showSubscriptions by remember { mutableStateOf(false) }
     var showQrScanner by remember { mutableStateOf(false) }
@@ -144,6 +164,10 @@ private fun ConfigTabScreen(
     val configLabels = rememberConfigUiLabels()
     val editLabels = rememberEditUiLabels()
     val configState by component.state.subscribeAsState()
+    val covering =
+        configState.nodeEditTarget != null || showQrScanner || showSubscriptions
+    LaunchedEffect(covering) { onChromeCovered(covering) }
+    DisposableEffect(Unit) { onDispose { onChromeCovered(false) } }
 
     configState.nodeEditTarget?.let { target ->
         val nodeFormEditor = remember { KoinPlatform.getKoin().get<NodeFormEditor>() }

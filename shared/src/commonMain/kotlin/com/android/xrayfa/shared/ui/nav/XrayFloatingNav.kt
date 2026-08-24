@@ -1,16 +1,11 @@
 package com.android.xrayfa.shared.ui.nav
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,7 +23,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Language
@@ -43,15 +37,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.xrayfa.shared.navigation.RootTab
+import kotlin.math.floor
+
+private val BarHeight = 64.dp
+private val BarCorner = 32.dp
+private val IndicatorInset = 6.dp
+private val IndicatorCorner = 28.dp
 
 data class FloatingNavItem(
     val id: String,
@@ -84,11 +86,17 @@ fun XrayFloatingNav(
     BoxWithConstraints(
         modifier =
             modifier
-                .padding(bottom = 4.dp, start = 8.dp, end = 8.dp)
-                .wrapContentWidth(),
+                .fillMaxWidth()
+                .padding(bottom = 4.dp, start = 8.dp, end = 8.dp),
     ) {
-        val shorterSide = if (maxWidth < maxHeight) maxWidth else maxHeight
-        val barWidth = (shorterSide * 0.75f).coerceAtMost(320.dp)
+        val barWidth =
+            if (constraints.maxWidth <= 0 ||
+                constraints.maxWidth == androidx.compose.ui.unit.Constraints.Infinity
+            ) {
+                280.dp
+            } else {
+                (maxWidth * 0.75f).coerceAtMost(320.dp)
+            }
 
         Box(
             modifier = Modifier.fillMaxWidth(),
@@ -98,56 +106,63 @@ fun XrayFloatingNav(
                 modifier =
                     Modifier
                         .width(barWidth)
-                        .height(64.dp)
+                        .height(BarHeight)
+                        .clip(RoundedCornerShape(BarCorner))
                         .border(
                             width = 0.5.dp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                            shape = RoundedCornerShape(32.dp),
+                            shape = RoundedCornerShape(BarCorner),
                         ),
-                shape = RoundedCornerShape(32.dp),
+                shape = RoundedCornerShape(BarCorner),
                 color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
                 shadowElevation = 2.dp,
                 tonalElevation = 4.dp,
             ) {
-                BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                    val maxWidthPx = constraints.maxWidth.toFloat()
-                    val itemWidthPx = maxWidthPx / itemCount
-                    val itemWidthDp = with(density) { itemWidthPx.toDp() }
+                BoxWithConstraints(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(BarCorner)),
+                ) {
+                    val maxWidthPx = constraints.maxWidth.toFloat().coerceAtLeast(1f)
+                    val slotWidthPx = maxWidthPx / itemCount
+                    val slotStartPx = slotWidthPx * selectedIndex
+                    val maxOffsetPx = (maxWidthPx - slotWidthPx).coerceAtLeast(0f)
+                    val slotWidthDp = with(density) { floor(slotWidthPx.toDouble()).toFloat().toDp() }
 
-                    LaunchedEffect(selectedIndex, itemWidthPx) {
+                    LaunchedEffect(selectedIndex, slotWidthPx, maxWidthPx) {
+                        val target = slotStartPx.coerceIn(0f, maxOffsetPx)
+                        animOffsetX.snapTo(animOffsetX.value.coerceIn(0f, maxOffsetPx))
                         animOffsetX.animateTo(
-                            targetValue = selectedIndex * itemWidthPx,
+                            targetValue = target,
                             animationSpec =
                                 spring(
-                                    dampingRatio = Spring.DampingRatioLowBouncy,
-                                    stiffness = Spring.StiffnessMediumLow,
+                                    dampingRatio = Spring.DampingRatioNoBouncy,
+                                    stiffness = Spring.StiffnessMedium,
                                 ),
                         )
                     }
 
+                    // Sliding capsule inset 6dp from the outer pill (matches Android).
                     Box(
                         modifier =
                             Modifier
-                                .offset { IntOffset(animOffsetX.value.toInt(), 0) }
-                                .width(itemWidthDp)
+                                .offset {
+                                    IntOffset(animOffsetX.value.coerceIn(0f, maxOffsetPx).toInt(), 0)
+                                }
+                                .width(slotWidthDp)
                                 .fillMaxHeight()
-                                .padding(6.dp)
-                                .background(
-                                    color = selectedColor.copy(alpha = 0.12f),
-                                    shape = RoundedCornerShape(28.dp),
-                                ),
+                                .padding(IndicatorInset)
+                                .clip(RoundedCornerShape(IndicatorCorner))
+                                .background(selectedColor.copy(alpha = 0.12f)),
                     )
 
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
+                    Row(modifier = Modifier.fillMaxSize()) {
                         items.forEachIndexed { index, item ->
                             val selected = index == selectedIndex
                             val iconScale by
                                 animateFloatAsState(
-                                    targetValue = if (selected) 1.2f else 1f,
+                                    targetValue = if (selected) 1.15f else 1f,
                                     animationSpec = tween(300),
                                 )
                             val contentColor by
@@ -170,6 +185,7 @@ fun XrayFloatingNav(
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.Center,
+                                    modifier = Modifier.padding(horizontal = 4.dp),
                                 ) {
                                     Icon(
                                         imageVector = item.icon,
@@ -180,16 +196,15 @@ fun XrayFloatingNav(
                                                 .size(26.dp)
                                                 .scale(iconScale),
                                     )
-                                    AnimatedVisibility(
-                                        visible = selected,
-                                        enter = fadeIn() + expandVertically(),
-                                        exit = fadeOut() + shrinkVertically(),
-                                    ) {
+                                    if (selected) {
                                         Text(
                                             text = item.label,
                                             color = contentColor,
                                             fontSize = 11.sp,
+                                            lineHeight = 12.sp,
                                             fontWeight = FontWeight.Bold,
+                                            textAlign = TextAlign.Center,
+                                            maxLines = 1,
                                             modifier = Modifier.padding(top = 2.dp),
                                         )
                                     }
