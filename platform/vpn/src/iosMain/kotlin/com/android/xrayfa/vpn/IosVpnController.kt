@@ -4,19 +4,21 @@ package com.android.xrayfa.vpn
 
 import com.android.xrayfa.common.IosPlatformConstants
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.ObjCObjectVar
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.value
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import kotlinx.cinterop.ObjCObjectVar
-import kotlinx.cinterop.alloc
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.ptr
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSError
 import platform.Foundation.NSOperationQueue
@@ -45,6 +47,9 @@ class IosVpnController(
     private val _state = MutableStateFlow<VpnState>(VpnState.Disconnected)
     override val state: StateFlow<VpnState> = _state.asStateFlow()
 
+    private val _connectError = MutableStateFlow<String?>(null)
+    override val connectError: StateFlow<String?> = _connectError.asStateFlow()
+
     private var manager: NETunnelProviderManager? = null
     private var statusObserver: NSObjectProtocol? = null
 
@@ -57,14 +62,34 @@ class IosVpnController(
 
     override suspend fun connect(): Boolean {
         if (IosAppGroupStorage.readPendingConfig().isNullOrBlank()) {
+            _connectError.value = "No VPN configuration"
             return false
         }
+        _connectError.value = null
+        IosAppGroupStorage.clearTunnelLastError()
         return withContext(Dispatchers.Main) {
             runCatching {
                 val tunnelManager = ensureManager()
                 persistManager(tunnelManager)
-                startTunnelSession(tunnelManager)
-            }.isSuccess
+                if (!startTunnelSession(tunnelManager)) {
+                    return@withContext false
+                }
+                delay(TUNNEL_START_GRACE_MS)
+                val connected =
+                    _state.value.isConnected || IosAppGroupStorage.isTunnelConnected()
+                if (connected) {
+                    _connectError.value = null
+                    true
+                } else {
+                    _connectError.value =
+                        IosAppGroupStorage.readTunnelLastError()
+                            ?: "VPN tunnel failed to start"
+                    false
+                }
+            }.getOrElse { error ->
+                _connectError.value = error.message ?: "VPN connect failed"
+                false
+            }
         }
     }
 
@@ -105,6 +130,7 @@ class IosVpnController(
         suspendCancellableCoroutine { continuation ->
             tunnelManager.saveToPreferencesWithCompletionHandler { saveError ->
                 if (saveError != null) {
+                    _connectError.value = saveError.localizedDescription
                     if (continuation.isActive) {
                         continuation.resume(Unit)
                     }
@@ -119,16 +145,24 @@ class IosVpnController(
         }
     }
 
-    private suspend fun startTunnelSession(tunnelManager: NETunnelProviderManager) {
+    private suspend fun startTunnelSession(tunnelManager: NETunnelProviderManager): Boolean =
         withContext(Dispatchers.Main) {
             memScoped {
-                val session = tunnelManager.connection as? NETunnelProviderSession ?: return@memScoped
-                val error = alloc<ObjCObjectVar<NSError?>>()
-                session.startTunnelWithOptions(null, error.ptr)
+                val session = tunnelManager.connection as? NETunnelProviderSession ?: return@withContext false
+                val errorVar = alloc<ObjCObjectVar<NSError?>>()
+                val started = session.startTunnelWithOptions(null, errorVar.ptr)
                 updateStateFromConnection(tunnelManager.connection)
+                if (!started) {
+                    _connectError.value =
+                        errorVar.value?.localizedDescription
+                            ?: IosAppGroupStorage.readTunnelLastError()
+                            ?: "VPN tunnel failed to start"
+                    IosAppGroupStorage.setTunnelConnected(false)
+                    return@withContext false
+                }
+                true
             }
         }
-    }
 
     private suspend fun loadManagers(): List<NETunnelProviderManager> =
         suspendCancellableCoroutine { continuation ->
@@ -165,7 +199,14 @@ class IosVpnController(
             `object` = null,
             queue = NSOperationQueue.mainQueue,
         ) { _ ->
-            manager?.connection?.let { updateStateFromConnection(it) }
+            manager?.connection?.let { connection ->
+                updateStateFromConnection(connection)
+                if (!connection.status.isConnectedLike() && !IosAppGroupStorage.isTunnelConnected()) {
+                    IosAppGroupStorage.readTunnelLastError()?.let { message ->
+                        _connectError.value = message
+                    }
+                }
+            }
         }
     }
 
@@ -190,4 +231,11 @@ class IosVpnController(
                 }
             }
     }
+
+    private companion object {
+        const val TUNNEL_START_GRACE_MS = 500L
+    }
 }
+
+private fun platform.NetworkExtension.NEVPNStatus.isConnectedLike(): Boolean =
+    this == NEVPNStatusConnected || this == NEVPNStatusReasserting

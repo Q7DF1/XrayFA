@@ -47,6 +47,35 @@ internal object IosAppGroupStorage {
     fun clearTrafficSpeeds() {
         writeTrafficSpeedsKbps(0.0, 0.0)
     }
+
+    fun writeTunnelLastError(message: String) {
+        defaults?.setObject(message, IosPlatformConstants.VPN_TUNNEL_LAST_ERROR_KEY)
+        defaults?.synchronize()
+    }
+
+    fun readTunnelLastError(): String? =
+        defaults?.stringForKey(IosPlatformConstants.VPN_TUNNEL_LAST_ERROR_KEY)
+
+    fun clearTunnelLastError() {
+        defaults?.removeObjectForKey(IosPlatformConstants.VPN_TUNNEL_LAST_ERROR_KEY)
+        defaults?.synchronize()
+    }
+
+    fun writeTunnelStatus(message: String) {
+        defaults?.setObject(message, IosPlatformConstants.VPN_TUNNEL_STATUS_KEY)
+        defaults?.synchronize()
+    }
+
+    fun readTunnelStatus(): String? =
+        defaults?.stringForKey(IosPlatformConstants.VPN_TUNNEL_STATUS_KEY)
+
+    fun writeTunnelMemoryBytes(bytes: Long) {
+        defaults?.setDouble(bytes.toDouble(), IosPlatformConstants.VPN_TUNNEL_MEMORY_BYTES_KEY)
+        defaults?.synchronize()
+    }
+
+    fun readTunnelMemoryBytes(): Long =
+        defaults?.doubleForKey(IosPlatformConstants.VPN_TUNNEL_MEMORY_BYTES_KEY)?.toLong() ?: 0L
 }
 
 /** Host app reads KB/s speeds written by PacketTunnel (mirrors Android [TrafficDetector]). */

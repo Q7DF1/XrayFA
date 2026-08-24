@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		0311768E0CB4A126289933FD /* XrayFAApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6453CEFCB6E517DF3D6ECFC2 /* XrayFAApp.swift */; };
 		28308D3D3201C527D9D3F625 /* HevSocks5TunnelHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AE199A528366B5E03C9A2F3 /* HevSocks5TunnelHelper.swift */; };
+		A1B2C3D4E5F60718293A4B5C /* AppGroupIpc.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F60718293A4B5C6D /* AppGroupIpc.swift */; };
+		C3D4E5F60718293A4B5C6D7E /* MemoryMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E5F60718293A4B5C6D7E8F /* MemoryMonitor.swift */; };
 		56B0305B5D3847FC6B326502 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8509E5A49E4A5CAAEB3ADB /* ContentView.swift */; };
 		72A7BCEF17D2A13518689546 /* UtunFdHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = B1F2251539DD0A046D13FB66 /* UtunFdHelper.m */; };
 		7D9FB3C5FE651D922FA2FE4B /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A8C6C6BCA0CCEEFF497138 /* PacketTunnelProvider.swift */; };
@@ -51,6 +53,8 @@
 		6453CEFCB6E517DF3D6ECFC2 /* XrayFAApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XrayFAApp.swift; sourceTree = "<group>"; };
 		86038AE1032E284E79B32AD6 /* iosApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8AE199A528366B5E03C9A2F3 /* HevSocks5TunnelHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HevSocks5TunnelHelper.swift; sourceTree = "<group>"; };
+		B2C3D4E5F60718293A4B5C6D /* AppGroupIpc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupIpc.swift; sourceTree = "<group>"; };
+		D4E5F60718293A4B5C6D7E8F /* MemoryMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoryMonitor.swift; sourceTree = "<group>"; };
 		A75EC9D605F463E39FABDE2A /* iosApp.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = iosApp.xcconfig; sourceTree = "<group>"; };
 		B1F2251539DD0A046D13FB66 /* UtunFdHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UtunFdHelper.m; sourceTree = "<group>"; };
 		B3D890AE9AF6E1DD6B7068A5 /* PacketTunnel.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = PacketTunnel.xcconfig; sourceTree = "<group>"; };
@@ -63,7 +67,9 @@
 		1D6314D65D009A951E7103C0 /* PacketTunnel */ = {
 			isa = PBXGroup;
 			children = (
+				B2C3D4E5F60718293A4B5C6D /* AppGroupIpc.swift */,
 				8AE199A528366B5E03C9A2F3 /* HevSocks5TunnelHelper.swift */,
+				D4E5F60718293A4B5C6D7E8F /* MemoryMonitor.swift */,
 				260B1DD47925B627F61C9633 /* PacketTunnel-Bridging-Header.h */,
 				E5A8C6C6BCA0CCEEFF497138 /* PacketTunnelProvider.swift */,
 				51BB7443F7ED9E5622521092 /* Tun2SocksConfigBuilder.swift */,
@@ -221,7 +227,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1B2C3D4E5F60718293A4B5C /* AppGroupIpc.swift in Sources */,
 				28308D3D3201C527D9D3F625 /* HevSocks5TunnelHelper.swift in Sources */,
+				C3D4E5F60718293A4B5C6D7E /* MemoryMonitor.swift in Sources */,
 				7D9FB3C5FE651D922FA2FE4B /* PacketTunnelProvider.swift in Sources */,
 				DB9AB1B8F23961EDD1571CA1 /* Tun2SocksConfigBuilder.swift in Sources */,
 				7F71AD832A3397678A1691C3 /* TunnelCoreCallbackHandler.swift in Sources */,

@@ -101,6 +101,13 @@ fun SharedHomeSection(
             )
         }
 
+        state.connectionErrorMessage?.let { message ->
+            HomeSectionHeader(
+                text = message,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+
         Spacer(modifier = Modifier.height(8.dp))
     }
 }

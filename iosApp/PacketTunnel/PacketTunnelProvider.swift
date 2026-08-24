@@ -4,7 +4,6 @@ import LibXrayLite
 private enum AppGroup {
     static let suiteName = "group.com.android.xrayfa"
     static let pendingConfigKey = "pending_vpn_config_json"
-    static let tunnelConnectedKey = "vpn_tunnel_connected"
     static let uploadSpeedKbpsKey = "vpn_upload_speed_kbps"
     static let downloadSpeedKbpsKey = "vpn_download_speed_kbps"
 }
@@ -29,15 +28,18 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         options: [String: NSObject]?,
         completionHandler: @escaping (Error?) -> Void
     ) {
+        AppGroupIpc.clearLastError()
+        AppGroupIpc.setTunnelConnected(false)
+
         guard let configJson = loadPendingConfig(), !configJson.isEmpty else {
-            completionHandler(TunnelError.noConfig)
+            failStart(TunnelError.noConfig, completionHandler: completionHandler)
             return
         }
 
         let settings = createTunnelSettings()
         setTunnelNetworkSettings(settings) { [weak self] error in
             if let error = error {
-                completionHandler(error)
+                self?.failStart(error, completionHandler: completionHandler)
                 return
             }
 
@@ -47,9 +49,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
                 self?.startTrafficPolling()
                 completionHandler(nil)
             } catch {
-                self?.setTunnelConnected(false)
-                self?.stopVpnPipeline()
-                completionHandler(error)
+                self?.failStart(error, completionHandler: completionHandler)
             }
         }
     }
@@ -60,6 +60,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
     ) {
         stopVpnPipeline()
         setTunnelConnected(false)
+        AppGroupIpc.writeMemoryBytes(0)
         completionHandler()
     }
 
@@ -70,6 +71,9 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
             throw TunnelError.noAppGroup
         }
 
+        GoRuntimeTuning.applyForNetworkExtension()
+        AppGroupIpc.writeMemoryBytes(MemoryMonitor.residentBytes())
+
         Libv2rayInitCoreEnv(container.path, "ios-device")
 
         let handler = TunnelCoreCallbackHandler()
@@ -79,7 +83,11 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         }
         coreController = controller
 
-        try controller.startLoop(configJson, tunFd: 0)
+        var startError: NSError?
+        let started = controller.startLoop(configJson, tunFd: 0, error: &startError)
+        if !started {
+            throw startError ?? TunnelError.xrayStartFailed
+        }
 
         guard let tunFd = UtunFileDescriptor.from(packetFlow: packetFlow) else {
             throw TunnelError.noUtunFd
@@ -103,7 +111,8 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         tun2SocksQueue = nil
 
         if let controller = coreController {
-            try? controller.stopLoop()
+            var stopError: NSError?
+            _ = controller.stopLoop(&stopError)
         }
         coreController = nil
         callbackHandler = nil
@@ -115,8 +124,15 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
     }
 
     private func setTunnelConnected(_ connected: Bool) {
-        UserDefaults(suiteName: AppGroup.suiteName)?
-            .set(connected ? "true" : "false", forKey: AppGroup.tunnelConnectedKey)
+        AppGroupIpc.setTunnelConnected(connected)
+    }
+
+    private func failStart(_ error: Error, completionHandler: @escaping (Error?) -> Void) {
+        let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        AppGroupIpc.writeLastError(message)
+        AppGroupIpc.setTunnelConnected(false)
+        stopVpnPipeline()
+        completionHandler(error)
     }
 
     private func startTrafficPolling() {
@@ -141,6 +157,11 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
     }
 
     private func sampleTrafficSpeeds() {
+        AppGroupIpc.writeMemoryBytes(MemoryMonitor.residentBytes())
+        if MemoryMonitor.isNearNetworkExtensionLimit() {
+            AppGroupIpc.writeStatus("NE memory warning: \(MemoryMonitor.residentBytes() / 1024 / 1024) MB resident")
+        }
+
         guard let controller = coreController, controller.isRunning else {
             writeTrafficSpeedsKbps(upload: 0, download: 0)
             return

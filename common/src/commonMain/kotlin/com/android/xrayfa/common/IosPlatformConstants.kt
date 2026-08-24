@@ -16,4 +16,13 @@ object IosPlatformConstants {
 
     /** Download speed in KB/s — PacketTunnel writes; host app polls for home traffic UI. */
     const val VPN_DOWNLOAD_SPEED_KBPS_KEY: String = "vpn_download_speed_kbps"
+
+    /** Last tunnel start/runtime error — PacketTunnel writes; host app reads after failed connect. */
+    const val VPN_TUNNEL_LAST_ERROR_KEY: String = "vpn_tunnel_last_error"
+
+    /** Latest Xray status line from NE callbacks (informational). */
+    const val VPN_TUNNEL_STATUS_KEY: String = "vpn_tunnel_status_message"
+
+    /** Process resident memory in bytes — PacketTunnel samples while running. */
+    const val VPN_TUNNEL_MEMORY_BYTES_KEY: String = "vpn_tunnel_memory_bytes"
 }

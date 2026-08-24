@@ -12,6 +12,9 @@ internal class AndroidVpnControllerStub : VpnController {
     private val _state = MutableStateFlow(VpnState.Disconnected)
     override val state: StateFlow<VpnState> = _state.asStateFlow()
 
+    private val _connectError = MutableStateFlow<String?>(null)
+    override val connectError: StateFlow<String?> = _connectError.asStateFlow()
+
     override suspend fun connect(): Boolean = false
 
     override fun disconnect() = Unit

@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.StateFlow
 interface VpnController {
     val state: StateFlow<VpnState>
 
+    /** Non-null after the most recent failed [connect] on platforms that surface tunnel errors. */
+    val connectError: StateFlow<String?>
+
     /** Start VPN with the currently selected node configuration. */
     suspend fun connect(): Boolean
 

@@ -935,7 +935,9 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | 85 | iOS 底栏：隐藏逻辑 / 指示条 inset / 间距对齐 Android | ✅ `9175bde` |
 | 86 | R-6：`kotlinx-coroutines` / `serialization-json` 进 catalog | ✅ `3520331` |
 | 87 | R-8：iOS Room DB 迁入 App Group（对齐 DataStore） | ✅ `3f2d253` |
-| 88 | R-8：iOS 流量轮询随 VPN 连接状态启停 | ✅ |
+| 88 | R-8：iOS 流量轮询随 VPN 连接状态启停 | ✅ `edc7c94` |
+| 89 | R-8：NE 错误回传 App Group + `startTunnel` NSError 检查 | ✅ |
+| 90 | R-8：NE Go `GOMEMLIMIT`/`GOGC` + resident 内存采样 | ✅ |
 
 ### EditScreen / 节点创建：产品与技术决策（2026-08-10）
 

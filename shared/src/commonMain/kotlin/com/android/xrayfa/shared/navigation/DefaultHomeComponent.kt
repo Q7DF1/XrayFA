@@ -61,12 +61,19 @@ class DefaultHomeComponent(
             return
         }
 
-        _state.update { it.copy(busy = true) }
+        _state.update { it.copy(busy = true, connectionErrorMessage = null) }
         scope.launch {
             try {
                 val prepared = coordinator.prepareConfigForConnect()
                 if (!prepared) return@launch
-                coordinator.connect()
+                val connected = coordinator.connect()
+                if (!connected) {
+                    _state.update {
+                        it.copy(connectionErrorMessage = vpnController.connectError.value)
+                    }
+                    delay(CONNECTION_ERROR_VISIBLE_MS)
+                    _state.update { it.copy(connectionErrorMessage = null) }
+                }
             } finally {
                 _state.update { it.copy(busy = false) }
             }
@@ -75,5 +82,6 @@ class DefaultHomeComponent(
 
     private companion object {
         const val CONFIG_ERROR_VISIBLE_MS = 2_000L
+        const val CONNECTION_ERROR_VISIBLE_MS = 4_000L
     }
 }

@@ -22,6 +22,9 @@ class AppVpnController(
     )
     override val state: StateFlow<VpnState> = _state.asStateFlow()
 
+    private val _connectError = MutableStateFlow<String?>(null)
+    override val connectError: StateFlow<String?> = _connectError.asStateFlow()
+
     init {
         scope.launch {
             XrayBaseService.statusFlow.collect { running ->
