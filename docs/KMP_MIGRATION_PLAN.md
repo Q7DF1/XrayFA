@@ -939,8 +939,9 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | 89 | R-8：NE 错误回传 App Group + `startTunnel` NSError 检查 | ✅ |
 | 90 | R-8：NE Go `GOMEMLIMIT`/`GOGC` + resident 内存采样 | ✅ |
 | 91 | P2：Room Node 索引 + ORDER BY 修复 + `distinctUntilChanged` | ✅ |
+| 92 | R-1：Android `MainActivity` → 共享 `RootContent`（`AndroidAppShell`） | ✅ |
 
-### Phase 7：Android Agent 可控能力（AppFunctions，iOS 不做）
+### Phase 7：Android Agent 可控能力（AppFunctions，KMP 完成后）
 
 > 详细设计见 **[ANDROID_AGENT_APPFUNCTIONS_PLAN.md](./ANDROID_AGENT_APPFUNCTIONS_PLAN.md)**。
 

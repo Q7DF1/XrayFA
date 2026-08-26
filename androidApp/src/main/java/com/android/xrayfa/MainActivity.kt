@@ -16,10 +16,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import com.android.xrayfa.ui.component.XrayFAContainer
+import com.android.xrayfa.ui.AndroidAppShell
+import com.android.xrayfa.ui.navigation.AndroidRootAction
+import com.android.xrayfa.ui.navigation.AndroidRootActionCoordinator
+import com.android.xrayfa.ui.rememberAndroidRootLifecycle
+import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.android.xrayfa.ui.XrayBaseActivity
-import com.android.xrayfa.ui.navigation.ScanQR
 import com.android.xrayfa.viewmodel.AppsViewmodel
 import com.android.xrayfa.viewmodel.AppsViewmodelFactory
 import com.android.xrayfa.viewmodel.SettingsViewmodel
@@ -31,7 +34,9 @@ import kotlinx.coroutines.launch
 class MainActivity constructor(
     val xrayViewmodelFactory: XrayViewmodelFactory,
     val settingsViewmodelFactory: SettingsViewmodelFactory,
-    val appViewmodelFactory: AppsViewmodelFactory
+    val appViewmodelFactory: AppsViewmodelFactory,
+    val rootActionCoordinator: AndroidRootActionCoordinator,
+    private val settingsRepository: SettingsRepository,
 ) : XrayBaseActivity() {
 
     private lateinit var xrayViewmodel: XrayViewmodel
@@ -42,12 +47,15 @@ class MainActivity constructor(
     override fun Content(isLandscape: Boolean) {
         val appViewmodel =
             ViewModelProvider.create(this, appViewmodelFactory)[AppsViewmodel::class.java]
+        val lifecycle = rememberAndroidRootLifecycle()
 
         checkNotificationPermission()
-        XrayFAContainer(
-            xrayViewmodel,
-            settingsViewmodel,
-            appViewmodel
+        AndroidAppShell(
+            lifecycle = lifecycle,
+            settingsViewmodel = settingsViewmodel,
+            appsViewmodel = appViewmodel,
+            xrayViewmodel = xrayViewmodel,
+            rootActionCoordinator = rootActionCoordinator,
         )
     }
 
@@ -68,7 +76,7 @@ class MainActivity constructor(
             .create(this, settingsViewmodelFactory)[SettingsViewmodel::class.java]
         handleShortcutIntent(intent)
         lifecycleScope.launch {
-            settingsViewmodel.settingsState.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+            settingsRepository.settingsFlow.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
                 .collect { state ->
                     val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
                     activityManager.appTasks.forEach {
@@ -138,23 +146,17 @@ class MainActivity constructor(
         val action = intent.getStringExtra("shortcut_action")
         when(action) {
             ACTION_OPEN_SCAN -> {
-                xrayViewmodel.setPaddingRoute(ScanQR { result ->
-                    if (result.isEmpty()) {
-                        Toast.makeText(this, getString(R.string.cancelled), Toast.LENGTH_LONG).show();
-                    }else {
-                        xrayViewmodel.addLink(result)
-                    }
-                })
+                rootActionCoordinator.dispatch(AndroidRootAction.OpenQrScan)
             }
             ACTION_START_SERVICE -> {
                 if (!xrayViewmodel.isServiceRunning()) {
-                    xrayViewmodel.startXrayService(this)
+                    rootActionCoordinator.dispatch(AndroidRootAction.ConnectVpn)
                     finish()
                 }
             }
             ACTION_STOP_SERVICE -> {
                 if (xrayViewmodel.isServiceRunning()) {
-                    xrayViewmodel.stopXrayService(this)
+                    rootActionCoordinator.dispatch(AndroidRootAction.DisconnectVpn)
                     finish()
                 }
             }

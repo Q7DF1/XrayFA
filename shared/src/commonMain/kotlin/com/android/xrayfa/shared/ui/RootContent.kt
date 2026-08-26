@@ -60,7 +60,7 @@ import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
 import com.android.xrayfa.shared.ui.nav.toFloatingNavItem
 import com.android.xrayfa.shared.resources.*
 import com.android.xrayfa.shared.ui.qr.SharedQrScannerScreen
-import com.android.xrayfa.shared.ui.settings.SharedAppsInfoScreen
+import com.android.xrayfa.shared.ui.platform.LocalPlatformRootHooks
 import com.android.xrayfa.shared.ui.settings.SharedInProcessAppLogScreen
 import com.android.xrayfa.shared.ui.settings.SharedRouteSettingsScreen
 import com.android.xrayfa.shared.ui.settings.SharedSettingsAboutSection
@@ -77,6 +77,8 @@ import org.koin.mp.KoinPlatform
 fun RootContent(
     component: RootComponent,
     modifier: Modifier = Modifier,
+    openQrScannerRequest: Boolean = false,
+    onOpenQrScannerRequestConsumed: () -> Unit = {},
 ) {
     val pages by component.pages.subscribeAsState()
     val selectedTab = pages.items.getOrNull(pages.selectedIndex)?.configuration ?: RootTab.Home
@@ -107,6 +109,8 @@ fun RootContent(
                         component = child.component,
                         onNodeSelectedNavigateHome = { component.selectTab(RootTab.Home) },
                         onChromeCovered = { configChromeCovered = it },
+                        openQrScannerRequest = openQrScannerRequest,
+                        onOpenQrScannerRequestConsumed = onOpenQrScannerRequestConsumed,
                     )
                 is RootComponent.Child.Settings ->
                     SettingsTabScreen(
@@ -156,9 +160,17 @@ private fun ConfigTabScreen(
     component: ConfigComponent,
     onNodeSelectedNavigateHome: () -> Unit,
     onChromeCovered: (Boolean) -> Unit,
+    openQrScannerRequest: Boolean = false,
+    onOpenQrScannerRequestConsumed: () -> Unit = {},
 ) {
     var showSubscriptions by remember { mutableStateOf(false) }
     var showQrScanner by remember { mutableStateOf(false) }
+    LaunchedEffect(openQrScannerRequest) {
+        if (openQrScannerRequest) {
+            showQrScanner = true
+            onOpenQrScannerRequestConsumed()
+        }
+    }
     val subscriptionComponent = rememberSubscriptionComponent()
     val settingsLabels = rememberSettingsUiLabels()
     val configLabels = rememberConfigUiLabels()
@@ -326,30 +338,18 @@ private fun SettingsTabScreen(
     var showAppsInfo by remember { mutableStateOf(false) }
     val settingsLabels = rememberSettingsUiLabels()
     val routeSettingsLabels = rememberRouteSettingsUiLabels()
+    val platformHooks = LocalPlatformRootHooks.current
 
     if (showAppsInfo) {
-        SharedAppsInfoScreen(
+        platformHooks.AppsScreen(
             component = component,
             onBack = { showAppsInfo = false },
-            labels = settingsLabels,
-        )
-        return
-    }
-
-    if (showRouteSettings) {
-        SharedRouteSettingsScreen(
-            component = component,
-            labels = routeSettingsLabels,
-            onBack = { showRouteSettings = false },
         )
         return
     }
 
     if (showAppLog) {
-        SharedInProcessAppLogScreen(
-            onBack = { showAppLog = false },
-            labels = settingsLabels,
-        )
+        platformHooks.LogcatScreen(onBack = { showAppLog = false })
         return
     }
 
@@ -384,6 +384,12 @@ private fun SettingsTabScreen(
                 component = component,
                 scrollEnabled = true,
                 labels = settingsLabels,
+                additionalGeneralContent = {
+                    with(platformHooks) { SettingsGeneralExtras(component) }
+                },
+                additionalNetworkContent = {
+                    with(platformHooks) { SettingsNetworkExtras(component) }
+                },
             )
             SharedSettingsPlatformSection(
                 labels = settingsLabels,

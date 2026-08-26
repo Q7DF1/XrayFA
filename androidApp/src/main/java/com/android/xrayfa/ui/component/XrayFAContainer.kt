@@ -87,6 +87,7 @@ import com.android.xrayfa.shared.ui.nav.FloatingNavItem
 import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
 import kotlinx.coroutines.launch
 
+@Deprecated("Replaced by shared RootContent via AndroidAppShell (Step 92)")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun XrayFAContainer(

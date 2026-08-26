@@ -11,6 +11,7 @@ import com.android.xrayfa.shared.di.KoinQualifiers
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.core.qualifier.named
+import com.android.xrayfa.ui.navigation.AndroidRootActionCoordinator
 import org.koin.dsl.module
 import xrayfa.tun2socks.Tun2SocksService
 import xrayfa.tun2socks.utils.Tun2SocksConfigUtil
@@ -30,11 +31,15 @@ val appComponentDiModule: Module = module {
         )
     }
 
+    single { AndroidRootActionCoordinator() }
+
     factory {
         MainActivity(
             xrayViewmodelFactory = get(),
             settingsViewmodelFactory = get(),
             appViewmodelFactory = get(),
+            rootActionCoordinator = get(),
+            settingsRepository = get(),
         )
     }
     factory {

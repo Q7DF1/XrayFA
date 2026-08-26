@@ -10,11 +10,19 @@ import com.android.xrayfa.shared.ui.theme.XrayTheme
  * Minimal shared Compose shell (E.6). Decompose [RootContent] drives tab navigation (E.6e).
  */
 @Composable
-fun AppShell(rootComponent: RootComponent) {
-    XrayTheme {
+fun AppShell(
+    rootComponent: RootComponent,
+    applyTheme: Boolean = true,
+) {
+    val content: @Composable () -> Unit = {
         RootContent(
             component = rootComponent,
             modifier = Modifier.fillMaxSize(),
         )
+    }
+    if (applyTheme) {
+        XrayTheme(content = content)
+    } else {
+        content()
     }
 }
