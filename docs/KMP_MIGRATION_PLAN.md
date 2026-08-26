@@ -940,7 +940,20 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | 90 | R-8：NE Go `GOMEMLIMIT`/`GOGC` + resident 内存采样 | ✅ |
 | 91 | P2：Room Node 索引 + ORDER BY 修复 + `distinctUntilChanged` | ✅ |
 
-### EditScreen / 节点创建：产品与技术决策（2026-08-10）
+### Phase 7：Android Agent 可控能力（AppFunctions，iOS 不做）
+
+> 详细设计见 **[ANDROID_AGENT_APPFUNCTIONS_PLAN.md](./ANDROID_AGENT_APPFUNCTIONS_PLAN.md)**。
+
+| 步骤 | 内容 | 状态 |
+|------|------|------|
+| A1 | `:domain` 定义 `XrayAgentFacade` + Agent DTO / 错误码 | ⬜ |
+| A2 | `:androidApp` `DefaultXrayAgentFacade` + Koin | ⬜ |
+| A3 | DataStore `agent_functions_enabled` + 设置页总开关 | ⬜ |
+| A4 | AppFunctions 依赖 + Phase A 只读 `@AppFunction` | ⬜ |
+| A5 | `adb cmd app_function` 手测 | ⬜ |
+| B1 | Phase B 写操作（connect/select/refresh）+ VPN prepare | ⬜ |
+| B2 | `setAppFunctionEnabled` 与设置联动 | ⬜ |
+
 
 **原则：Android 为参照，iOS 最终对齐 Android，不在 Android 上叠轻量创建入口。**
 

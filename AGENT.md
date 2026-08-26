@@ -224,6 +224,7 @@ Verify numbers against `gradle/libs.versions.toml`, `gradle.properties`, `go.mod
 
 - `README.md` / `README_zh-CN.md` / `README_RU.md` / `README_KR.md`
 - `docs/KMP_MIGRATION_PLAN.md` — live step table (73+)
+- `docs/ANDROID_AGENT_APPFUNCTIONS_PLAN.md` — **Android-only** Agent 可控能力（AppFunctions 接口与分阶段实施）
 - `docs/IOS_PLATFORM_GUIDE.md`, `docs/DEPENDENCY_MIGRATION_GUIDE.md`
 - `docs/KMP_MIGRATION_MIDTERM_REVIEW.md` — rules R-1…R-10 (local notes; may be untracked)
 - Domain models: look in `:domain`, not `androidApp/.../model/` (that tree is gone)
