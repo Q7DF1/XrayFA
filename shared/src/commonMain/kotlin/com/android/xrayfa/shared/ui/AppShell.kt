@@ -1,13 +1,21 @@
 package com.android.xrayfa.shared.ui
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import com.android.xrayfa.datastore.SettingsRepository
+import com.android.xrayfa.datastore.SettingsState
+import com.android.xrayfa.datastore.Theme
 import com.android.xrayfa.shared.navigation.RootComponent
 import com.android.xrayfa.shared.ui.theme.XrayTheme
+import org.koin.compose.koinInject
 
 /**
  * Minimal shared Compose shell (E.6). Decompose [RootContent] drives tab navigation (E.6e).
+ * When [applyTheme] is true (iOS), Material dark/light follows Settings `darkMode`.
  */
 @Composable
 fun AppShell(
@@ -21,7 +29,10 @@ fun AppShell(
         )
     }
     if (applyTheme) {
-        XrayTheme(content = content)
+        val settingsRepository: SettingsRepository = koinInject()
+        val settings by settingsRepository.settingsFlow.collectAsState(initial = SettingsState())
+        val darkTheme = Theme.fromCode(settings.darkMode).resolvesToDark(isSystemInDarkTheme())
+        XrayTheme(darkTheme = darkTheme, content = content)
     } else {
         content()
     }

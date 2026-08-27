@@ -25,11 +25,7 @@ abstract class XrayBaseActivity: ComponentActivity(){
         val app = application as XrayFAApplication
         setContent {
             val theme = app.isDarkTheme.collectAsState()
-            val darkTheme = when (theme.value) {
-                Theme.LIGHT_MODE.code -> false
-                Theme.DARK_MODE.code -> true
-                else -> isSystemInDarkTheme()
-            }
+            val darkTheme = Theme.fromCode(theme.value).resolvesToDark(isSystemInDarkTheme())
 
             DisposableEffect(darkTheme) {
                 enableEdgeToEdge(

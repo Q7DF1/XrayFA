@@ -232,6 +232,7 @@ Verify numbers against `gradle/libs.versions.toml`, `gradle.properties`, `go.mod
 - `docs/KMP_MIGRATION_STEP96_HANDOVER.md` — Phase 7 A4 AppFunctions Phase A 只读
 - `docs/KMP_MIGRATION_STEP97_HANDOVER.md` — Phase 7 A5 API 36 adb 手测
 - `docs/KMP_MIGRATION_STEP98_HANDOVER.md` — Phase 7 B1+B2 写操作 + OS enable 同步
+- `docs/KMP_MIGRATION_STEP99_HANDOVER.md` — iOS 主题跟随设置 `darkMode`
 - `docs/ANDROID_AGENT_APPFUNCTIONS_PLAN.md` — **Android-only** Agent 可控能力（AppFunctions 接口与分阶段实施）
 - `docs/IOS_PLATFORM_GUIDE.md`, `docs/DEPENDENCY_MIGRATION_GUIDE.md`
 - `docs/KMP_MIGRATION_MIDTERM_REVIEW.md` — rules R-1…R-10 (local notes; may be untracked)
