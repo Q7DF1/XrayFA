@@ -4,11 +4,14 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import com.android.xrayfa.common.core.GeoIpProvider
 import com.android.xrayfa.common.core.XrayAssetPaths
+import com.android.xrayfa.common.core.XrayCore
 import com.android.xrayfa.common.repository.ConfigParserSettingsProvider
 import com.android.xrayfa.common.utils.Logger
 import com.android.xrayfa.datastore.SettingsDataStoreContext
 import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.datastore.createSettingsDataStore
+import com.android.xrayfa.nativebridge.NativeBridgeFactory
+import com.android.xrayfa.nativebridge.XrayBridge
 import com.android.xrayfa.shared.platform.AppMetadataProvider
 import com.android.xrayfa.shared.platform.ClipboardReader
 import com.android.xrayfa.shared.platform.ClipboardWriter
@@ -18,6 +21,7 @@ import com.android.xrayfa.shared.platform.IosClipboardWriter
 import com.android.xrayfa.shared.platform.IosGeoIpProvider
 import com.android.xrayfa.shared.platform.IosLogger
 import com.android.xrayfa.shared.platform.IosXrayAssetPaths
+import com.android.xrayfa.shared.platform.IosXrayCore
 import com.android.xrayfa.shared.vpn.IosTrafficStatsSource
 import com.android.xrayfa.shared.vpn.IosVpnConnectCoordinator
 import com.android.xrayfa.shared.vpn.TrafficStatsSource
@@ -57,4 +61,6 @@ val iosPlatformDiModule: Module = module {
             vpnController = get(),
         )
     }
+    single<XrayBridge> { NativeBridgeFactory.createXrayBridge() }
+    single<XrayCore> { IosXrayCore(assetPaths = get(), xrayBridge = get()) }
 }

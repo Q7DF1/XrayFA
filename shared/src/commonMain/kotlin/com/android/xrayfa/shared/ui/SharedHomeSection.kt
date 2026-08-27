@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.android.xrayfa.common.core.homeDelayTestEnabled
 import com.android.xrayfa.shared.navigation.HomeComponent
 import com.android.xrayfa.shared.ui.home.HomeConnectButton
 import com.android.xrayfa.shared.ui.home.HomeConnectionStatusLabel
@@ -85,7 +86,11 @@ fun SharedHomeSection(
                 HomeSelectedNodeCard(
                     node = node,
                     unknownProtocolLabel = labels.unknownProtocolLabel,
-                    enableTest = state.isConnected,
+                    countryEmoji = node.countryISO,
+                    delayMs = state.delayMs,
+                    testing = state.testing,
+                    enableTest = homeDelayTestEnabled(state.isConnected, state.testing),
+                    onTest = component::onTestDelay,
                 )
             }
         } ?: run {

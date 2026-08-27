@@ -26,4 +26,5 @@ data class ConfigUiLabels(
     val editNodeFailed: String = "Failed to save node. Check the URL.",
     val deleteNodeTitle: String = "Delete node",
     val deleteNodeConfirm: String = "Delete this node?",
+    val speedTestAllLabel: String = "Speed test all",
 )

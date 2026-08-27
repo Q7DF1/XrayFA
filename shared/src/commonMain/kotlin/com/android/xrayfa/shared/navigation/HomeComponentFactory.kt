@@ -14,5 +14,8 @@ fun defaultHomeComponentFactory(): HomeComponentFactory =
             nodeRepository = koin.get(),
             coordinator = koin.get(),
             trafficStatsSource = koin.get(),
+            settingsRepository = koin.get(),
+            xrayCore = koin.get(),
+            parserFactory = koin.get(),
         )
     }

@@ -32,6 +32,9 @@ fun rememberAndroidHomeComponent(): HomeComponent {
             nodeRepository = koin.get<NodeRepository>(),
             coordinator = koin.get<VpnConnectCoordinator>(),
             trafficStatsSource = koin.get<TrafficStatsSource>(),
+            settingsRepository = koin.get(),
+            xrayCore = koin.get(),
+            parserFactory = koin.get(),
         )
     }
 }

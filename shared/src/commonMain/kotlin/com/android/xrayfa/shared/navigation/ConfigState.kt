@@ -25,4 +25,6 @@ data class ConfigState(
     val nodeEditTarget: NodeEditTarget? = null,
     val deleteTarget: Node? = null,
     val editError: Boolean = false,
+    val nodeDelayMap: Map<Int, Long> = emptyMap(),
+    val testingAll: Boolean = false,
 )

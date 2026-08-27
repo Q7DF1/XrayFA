@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TextButton
@@ -271,6 +273,7 @@ private fun ConfigTabScreen(
                     .padding(innerPadding)
                     .padding(bottom = 88.dp),
             labels = configLabels,
+            nodeDelayMap = configState.nodeDelayMap,
             onNodeSelected = { node ->
                 component.onSelectNode(node.id)
                 onNodeSelectedNavigateHome()
@@ -278,6 +281,21 @@ private fun ConfigTabScreen(
             onEmptyAddClick = component::onOpenCreateNode,
             onEditNode = { node -> component.onOpenEditNode(node.id) },
             onDeleteNode = component::onShowDeleteNode,
+            filterTrailingContent = {
+                IconButton(onClick = component::onTestAllDelays) {
+                    Icon(
+                        imageVector = Icons.Outlined.Speed,
+                        contentDescription = configLabels.speedTestAllLabel,
+                        tint =
+                            if (configState.testingAll) {
+                                MaterialTheme.colorScheme.secondary
+                            } else {
+                                MaterialTheme.colorScheme.primary
+                            },
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            },
         )
     }
 

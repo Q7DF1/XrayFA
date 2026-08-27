@@ -33,6 +33,8 @@ interface ConfigComponent {
     fun onDismissDeleteNode()
 
     fun onConfirmDeleteNode()
+
+    fun onTestAllDelays()
 }
 
 /** Typealias for E.6e naming; prefer [ConfigComponent] in new code. */

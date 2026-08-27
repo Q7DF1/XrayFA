@@ -37,6 +37,9 @@ fun rememberAndroidConfigComponent(filterLabels: ConfigFilterLabels): ConfigComp
             nodeEditor = koin.get<NodeEditor>(),
             nodeFormEditor = koin.get(),
             filterLabels = filterLabels,
+            settingsRepository = koin.get(),
+            xrayCore = koin.get(),
+            parserFactory = koin.get(),
         )
     }
 }

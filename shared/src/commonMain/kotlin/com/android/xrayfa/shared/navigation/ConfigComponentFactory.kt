@@ -19,5 +19,8 @@ fun defaultConfigComponentFactory(
             nodeEditor = koin.get(),
             nodeFormEditor = koin.get(),
             filterLabels = filterLabels,
+            settingsRepository = koin.get(),
+            xrayCore = koin.get(),
+            parserFactory = koin.get(),
         )
     }

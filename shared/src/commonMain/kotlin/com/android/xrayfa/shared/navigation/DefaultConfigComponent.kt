@@ -1,21 +1,33 @@
 package com.android.xrayfa.shared.navigation
 
+import com.android.xrayfa.common.core.DelayMeasurement
+import com.android.xrayfa.common.core.DelayProbe
+import com.android.xrayfa.common.core.XrayCore
+import com.android.xrayfa.common.core.configDelayTestAllEnabled
+import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.model.Node
+import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.repository.SubscriptionRepository
 import com.android.xrayfa.shared.config.ConfigLinkImporter
 import com.android.xrayfa.shared.config.NodeEditForm
 import com.android.xrayfa.shared.config.NodeEditor
 import com.android.xrayfa.shared.config.NodeFormEditor
+import com.android.xrayfa.shared.vpn.createDelayProbe
 import com.android.xrayfa.vpn.VpnController
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.update
 import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope as nestedCoroutineScope
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withContext
 
 class DefaultConfigComponent(
     componentContext: ComponentContext,
@@ -26,9 +38,13 @@ class DefaultConfigComponent(
     private val nodeEditor: NodeEditor,
     private val nodeFormEditor: NodeFormEditor,
     private val filterLabels: ConfigFilterLabels = ConfigFilterLabels(),
+    private val settingsRepository: SettingsRepository,
+    xrayCore: XrayCore,
+    parserFactory: ParserFactory,
 ) : ConfigComponent,
     ComponentContext by componentContext {
     private val scope = coroutineScope()
+    private val delayProbe: DelayProbe = createDelayProbe(xrayCore, parserFactory)
 
     private val _state = MutableValue(ConfigState())
     override val state: Value<ConfigState> = _state
@@ -159,6 +175,41 @@ class DefaultConfigComponent(
         }
     }
 
+    override fun onTestAllDelays() {
+        if (!configDelayTestAllEnabled(_state.value.testingAll)) return
+        scope.launch {
+            _state.update { it.copy(testingAll = true) }
+            try {
+                val testUrl = settingsRepository.settingsFlow.first().delayTestUrl
+                val nodes = _state.value.nodes
+                nestedCoroutineScope {
+                    val semaphore = Semaphore(CONFIG_DELAY_CONCURRENCY)
+                    nodes.forEach { node ->
+                        launch {
+                            semaphore.withPermit {
+                                _state.update {
+                                    it.copy(
+                                        nodeDelayMap =
+                                            it.nodeDelayMap + (node.id to DelayMeasurement.TESTING_SENTINEL),
+                                    )
+                                }
+                                val delay =
+                                    withContext(Dispatchers.Default) {
+                                        delayProbe.measureNode(node.url, testUrl)
+                                    }
+                                _state.update {
+                                    it.copy(nodeDelayMap = it.nodeDelayMap + (node.id to delay))
+                                }
+                            }
+                        }
+                    }
+                }
+            } finally {
+                _state.update { it.copy(testingAll = false) }
+            }
+        }
+    }
+
     private fun refreshNodes() {
         scope.launch {
             val allNodes = nodeRepository.allNodes.first()
@@ -197,6 +248,10 @@ class DefaultConfigComponent(
                 else -> allNodes.filter { it.subscriptionId == filterId }
             }
         return filtered.reversed()
+    }
+
+    private companion object {
+        const val CONFIG_DELAY_CONCURRENCY = 32
     }
 }
 

@@ -6,6 +6,8 @@ interface HomeComponent {
     val state: Value<HomeState>
 
     fun onConnectToggle()
+
+    fun onTestDelay()
 }
 
 /** Typealias for E.6e naming; prefer [HomeComponent] in new code. */

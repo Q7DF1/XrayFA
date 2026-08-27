@@ -950,6 +950,7 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | 100 | iOS `measureOutboundDelay` ObjC shim（不再恒 `-1L`） | ✅ 见 `KMP_MIGRATION_STEP100_HANDOVER.md` |
 | 101 | iOS GeoIP：common MMDB 读 GeoLite2-Country.mmdb，节点国旗不再恒 `""` | ✅ 见 `KMP_MIGRATION_STEP101_HANDOVER.md` |
 | 102 | 共享设置 GeoLite 下载 + 成功后置 `geoLiteInstall` | ✅ 见 `KMP_MIGRATION_STEP102_HANDOVER.md` |
+| 103 | 共享 Home/Config 测速 + iOS `XrayCore` 委托 delay shim | ✅ 见 `KMP_MIGRATION_STEP103_HANDOVER.md` |
 
 ### Phase 7：Android Agent 可控能力（AppFunctions，KMP 完成后）
 

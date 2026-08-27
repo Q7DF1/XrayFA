@@ -55,5 +55,5 @@ export JAVA_HOME="$HOME/Library/Java/JavaVirtualMachines/jbr-21.0.11/Contents/Ho
 ## 下一步
 
 1. iOS GeoIP（节点国家标记；`IosGeoIpProvider` 仍恒 `""`） — ✅ Step 101
-2. 共享 Home/Config 接 `onTest` + iOS `XrayCore` 委托本 shim（双端 RootContent 测速才可见）
+2. 共享 Home/Config 接 `onTest` + iOS `XrayCore` 委托本 shim（双端 RootContent 测速才可见） — ✅ Step 103
 3. **不要**做 Agent Phase C / C1，除非产品明确要求

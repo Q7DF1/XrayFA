@@ -1,9 +1,16 @@
 package com.android.xrayfa.shared.navigation
 
+import com.android.xrayfa.common.core.DelayMeasurement
+import com.android.xrayfa.common.core.DelayProbe
+import com.android.xrayfa.common.core.XrayCore
+import com.android.xrayfa.common.core.homeDelayTestEnabled
+import com.android.xrayfa.datastore.SettingsRepository
+import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.shared.vpn.EmptyTrafficStatsSource
 import com.android.xrayfa.shared.vpn.TrafficStatsSource
 import com.android.xrayfa.shared.vpn.VpnConnectCoordinator
+import com.android.xrayfa.shared.vpn.createDelayProbe
 import com.android.xrayfa.vpn.VpnController
 import com.android.xrayfa.vpn.isConnected
 import com.arkivanov.decompose.ComponentContext
@@ -11,8 +18,12 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.update
 import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 class DefaultHomeComponent(
     componentContext: ComponentContext,
@@ -20,9 +31,13 @@ class DefaultHomeComponent(
     private val nodeRepository: NodeRepository,
     private val coordinator: VpnConnectCoordinator,
     private val trafficStatsSource: TrafficStatsSource = EmptyTrafficStatsSource,
+    private val settingsRepository: SettingsRepository,
+    xrayCore: XrayCore,
+    parserFactory: ParserFactory,
 ) : HomeComponent,
     ComponentContext by componentContext {
     private val scope = coroutineScope()
+    private val delayProbe: DelayProbe = createDelayProbe(xrayCore, parserFactory)
 
     private val _state = MutableValue(HomeState())
     override val state: Value<HomeState> = _state
@@ -77,6 +92,22 @@ class DefaultHomeComponent(
             } finally {
                 _state.update { it.copy(busy = false) }
             }
+        }
+    }
+
+    override fun onTestDelay() {
+        val snapshot = _state.value
+        if (!homeDelayTestEnabled(snapshot.isConnected, snapshot.testing)) return
+        scope.launch {
+            _state.update { it.copy(testing = true, delayMs = DelayMeasurement.TESTING_SENTINEL) }
+            val testUrl = settingsRepository.settingsFlow.first().delayTestUrl
+            val result =
+                withTimeoutOrNull(DelayMeasurement.HOME_TIMEOUT_MS) {
+                    withContext(Dispatchers.Default) {
+                        delayProbe.measureHome(testUrl, snapshot.selectedNode?.url)
+                    }
+                } ?: DelayMeasurement.TIMEOUT_SENTINEL
+            _state.update { it.copy(testing = false, delayMs = result) }
         }
     }
 

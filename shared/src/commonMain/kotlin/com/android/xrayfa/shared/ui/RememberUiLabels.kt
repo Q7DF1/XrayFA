@@ -62,6 +62,7 @@ fun rememberConfigUiLabels(): ConfigUiLabels =
         editNodeFailed = stringResource(Res.string.config_edit_node_failed),
         deleteNodeTitle = stringResource(Res.string.config_delete_node_title),
         deleteNodeConfirm = stringResource(Res.string.config_delete_node_confirm),
+        speedTestAllLabel = stringResource(Res.string.config_speed_test_all_cd),
     )
 
 @Composable

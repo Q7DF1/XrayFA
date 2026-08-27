@@ -4,7 +4,7 @@ package com.android.xrayfa.common.core
  * Platform abstraction for Xray-core lifecycle and diagnostics.
  *
  * Android actual: [com.android.xrayfa.core.XrayCoreManager] (libv2ray).
- * iOS actual: gomobile xcframework bridge (future).
+ * iOS actual: in-app LibXrayLite wrapper for delay diagnostics (VPN loop stays in PacketTunnel).
  */
 interface XrayCore : TrafficDetector {
 
