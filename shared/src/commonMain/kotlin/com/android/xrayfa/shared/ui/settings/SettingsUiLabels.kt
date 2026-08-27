@@ -82,4 +82,5 @@ data class SettingsUiLabels(
     val geoDownloadNeedServiceHint: String =
         "Start the service first — downloads route through the proxy to reach GitHub reliably.",
     val geoLiteDownloadUnavailableHint: String = "GeoLite download is not available on this platform.",
+    val delayTestUrlTitle: String = "test url",
 )

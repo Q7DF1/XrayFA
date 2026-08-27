@@ -244,6 +244,7 @@ Verify numbers against `gradle/libs.versions.toml`, `gradle.properties`, `go.mod
 - `docs/KMP_MIGRATION_STEP104_HANDOVER.md` — iOS CommonCrypto digest（不再空数组）
 - `docs/KMP_MIGRATION_STEP105_HANDOVER.md` — iOS 关闭 GeoLite 设置下载（无法达 NE SOCKS）
 - `docs/KMP_MIGRATION_STEP106_HANDOVER.md` — iOS 宿主链 LibXrayLite + ObjC gomobile 回调
+- `docs/KMP_MIGRATION_STEP107_HANDOVER.md` — 共享设置延迟测试 URL
 - `docs/ANDROID_AGENT_APPFUNCTIONS_PLAN.md` — **Android-only** Agent 可控能力（AppFunctions 接口与分阶段实施）
 - `docs/IOS_PLATFORM_GUIDE.md`, `docs/DEPENDENCY_MIGRATION_GUIDE.md`
 - `docs/KMP_MIGRATION_MIDTERM_REVIEW.md` — rules R-1…R-10 (local notes; may be untracked)

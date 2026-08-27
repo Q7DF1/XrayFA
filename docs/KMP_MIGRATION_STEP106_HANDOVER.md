@@ -52,4 +52,5 @@ xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp \
 ## 下一步
 
 1. 可选：geoip.dat / geosite.dat 迁入共享设置（iOS 同样不能走 NE SOCKS，下载需禁用或另方案）
-2. **不要**做 Agent Phase C / C1，除非产品明确要求
+2. 共享延迟测试 URL — ✅ Step 107
+3. **不要**做 Agent Phase C / C1，除非产品明确要求

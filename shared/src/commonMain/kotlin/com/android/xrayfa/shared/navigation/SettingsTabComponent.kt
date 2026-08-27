@@ -45,6 +45,8 @@ interface SettingsComponent {
 
     fun onSetIpV6Enable(enable: Boolean)
 
+    fun onSetDelayTestUrl(url: String)
+
     fun onSetRoutingMode(mode: RoutingMode)
 
     fun onSetDomainStrategy(strategy: DomainStrategy)

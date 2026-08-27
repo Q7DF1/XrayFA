@@ -161,6 +161,12 @@ class DefaultSettingsComponent(
         }
     }
 
+    override fun onSetDelayTestUrl(url: String) {
+        scope.launch {
+            settingsRepository.setDelayTestUrl(url)
+        }
+    }
+
     override fun onSetRoutingMode(mode: RoutingMode) {
         scope.launch {
             settingsRepository.setRoutingMode(mode)

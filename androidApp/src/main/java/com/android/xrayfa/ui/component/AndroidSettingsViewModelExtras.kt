@@ -9,15 +9,10 @@ import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Security
-import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import com.android.xrayfa.R
 import com.android.xrayfa.helper.NotificationHelper
 import com.android.xrayfa.viewmodel.GEOFileType
@@ -43,9 +38,6 @@ fun ColumnScope.AndroidSettingsNetworkViewModelExtras(viewmodel: SettingsViewmod
     val settingsState by viewmodel.settingsState.collectAsState()
     val isVpnConnected by viewmodel.isVpnConnected.collectAsState()
     val context = LocalContext.current
-    var isShowEditDialog by remember { mutableStateOf(false) }
-    var editInitValue by remember { mutableStateOf("") }
-    var validator: (String) -> String? by remember { mutableStateOf({ null }) }
     val geoIPDownloading by viewmodel.geoIPDownloading.collectAsState()
     val geoIPProgress by viewmodel.geoIPProgress.collectAsState()
     val geoSiteDownloading by viewmodel.geoSiteDownloading.collectAsState()
@@ -110,31 +102,4 @@ fun ColumnScope.AndroidSettingsNetworkViewModelExtras(viewmodel: SettingsViewmod
         checked = settingsState.hexTunEnable,
         onCheckedChange = viewmodel::setHexTunEnable,
     )
-    SettingsFieldBox(
-        title = R.string.test_url,
-        content = settingsState.delayTestUrl,
-        icon = Icons.Outlined.Speed,
-    ) {
-        editInitValue = settingsState.delayTestUrl
-        isShowEditDialog = true
-        validator = {
-            if (it.isBlank()) context.getString(R.string.can_not_be_empty) else null
-        }
-    }
-
-    if (isShowEditDialog) {
-        EditTextDialog(
-            title = stringResource(R.string.edit),
-            dismissText = stringResource(R.string.cancel),
-            confirmText = stringResource(R.string.save),
-            initialText = editInitValue,
-            isNumeric = false,
-            validator = validator,
-            onConfirm = {
-                viewmodel.setDelayTestUrl(it)
-                isShowEditDialog = false
-            },
-            onDismiss = { isShowEditDialog = false },
-        )
-    }
 }

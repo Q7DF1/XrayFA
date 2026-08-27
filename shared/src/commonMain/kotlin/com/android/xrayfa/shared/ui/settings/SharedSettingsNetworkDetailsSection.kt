@@ -7,6 +7,7 @@ import androidx.compose.material.icons.outlined.NetworkCheck
 import androidx.compose.material.icons.outlined.Numbers
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,6 +25,7 @@ private enum class NetworkEditField {
     SOCKS_PASSWORD,
     DNS_IPV4,
     DNS_IPV6,
+    DELAY_TEST_URL,
 }
 
 @Composable
@@ -122,6 +124,12 @@ fun SharedSettingsNetworkDetailsSection(
         onDownloadClick = component::onDownloadGeoLite,
         icon = Icons.Outlined.DataUsage,
     )
+    SharedSettingsFieldRow(
+        title = labels.delayTestUrlTitle,
+        content = state.delayTestUrl,
+        icon = Icons.Outlined.Speed,
+        onClick = { openEdit(NetworkEditField.DELAY_TEST_URL, state.delayTestUrl) },
+    )
 
     editField?.let { field ->
         val isNumeric = field == NetworkEditField.HTTP_PORT || field == NetworkEditField.SOCKS_PORT
@@ -154,6 +162,11 @@ fun SharedSettingsNetworkDetailsSection(
                         SettingsValidators.validateIpv6List(input, labels)
                     }
                 }
+                NetworkEditField.DELAY_TEST_URL -> {
+                    { input ->
+                        SettingsValidators.validateNonEmpty(input, labels)
+                    }
+                }
             }
 
         SharedSettingsEditDialog(
@@ -173,6 +186,7 @@ fun SharedSettingsNetworkDetailsSection(
                     NetworkEditField.SOCKS_PASSWORD -> component.onSetSocksPassword(value)
                     NetworkEditField.DNS_IPV4 -> component.onSetDnsIPv4(value)
                     NetworkEditField.DNS_IPV6 -> component.onSetDnsIPv6(value)
+                    NetworkEditField.DELAY_TEST_URL -> component.onSetDelayTestUrl(value)
                 }
                 editField = null
             },
