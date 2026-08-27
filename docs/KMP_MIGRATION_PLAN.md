@@ -940,20 +940,26 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | 90 | R-8：NE Go `GOMEMLIMIT`/`GOGC` + resident 内存采样 | ✅ |
 | 91 | P2：Room Node 索引 + ORDER BY 修复 + `distinctUntilChanged` | ✅ |
 | 92 | R-1：Android `MainActivity` → 共享 `RootContent`（`AndroidAppShell`） | ✅ |
+| 93 | Phase 7 A1：`:domain` `XrayAgentFacade` + DTO + `XrayAgentCatalog` commonTest | ✅ 见 `KMP_MIGRATION_STEP93_HANDOVER.md` |
+| 94 | Phase 7 A2：`:androidApp` `DefaultXrayAgentFacade` + Koin | ✅ 见 `KMP_MIGRATION_STEP94_HANDOVER.md` |
+| 95 | Phase 7 A3：DataStore `agent_functions_enabled` + 设置页总开关 | ✅ 见 `KMP_MIGRATION_STEP95_HANDOVER.md` |
+| 96 | Phase 7 A4：AppFunctions alpha08 + Phase A 只读 `@AppFunction` | ✅ 见 `KMP_MIGRATION_STEP96_HANDOVER.md` |
+| 97 | Phase 7 A5：API 36 真机 `adb cmd app_function` 手测 | ✅ 见 `KMP_MIGRATION_STEP97_HANDOVER.md` |
+| 98 | Phase 7 B1+B2：Phase B 写操作 + `setAppFunctionEnabled` 联动 | ✅ 见 `KMP_MIGRATION_STEP98_HANDOVER.md` |
 
 ### Phase 7：Android Agent 可控能力（AppFunctions，KMP 完成后）
 
-> 详细设计见 **[ANDROID_AGENT_APPFUNCTIONS_PLAN.md](./ANDROID_AGENT_APPFUNCTIONS_PLAN.md)**。
+> 详细设计见 **[ANDROID_AGENT_APPFUNCTIONS_PLAN.md](./ANDROID_AGENT_APPFUNCTIONS_PLAN.md)**。交接：STEP93–98。必做 A1–A5、B1–B2 已完成。C1 可选。
 
 | 步骤 | 内容 | 状态 |
 |------|------|------|
-| A1 | `:domain` 定义 `XrayAgentFacade` + Agent DTO / 错误码 | ⬜ |
-| A2 | `:androidApp` `DefaultXrayAgentFacade` + Koin | ⬜ |
-| A3 | DataStore `agent_functions_enabled` + 设置页总开关 | ⬜ |
-| A4 | AppFunctions 依赖 + Phase A 只读 `@AppFunction` | ⬜ |
-| A5 | `adb cmd app_function` 手测 | ⬜ |
-| B1 | Phase B 写操作（connect/select/refresh）+ VPN prepare | ⬜ |
-| B2 | `setAppFunctionEnabled` 与设置联动 | ⬜ |
+| A1 | `:domain` 定义 `XrayAgentFacade` + Agent DTO / 错误码 + `XrayAgentCatalog` | ✅ |
+| A2 | `:androidApp` `DefaultXrayAgentFacade` + Koin | ✅ |
+| A3 | DataStore `agent_functions_enabled` + 设置页总开关 | ✅ |
+| A4 | AppFunctions 依赖 + Phase A 只读 `@AppFunction` | ✅ |
+| A5 | `adb cmd app_function` 手测 | ✅ |
+| B1 | Phase B 写操作（connect/select/refresh）+ VPN prepare | ✅ |
+| B2 | `setAppFunctionEnabled` 与设置联动 | ✅ |
 
 
 **原则：Android 为参照，iOS 最终对齐 Android，不在 Android 上叠轻量创建入口。**

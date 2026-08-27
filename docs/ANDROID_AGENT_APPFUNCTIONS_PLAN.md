@@ -2,8 +2,8 @@
 
 > **范围**：仅 **Android**；**iOS 暂不实现**。  
 > **目标**：让系统 Agent / 助手（Gemini、MCP 类 caller）能在用户授权下，以结构化方式调用 XrayFA 的**只读查询**与**有限写操作**，而不是复刻整套 UI。  
-> **实现载体**：Android Jetpack **[AppFunctions](https://developer.android.com/ai/appfunctions)**（`androidx.appfunctions`，当前 **1.0.0-alpha10**）。  
-> **状态**：规划文档 — 尚未编码。
+> **实现载体**：Android Jetpack **[AppFunctions](https://developer.android.com/ai/appfunctions)**（`androidx.appfunctions`，钉 **1.0.0-alpha08**：alpha09+ 需要 compileSdk 37 + AGP 9.1，与当前 AGP 8.10 / SDK 36 不兼容）。  
+> **状态**：A1–A5、B1–B2 已落地。交接：`docs/KMP_MIGRATION_STEP98_HANDOVER.md`。C1 Gemini EAP 可选、未做。
 
 ---
 
@@ -46,15 +46,16 @@
                             │ AppFunctionManager.search / execute
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  androidApp: XrayFAAppFunctionService                       │
-│  @AppFunctionServiceEntryPoint                              │
+│  androidApp: XrayFAAppFunctions                              │
 │  @AppFunction suspend fun …(AppFunctionContext, …)          │
+│  PlatformAppFunctionService（库 manifest 合并）               │
 └───────────────────────────┬─────────────────────────────────┘
                             │ withContext(IO) + 权限/开关检查
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
 │  androidApp: DefaultXrayAgentFacade                         │
-│  implements XrayAgentFacade（:domain 或 :common 接口）       │
+│  implements XrayAgentFacade（:domain）                       │
+│  节点/订阅查询委托 XrayAgentCatalog                          │
 └───────────────────────────┬─────────────────────────────────┘
                             │
         ┌───────────────────┼───────────────────┐
@@ -67,9 +68,9 @@
 
 | 层 | 模块 | 内容 |
 |----|------|------|
-| 契约 + DTO | `:domain` 或 `:common` | `XrayAgentFacade`、`Agent*Result`、错误码；**无** Android 依赖 |
+| 契约 + DTO | `:domain` | `XrayAgentFacade`、`Agent*Result`、错误码、`XrayAgentCatalog`；**无** Android 依赖 |
 | 实现 | `:androidApp` | `DefaultXrayAgentFacade`、VPN consent、`VpnService.prepare` |
-| 暴露 | `:androidApp` | `XrayFAAppFunctionService`、KSP metadata、`assets/app_function_v2.xml` |
+| 暴露 | `:androidApp` | `XrayFAAppFunctions`、KSP `assets/app_functions_v2.xml`、`PlatformAppFunctionService` |
 | 设置 | `:core:datastore` | `agentFunctionsEnabled: Boolean`（新 key） |
 
 iOS：**不**新增 `expect/actual`，不在 `iosApp` 注册任何 Agent 入口。
@@ -175,6 +176,29 @@ data class AgentVpnStatus(
     val lastError: String?,
 )
 
+data class AgentSubscriptionSummary(
+    val id: Int,
+    val mark: String,
+    val autoUpdate: Boolean,
+    // 不含 url
+)
+
+data class AgentTrafficSpeeds(
+    val uploadKbps: Double,
+    val downloadKbps: Double,
+)
+
+data class AgentAppInfo(
+    val versionName: String,
+    val versionCode: Int,
+)
+
+data class AgentDelayResult(
+    val nodeId: Int,
+    val delayMs: Long?,
+    val error: AgentErrorCode? = null,
+)
+
 data class AgentSettingsSummary(
     val darkMode: Int,
     val routingMode: String,
@@ -205,7 +229,11 @@ enum class AgentErrorCode {
 
 enum class AgentScreen { Home, Config, Settings, Subscriptions, Apps, RouteSettings }
 
-enum class AgentNodeFilter { All, Favorites, Manual, SubscriptionId }
+data class AgentNodeFilter(
+    val kind: AgentNodeFilterKind = AgentNodeFilterKind.All,
+    val subscriptionId: Int = 0,
+)
+// Manual 节点 subscriptionId == -1（与 ConfigFilterIds.SUB_MANUAL 对齐）
 ```
 
 ### 4.2 与现有 Repository 映射
@@ -213,8 +241,8 @@ enum class AgentNodeFilter { All, Favorites, Manual, SubscriptionId }
 | Facade 方法 | 委托 |
 |-------------|------|
 | `getVpnStatus` | `vpnController.state.value`, `connectError.value` |
-| `listNodes` | `nodeRepository.allNodes.first()` + filter |
-| `selectNode` | `clearSelection` + `updateSelectById` + `vpnController.restartIfNeeded()` |
+| `listNodes` | `XrayAgentCatalog` → `nodeRepository.allNodes.first()` + filter |
+| `selectNode` | Catalog: `clearSelection` + `updateSelectById`；Android Facade 再 `vpnController.restartIfNeeded()` |
 | `connectVpn` | `VpnConnectCoordinator.prepareConfigForConnect()` + `vpnController.connect()` |
 | `refreshSubscription` | `getSubscriptionById` + `fetchAndSaveNodes` |
 | `measureNodeDelay` | `ParserFactory` + `XrayCore.measureOutboundDelay`（与 ViewModel 同限流） |
@@ -228,43 +256,41 @@ enum class AgentNodeFilter { All, Favorites, Manual, SubscriptionId }
 
 ```kotlin
 // gradle/libs.versions.toml
-appfunctions = "1.0.0-alpha10"
+appfunctions = "1.0.0-alpha08" // 勿升 alpha09+，除非同时升 compileSdk 37 + AGP 9.1
 
 // androidApp
 implementation(libs.androidx.appfunctions)
+implementation(libs.androidx.appfunctions.service)
 ksp(libs.androidx.appfunctions.compiler)
 ksp { arg("appfunctions:aggregateAppFunctions", "true") }
 ```
 
-### 5.2 Service 骨架
+### 5.2 Service 骨架（alpha08）
 
 ```kotlin
-@AppFunctionServiceEntryPoint
-abstract class XrayFAAppFunctionService : AppFunctionService() {
+class XrayFAAppFunctions(private val facade: XrayAgentFacade) {
 
-    @AppFunction(isEnabled = true)
-    suspend fun getVpnStatus(ctx: AppFunctionContext): AgentVpnStatus =
+    @AppFunction(isDescribedByKDoc = true)
+    suspend fun getVpnStatus(ctx: AppFunctionContext): AppFnVpnStatus =
         withContext(Dispatchers.IO) {
-            requireAgentEnabled(ctx)
-            agentFacade.getVpnStatus()
+            requireAgentEnabled()
+            facade.getVpnStatus().toAppFn()
         }
 
-    @AppFunction(isEnabled = true)
-    suspend fun connectVpn(ctx: AppFunctionContext): AgentActionResult =
-        withContext(Dispatchers.IO) {
-            requireAgentEnabled(ctx)
-            ensureVpnPrepared(ctx) ?: return@withContext AgentActionResult.NeedsUserConsent("VPN permission")
-            agentFacade.connectVpn()
-        }
+    // Phase B（B1，STEP98）：
+    // @AppFunction
+    // suspend fun connectVpn(ctx: AppFunctionContext): AppFnActionResult = …
 }
 ```
 
-**规则（来自官方 compiler 约束）**：
+`XrayFAApplication` 实现 `AppFunctionConfiguration.Provider`，用 Koin 工厂构造 enclosing class。系统绑定库 manifest 里的 `PlatformAppFunctionService`。
 
-- 每个 `@AppFunction` **首参**必须是 `AppFunctionContext`
-- 使用 `suspend` + `Dispatchers.IO`（默认 UI 线程）
+**规则（alpha08 compiler 约束）**：
+
+- 每个 `@AppFunction` **首参**必须是 `AppFunctionContext`（`androidx.appfunctions.service.AppFunction`）
+- 使用 `suspend` + `Dispatchers.IO`（默认主线程）
 - 参数/返回值类型需 `@AppFunctionSerializable`
-- KSP 生成 function id；manifest 注册 generated service
+- KSP 生成 `assets/app_functions_v2.xml` 与 `XrayFAAppFunctionsIds`（`ClassName#method`）
 
 ### 5.3 Function ID 命名
 
@@ -304,13 +330,13 @@ abstract class XrayFAAppFunctionService : AppFunctionService() {
 
 | 步骤 | 内容 | 产出 |
 |------|------|------|
-| **A1** | 在 `:domain` 增加 `XrayAgentFacade` + DTO + `AgentErrorCode` | 接口 + 单元测试（mock repo） |
-| **A2** | `DefaultXrayAgentFacade` in `:androidApp`；Koin `single<XrayAgentFacade>` | 集成测试（Robolectric 可选） |
-| **A3** | DataStore：`agent_functions_enabled`；设置页开关 + 说明文案 | 用户门控 |
-| **A4** | 接入 AppFunctions 依赖 + `XrayFAAppFunctionService` Phase A 只读函数 | metadata + manifest |
-| **A5** | `adb shell cmd app_function` 验证 list/execute | 手测清单 |
-| **B1** | Phase B 写操作 + VPN prepare 流程 | connect/select/refresh |
-| **B2** | `setAppFunctionEnabled` 与设置联动 | 动态禁用 |
+| **A1** | 在 `:domain` 增加 `XrayAgentFacade` + DTO + `AgentErrorCode` + `XrayAgentCatalog` | ✅ 接口 + `commonTest`（内存 Fake repo） |
+| **A2** | `DefaultXrayAgentFacade` in `:androidApp`；Koin `single<XrayAgentFacade>` | ✅ JVM 单测（Fake catalog / VPN，无 Robolectric） |
+| **A3** | DataStore：`agent_functions_enabled`；设置页开关 + 说明文案 | ✅ 默认 false；四套 compose-resources |
+| **A4** | 接入 AppFunctions 依赖 + `XrayFAAppFunctions` Phase A 只读函数 | ✅ metadata + manifest（STEP96） |
+| **A5** | `adb shell cmd app_function` 验证 list/execute | ✅ 手测清单（STEP97，API 36 真机） |
+| **B1** | Phase B 写操作 + VPN prepare 流程 | ✅ connect/select/refresh/delay/openScreen（STEP98） |
+| **B2** | `setAppFunctionEnabled` 与设置联动 | ✅ DataStore → OS enable（STEP98） |
 | **C1** | （可选）Gemini EAP / 私有预览注册 | 外部联调 |
 | — | **iOS** | **明确跳过**；不在 roadmap 本阶段 |
 
@@ -331,17 +357,21 @@ abstract class XrayFAAppFunctionService : AppFunctionService() {
 ## 9. 测试计划
 
 ```bash
-# API 36+ 设备
-adb shell cmd app_function list --package com.android.xrayfa
-adb shell cmd app_function execute --package com.android.xrayfa \
-  --function com.android.xrayfa.agent.get_vpn_status
+# API 36+ 设备（Samsung 上子命令名为 list-app-functions / execute-app-function）
+adb shell cmd app_function list-app-functions --user 0
+adb shell "cmd app_function execute-app-function --package com.android.xrayfa \
+  --function 'com.android.xrayfa.agent.appfunctions.XrayFAAppFunctions#getVpnStatus' \
+  --parameters '{}' --brief-yaml"
+# 有参：标量包成单元素数组，例如 listNodes
+# --parameters '{"filterKind":["All"],"subscriptionId":[0]}'
 ```
 
-- [ ] Agent 关闭时 execute 返回 disabled / AGENT_DISABLED
-- [ ] 无 VPN 权限时 `connect_vpn` → NeedsUserConsent / 失败码
-- [ ] `list_nodes` 不包含完整 url 字段
-- [ ] 选中不存在 nodeId → NODE_NOT_FOUND
-- [ ] compileSdk 35 设备上 App 正常启动（AppFunction 不可用但不 crash）
+- [x] Agent 关闭时 execute 返回 disabled / AGENT_DISABLED
+- [x] 无 VPN 权限时 `connectVpn` → `NeedsUserConsent`（Facade 单测；真机 adb 待补）
+- [x] `list_nodes` 不包含完整 url 字段
+- [x] 选中不存在 nodeId → `NODE_NOT_FOUND`（Catalog / Facade 单测）
+- [x] `getTrafficSpeeds` 无采样时回零，不再挂起（STEP98）
+- [ ] compileSdk 35 / API &lt; 36 设备上 App 正常启动（`getInstance` 可为 null；本步无该设备）
 
 ---
 

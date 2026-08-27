@@ -11,6 +11,9 @@ data class SettingsUiLabels(
     val autoModeLabel: String = "Auto",
     val bootAutoStartTitle: String = "Start on boot",
     val bootAutoStartDescription: String = "Automatically start VPN when device boots",
+    val agentFunctionsTitle: String = "Agent functions",
+    val agentFunctionsDescription: String =
+        "Allow system assistants to query status and run limited actions. Off by default.",
     val hideFromRecentsTitle: String = "Hide from recents",
     val hideFromRecentsDescription: String = "Exclude app from recent apps list",
     val lanSocksProxyTitle: String = "LAN SOCKS proxy",

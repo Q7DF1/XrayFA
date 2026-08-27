@@ -94,6 +94,8 @@
     <string name="notification_permission_reject_button">Отклонить</string>
     <string name="boot_auto_start">Запуск при включении</string>
     <string name="boot_auto_start_desc">Разрешить приложению автоматически запускаться при включении устройства.</string>
+    <string name="agent_functions_title">Функции агента</string>
+    <string name="agent_functions_desc">Разрешить системным помощникам запрашивать статус и выполнять ограниченные действия. По умолчанию выключено.</string>
     <string name="scan_qr_title">Сканирование QR‑кода</string>
     <string name="scan_qr_permission_desc">Пожалуйста, разрешите доступ к камере для использования сканирования.</string>
     <string name="decode_qr_failed">Не удалось распознать QR‑код</string>

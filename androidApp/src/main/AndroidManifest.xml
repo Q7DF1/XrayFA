@@ -29,7 +29,10 @@
         android:theme="@style/Theme.V2rayForAndroidUI"
         android:hardwareAccelerated="true"
         tools:replace="android:appComponentFactory"
-        tools:targetApi="31">
+        tools:targetApi="36">
+        <property
+            android:name="android.app.appfunctions.app_metadata"
+            android:resource="@xml/app_metadata" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

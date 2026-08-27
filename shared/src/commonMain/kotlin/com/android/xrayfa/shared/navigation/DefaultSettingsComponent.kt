@@ -50,6 +50,12 @@ class DefaultSettingsComponent(
         }
     }
 
+    override fun onSetAgentFunctionsEnabled(enable: Boolean) {
+        scope.launch {
+            settingsRepository.setAgentFunctionsEnabled(enable)
+        }
+    }
+
     override fun onSetHideFromRecents(enable: Boolean) {
         scope.launch {
             settingsRepository.setHideFromRecentsState(enable)

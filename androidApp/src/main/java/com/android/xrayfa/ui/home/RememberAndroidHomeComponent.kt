@@ -6,8 +6,8 @@ import androidx.compose.runtime.remember
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.shared.navigation.DefaultHomeComponent
 import com.android.xrayfa.shared.navigation.HomeComponent
+import com.android.xrayfa.shared.vpn.TrafficStatsSource
 import com.android.xrayfa.shared.vpn.VpnConnectCoordinator
-import com.android.xrayfa.vpn.AndroidTrafficStatsSource
 import com.android.xrayfa.vpn.VpnController
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.DefaultComponentContext
@@ -31,7 +31,7 @@ fun rememberAndroidHomeComponent(): HomeComponent {
             vpnController = koin.get<VpnController>(),
             nodeRepository = koin.get<NodeRepository>(),
             coordinator = koin.get<VpnConnectCoordinator>(),
-            trafficStatsSource = AndroidTrafficStatsSource(koin.get()),
+            trafficStatsSource = koin.get<TrafficStatsSource>(),
         )
     }
 }

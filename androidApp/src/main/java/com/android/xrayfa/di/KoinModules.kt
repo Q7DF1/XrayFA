@@ -35,6 +35,7 @@ fun androidKoinModules(): List<Module> = listOf(
     appNetworkDiModule,
     appDataDiModule,
     appCoreDiModule,
+    appAgentDiModule,
     sharedServicesDiModule,
     androidSharedDiModule,
     appViewModelDiModule,

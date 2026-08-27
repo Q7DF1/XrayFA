@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.ksp)
 }
 
 android {
@@ -164,6 +165,9 @@ tasks.named("preBuild") {
     //dependsOn("copyXrayLib")
 }
 
+ksp {
+    arg("appfunctions:aggregateAppFunctions", "true")
+}
 
 dependencies {
 
@@ -209,6 +213,12 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
+    implementation(libs.androidx.appfunctions)
+    implementation(libs.androidx.appfunctions.service)
+    // appfunctions-service uses Guava at runtime; AGP consistent-resolution then
+    // replaces listenablefuture:1.0 with the empty 9999 stub on compile classpath.
+    implementation("com.google.guava:guava:32.0.1-android")
+    ksp(libs.androidx.appfunctions.compiler)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

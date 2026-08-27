@@ -49,6 +49,7 @@ data class SettingsState(
     val hwid: String = "",
     val sendHwid: Boolean = true,
     val allowedPackages: List<String> = emptyList(),
+    val agentFunctionsEnabled: Boolean = false,
 )
 
 object SettingsKeys {
@@ -76,6 +77,8 @@ object SettingsKeys {
     val ROUTING_MODE = intPreferencesKey("routing_mode")
     val HWID = stringPreferencesKey("hwid")
     val SEND_HWID = booleanPreferencesKey("send_hwid")
+    /** Disk key locked; default missing → false (Agent master switch). */
+    val AGENT_FUNCTIONS_ENABLED = booleanPreferencesKey("agent_functions_enabled")
 }
 
 const val DEFAULT_DELAY_TEST_URL = "https://www.google.com"
@@ -114,6 +117,7 @@ class SettingsRepository(
             routingMode = prefs[SettingsKeys.ROUTING_MODE] ?: RoutingMode.ROUTE.code,
             hwid = prefs[SettingsKeys.HWID] ?: "",
             sendHwid = prefs[SettingsKeys.SEND_HWID] ?: true,
+            agentFunctionsEnabled = prefs[SettingsKeys.AGENT_FUNCTIONS_ENABLED] == true,
         )
     }
 
@@ -252,6 +256,12 @@ class SettingsRepository(
     suspend fun setSendHwid(enable: Boolean) {
         dataStore.edit {
             it[SettingsKeys.SEND_HWID] = enable
+        }
+    }
+
+    suspend fun setAgentFunctionsEnabled(enable: Boolean) {
+        dataStore.edit {
+            it[SettingsKeys.AGENT_FUNCTIONS_ENABLED] = enable
         }
     }
 

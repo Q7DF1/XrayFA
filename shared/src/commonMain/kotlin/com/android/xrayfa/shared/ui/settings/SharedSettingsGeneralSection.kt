@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PowerSettingsNew
 import androidx.compose.material.icons.outlined.Public
@@ -63,6 +64,13 @@ fun SharedSettingsGeneralSection(
                 checked = state.bootAutoStart,
                 onCheckedChange = component::onSetBootAutoStart,
                 icon = Icons.Outlined.PowerSettingsNew,
+            )
+            SharedSettingsSwitchRow(
+                title = labels.agentFunctionsTitle,
+                description = labels.agentFunctionsDescription,
+                checked = state.agentFunctionsEnabled,
+                onCheckedChange = component::onSetAgentFunctionsEnabled,
+                icon = Icons.Outlined.Lock,
             )
             SharedSettingsSwitchRow(
                 title = labels.hideFromRecentsTitle,

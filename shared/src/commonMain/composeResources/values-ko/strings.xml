@@ -95,6 +95,8 @@
     <string name="notification_permission_reject_button">거부</string>
     <string name="boot_auto_start">부팅시 자동 실행</string>
     <string name="boot_auto_start_desc">기기가 켜질 때 앱이 자동으로 실행되도록 허용합니다.</string>
+    <string name="agent_functions_title">Agent 기능</string>
+    <string name="agent_functions_desc">시스템 어시스턴트가 상태를 조회하고 제한된 작업을 실행하도록 허용합니다. 기본값은 꺼짐입니다.</string>
     <string name="scan_qr_title">QR 코드 스캔</string>
     <string name="scan_qr_permission_desc">스캔 기능을 사용하려면 카메라 권한을 허용해 주세요</string>
     <string name="decode_qr_failed">QR 코드 디코딩 실패</string>

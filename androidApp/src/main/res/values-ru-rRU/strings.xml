@@ -209,4 +209,5 @@
     <string name="edit_short_id">Short ID</string>
     <string name="edit_back_cd">Назад</string>
     <string name="edit_save_cd">Сохранить</string>
+    <string name="appfunctions_display_description">Если функции агента включены в настройках, можно запрашивать статус VPN, узлы, подписки и сводку настроек.</string>
 </resources>

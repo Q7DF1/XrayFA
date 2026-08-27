@@ -31,6 +31,8 @@ ktor = "3.0.3"
 composeMultiplatform = "1.7.3"
 decompose = "3.2.2"
 essenty = "2.3.0"
+# alpha09+ requires compileSdk 37 and AGP 9.1; stay on alpha08 for AGP 8.10 / SDK 36.
+appfunctions = "1.0.0-alpha08"
 kotlinxSerialization = "1.7.3"
 kotlinxCoroutines = "1.9.0"
 
@@ -91,6 +93,9 @@ essenty-lifecycle-coroutines = { module = "com.arkivanov.essenty:lifecycle-corou
 essenty-state-keeper = { module = "com.arkivanov.essenty:state-keeper", version.ref = "essenty" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+androidx-appfunctions = { group = "androidx.appfunctions", name = "appfunctions", version.ref = "appfunctions" }
+androidx-appfunctions-service = { group = "androidx.appfunctions", name = "appfunctions-service", version.ref = "appfunctions" }
+androidx-appfunctions-compiler = { group = "androidx.appfunctions", name = "appfunctions-compiler", version.ref = "appfunctions" }
 
 
 [plugins]

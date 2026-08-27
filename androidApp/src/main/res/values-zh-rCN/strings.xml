@@ -196,4 +196,5 @@
     <string name="edit_short_id">Short ID</string>
     <string name="edit_back_cd">返回</string>
     <string name="edit_save_cd">保存</string>
+    <string name="appfunctions_display_description">在设置中开启 Agent 功能后，可查询 VPN 状态、节点、订阅和设置摘要。</string>
 </resources>

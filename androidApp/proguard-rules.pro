@@ -28,3 +28,5 @@
 
 -keep class com.android.xrayfa.model.** { *; }
 -keep class com.android.xrayfa.common.repository.** { *; }
+-keep class com.android.xrayfa.agent.appfunctions.** { *; }
+-keep class androidx.appfunctions.** { *; }

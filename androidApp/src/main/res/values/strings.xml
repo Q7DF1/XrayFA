@@ -213,4 +213,5 @@
     <string name="edit_short_id">Short ID</string>
     <string name="edit_back_cd">Back</string>
     <string name="edit_save_cd">Save</string>
+    <string name="appfunctions_display_description">Query VPN status, nodes, subscriptions, and settings when Agent functions are enabled in Settings.</string>
 </resources>

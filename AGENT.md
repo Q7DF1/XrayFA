@@ -94,7 +94,7 @@ Output: `AndroidLibXrayLite/LibXrayLite.xcframework` (gitignored). CI caches it 
 
 ```bash
 ./gradlew :common:testDebugUnitTest
-./gradlew :domain:testDebugUnitTest          # parser goldens + kotlinx JSON
+./gradlew :domain:testDebugUnitTest          # parser goldens + kotlinx JSON + Agent catalog
 ./gradlew :core:datastore:testDebugUnitTest
 ./gradlew :domain:iosX64Test                 # Native stand-in on Intel Macs
 ./gradlew :domain:iosSimulatorArm64Test      # Apple Silicon simulator
@@ -103,6 +103,8 @@ Output: `AndroidLibXrayLite/LibXrayLite.xcframework` (gitignored). CI caches it 
 
 - Shared business logic belongs in **`commonTest`**, not `androidUnitTest`. Gson parity stays on Android (Gson is JVM-only).
 - Parser / config goldens: `domain/src/commonTest/kotlin/com/android/xrayfa/parser/` (`ProtocolParserGoldenTest`, `AbstractConfigParserGoldenTest`).
+- Agent catalog: `domain/src/commonTest/kotlin/com/android/xrayfa/agent/XrayAgentCatalogTest.kt` (node/subscription summaries must not leak URLs or node JSON).
+- Android Agent facade: `androidApp/src/test/.../DefaultXrayAgentFacadeTest.kt`.
 - New parser / routing / subscription logic: add a `commonTest` golden (share link → kotlinx JSON) **before** changing the encoder.
 
 `./gradlew allTests` (including iOS simulator) is the full KMP bar; CI currently runs the JVM subset on `feat/**` (see §8).
@@ -113,12 +115,12 @@ Output: `AndroidLibXrayLite/LibXrayLite.xcframework` (gitignored). CI caches it 
 
 ```
 XrayFA/
-├── androidApp/          # Android application: Activity, VpnService, Navigation3 shell, thin UI wrappers
+├── androidApp/          # Android application: Activity, VpnService, Agent facade, thin UI wrappers
 ├── iosApp/              # Xcode app + PacketTunnel Network Extension
 ├── shared/              # CMP UI + Decompose + Koin modules → XrayFAShared.framework
 │   └── src/commonMain/composeResources/   # en / zh-rCN / ko / ru-rRU strings
 ├── common/              # Kernel types: RoutingMode, DomainStrategy, Rule JSON, AppJson, logging
-├── domain/              # Parsers, Xray JSON models, protocol DTOs (no :core / :platform deps)
+├── domain/              # Parsers, Xray JSON models, protocol DTOs, Agent facade (no :core / :platform deps)
 ├── core/database/       # Room KMP
 ├── core/datastore/      # DataStore KMP
 ├── core/data/           # RoomNodeRepository, KmpSubscriptionRepository, EntityMappers
@@ -160,7 +162,7 @@ UI: Android `MainActivity` → `XrayFAContainer` (Navigation3 + Pager) wrapping 
 
 - Kotlin official style; 4-space indent; match surrounding code. No ktlint/detekt.
 - **Versions**: only `gradle/libs.versions.toml` + `gradle.properties` for app version.
-- **DI**: Koin modules (`androidKoinModules()`, `sharedServicesDiModule`, …). `XrayAppCompatFactory` still constructs Android components; new injectables go in Koin, not Dagger.
+- **DI**: Koin modules (`androidKoinModules()`, `appAgentDiModule`, `sharedServicesDiModule`, …). `XrayAppCompatFactory` still constructs Android components; new injectables go in Koin, not Dagger.
 - **New screens (R-1)**: logic in `:shared`; Android is a thin wrapper. Do not create Android+Shared parallel UIs. Self-check: `rg -l 'com.android.xrayfa.shared.ui' androidApp/src/main/java` should only grow.
 - **No duplicate common code (R-2)**: after adding `commonMain`, delete the `androidApp` copy.
 - **iOS stubs (R-3)**: no `TODO()`/`error()`/`return false` actuals without listing them in `docs/IOS_STUBS.md` and leaving the Stage unchecked.
@@ -224,6 +226,12 @@ Verify numbers against `gradle/libs.versions.toml`, `gradle.properties`, `go.mod
 
 - `README.md` / `README_zh-CN.md` / `README_RU.md` / `README_KR.md`
 - `docs/KMP_MIGRATION_PLAN.md` — live step table (73+)
+- `docs/KMP_MIGRATION_STEP93_HANDOVER.md` — Phase 7 A1 Agent 契约
+- `docs/KMP_MIGRATION_STEP94_HANDOVER.md` — Phase 7 A2 Android Facade + Koin
+- `docs/KMP_MIGRATION_STEP95_HANDOVER.md` — Phase 7 A3 Agent 总开关（默认关）
+- `docs/KMP_MIGRATION_STEP96_HANDOVER.md` — Phase 7 A4 AppFunctions Phase A 只读
+- `docs/KMP_MIGRATION_STEP97_HANDOVER.md` — Phase 7 A5 API 36 adb 手测
+- `docs/KMP_MIGRATION_STEP98_HANDOVER.md` — Phase 7 B1+B2 写操作 + OS enable 同步
 - `docs/ANDROID_AGENT_APPFUNCTIONS_PLAN.md` — **Android-only** Agent 可控能力（AppFunctions 接口与分阶段实施）
 - `docs/IOS_PLATFORM_GUIDE.md`, `docs/DEPENDENCY_MIGRATION_GUIDE.md`
 - `docs/KMP_MIGRATION_MIDTERM_REVIEW.md` — rules R-1…R-10 (local notes; may be untracked)

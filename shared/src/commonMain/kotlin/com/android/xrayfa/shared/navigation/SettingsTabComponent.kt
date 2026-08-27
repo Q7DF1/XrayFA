@@ -14,6 +14,8 @@ interface SettingsComponent {
 
     fun onSetBootAutoStart(enable: Boolean)
 
+    fun onSetAgentFunctionsEnabled(enable: Boolean)
+
     fun onSetHideFromRecents(enable: Boolean)
 
     fun onSetLanSocksProxyEnable(enable: Boolean)

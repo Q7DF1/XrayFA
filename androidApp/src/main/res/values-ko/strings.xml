@@ -210,4 +210,5 @@
     <string name="edit_short_id">Short ID</string>
     <string name="edit_back_cd">뒤로</string>
     <string name="edit_save_cd">저장</string>
+    <string name="appfunctions_display_description">설정에서 Agent 기능을 켜면 VPN 상태, 노드, 구독, 설정을 조회할 수 있습니다.</string>
 </resources>

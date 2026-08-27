@@ -30,6 +30,9 @@ kotlin {
             implementation(libs.junit)
             implementation(libs.gson)
         }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
     }
 }
 

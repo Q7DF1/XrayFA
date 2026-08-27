@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.android.xrayfa.agent.AgentScreen
 import com.android.xrayfa.shared.navigation.RootComponent
 import com.android.xrayfa.shared.navigation.RootTab
 import com.android.xrayfa.shared.navigation.createRootComponent
@@ -72,6 +73,10 @@ fun AndroidAppShell(
                     rootActionCoordinator.consume()
                     vpnConnectCoordinator.disconnect()
                 }
+                is AndroidRootAction.OpenScreen -> {
+                    rootComponent.selectTab(action.screen.toRootTab())
+                    rootActionCoordinator.consume()
+                }
                 null -> Unit
             }
         }
@@ -128,4 +133,11 @@ private class AndroidPlatformRootHooks(
     override fun LogcatScreen(onBack: () -> Unit) {
         AndroidLogcatScreen(viewmodel = xrayViewmodel, onBack = onBack)
     }
+}
+
+/** Apps / RouteSettings are nested Settings UI; Agent lands on the Settings tab. */
+internal fun AgentScreen.toRootTab(): RootTab = when (this) {
+    AgentScreen.Home -> RootTab.Home
+    AgentScreen.Config, AgentScreen.Subscriptions -> RootTab.Config
+    AgentScreen.Settings, AgentScreen.Apps, AgentScreen.RouteSettings -> RootTab.Settings
 }
