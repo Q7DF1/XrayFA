@@ -105,6 +105,7 @@ Output: `AndroidLibXrayLite/LibXrayLite.xcframework` (gitignored). CI caches it 
 - Parser / config goldens: `domain/src/commonTest/kotlin/com/android/xrayfa/parser/` (`ProtocolParserGoldenTest`, `AbstractConfigParserGoldenTest`).
 - Agent catalog: `domain/src/commonTest/kotlin/com/android/xrayfa/agent/XrayAgentCatalogTest.kt` (node/subscription summaries must not leak URLs or node JSON).
 - Native delay mapping: `core/native-bridge/.../DecodeNativeDelayMsTest.kt`.
+- GeoLite country flags: `common/src/commonTest/.../CountryFlagEmojiTest.kt`, `GeoIpCountryDisplayTest.kt`, `MmdbCountryLookupTest.kt` (MaxMind `GeoIP2-Country-Test.mmdb` fixture in `androidUnitTest/resources`).
 - New parser / routing / subscription logic: add a `commonTest` golden (share link → kotlinx JSON) **before** changing the encoder.
 
 `./gradlew allTests` (including iOS simulator) is the full KMP bar; CI currently runs the JVM subset on `feat/**` (see §8).
@@ -234,6 +235,7 @@ Verify numbers against `gradle/libs.versions.toml`, `gradle.properties`, `go.mod
 - `docs/KMP_MIGRATION_STEP98_HANDOVER.md` — Phase 7 B1+B2 写操作 + OS enable 同步
 - `docs/KMP_MIGRATION_STEP99_HANDOVER.md` — iOS 主题跟随设置 `darkMode`
 - `docs/KMP_MIGRATION_STEP100_HANDOVER.md` — iOS `measureOutboundDelay` ObjC shim
+- `docs/KMP_MIGRATION_STEP101_HANDOVER.md` — iOS GeoIP（common MMDB reader + 国旗 emoji）
 - `docs/ANDROID_AGENT_APPFUNCTIONS_PLAN.md` — **Android-only** Agent 可控能力（AppFunctions 接口与分阶段实施）
 - `docs/IOS_PLATFORM_GUIDE.md`, `docs/DEPENDENCY_MIGRATION_GUIDE.md`
 - `docs/KMP_MIGRATION_MIDTERM_REVIEW.md` — rules R-1…R-10 (local notes; may be untracked)

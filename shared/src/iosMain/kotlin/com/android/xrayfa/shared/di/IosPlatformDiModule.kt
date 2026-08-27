@@ -39,7 +39,7 @@ val iosPlatformDiModule: Module = module {
     single { SettingsRepository(get(), get()) }
     single<ConfigParserSettingsProvider> { get<SettingsRepository>() }
     single<XrayAssetPaths> { IosXrayAssetPaths() }
-    single<GeoIpProvider> { IosGeoIpProvider() }
+    single<GeoIpProvider> { IosGeoIpProvider(get()) }
     single {
         IosVpnController(scope = get(named(KoinQualifiers.MAIN_SCOPE)))
     }
