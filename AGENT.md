@@ -104,7 +104,7 @@ Output: `AndroidLibXrayLite/LibXrayLite.xcframework` (gitignored). CI caches it 
 - Shared business logic belongs in **`commonTest`**, not `androidUnitTest`. Gson parity stays on Android (Gson is JVM-only).
 - Parser / config goldens: `domain/src/commonTest/kotlin/com/android/xrayfa/parser/` (`ProtocolParserGoldenTest`, `AbstractConfigParserGoldenTest`).
 - Agent catalog: `domain/src/commonTest/kotlin/com/android/xrayfa/agent/XrayAgentCatalogTest.kt` (node/subscription summaries must not leak URLs or node JSON).
-- Android Agent facade: `androidApp/src/test/.../DefaultXrayAgentFacadeTest.kt`.
+- Native delay mapping: `core/native-bridge/.../DecodeNativeDelayMsTest.kt`.
 - New parser / routing / subscription logic: add a `commonTest` golden (share link → kotlinx JSON) **before** changing the encoder.
 
 `./gradlew allTests` (including iOS simulator) is the full KMP bar; CI currently runs the JVM subset on `feat/**` (see §8).
@@ -233,6 +233,7 @@ Verify numbers against `gradle/libs.versions.toml`, `gradle.properties`, `go.mod
 - `docs/KMP_MIGRATION_STEP97_HANDOVER.md` — Phase 7 A5 API 36 adb 手测
 - `docs/KMP_MIGRATION_STEP98_HANDOVER.md` — Phase 7 B1+B2 写操作 + OS enable 同步
 - `docs/KMP_MIGRATION_STEP99_HANDOVER.md` — iOS 主题跟随设置 `darkMode`
+- `docs/KMP_MIGRATION_STEP100_HANDOVER.md` — iOS `measureOutboundDelay` ObjC shim
 - `docs/ANDROID_AGENT_APPFUNCTIONS_PLAN.md` — **Android-only** Agent 可控能力（AppFunctions 接口与分阶段实施）
 - `docs/IOS_PLATFORM_GUIDE.md`, `docs/DEPENDENCY_MIGRATION_GUIDE.md`
 - `docs/KMP_MIGRATION_MIDTERM_REVIEW.md` — rules R-1…R-10 (local notes; may be untracked)

@@ -63,6 +63,9 @@ kotlin {
             implementation(project(":common"))
             implementation(libs.kotlinx.coroutines.core)
         }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
         androidMain.dependencies {
             // compileOnly: AGP forbids packaging local .aar into another AAR; :androidApp supplies libv2ray at runtime.
             compileOnly(
@@ -85,4 +88,59 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+}
+
+fun iosSdkAndArch(targetName: String): Pair<String, String> =
+    when (targetName) {
+        "iosArm64" -> "iphoneos" to "arm64"
+        "iosSimulatorArm64" -> "iphonesimulator" to "arm64"
+        "iosX64" -> "iphonesimulator" to "x86_64"
+        else -> error("Unsupported iOS target: $targetName")
+    }
+
+listOf("iosArm64", "iosSimulatorArm64", "iosX64").forEach { targetName ->
+    val capital = targetName.replaceFirstChar { it.uppercase() }
+    val outFile = layout.buildDirectory.file("nativeDelayShim/$targetName/XrayFAMeasureOutboundDelay.o")
+    tasks.register<Exec>("compileDelayShim$capital") {
+        val mFile = file("src/nativeInterop/cinterop/XrayFAMeasureOutboundDelay.m")
+        val headers = file("src/nativeInterop/cinterop/headers")
+        inputs.files(mFile)
+        inputs.dir(headers)
+        outputs.file(outFile)
+        val (sdk, arch) = iosSdkAndArch(targetName)
+        val outPath = outFile.get().asFile.absolutePath
+        val mPath = mFile.absolutePath
+        val headerPath = headers.absolutePath
+        commandLine(
+            "bash",
+            "-c",
+            """
+            set -euo pipefail
+            mkdir -p "$(dirname '$outPath')"
+            SDK="${'$'}(xcrun --sdk $sdk --show-sdk-path)"
+            xcrun --sdk $sdk clang -c -fobjc-arc -arch $arch -isysroot "${'$'}SDK" \
+              -I "$headerPath" \
+              "$mPath" -o "$outPath"
+            """.trimIndent(),
+        )
+    }
+}
+
+afterEvaluate {
+    kotlin.targets
+        .withType(org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget::class.java)
+        .filter { it.name.startsWith("ios") }
+        .forEach { target ->
+            val capital = target.name.replaceFirstChar { it.uppercase() }
+            val compileShim = tasks.named("compileDelayShim$capital")
+            val oFile =
+                layout.buildDirectory
+                    .file("nativeDelayShim/${target.name}/XrayFAMeasureOutboundDelay.o")
+                    .get()
+                    .asFile
+            target.binaries.all {
+                linkTaskProvider.configure { dependsOn(compileShim) }
+                linkerOpts(oFile.absolutePath)
+            }
+        }
 }

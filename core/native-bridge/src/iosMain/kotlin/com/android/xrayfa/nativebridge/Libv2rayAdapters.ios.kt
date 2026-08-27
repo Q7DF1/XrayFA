@@ -52,11 +52,7 @@ internal class Libv2rayCoreControllerAdapter(
             val result = alloc<LongVarOf<Long>>()
             val error = alloc<ObjCObjectVar<platform.Foundation.NSError?>>()
             val ok = controller.measureDelay(url, result.ptr, error.ptr)
-            if (!ok) {
-                -1L
-            } else {
-                result.value
-            }
+            decodeNativeDelayMs(ok, result.value)
         }
 
     override fun queryStats(

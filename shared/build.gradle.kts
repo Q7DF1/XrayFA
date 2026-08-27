@@ -26,6 +26,18 @@ kotlin {
         }
         target.binaries.all {
             linkerOpts("-framework", "AVFoundation")
+            val shimObject =
+                rootProject
+                    .project(":core:native-bridge")
+                    .layout
+                    .buildDirectory
+                    .file("nativeDelayShim/${target.name}/XrayFAMeasureOutboundDelay.o")
+                    .get()
+                    .asFile
+            linkerOpts(shimObject.absolutePath)
+            linkTaskProvider.configure {
+                dependsOn(":core:native-bridge:compileDelayShim${target.name.replaceFirstChar { it.uppercase() }}")
+            }
         }
     }
 

@@ -40,6 +40,6 @@ export JAVA_HOME="$HOME/Library/Java/JavaVirtualMachines/jbr-21.0.11/Contents/Ho
 
 ## 下一步
 
-1. iOS `measureOutboundDelay`（目前 K/N cinterop 出参不可用，需 NE `measureDelay` 或 shim）
+1. iOS `measureOutboundDelay` ObjC shim — ✅ Step 100
 2. iOS GeoIP（节点国家标记）
 3. **不要**做 Agent Phase C / C1，除非产品明确要求

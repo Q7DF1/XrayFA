@@ -5,6 +5,7 @@ package com.android.xrayfa.nativebridge
 import libv2ray.Libv2rayCheckVersionX
 import libv2ray.Libv2rayInitCoreEnv
 import libv2ray.Libv2rayNewCoreController
+import libv2ray.XrayFAMeasureOutboundDelay
 
 /** iOS actual: thin delegate over gomobile LibXrayLite (ObjC cinterop). */
 internal class Libv2rayXrayBridge : XrayBridge {
@@ -21,9 +22,6 @@ internal class Libv2rayXrayBridge : XrayBridge {
 
     override fun checkVersion(): String = Libv2rayCheckVersionX()
 
-    override fun measureOutboundDelay(configJson: String, url: String): Long {
-        // gomobile's Libv2rayMeasureOutboundDelay is not callable from Kotlin cinterop (int64_t* out-param).
-        // Matches prior iOS stub (-1L); use CoreController.measureDelay after startLoop when wired in NE (E.5d).
-        return -1L
-    }
+    override fun measureOutboundDelay(configJson: String, url: String): Long =
+        XrayFAMeasureOutboundDelay(configJson, url)
 }

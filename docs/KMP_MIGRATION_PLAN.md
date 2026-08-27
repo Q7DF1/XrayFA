@@ -947,6 +947,7 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | 97 | Phase 7 A5：API 36 真机 `adb cmd app_function` 手测 | ✅ 见 `KMP_MIGRATION_STEP97_HANDOVER.md` |
 | 98 | Phase 7 B1+B2：Phase B 写操作 + `setAppFunctionEnabled` 联动 | ✅ 见 `KMP_MIGRATION_STEP98_HANDOVER.md` |
 | 99 | iOS `darkMode` 接到共享 `XrayTheme`（对齐 Android） | ✅ 见 `KMP_MIGRATION_STEP99_HANDOVER.md` |
+| 100 | iOS `measureOutboundDelay` ObjC shim（不再恒 `-1L`） | ✅ 见 `KMP_MIGRATION_STEP100_HANDOVER.md` |
 
 ### Phase 7：Android Agent 可控能力（AppFunctions，KMP 完成后）
 
