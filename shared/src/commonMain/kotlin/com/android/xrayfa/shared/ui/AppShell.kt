@@ -14,7 +14,7 @@ import com.android.xrayfa.shared.ui.theme.XrayTheme
 import org.koin.compose.koinInject
 
 /**
- * Minimal shared Compose shell (E.6). Decompose [RootContent] drives tab navigation (E.6e).
+ * Shared Compose shell. Decompose [RootContent] drives Config/Home pager plus overlays.
  * When [applyTheme] is true (iOS), Material dark/light follows Settings `darkMode`.
  */
 @Composable

@@ -208,6 +208,8 @@
     <string name="apps_configured_summary">已允许的包名（只读）</string>
     <string name="apps_no_packages">尚未配置分应用白名单。</string>
     <string name="platform_unavailable">仅 Android 可用</string>
+    <string name="in_development">开发中</string>
+    <string name="in_development_message">该功能在 iOS 上正在开发中。</string>
     <string name="platform_section">平台</string>
     <string name="domain_strategy_section">域名策略</string>
     <string name="domain_strategy_asis">AsIs</string>

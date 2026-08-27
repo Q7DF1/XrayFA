@@ -21,12 +21,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,7 +33,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +49,7 @@ import com.android.xrayfa.common.routing.Rule
 import com.android.xrayfa.common.routing.decodeRules
 import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.ui.widgets.SharedModalBottomSheet
+import com.android.xrayfa.shared.ui.widgets.SharedOptionPickerField
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 
 private object RoutePresetTags {
@@ -160,13 +156,13 @@ fun SharedRouteSettingsScreen(
                 text = { Text(labels.addCustomRuleLabel) },
                 containerColor =
                     if (isRouteMode) {
-                        FloatingActionButtonDefaults.containerColor
+                        MaterialTheme.colorScheme.primaryContainer
                     } else {
                         MaterialTheme.colorScheme.surfaceVariant
                     },
                 contentColor =
                     if (isRouteMode) {
-                        contentColorFor(FloatingActionButtonDefaults.containerColor)
+                        MaterialTheme.colorScheme.onPrimaryContainer
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                     },
@@ -412,53 +408,25 @@ private fun SharedAddRuleBottomSheet(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SharedDomainStrategySelector(
     labels: RouteSettingsUiLabels,
     currentStrategy: DomainStrategy,
     onStrategySelected: (DomainStrategy) -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
     val strategies =
         listOf(
             labels.domainStrategyAsIsLabel to DomainStrategy.ASIS,
             labels.domainStrategyIpIfNonMatchLabel to DomainStrategy.IP_IF_NON_MATCH,
             labels.domainStrategyIpOnDemandLabel to DomainStrategy.IP_ON_DEMAND,
         )
-
     Box(modifier = Modifier.padding(16.dp)) {
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded },
-        ) {
-            OutlinedTextField(
-                value = strategies.find { it.second == currentStrategy }?.first ?: labels.unknownLabel,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text(labels.strategyFieldLabel) },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                modifier =
-                    Modifier
-                        .menuAnchor()
-                        .fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
-            )
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-            ) {
-                strategies.forEach { (label, value) ->
-                    DropdownMenuItem(
-                        text = { Text(label) },
-                        onClick = {
-                            onStrategySelected(value)
-                            expanded = false
-                        },
-                    )
-                }
-            }
-        }
+        SharedOptionPickerField(
+            valueLabel = strategies.find { it.second == currentStrategy }?.first ?: labels.unknownLabel,
+            label = labels.strategyFieldLabel,
+            options = strategies,
+            onSelected = onStrategySelected,
+        )
     }
 }
 
@@ -621,51 +589,23 @@ private fun SharedManualRuleCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SharedRoutingModeSelector(
     labels: RouteSettingsUiLabels,
     currentMode: RoutingMode,
     onModeSelected: (RoutingMode) -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
     val modes =
         listOf(
             labels.routingModeGlobalLabel to RoutingMode.GLOBAL,
             labels.routingModeRouteLabel to RoutingMode.ROUTE,
         )
-
     Box(modifier = Modifier.padding(16.dp)) {
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded },
-        ) {
-            OutlinedTextField(
-                value = modes.find { it.second == currentMode }?.first ?: labels.unknownLabel,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text(labels.routingModeSectionTitle) },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                modifier =
-                    Modifier
-                        .menuAnchor()
-                        .fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
-            )
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-            ) {
-                modes.forEach { (label, value) ->
-                    DropdownMenuItem(
-                        text = { Text(label) },
-                        onClick = {
-                            onModeSelected(value)
-                            expanded = false
-                        },
-                    )
-                }
-            }
-        }
+        SharedOptionPickerField(
+            valueLabel = modes.find { it.second == currentMode }?.first ?: labels.unknownLabel,
+            label = labels.routingModeSectionTitle,
+            options = modes,
+            onSelected = onModeSelected,
+        )
     }
 }

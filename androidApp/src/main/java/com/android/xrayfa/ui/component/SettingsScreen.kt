@@ -37,7 +37,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.BugReport
-import androidx.compose.material.icons.outlined.DataUsage
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Info
@@ -93,9 +92,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.Preferences
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
-import com.android.xrayfa.datastore.SettingsKeys
 import com.android.xrayfa.helper.NotificationHelper
 import com.android.xrayfa.ui.navigation.Apps
 import com.android.xrayfa.ui.navigation.Logcat
@@ -141,19 +138,12 @@ fun SettingsScreen(
     val settingsState by viewmodel.settingsState.collectAsState()
     val isVpnConnected by viewmodel.isVpnConnected.collectAsState()
     val context = LocalContext.current
-    var isShowEditDialog by remember { mutableStateOf(false) }
-    var editInitValue by remember { mutableStateOf("") }
-    var editType: Preferences.Key<*> by remember { mutableStateOf(SettingsKeys.SOCKS_PORT) }
-    var validator : (String)->String? by remember { mutableStateOf({null}) }
     val geoIPDownloading by viewmodel.geoIPDownloading.collectAsState()
     val geoIPProgress by viewmodel.geoIPProgress.collectAsState()
     val geoSiteDownloading by viewmodel.geoSiteDownloading.collectAsState()
     val geoSiteProgress by viewmodel.geoSiteProgress.collectAsState()
-    val geoLiteDownloading by viewmodel.geoLiteDownloading.collectAsState()
-    val geoLiteProgress by viewmodel.geoLiteProgress.collectAsState()
     val importException by viewmodel.importException.collectAsState()
     val downloadException by viewmodel.downloadException.collectAsState()
-    val xrayFaDownloading by viewmodel.xrayFaDownloading.collectAsState()
     val ipFilePickLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
@@ -169,7 +159,6 @@ fun SettingsScreen(
                 viewmodel.onSelectFile(context,uri, GEOFileType.FILE_TYPE_SITE)
             }
         }
-    val packageName = context.packageName
     val sharedSettingsComponent = rememberAndroidSettingsComponent()
     val sharedSettingsLabels = rememberSettingsUiLabels()
 
@@ -263,17 +252,6 @@ fun SettingsScreen(
                              domainFilePickLauncher.launch(chooserIntent)
                         }
                     )
-                    SettingsWithBtnBox(
-                        title = R.string.geo_lite_title,
-                        description = R.string.geo_ip_lite_description,
-                        icon = Icons.Outlined.DataUsage,
-                        onDownloadClick = {viewmodel.downloadGeoLite(context)},
-                        downloading = geoLiteDownloading,
-                        downloadEnable = isVpnConnected,
-                        downloadDisabledHint = R.string.geo_download_need_service_hint,
-                        progress = geoLiteProgress,
-                        enable = settingsState.geoLiteInstall
-                    )
                     SettingsCheckBox(
                         title = R.string.enable_hextun_title,
                         description = R.string.enable_hex_tun_desc,
@@ -283,19 +261,6 @@ fun SettingsScreen(
                             viewmodel.setHexTunEnable(it)
                         }
                     )
-                    SettingsFieldBox(
-                        title = R.string.test_url,
-                        content = settingsState.delayTestUrl,
-                        icon = Icons.Outlined.Speed
-                    ) {
-                        //todo: domain validator
-                        editInitValue = settingsState.delayTestUrl
-                        isShowEditDialog = true
-                        editType = SettingsKeys.DELAY_TEST_URL
-                        validator = {
-                            if (it.isBlank()) context.getString(R.string.can_not_be_empty) else null
-                        }
-                    }
                     },
                 )
                 with(sharedTransitionScope) {
@@ -329,26 +294,6 @@ fun SettingsScreen(
                     component = sharedSettingsComponent,
                     labels = sharedSettingsLabels,
                 )
-                if (isShowEditDialog) {
-                    EditTextDialog(
-                        title = stringResource(R.string.edit),
-                        dismissText = stringResource(R.string.cancel),
-                        confirmText = stringResource(R.string.save),
-                        initialText = editInitValue,
-                        isNumeric = false,
-                        validator = validator,
-                        onConfirm = {
-                            when(editType.name) {
-                                SettingsKeys.DELAY_TEST_URL.name ->
-                                    viewmodel.setDelayTestUrl(it)
-                            }
-                            isShowEditDialog = false
-                        },
-                        onDismiss = {
-                            isShowEditDialog = false
-                        }
-                    )
-                }
             }
             ExceptionMessage(
                 shown = importException || downloadException,

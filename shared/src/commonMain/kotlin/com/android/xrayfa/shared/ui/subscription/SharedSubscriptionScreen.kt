@@ -28,8 +28,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -63,6 +61,7 @@ import com.android.xrayfa.model.Subscription
 import com.android.xrayfa.shared.navigation.EmptySubscription
 import com.android.xrayfa.shared.navigation.SubscriptionComponent
 import com.android.xrayfa.shared.ui.widgets.SharedModalBottomSheet
+import com.android.xrayfa.shared.ui.widgets.SharedOptionPickerField
 import com.android.xrayfa.shared.platform.ClipboardWriter
 import com.android.xrayfa.shared.subscription.validateSubscriptionUrl
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -329,7 +328,6 @@ private fun SharedSubscriptionCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SharedSubscriptionEditSheet(
     subscription: Subscription,
@@ -462,7 +460,6 @@ private fun SharedSubscriptionEditSheet(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SharedSubscriptionNodeSelector(
     label: String,
@@ -471,47 +468,18 @@ private fun SharedSubscriptionNodeSelector(
     noneLabel: String,
     onNodeSelected: (Int) -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
     val selectedNode = nodes.find { it.id == selectedNodeId }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        OutlinedTextField(
-            value = selectedNode?.remark ?: selectedNode?.address ?: noneLabel,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier =
-                Modifier
-                    .menuAnchor()
-                    .fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-        )
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            androidx.compose.material3.DropdownMenuItem(
-                text = { Text(noneLabel) },
-                onClick = {
-                    onNodeSelected(-1)
-                    expanded = false
-                },
-            )
+    val options =
+        buildList {
+            add(noneLabel to -1)
             nodes.forEach { node ->
-                androidx.compose.material3.DropdownMenuItem(
-                    text = { Text(node.remark ?: node.address) },
-                    onClick = {
-                        onNodeSelected(node.id)
-                        expanded = false
-                    },
-                )
+                add((node.remark ?: node.address) to node.id)
             }
         }
-    }
+    SharedOptionPickerField(
+        valueLabel = selectedNode?.remark ?: selectedNode?.address ?: noneLabel,
+        label = label,
+        options = options,
+        onSelected = onNodeSelected,
+    )
 }

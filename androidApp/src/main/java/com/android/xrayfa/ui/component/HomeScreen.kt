@@ -52,6 +52,7 @@ import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import androidx.window.core.layout.WindowWidthSizeClass
 import com.android.xrayfa.R
 import com.android.xrayfa.ui.home.rememberAndroidHomeComponent
+import com.android.xrayfa.shared.navigation.HomeComponent
 import com.android.xrayfa.shared.ui.SharedHomeSection
 import com.android.xrayfa.shared.ui.home.HomeSectionHeader
 import com.android.xrayfa.shared.ui.rememberHomeUiLabels
@@ -116,8 +117,10 @@ fun HomeScreen(
 }
 
 @Composable
-fun CompactHomeContent(xrayViewmodel: XrayViewmodel) {
-    val homeComponent = rememberAndroidHomeComponent()
+fun CompactHomeContent(
+    xrayViewmodel: XrayViewmodel,
+    homeComponent: HomeComponent = rememberAndroidHomeComponent(),
+) {
     val selectedNode by xrayViewmodel.getSelectedNode().collectAsState(null)
     val isRunning by xrayViewmodel.isServiceRunning.collectAsState()
     val delayMs by xrayViewmodel.delay.collectAsState()
@@ -193,9 +196,9 @@ fun CompactHomeContent(xrayViewmodel: XrayViewmodel) {
 
 @Composable
 fun ExpandedHomeContent(
-    xrayViewmodel: XrayViewmodel
+    xrayViewmodel: XrayViewmodel,
+    homeComponent: HomeComponent = rememberAndroidHomeComponent(),
 ) {
-    val homeComponent = rememberAndroidHomeComponent()
     val selectedNode by xrayViewmodel.getSelectedNode().collectAsState(null)
     val isRunning by xrayViewmodel.isServiceRunning.collectAsState()
     val delayMs by xrayViewmodel.delay.collectAsState()

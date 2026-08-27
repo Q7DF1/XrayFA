@@ -12,3 +12,14 @@ sealed interface AndroidRootAction {
 
     data class OpenScreen(val screen: AgentScreen) : AndroidRootAction
 }
+
+/** Maps Agent openScreen targets onto the Android Navigation3 graph (not collapsed tabs). */
+fun AgentScreen.toDestination(): NavigateDestination =
+    when (this) {
+        AgentScreen.Home -> Home
+        AgentScreen.Config -> Config
+        AgentScreen.Subscriptions -> Subscription
+        AgentScreen.Settings -> Settings
+        AgentScreen.Apps -> Apps
+        AgentScreen.RouteSettings -> RouteSettings
+    }

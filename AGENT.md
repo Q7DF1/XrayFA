@@ -8,7 +8,7 @@
 
 **XrayFA** is a **Kotlin Multiplatform VPN/proxy client** for **Android and iOS**, built on [Xray-core](https://github.com/XTLS/Xray-core). Protocols: VLESS, VMess, Shadowsocks, Trojan, SOCKS, HTTP, Hysteria2, and others.
 
-- **UI**: Compose Multiplatform (shared screens) + Jetpack Compose on Android (Navigation3 shell) + SwiftUI/Compose iOS shell
+- **UI**: Compose Multiplatform shared `RootContent` (Decompose Config\|Home pager + overlays). Android supplies `PlatformRootHooks`; iOS uses the same shell with 开发中 for unsupported features.
 - **Logic**: Decompose components + Koin 4.0.1 (not Dagger)
 - **Data**: Room KMP + DataStore KMP; repositories in `:core:data`
 - **VPN**: Android `VpnService`; iOS Network Extension (`NEPacketTunnelProvider`)
@@ -158,7 +158,7 @@ XrayFA/
 3. Android: `XrayBaseService` (`VpnService`) + `tun2socks` TUN → local SOCKS; `XrayCoreManager` starts libv2ray.
 4. iOS: Network Extension starts LibXrayLite + HevSocks5Tunnel; App Group for shared settings.
 
-UI: Android `MainActivity` → `XrayFAContainer` (Navigation3 + Pager) wrapping shared composables. iOS uses `RootContent` + Decompose. Labels come from `remember*UiLabels()` (`compose-resources`), not hardcoded English defaults.
+UI: Android `MainActivity` → `AndroidAppShell` → shared `RootContent` (Decompose pager: Config | Home) plus `PlatformRootHooks` for VPN / CameraX QR / geo import / per-app picker / logcat / share / bug report. Settings, subscriptions, QR, apps, logcat, and route settings are overlays, not tabs. iOS uses the same `RootContent`; Android-only capabilities show 开发中. Labels come from `remember*UiLabels()` (`compose-resources`), not hardcoded English defaults.
 
 ---
 

@@ -65,7 +65,6 @@ fun RootTab.toFloatingNavItem(): FloatingNavItem =
     when (this) {
         RootTab.Config -> FloatingNavItem(id = name, icon = Icons.Default.Tune, label = "Config")
         RootTab.Home -> FloatingNavItem(id = name, icon = Icons.Default.Language, label = "Home")
-        RootTab.Settings -> FloatingNavItem(id = name, icon = Icons.Default.Tune, label = "Settings")
     }
 
 /** Floating pill bottom nav shared by Android and iOS. */
@@ -84,11 +83,10 @@ fun XrayFloatingNav(
     val animOffsetX = remember { Animatable(0f) }
 
     BoxWithConstraints(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(bottom = 4.dp, start = 8.dp, end = 8.dp),
-    ) {
+            modifier =
+                modifier
+                    .fillMaxWidth(),
+        ) {
         val barWidth =
             if (constraints.maxWidth <= 0 ||
                 constraints.maxWidth == androidx.compose.ui.unit.Constraints.Infinity

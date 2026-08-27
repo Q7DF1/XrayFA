@@ -81,22 +81,27 @@ import kotlin.collections.listOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
+import com.android.xrayfa.shared.vpn.VpnConnectCoordinator
+import com.android.xrayfa.ui.navigation.AndroidRootAction
+import com.android.xrayfa.ui.navigation.AndroidRootActionCoordinator
+import com.android.xrayfa.ui.navigation.toDestination
 import com.android.xrayfa.ui.navigation.RouteSettings
 import com.android.xrayfa.ui.navigation.ScanQR
 import com.android.xrayfa.shared.ui.nav.FloatingNavItem
 import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 
-@Deprecated("Replaced by shared RootContent via AndroidAppShell (Step 92)")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun XrayFAContainer(
     xrayViewmodel: XrayViewmodel,
     settingsViewmodel: SettingsViewmodel,
     appViewmodel: AppsViewmodel,
-    modifier: Modifier = Modifier
+    rootActionCoordinator: AndroidRootActionCoordinator,
+    modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
     var customNavBarHeightDp by remember { mutableStateOf(0.dp) }
@@ -104,11 +109,45 @@ fun XrayFAContainer(
     val navBackStack = rememberNavBackStack(
         Home
     )
+    val vpnConnectCoordinator: VpnConnectCoordinator = koinInject()
 
     val top = navBackStack.lastOrNull()
     val showNavigationBar by xrayViewmodel.showNavigationBar.collectAsState()
     val isTopLevel = top in list_navigation
     val pendingRoute by xrayViewmodel.pendingRoute.collectAsState()
+
+    LaunchedEffect(rootActionCoordinator, vpnConnectCoordinator) {
+        rootActionCoordinator.pendingAction.collectLatest { action ->
+            when (action) {
+                AndroidRootAction.OpenQrScan -> {
+                    navBackStack.routeTo(Config)
+                    navBackStack.routeTo(
+                        ScanQR { result ->
+                            if (result.isNotEmpty()) {
+                                xrayViewmodel.addLink(result)
+                            }
+                        },
+                    )
+                    rootActionCoordinator.consume()
+                }
+                AndroidRootAction.ConnectVpn -> {
+                    rootActionCoordinator.consume()
+                    if (vpnConnectCoordinator.prepareConfigForConnect()) {
+                        vpnConnectCoordinator.connect()
+                    }
+                }
+                AndroidRootAction.DisconnectVpn -> {
+                    rootActionCoordinator.consume()
+                    vpnConnectCoordinator.disconnect()
+                }
+                is AndroidRootAction.OpenScreen -> {
+                    navBackStack.routeTo(action.screen.toDestination())
+                    rootActionCoordinator.consume()
+                }
+                null -> Unit
+            }
+        }
+    }
 
     LaunchedEffect(pendingRoute) {
         pendingRoute?.let { route ->
@@ -142,7 +181,7 @@ fun XrayFAContainer(
     }
 
     Box(
-        modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+        modifier = modifier.windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         SharedTransitionLayout {
             NavDisplay(

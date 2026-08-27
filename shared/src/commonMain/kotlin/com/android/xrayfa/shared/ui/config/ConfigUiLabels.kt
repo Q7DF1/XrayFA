@@ -27,4 +27,10 @@ data class ConfigUiLabels(
     val deleteNodeTitle: String = "Delete node",
     val deleteNodeConfirm: String = "Delete this node?",
     val speedTestAllLabel: String = "Speed test all",
+    val locateSelectedLabel: String = "Locate selected node",
+    val deleteAllLabel: String = "Delete all",
+    val bugReportLabel: String = "Bug report",
+    val searchLabel: String = "Search",
+    val deleteAllTitle: String = "Delete all",
+    val deleteAllConfirm: String = "This cannot be undone. Delete all nodes?",
 )

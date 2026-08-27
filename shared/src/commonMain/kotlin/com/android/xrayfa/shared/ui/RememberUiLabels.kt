@@ -63,6 +63,12 @@ fun rememberConfigUiLabels(): ConfigUiLabels =
         deleteNodeTitle = stringResource(Res.string.config_delete_node_title),
         deleteNodeConfirm = stringResource(Res.string.config_delete_node_confirm),
         speedTestAllLabel = stringResource(Res.string.config_speed_test_all_cd),
+        locateSelectedLabel = stringResource(Res.string.locate_selected_node),
+        deleteAllLabel = stringResource(Res.string.menu_delete_all),
+        bugReportLabel = stringResource(Res.string.bug_report_header),
+        searchLabel = stringResource(Res.string.apps_search),
+        deleteAllTitle = stringResource(Res.string.menu_delete_all),
+        deleteAllConfirm = stringResource(Res.string.delete_notify),
     )
 
 @Composable

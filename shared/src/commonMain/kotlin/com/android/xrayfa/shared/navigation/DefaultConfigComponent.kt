@@ -50,6 +50,7 @@ class DefaultConfigComponent(
     override val state: Value<ConfigState> = _state
 
     private var selectedFilterId: Int = ConfigFilterIds.SUB_ALL
+    private var searchQuery: String = ""
 
     init {
         scope.launch {
@@ -61,13 +62,14 @@ class DefaultConfigComponent(
                 Triple(allNodes, favorites, subscriptions)
             }.collect { (allNodes, favorites, subscriptions) ->
                 val filters = buildFilters(subscriptions)
-                val filteredNodes = filterNodes(allNodes, favorites, selectedFilterId)
+                val filteredNodes = filterNodes(allNodes, favorites, selectedFilterId, searchQuery)
                 _state.update { current ->
                     current.copy(
                         nodes = filteredNodes,
                         subscriptions = subscriptions,
                         filters = filters,
                         selectedFilterId = selectedFilterId,
+                        searchQuery = searchQuery,
                     )
                 }
             }
@@ -175,6 +177,27 @@ class DefaultConfigComponent(
         }
     }
 
+    override fun onShowDeleteAll() {
+        _state.update { it.copy(pendingDeleteAll = true) }
+    }
+
+    override fun onDismissDeleteAll() {
+        _state.update { it.copy(pendingDeleteAll = false) }
+    }
+
+    override fun onConfirmDeleteAll() {
+        scope.launch {
+            nodeRepository.deleteAllNodes()
+            _state.update { it.copy(pendingDeleteAll = false) }
+        }
+    }
+
+    override fun onSearch(query: String) {
+        searchQuery = query
+        _state.update { it.copy(searchQuery = query) }
+        refreshNodes()
+    }
+
     override fun onTestAllDelays() {
         if (!configDelayTestAllEnabled(_state.value.testingAll)) return
         scope.launch {
@@ -216,8 +239,9 @@ class DefaultConfigComponent(
             val favorites = nodeRepository.favorites.first()
             _state.update { current ->
                 current.copy(
-                    nodes = filterNodes(allNodes, favorites, selectedFilterId),
+                    nodes = filterNodes(allNodes, favorites, selectedFilterId, searchQuery),
                     selectedFilterId = selectedFilterId,
+                    searchQuery = searchQuery,
                 )
             }
         }
@@ -240,6 +264,7 @@ class DefaultConfigComponent(
         allNodes: List<com.android.xrayfa.model.Node>,
         favorites: List<com.android.xrayfa.model.Node>,
         filterId: Int,
+        query: String,
     ): List<com.android.xrayfa.model.Node> {
         val filtered =
             when (filterId) {
@@ -247,7 +272,14 @@ class DefaultConfigComponent(
                 ConfigFilterIds.SUB_FAVORITE -> favorites
                 else -> allNodes.filter { it.subscriptionId == filterId }
             }
-        return filtered.reversed()
+        val reversed = filtered.reversed()
+        if (query.isBlank()) {
+            return reversed
+        }
+        return reversed.filter { node ->
+            node.remark?.contains(query, ignoreCase = true) == true ||
+                node.url.contains(query, ignoreCase = true)
+        }
     }
 
     private companion object {

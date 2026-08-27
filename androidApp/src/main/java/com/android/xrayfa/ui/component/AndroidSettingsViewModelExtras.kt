@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.android.xrayfa.R
 import com.android.xrayfa.helper.NotificationHelper
 import com.android.xrayfa.viewmodel.GEOFileType
@@ -101,5 +102,17 @@ fun ColumnScope.AndroidSettingsNetworkViewModelExtras(viewmodel: SettingsViewmod
         icon = Icons.Outlined.Security,
         checked = settingsState.hexTunEnable,
         onCheckedChange = viewmodel::setHexTunEnable,
+    )
+
+    val importException by viewmodel.importException.collectAsState()
+    val downloadException by viewmodel.downloadException.collectAsState()
+    ExceptionMessage(
+        shown = importException || downloadException,
+        msg =
+            if (importException) {
+                stringResource(R.string.import_geo_failed)
+            } else {
+                stringResource(R.string.download_geo_failed)
+            },
     )
 }

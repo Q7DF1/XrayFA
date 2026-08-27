@@ -1,28 +1,17 @@
 package com.android.xrayfa.ui
 
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.android.xrayfa.agent.AgentScreen
 import com.android.xrayfa.shared.navigation.RootComponent
-import com.android.xrayfa.shared.navigation.RootTab
 import com.android.xrayfa.shared.navigation.createRootComponent
 import com.android.xrayfa.shared.ui.RootContent
 import com.android.xrayfa.shared.ui.platform.LocalPlatformRootHooks
-import com.android.xrayfa.shared.ui.platform.PlatformRootHooks
 import com.android.xrayfa.shared.vpn.VpnConnectCoordinator
-import com.android.xrayfa.ui.component.AndroidAppsScreen
-import com.android.xrayfa.ui.component.AndroidLogcatScreen
-import com.android.xrayfa.ui.component.AndroidSettingsGeneralViewModelExtras
-import com.android.xrayfa.ui.component.AndroidSettingsNetworkViewModelExtras
 import com.android.xrayfa.ui.navigation.AndroidRootAction
 import com.android.xrayfa.ui.navigation.AndroidRootActionCoordinator
 import com.android.xrayfa.viewmodel.AppsViewmodel
@@ -52,15 +41,13 @@ fun AndroidAppShell(
                 xrayViewmodel = xrayViewmodel,
             )
         }
-    var openQrScannerRequest by remember { mutableStateOf(false) }
     val vpnConnectCoordinator: VpnConnectCoordinator = koinInject()
 
-    LaunchedEffect(rootActionCoordinator, vpnConnectCoordinator) {
+    LaunchedEffect(rootActionCoordinator, vpnConnectCoordinator, rootComponent) {
         rootActionCoordinator.pendingAction.collectLatest { action ->
             when (action) {
                 AndroidRootAction.OpenQrScan -> {
-                    rootComponent.selectTab(RootTab.Config)
-                    openQrScannerRequest = true
+                    rootComponent.openQrScanner()
                     rootActionCoordinator.consume()
                 }
                 AndroidRootAction.ConnectVpn -> {
@@ -74,7 +61,7 @@ fun AndroidAppShell(
                     vpnConnectCoordinator.disconnect()
                 }
                 is AndroidRootAction.OpenScreen -> {
-                    rootComponent.selectTab(action.screen.toRootTab())
+                    rootComponent.openAgentScreen(action.screen)
                     rootActionCoordinator.consume()
                 }
                 null -> Unit
@@ -86,8 +73,6 @@ fun AndroidAppShell(
         RootContent(
             component = rootComponent,
             modifier = modifier.fillMaxSize(),
-            openQrScannerRequest = openQrScannerRequest,
-            onOpenQrScannerRequestConsumed = { openQrScannerRequest = false },
         )
     }
 }
@@ -100,44 +85,4 @@ fun rememberAndroidRootLifecycle(): LifecycleRegistry {
         onDispose { lifecycle.destroy() }
     }
     return lifecycle
-}
-
-private class AndroidPlatformRootHooks(
-    private val settingsViewmodel: SettingsViewmodel,
-    private val appsViewmodel: AppsViewmodel,
-    private val xrayViewmodel: XrayViewmodel,
-) : PlatformRootHooks {
-    @Composable
-    override fun ColumnScope.SettingsGeneralExtras(
-        component: com.android.xrayfa.shared.navigation.SettingsComponent,
-    ) {
-        AndroidSettingsGeneralViewModelExtras(settingsViewmodel)
-    }
-
-    @Composable
-    override fun ColumnScope.SettingsNetworkExtras(
-        component: com.android.xrayfa.shared.navigation.SettingsComponent,
-    ) {
-        AndroidSettingsNetworkViewModelExtras(settingsViewmodel)
-    }
-
-    @Composable
-    override fun AppsScreen(
-        component: com.android.xrayfa.shared.navigation.SettingsComponent,
-        onBack: () -> Unit,
-    ) {
-        AndroidAppsScreen(viewmodel = appsViewmodel, onBack = onBack)
-    }
-
-    @Composable
-    override fun LogcatScreen(onBack: () -> Unit) {
-        AndroidLogcatScreen(viewmodel = xrayViewmodel, onBack = onBack)
-    }
-}
-
-/** Apps / RouteSettings are nested Settings UI; Agent lands on the Settings tab. */
-internal fun AgentScreen.toRootTab(): RootTab = when (this) {
-    AgentScreen.Home -> RootTab.Home
-    AgentScreen.Config, AgentScreen.Subscriptions -> RootTab.Config
-    AgentScreen.Settings, AgentScreen.Apps, AgentScreen.RouteSettings -> RootTab.Settings
 }

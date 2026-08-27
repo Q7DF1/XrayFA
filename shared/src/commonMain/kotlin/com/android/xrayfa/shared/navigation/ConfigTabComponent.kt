@@ -34,6 +34,14 @@ interface ConfigComponent {
 
     fun onConfirmDeleteNode()
 
+    fun onShowDeleteAll()
+
+    fun onDismissDeleteAll()
+
+    fun onConfirmDeleteAll()
+
+    fun onSearch(query: String)
+
     fun onTestAllDelays()
 }
 

@@ -222,6 +222,8 @@
     <string name="apps_configured_summary">Allowed packages (read-only)</string>
     <string name="apps_no_packages">No per-app allow list configured yet.</string>
     <string name="platform_unavailable">Available on Android only</string>
+    <string name="in_development">개발 중</string>
+    <string name="in_development_message">이 기능은 iOS에서 개발 중입니다.</string>
     <string name="platform_section">Platform</string>
     <string name="domain_strategy_section">Domain Strategy</string>
     <string name="domain_strategy_asis">AsIs</string>
