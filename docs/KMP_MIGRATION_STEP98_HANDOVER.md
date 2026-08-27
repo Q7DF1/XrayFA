@@ -73,7 +73,7 @@ export JAVA_HOME="$HOME/Library/Java/JavaVirtualMachines/jbr-21.0.11/Contents/Ho
 - [x] 无选中节点 / 未授权 VPN / 已连接 / prepare 失败 / connect 失败 单测
 - [x] 空 traffic flow 回零（不再抛、不再挂）
 - [x] B2 sync：null writer no-op；逐 ID 写入；单 ID 失败继续
-- [ ] API 36 真机：`list-app-functions` 看到 15 个 ID；`getTrafficSpeeds` 回零而非 timeout；无 VPN 授权时 `connectVpn` → `needs_consent`（本步设备未连接）
+- [x] API 36 真机（SM-S9420，sdk 36）：`list-app-functions` **15** 个 ID；`getTrafficSpeeds` **0.0/0.0**（`--timeout-duration 5` 未挂）；无 VPN 授权时 `connectVpn` → `status: needs_consent` / `VPN_NOT_PREPARED`
 
 adb 复用 STEP97 的 Samsung 子命令。有参示例：
 
@@ -89,7 +89,7 @@ adb shell "cmd app_function execute-app-function --package com.android.xrayfa \
   --parameters '{\"target\":[\"Settings\"]}' --user 0 --brief-yaml"
 ```
 
-开关关掉后再 execute：仍应 `AGENT_DISABLED (code 1000)`。B2 额外会把 OS enable 位打成 DISABLED。测完若改过开关，恢复用户原值。
+开关关掉后再 execute：B2 先把 OS enable 位置为 DISABLED，系统直接拒绝，实测为 **`AppFunctionException` code 1002**（function disabled），到不了应用内 `AGENT_DISABLED (1000)`。这是预期：OS 门在 Facade 门前面。测完已把设置页开关恢复为用户原值（开）。
 
 **不要**把真实节点 IP / 订阅 URL 写进文档。
 
@@ -114,14 +114,10 @@ Phase 7 必做 **7** 项全部完成。C1 为可选，不计入。
 
 ## 下一步
 
-1. 有 API 36 设备时补 STEP97 同机手测：15 个 ID、`getTrafficSpeeds` 零值、`connectVpn` consent。
-2. **不要**做 Phase C 或 C1，除非产品明确要求。
-3. 新加 `@AppFunction` 时同步 `AgentAppFunctionIds.ALL`（反射单测会红）。
+1. **不要**做 Phase C 或 C1，除非产品明确要求。
+2. 新加 `@AppFunction` 时同步 `AgentAppFunctionIds.ALL`（反射单测会红）。
+3. iOS 产品缺口（非 Agent）：设置 `darkMode` 接到共享 `XrayTheme`；`measureOutboundDelay`；GeoIP。
 
 ---
 
-## Commit 建议（确认后执行）
-
-```
-feat(agent): implement Phase B AppFunctions and sync OS enablement
-```
+真机手测已记入上文验证清单（SM-S9420）。

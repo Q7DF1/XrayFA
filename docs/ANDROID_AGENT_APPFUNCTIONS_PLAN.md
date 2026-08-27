@@ -367,7 +367,7 @@ adb shell "cmd app_function execute-app-function --package com.android.xrayfa \
 ```
 
 - [x] Agent 关闭时 execute 返回 disabled / AGENT_DISABLED
-- [x] 无 VPN 权限时 `connectVpn` → `NeedsUserConsent`（Facade 单测；真机 adb 待补）
+- [x] 无 VPN 权限时 `connectVpn` → `NeedsUserConsent`（Facade 单测；STEP98 真机 SM-S9420 `needs_consent` / `VPN_NOT_PREPARED`）
 - [x] `list_nodes` 不包含完整 url 字段
 - [x] 选中不存在 nodeId → `NODE_NOT_FOUND`（Catalog / Facade 单测）
 - [x] `getTrafficSpeeds` 无采样时回零，不再挂起（STEP98）
