@@ -5,7 +5,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import com.android.xrayfa.shared.navigation.DefaultSettingsComponent
 import com.android.xrayfa.shared.navigation.SettingsComponent
+import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.datastore.SettingsRepository
+import com.android.xrayfa.network.FileDownloader
 import com.android.xrayfa.vpn.VpnController
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.DefaultComponentContext
@@ -28,6 +30,8 @@ fun rememberAndroidSettingsComponent(): SettingsComponent {
             componentContext = componentContext,
             settingsRepository = koin.get<SettingsRepository>(),
             vpnController = koin.get<VpnController>(),
+            fileDownloader = koin.get<FileDownloader>(),
+            assetPaths = koin.get<XrayAssetPaths>(),
         )
     }
 }

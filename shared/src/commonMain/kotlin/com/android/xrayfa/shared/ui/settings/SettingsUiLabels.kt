@@ -77,4 +77,8 @@ data class SettingsUiLabels(
     val appLogEmptyMessage: String = "No app logs yet",
     val appLogClearLabel: String = "Clear",
     val appLogCopyLabel: String = "Copy all",
+    val geoLiteTitle: String = "Geo_ip_lite",
+    val geoLiteDescription: String = "IP address and corresponding country information",
+    val geoDownloadNeedServiceHint: String =
+        "Start the service first — downloads route through the proxy to reach GitHub reliably.",
 )

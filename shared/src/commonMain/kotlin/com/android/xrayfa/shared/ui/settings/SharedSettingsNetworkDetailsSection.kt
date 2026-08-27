@@ -1,6 +1,7 @@
 package com.android.xrayfa.shared.ui.settings
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.DataUsage
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.NetworkCheck
 import androidx.compose.material.icons.outlined.Numbers
@@ -12,6 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.android.xrayfa.common.core.geoLiteDownloadEnabled
 import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 
@@ -31,6 +33,7 @@ fun SharedSettingsNetworkDetailsSection(
     modifier: Modifier = Modifier,
 ) {
     val state by component.state.subscribeAsState()
+    val geoLite by component.geoLiteDownload.subscribeAsState()
     var editField by remember { mutableStateOf<NetworkEditField?>(null) }
     var editInitialValue by remember { mutableStateOf("") }
 
@@ -96,6 +99,18 @@ fun SharedSettingsNetworkDetailsSection(
                 openEdit(NetworkEditField.DNS_IPV6, state.dnsIPv6)
             }
         },
+    )
+
+    SharedSettingsDownloadRow(
+        title = labels.geoLiteTitle,
+        description = labels.geoLiteDescription,
+        installed = state.geoLiteInstall,
+        downloading = geoLite.downloading,
+        progress = geoLite.progress,
+        downloadEnabled = geoLiteDownloadEnabled(geoLite.vpnConnected, geoLite.downloading),
+        downloadDisabledHint = labels.geoDownloadNeedServiceHint,
+        onDownloadClick = component::onDownloadGeoLite,
+        icon = Icons.Outlined.DataUsage,
     )
 
     editField?.let { field ->

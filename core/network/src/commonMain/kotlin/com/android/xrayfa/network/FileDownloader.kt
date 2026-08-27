@@ -32,6 +32,28 @@ class FileDownloader(
             }
         }
     }
+
+    suspend fun downloadToFile(
+        url: String,
+        targetPath: String,
+        onProgress: (Float) -> Unit = {},
+    ) {
+        val sink = FileByteSink(targetPath)
+        try {
+            download(
+                url = url,
+                onProgress = { loaded, total ->
+                    if (total != null && total > 0) {
+                        onProgress(loaded.toFloat() / total)
+                    }
+                },
+            ) { buffer, offset, length ->
+                sink.write(buffer, offset, length)
+            }
+        } finally {
+            sink.close()
+        }
+    }
 }
 
 class FileDownloadException(message: String) : Exception(message)

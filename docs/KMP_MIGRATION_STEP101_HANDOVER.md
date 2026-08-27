@@ -56,6 +56,6 @@ export JAVA_HOME="$HOME/Library/Java/JavaVirtualMachines/jbr-21.0.11/Contents/Ho
 
 ## 下一步
 
-1. iOS / 共享设置：GeoLite 下载 + `geoLiteInstall`（否则 lookup 写好了也看不到旗）
+1. iOS / 共享设置：GeoLite 下载 + `geoLiteInstall`（否则 lookup 写好了也看不到旗） — ✅ Step 102
 2. 共享 Home/Config 接 `onTest` + iOS `XrayCore` 委托 Step 100 shim
 3. **不要**做 Agent Phase C / C1，除非产品明确要求

@@ -5,7 +5,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.DataUsage
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.Public
@@ -20,7 +19,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.android.xrayfa.R
-import com.android.xrayfa.datastore.SettingsKeys
 import com.android.xrayfa.helper.NotificationHelper
 import com.android.xrayfa.viewmodel.GEOFileType
 import com.android.xrayfa.viewmodel.GEOFileType.Companion.FILE_TYPE_IP
@@ -52,8 +50,6 @@ fun ColumnScope.AndroidSettingsNetworkViewModelExtras(viewmodel: SettingsViewmod
     val geoIPProgress by viewmodel.geoIPProgress.collectAsState()
     val geoSiteDownloading by viewmodel.geoSiteDownloading.collectAsState()
     val geoSiteProgress by viewmodel.geoSiteProgress.collectAsState()
-    val geoLiteDownloading by viewmodel.geoLiteDownloading.collectAsState()
-    val geoLiteProgress by viewmodel.geoLiteProgress.collectAsState()
 
     val ipFilePickLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -106,17 +102,6 @@ fun ColumnScope.AndroidSettingsNetworkViewModelExtras(viewmodel: SettingsViewmod
                 }
             domainFilePickLauncher.launch(Intent.createChooser(intent, "Select a file via..."))
         },
-    )
-    SettingsWithBtnBox(
-        title = R.string.geo_lite_title,
-        description = R.string.geo_ip_lite_description,
-        icon = Icons.Outlined.DataUsage,
-        onDownloadClick = { viewmodel.downloadGeoLite(context) },
-        downloading = geoLiteDownloading,
-        downloadEnable = isVpnConnected,
-        downloadDisabledHint = R.string.geo_download_need_service_hint,
-        progress = geoLiteProgress,
-        enable = settingsState.geoLiteInstall,
     )
     SettingsCheckBox(
         title = R.string.enable_hextun_title,

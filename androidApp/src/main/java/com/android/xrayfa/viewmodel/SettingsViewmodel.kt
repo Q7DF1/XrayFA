@@ -35,7 +35,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import com.android.xrayfa.network.FileDownloader
-import com.android.xrayfa.network.downloadToFile
 import java.io.File
 
 const val LOCAL_PROXY_LISTEN_ADDRESS = "127.0.0.1"
@@ -287,10 +286,12 @@ class SettingsViewmodel(
         }
         viewModelScope.launch(Dispatchers.IO) {
             _geoLiteDownloading.value = true
-            download(GEOFileType.FILE_TYPE_LITE)
+            val downloaded = download(GEOFileType.FILE_TYPE_LITE)
             _geoLiteDownloading.value = false
-            Log.i(TAG, "downloadGeoLite: download successful!")
-            repository.setGeoLiteInstall(true)
+            if (downloaded) {
+                Log.i(TAG, "downloadGeoLite: download successful!")
+                repository.setGeoLiteInstall(true)
+            }
         }
 
     }

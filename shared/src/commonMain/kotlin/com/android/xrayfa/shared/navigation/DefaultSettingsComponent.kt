@@ -1,12 +1,17 @@
 package com.android.xrayfa.shared.navigation
 
+import com.android.xrayfa.common.core.GeoLiteInstaller
+import com.android.xrayfa.common.core.XrayAssetPaths
+import com.android.xrayfa.common.core.geoLiteDownloadEnabled
 import com.android.xrayfa.common.routing.DomainStrategy
 import com.android.xrayfa.common.routing.RoutingMode
 import com.android.xrayfa.common.routing.Rule
 import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.datastore.SettingsState
 import com.android.xrayfa.datastore.Theme
+import com.android.xrayfa.network.FileDownloader
 import com.android.xrayfa.vpn.VpnController
+import com.android.xrayfa.vpn.isConnected
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
@@ -18,12 +23,28 @@ class DefaultSettingsComponent(
     componentContext: ComponentContext,
     private val settingsRepository: SettingsRepository,
     private val vpnController: VpnController,
+    private val fileDownloader: FileDownloader,
+    assetPaths: XrayAssetPaths,
 ) : SettingsComponent,
     ComponentContext by componentContext {
     private val scope = coroutineScope()
+    private val geoLiteInstaller =
+        GeoLiteInstaller(
+            destPath = assetPaths.geoLiteDatabasePath,
+            download = { url, dest, onProgress ->
+                fileDownloader.downloadToFile(url, dest, onProgress)
+            },
+            setInstalled = settingsRepository::setGeoLiteInstall,
+        )
 
     private val _state = MutableValue(SettingsState())
     override val state: Value<SettingsState> = _state
+
+    private val _geoLiteDownload =
+        MutableValue(
+            GeoLiteDownloadState(vpnConnected = vpnController.state.value.isConnected),
+        )
+    override val geoLiteDownload: Value<GeoLiteDownloadState> = _geoLiteDownload
 
     init {
         scope.launch {
@@ -34,6 +55,12 @@ class DefaultSettingsComponent(
                 settings.copy(allowedPackages = packages)
             }.collect { settings ->
                 _state.value = settings
+            }
+        }
+        scope.launch {
+            vpnController.state.collect { vpn ->
+                _geoLiteDownload.value =
+                    _geoLiteDownload.value.copy(vpnConnected = vpn.isConnected)
             }
         }
     }
@@ -148,6 +175,22 @@ class DefaultSettingsComponent(
         scope.launch {
             settingsRepository.setRoutingRules(rules)
             vpnController.restartIfNeeded()
+        }
+    }
+
+    override fun onDownloadGeoLite() {
+        val snapshot = _geoLiteDownload.value
+        if (!geoLiteDownloadEnabled(snapshot.vpnConnected, snapshot.downloading)) return
+        scope.launch {
+            _geoLiteDownload.value = snapshot.copy(downloading = true, progress = 0f)
+            try {
+                geoLiteInstaller.install { progress ->
+                    _geoLiteDownload.value = _geoLiteDownload.value.copy(progress = progress)
+                }
+            } finally {
+                _geoLiteDownload.value =
+                    _geoLiteDownload.value.copy(downloading = false, progress = 0f)
+            }
         }
     }
 

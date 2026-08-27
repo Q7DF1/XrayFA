@@ -12,5 +12,7 @@ fun defaultSettingsComponentFactory(): SettingsComponentFactory =
             componentContext = componentContext,
             settingsRepository = koin.get(),
             vpnController = koin.get(),
+            fileDownloader = koin.get(),
+            assetPaths = koin.get(),
         )
     }

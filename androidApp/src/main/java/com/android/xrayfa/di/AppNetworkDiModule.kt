@@ -1,6 +1,7 @@
 package com.android.xrayfa.di
 
 import com.android.xrayfa.datastore.SettingsRepository
+import com.android.xrayfa.network.FileDownloader
 import com.android.xrayfa.network.SocksProxyConfig
 import com.android.xrayfa.network.createProxyFileDownloader
 import com.android.xrayfa.network.createSubscriptionFetcher
@@ -17,7 +18,7 @@ val appNetworkDiModule: Module = module {
         createSubscriptionFetcher(userAgent = "xrayFA/$versionName")
     }
 
-    single {
+    single<FileDownloader> {
         val context = androidContext()
         val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName
         val settingsRepository: SettingsRepository = get()

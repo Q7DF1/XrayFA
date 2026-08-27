@@ -243,4 +243,7 @@ fun rememberSettingsUiLabels(): SettingsUiLabels =
         appLogEmptyMessage = stringResource(Res.string.no_log_text),
         appLogClearLabel = stringResource(Res.string.app_log_clear),
         appLogCopyLabel = stringResource(Res.string.app_log_copy),
+        geoLiteTitle = stringResource(Res.string.geo_lite_title),
+        geoLiteDescription = stringResource(Res.string.geo_ip_lite_description),
+        geoDownloadNeedServiceHint = stringResource(Res.string.geo_download_need_service_hint),
     )
