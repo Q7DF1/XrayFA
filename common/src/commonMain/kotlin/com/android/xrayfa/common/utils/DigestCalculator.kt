@@ -12,8 +12,8 @@ interface StreamingDigest {
 /**
  * Platform digest factory for shared logic.
  *
- * JVM uses [JvmDigestCalculator] (java.security.MessageDigest); iOS will use
- * CommonCrypto via expect/actual when this module becomes KMP.
+ * JVM uses [JvmDigestCalculator] (java.security.MessageDigest); iOS uses
+ * CommonCrypto (`CC_SHA256` / `CC_MD5`).
  */
 interface DigestCalculator {
     fun createDigest(algorithm: String): StreamingDigest

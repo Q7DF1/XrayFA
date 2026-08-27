@@ -54,5 +54,5 @@ export JAVA_HOME="$HOME/Library/Java/JavaVirtualMachines/jbr-21.0.11/Contents/Ho
 ## 下一步
 
 1. 共享 Home/Config 接 `onTest` + iOS `XrayCore` 委托 Step 100 shim — ✅ Step 103
-2. 可选：geoip.dat / geosite.dat 也迁入共享设置；iOS FileDownloader 走 SOCKS
+2. 可选：geoip.dat / geosite.dat 也迁入共享设置；iOS FileDownloader 走 SOCKS — SOCKS ❌ Step 105
 3. **不要**做 Agent Phase C / C1，除非产品明确要求

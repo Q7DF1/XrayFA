@@ -247,4 +247,5 @@ fun rememberSettingsUiLabels(): SettingsUiLabels =
         geoLiteTitle = stringResource(Res.string.geo_lite_title),
         geoLiteDescription = stringResource(Res.string.geo_ip_lite_description),
         geoDownloadNeedServiceHint = stringResource(Res.string.geo_download_need_service_hint),
+        geoLiteDownloadUnavailableHint = stringResource(Res.string.geo_lite_download_unavailable),
     )

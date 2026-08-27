@@ -10,6 +10,7 @@ data class GeoLiteDownloadState(
     val downloading: Boolean = false,
     val progress: Float = 0f,
     val vpnConnected: Boolean = false,
+    val downloadSupported: Boolean = true,
 )
 
 interface SettingsComponent {

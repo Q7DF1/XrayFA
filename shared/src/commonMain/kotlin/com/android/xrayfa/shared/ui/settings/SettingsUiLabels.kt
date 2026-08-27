@@ -81,4 +81,5 @@ data class SettingsUiLabels(
     val geoLiteDescription: String = "IP address and corresponding country information",
     val geoDownloadNeedServiceHint: String =
         "Start the service first — downloads route through the proxy to reach GitHub reliably.",
+    val geoLiteDownloadUnavailableHint: String = "GeoLite download is not available on this platform.",
 )

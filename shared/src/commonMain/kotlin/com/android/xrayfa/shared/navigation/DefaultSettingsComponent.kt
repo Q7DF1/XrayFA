@@ -3,6 +3,7 @@ package com.android.xrayfa.shared.navigation
 import com.android.xrayfa.common.core.GeoLiteInstaller
 import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.core.geoLiteDownloadEnabled
+import com.android.xrayfa.common.core.geoLiteDownloadSupported
 import com.android.xrayfa.common.routing.DomainStrategy
 import com.android.xrayfa.common.routing.RoutingMode
 import com.android.xrayfa.common.routing.Rule
@@ -42,7 +43,10 @@ class DefaultSettingsComponent(
 
     private val _geoLiteDownload =
         MutableValue(
-            GeoLiteDownloadState(vpnConnected = vpnController.state.value.isConnected),
+            GeoLiteDownloadState(
+                vpnConnected = vpnController.state.value.isConnected,
+                downloadSupported = geoLiteDownloadSupported,
+            ),
         )
     override val geoLiteDownload: Value<GeoLiteDownloadState> = _geoLiteDownload
 
@@ -180,7 +184,14 @@ class DefaultSettingsComponent(
 
     override fun onDownloadGeoLite() {
         val snapshot = _geoLiteDownload.value
-        if (!geoLiteDownloadEnabled(snapshot.vpnConnected, snapshot.downloading)) return
+        if (!geoLiteDownloadEnabled(
+                snapshot.vpnConnected,
+                snapshot.downloading,
+                snapshot.downloadSupported,
+            )
+        ) {
+            return
+        }
         scope.launch {
             _geoLiteDownload.value = snapshot.copy(downloading = true, progress = 0f)
             try {

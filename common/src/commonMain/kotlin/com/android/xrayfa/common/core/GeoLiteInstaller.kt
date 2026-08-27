@@ -26,5 +26,11 @@ class GeoLiteInstaller(
     }
 }
 
-fun geoLiteDownloadEnabled(vpnConnected: Boolean, downloading: Boolean): Boolean =
-    vpnConnected && !downloading
+fun geoLiteDownloadEnabled(
+    vpnConnected: Boolean,
+    downloading: Boolean,
+    downloadSupported: Boolean = true,
+): Boolean = downloadSupported && vpnConnected && !downloading
+
+/** Android can proxy GeoLite through in-process SOCKS; iOS cannot reach NE loopback. */
+expect val geoLiteDownloadSupported: Boolean

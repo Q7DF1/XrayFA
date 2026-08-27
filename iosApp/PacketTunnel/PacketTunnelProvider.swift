@@ -83,11 +83,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         }
         coreController = controller
 
-        var startError: NSError?
-        let started = controller.startLoop(configJson, tunFd: 0, error: &startError)
-        if !started {
-            throw startError ?? TunnelError.xrayStartFailed
-        }
+        try controller.startLoop(configJson, tunFd: 0)
 
         guard let tunFd = UtunFileDescriptor.from(packetFlow: packetFlow) else {
             throw TunnelError.noUtunFd
@@ -111,8 +107,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         tun2SocksQueue = nil
 
         if let controller = coreController {
-            var stopError: NSError?
-            _ = controller.stopLoop(&stopError)
+            try? controller.stopLoop()
         }
         coreController = nil
         callbackHandler = nil

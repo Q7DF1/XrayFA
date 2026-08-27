@@ -24,6 +24,8 @@ targets:
       - path: iosApp
         excludes:
           - Entitlements
+      # Linked by host app: KMP cinterop only declares XrayFAMeasureOutboundDelay.
+      - path: ../core/native-bridge/src/nativeInterop/cinterop/XrayFAMeasureOutboundDelay.m
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.android.xrayfa.ios
       INFOPLIST_FILE: iosApp/Info.plist

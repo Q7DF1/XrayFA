@@ -52,6 +52,6 @@ export JAVA_HOME="$HOME/Library/Java/JavaVirtualMachines/jbr-21.0.11/Contents/Ho
 
 ## 下一步
 
-1. 可选：`IosDigestCalculatorStub` 换真 digest；iOS FileDownloader 走 SOCKS
+1. 可选：`IosDigestCalculatorStub` 换真 digest；iOS FileDownloader 走 SOCKS — ✅ digest Step 104；SOCKS ❌ Step 105
 2. 可选：geoip.dat / geosite.dat 迁入共享设置
 3. **不要**做 Agent Phase C / C1，除非产品明确要求

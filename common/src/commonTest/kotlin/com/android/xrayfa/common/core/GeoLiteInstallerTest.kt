@@ -48,6 +48,17 @@ class GeoLiteInstallerTest {
         assertFalse(geoLiteDownloadEnabled(vpnConnected = false, downloading = false))
         assertFalse(geoLiteDownloadEnabled(vpnConnected = true, downloading = true))
     }
+
+    @Test
+    fun downloadButton_disabledWhenPlatformDoesNotSupportDownload() {
+        assertFalse(
+            geoLiteDownloadEnabled(
+                vpnConnected = true,
+                downloading = false,
+                downloadSupported = false,
+            ),
+        )
+    }
 }
 
 private fun runTestBlocking(block: suspend () -> Unit) {

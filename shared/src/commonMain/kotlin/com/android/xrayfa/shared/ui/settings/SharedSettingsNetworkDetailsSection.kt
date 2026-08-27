@@ -107,8 +107,18 @@ fun SharedSettingsNetworkDetailsSection(
         installed = state.geoLiteInstall,
         downloading = geoLite.downloading,
         progress = geoLite.progress,
-        downloadEnabled = geoLiteDownloadEnabled(geoLite.vpnConnected, geoLite.downloading),
-        downloadDisabledHint = labels.geoDownloadNeedServiceHint,
+        downloadEnabled =
+            geoLiteDownloadEnabled(
+                geoLite.vpnConnected,
+                geoLite.downloading,
+                geoLite.downloadSupported,
+            ),
+        downloadDisabledHint =
+            if (geoLite.downloadSupported) {
+                labels.geoDownloadNeedServiceHint
+            } else {
+                labels.geoLiteDownloadUnavailableHint
+            },
         onDownloadClick = component::onDownloadGeoLite,
         icon = Icons.Outlined.DataUsage,
     )

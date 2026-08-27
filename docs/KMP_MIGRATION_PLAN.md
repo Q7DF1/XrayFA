@@ -951,6 +951,9 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | 101 | iOS GeoIP：common MMDB 读 GeoLite2-Country.mmdb，节点国旗不再恒 `""` | ✅ 见 `KMP_MIGRATION_STEP101_HANDOVER.md` |
 | 102 | 共享设置 GeoLite 下载 + 成功后置 `geoLiteInstall` | ✅ 见 `KMP_MIGRATION_STEP102_HANDOVER.md` |
 | 103 | 共享 Home/Config 测速 + iOS `XrayCore` 委托 delay shim | ✅ 见 `KMP_MIGRATION_STEP103_HANDOVER.md` |
+| 104 | iOS CommonCrypto digest（`calculateBytesHash` 不再空串） | ✅ 见 `KMP_MIGRATION_STEP104_HANDOVER.md` |
+| 105 | iOS 关闭 GeoLite 设置下载（无法像 Android 走本机 SOCKS） | ✅ 见 `KMP_MIGRATION_STEP105_HANDOVER.md` |
+| 106 | iOS 宿主链 LibXrayLite + ObjC gomobile 回调（`go_seq_go_to_refnum`） | ✅ 见 `KMP_MIGRATION_STEP106_HANDOVER.md` |
 
 ### Phase 7：Android Agent 可控能力（AppFunctions，KMP 完成后）
 
