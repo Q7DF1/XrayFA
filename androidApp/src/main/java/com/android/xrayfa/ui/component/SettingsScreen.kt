@@ -1,0 +1,731 @@
+package com.android.xrayfa.ui.component
+
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.UploadFile
+import androidx.compose.material.icons.outlined.Apps
+import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.Dns
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.NetworkCheck
+import androidx.compose.material.icons.outlined.NotificationsActive
+import androidx.compose.material.icons.outlined.Numbers
+import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.PowerSettingsNew
+import androidx.compose.material.icons.outlined.Public
+import androidx.compose.material.icons.outlined.Route
+import androidx.compose.material.icons.outlined.Router
+import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.Speed
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.android.xrayfa.R
+import com.android.xrayfa.viewmodel.SettingsViewmodel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.dp
+import androidx.navigation3.ui.LocalNavAnimatedContentScope
+import com.android.xrayfa.helper.NotificationHelper
+import com.android.xrayfa.ui.navigation.Apps
+import com.android.xrayfa.ui.navigation.Logcat
+import com.android.xrayfa.ui.navigation.NavigateDestination
+import com.android.xrayfa.ui.navigation.RouteSettings
+import com.android.xrayfa.ui.navigation.Settings
+import com.android.xrayfa.viewmodel.GEOFileType
+import com.android.xrayfa.viewmodel.GEOFileType.Companion.FILE_TYPE_IP
+import com.android.xrayfa.shared.ui.settings.SharedSettingsAboutSection
+import com.android.xrayfa.shared.ui.settings.SharedSettingsGeneralSection
+import com.android.xrayfa.shared.ui.settings.SharedSettingsPlatformSection
+import com.android.xrayfa.shared.ui.settings.SharedSettingsSubscriptionSection
+import com.android.xrayfa.shared.ui.rememberSettingsUiLabels
+import com.android.xrayfa.ui.settings.rememberAndroidSettingsComponent
+
+@Deprecated("Unused Navigation3 screen; main path is RootContent + AndroidPlatformRootHooks")
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreen(
+    viewmodel: SettingsViewmodel,
+    sharedTransitionScope: SharedTransitionScope,
+    onNavigate: (NavigateDestination) -> Unit,
+) {
+
+
+    val scrollState = rememberScrollState()
+    // Observe the overlap fraction to determine if the list is scrolled
+    val isScrolled by remember {
+        derivedStateOf { scrollState.value > 0 }
+    }
+
+    val currentTopbarColor = if (isScrolled) {
+        MaterialTheme.colorScheme.surface
+    } else {
+        MaterialTheme.colorScheme.background
+    }
+
+    // Animate the shadow elevation for a smooth transition
+    val appBarElevation by animateDpAsState(
+        targetValue = if (isScrolled) 4.dp else 0.dp,
+        label = "TopBarShadowElevation"
+    )
+
+    val settingsState by viewmodel.settingsState.collectAsState()
+    val isVpnConnected by viewmodel.isVpnConnected.collectAsState()
+    val context = LocalContext.current
+    val geoIPDownloading by viewmodel.geoIPDownloading.collectAsState()
+    val geoIPProgress by viewmodel.geoIPProgress.collectAsState()
+    val geoSiteDownloading by viewmodel.geoSiteDownloading.collectAsState()
+    val geoSiteProgress by viewmodel.geoSiteProgress.collectAsState()
+    val importException by viewmodel.importException.collectAsState()
+    val downloadException by viewmodel.downloadException.collectAsState()
+    val ipFilePickLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val uri = result.data?.data ?: return@rememberLauncherForActivityResult
+                viewmodel.onSelectFile(context,uri, FILE_TYPE_IP)
+            }
+    }
+
+    val domainFilePickLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val uri = result.data?.data?: return@rememberLauncherForActivityResult
+                viewmodel.onSelectFile(context,uri, GEOFileType.FILE_TYPE_SITE)
+            }
+        }
+    val sharedSettingsComponent = rememberAndroidSettingsComponent()
+    val sharedSettingsLabels = rememberSettingsUiLabels()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(stringResource(R.string.settings_title), fontWeight = FontWeight.Bold)
+                },
+                navigationIcon = {
+                    with(sharedTransitionScope) {
+                        IconButton(onClick = {}) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = "settings",
+                                modifier = Modifier.sharedElement(
+                                    sharedTransitionScope.rememberSharedContentState(key = Settings.route),
+                                    animatedVisibilityScope = LocalNavAnimatedContentScope.current,
+                                )
+                            )
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = currentTopbarColor,
+                    scrolledContainerColor = currentTopbarColor
+                ),
+                modifier = Modifier.shadow(appBarElevation)
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(scrollState)
+        ) {
+                SharedSettingsGeneralSection(
+                    component = sharedSettingsComponent,
+                    labels = sharedSettingsLabels,
+                    scrollEnabled = false,
+                    additionalGeneralContent = {
+                    if (NotificationHelper.canPostPromotionsEnabled(LocalContext.current)) {
+                        SettingsCheckBox(
+                            title = R.string.live_update_notification,
+                            description = R.string.live_update_notification_desc,
+                            icon = Icons.Outlined.NotificationsActive,
+                            checked = settingsState.liveUpdateNotification,
+                            onCheckedChange = { checked->
+                                viewmodel.setLiveUpdateNotification(checked)
+                            }
+                        )
+                    }
+                    },
+                    additionalNetworkContent = {
+                    SettingsWithBtnBox(
+                        title = R.string.geo_ip,
+                        description = R.string.geo_ip_description,
+                        icon = Icons.Outlined.Language,
+                        downloading = geoIPDownloading,
+                        progress = geoIPProgress,
+                        onDownloadClick = {viewmodel.downloadGeoIP(context = context)},
+                        downloadEnable = isVpnConnected,
+                        downloadDisabledHint = R.string.geo_download_need_service_hint,
+                        onImportClick = {
+                            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                                addCategory(Intent.CATEGORY_OPENABLE)
+                                type = "*/*"
+                            }
+                            val chooserIntent =
+                                Intent.createChooser(intent, "Select a file via...")
+                            ipFilePickLauncher.launch(chooserIntent)
+                        }
+                    )
+                    SettingsWithBtnBox(
+                        title = R.string.geo_site,
+                        description = R.string.geo_site_description,
+                        icon = Icons.Outlined.Public,
+                        onDownloadClick = {viewmodel.downloadGeoSite(context)},
+                        downloading = geoSiteDownloading,
+                        progress = geoSiteProgress,
+                        downloadEnable = isVpnConnected,
+                        downloadDisabledHint = R.string.geo_download_need_service_hint,
+                        onImportClick = {
+                            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                                addCategory(Intent.CATEGORY_OPENABLE)
+                                type = "*/*"
+                            }
+                            val chooserIntent =
+                                Intent.createChooser(intent, "Select a file via...")
+                             domainFilePickLauncher.launch(chooserIntent)
+                        }
+                    )
+                    SettingsCheckBox(
+                        title = R.string.enable_hextun_title,
+                        description = R.string.enable_hex_tun_desc,
+                        icon = Icons.Outlined.Security,
+                        checked = settingsState.hexTunEnable,
+                        onCheckedChange = {
+                            viewmodel.setHexTunEnable(it)
+                        }
+                    )
+                    },
+                )
+                with(sharedTransitionScope) {
+                    SharedSettingsPlatformSection(
+                        labels = sharedSettingsLabels,
+                        onAppsClick = { onNavigate(Apps) },
+                        onLogcatClick = { onNavigate(Logcat) },
+                        onRouteClick = { onNavigate(RouteSettings) },
+                        appsModifier =
+                            Modifier.sharedElement(
+                                sharedTransitionScope.rememberSharedContentState(key = Apps.route),
+                                animatedVisibilityScope = LocalNavAnimatedContentScope.current,
+                            ),
+                        logcatModifier =
+                            Modifier.sharedElement(
+                                sharedTransitionScope.rememberSharedContentState(key = Logcat.route),
+                                animatedVisibilityScope = LocalNavAnimatedContentScope.current,
+                            ),
+                        routeModifier =
+                            Modifier.sharedElement(
+                                sharedTransitionScope.rememberSharedContentState(key = RouteSettings.route),
+                                animatedVisibilityScope = LocalNavAnimatedContentScope.current,
+                            ),
+                    )
+                }
+                SharedSettingsSubscriptionSection(
+                    component = sharedSettingsComponent,
+                    labels = sharedSettingsLabels,
+                )
+                SharedSettingsAboutSection(
+                    component = sharedSettingsComponent,
+                    labels = sharedSettingsLabels,
+                )
+            }
+            ExceptionMessage(
+                shown = importException || downloadException,
+                msg = if (importException)
+                    stringResource(R.string.import_geo_failed)
+                else
+                    stringResource(R.string.download_geo_failed)
+            )
+    }
+}
+
+@Composable
+fun SettingsCheckBox(
+    @StringRes title: Int,
+    @StringRes description: Int,
+    icon: ImageVector? = null,
+    checked: Boolean = false,
+    onCheckedChange: (Boolean) -> Unit = {}
+) {
+    ListItem(
+        headlineContent = { Text(stringResource(title)) },
+        supportingContent = { Text(stringResource(description)) },
+        leadingContent = icon?.let { {
+            Icon(
+                imageVector = it,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+        } },
+        trailingContent = {
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange
+            )
+        },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+        modifier = Modifier.clickable { onCheckedChange(!checked) }
+    )
+}
+
+
+@Composable
+fun SettingsWithBtnBox(
+    @StringRes title: Int,
+    @StringRes description: Int? = null,
+    content: String = "",
+    icon: ImageVector? = null,
+    downloading: Boolean = false,
+    progress: Float = 0f,
+    onDownloadClick: () -> Unit = {},
+    onImportClick: (() -> Unit)? = null,
+    enable: Boolean = true,
+    downloadEnable: Boolean = true,
+    @StringRes downloadDisabledHint: Int? = null
+) {
+
+    val infiniteTransition = rememberInfiniteTransition()
+    val angle by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = if (downloading) 360f else 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = LinearEasing)
+        )
+    )
+
+    ListItem(
+        headlineContent = {
+            Text(
+                text = stringResource(title),
+                color = if (enable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+            )
+        },
+        supportingContent = {
+            Column {
+                Text(
+                    text = if (description != null)stringResource(description) else content,
+                    color = if (enable) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                )
+                if (downloading) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                if (!downloadEnable && !downloading && downloadDisabledHint != null) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Outlined.Info,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.tertiary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.size(4.dp))
+                        Text(
+                            text = stringResource(downloadDisabledHint),
+                            color = MaterialTheme.colorScheme.tertiary,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                }
+            }
+        },
+        leadingContent = icon?.let { {
+            Icon(
+                imageVector = it,
+                contentDescription = null,
+                tint = if (enable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.38f),
+                modifier = Modifier.size(24.dp)
+            )
+        } },
+        trailingContent = {
+            Row {
+                IconButton(
+                    onClick = onDownloadClick,
+                    enabled = downloadEnable
+                ) {
+                    Icon(
+                        imageVector = if (!downloading)
+                            Icons.Outlined.Download
+                        else
+                            Icons.Default.Refresh,
+                        contentDescription = "download",
+                        modifier = Modifier
+                            .size(24.dp)
+                            .rotate(angle)
+                    )
+                }
+                if (onImportClick != null) {
+                    IconButton(
+                        onClick = onImportClick,
+                        enabled = enable
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.UploadFile,
+                            contentDescription = "import",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            }
+        },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsSelectBox(
+    @StringRes title: Int,
+    @StringRes description: Int,
+    icon: ImageVector? = null,
+    onSelected: (Int) -> Unit = {},
+    selected: String = "dark",
+    options: Map<Int,String> = mapOf()
+) {
+    var expand by remember { mutableStateOf(false) }
+    ListItem(
+        headlineContent = { Text(stringResource(title)) },
+        supportingContent = { Text(stringResource(description)) },
+        leadingContent = icon?.let { {
+            Icon(
+                imageVector = it,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+        } },
+        trailingContent = {
+            Box {
+                TextButton(
+                    onClick = {
+                        expand = !expand
+                    },
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(32.dp))
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = selected,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1
+                        )
+                        Icon(
+                            imageVector = if (expand)
+                                Icons.Default.KeyboardArrowUp
+                            else
+                                Icons.Default.KeyboardArrowDown,
+                            contentDescription = null
+                        )
+                    }
+                }
+                DropdownMenu(
+                    expanded = expand,
+                    onDismissRequest = {expand = false},
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    offset = DpOffset(0.dp, 0.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    options.forEach { option ->
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = option.value
+                                )
+                            },
+                            onClick = {
+                                onSelected(option.key)
+                                expand = false
+                            }
+                        )
+                    }
+                }
+            }
+        },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+        modifier = Modifier.clickable { expand = !expand }
+    )
+}
+
+
+@Composable
+fun SettingsFieldBox(
+    @StringRes title: Int,
+    content: String,
+    enable: Boolean = true,
+    icon: ImageVector? = null,
+    trailingIcon: ImageVector? = null,
+    modifier: Modifier = Modifier,
+    onClick: () ->Unit
+) {
+    ListItem(
+        headlineContent = {
+            Text(
+                text = stringResource(title),
+                color = if (enable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+            )
+        },
+        supportingContent = {
+            Text(
+                text = content,
+                color = if (enable) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+            )
+        },
+        leadingContent = icon?.let { {
+            Icon(
+                imageVector = it,
+                contentDescription = null,
+                tint = if (enable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.38f),
+                modifier = Modifier.size(24.dp)
+            )
+        } },
+        trailingContent = trailingIcon?.let { {
+            Icon(
+                it,
+                contentDescription = null,
+                tint = if (enable) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
+                modifier = Modifier.size(24.dp)
+            )
+        } },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+        modifier = modifier.clickable(enabled = enable) { onClick() }
+    )
+}
+
+
+@Composable
+fun SettingsGroup(
+    groupName: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        Text(
+            text = groupName,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
+        )
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(vertical = 4.dp)
+            ) {
+                content()
+            }
+        }
+    }
+}
+
+
+/**
+ * Validate one or multiple IPv4 addresses separated by commas.
+ *
+ * @param input The input string (e.g., "192.168.0.1" or "8.8.8.8, 1.2.3.4")
+ * @return null if all addresses are valid; otherwise a warning message.
+ */
+fun validateIpv4List(input: String,context: Context): String? {
+    val trimmed = input.trim()
+    if (trimmed.isEmpty()) return context.getString(R.string.err_ipv4_empty)
+
+    // Strict IPv4 regex matching 0-255 for each segment
+    val ipv4Regex = Regex("""^(?:25[0-5]|2[0-4]\d|1?\d{1,2})(?:\.(?:25[0-5]|2[0-4]\d|1?\d{1,2})){3}$""")
+
+    val parts = trimmed.split(",")
+    if (parts.isEmpty()) return context.getString(R.string.err_ipv4_empty)
+
+    val seen = mutableSetOf<String>()
+    for ((index, raw) in parts.withIndex()) {
+        val part = raw.trim()
+
+        // Empty element (e.g. "1.1.1.1,,2.2.2.2")
+        if (part.isEmpty()) {
+            return context.getString(R.string.err_ipv4_item_empty,index + 1)
+        }
+
+        // IPv4 format check
+        if (!ipv4Regex.matches(part)) {
+            return context.getString(R.string.err_ipv4_invalid,index + 1 , part)
+        }
+
+        // Duplicate check
+        if (!seen.add(part)) {
+            return context.getString(R.string.err_ipv4_duplicate,index + 1 ,part)
+        }
+    }
+
+    // All valid
+    return null
+}
+
+/**
+ * Validate one or multiple IPv6 addresses separated by commas.
+ *
+ * @param input The input string (e.g., "2001:0db8::1" or "fe80::1, 2001:db8::2")
+ * @return null if all addresses are valid; otherwise a warning message.
+ */
+fun validateIpv6List(input: String, context: Context): String? {
+    val trimmed = input.trim()
+    if (trimmed.isEmpty()) return context.getString(R.string.err_ipv6_empty)
+
+    // IPv6 regex (simple, covers standard forms and shorthand)
+    val ipv6Regex = Regex(
+        // IPv6 pattern simplified to allow most valid IPv6 forms including ::
+        "^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|"+
+                "([0-9a-fA-F]{1,4}:){1,7}:|"+
+                "([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|"+
+                "([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|"+
+                "([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|"+
+                "([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|"+
+                "([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|"+
+                "[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|"+
+                ":((:[0-9a-fA-F]{1,4}){1,7}|:)|"+
+                "fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|"+
+                "::(ffff(:0{1,4}){0,1}:){0,1}"+
+                "((25[0-5]|(2[0-4]|1{0,1}[0-9])?[0-9])\\.){3,3}"+
+                "(25[0-5]|(2[0-4]|1{0,1}[0-9])?[0-9])|"+
+                "([0-9a-fA-F]{1,4}:){1,4}:"+
+                "((25[0-5]|(2[0-4]|1{0,1}[0-9])?[0-9])\\.){3,3}"+
+                "(25[0-5]|(2[0-4]|1{0,1}[0-9])?[0-9]))$"
+    )
+
+    val parts = trimmed.split(",")
+    if (parts.isEmpty()) return context.getString(R.string.err_ipv6_empty)
+
+    val seen = mutableSetOf<String>()
+    for ((index, raw) in parts.withIndex()) {
+        val part = raw.trim()
+
+        // Empty element (e.g. "2001::1,,fe80::1")
+        if (part.isEmpty()) {
+            return context.getString(R.string.err_ipv6_item_empty, index + 1)
+        }
+
+        // IPv6 format check
+        if (!ipv6Regex.matches(part)) {
+            return context.getString(R.string.err_ipv6_invalid, index + 1, part)
+        }
+
+        // Duplicate check
+        if (!seen.add(part)) {
+            return context.getString(R.string.err_ipv6_duplicate, index + 1, part)
+        }
+    }
+
+    // All valid
+    return null
+}
+
+fun validatePort(input: String, context: Context): String? {
+    val port = input.toIntOrNull() ?: return context.getString(R.string.err_port_invalid)
+    return if (port in 1..65535) null else context.getString(R.string.err_port_invalid)
+}
+
+/**
+ * Validates a single credential field (username or password).
+ * @return Error message string resource ID or null if valid.
+ */
+fun validateSocks(input: String, context: Context, isPassword: Boolean): String? {
+    val trimmed = input.trim()
+    val credentialsRegex = Regex("^[\\x21-\\x7E]+$")
+    // 1. Empty Check
+    if (trimmed.isEmpty()) {
+        return if (isPassword) context.getString(R.string.err_socks_pass_empty)
+        else context.getString(R.string.err_socks_user_empty)
+    }
+
+    // 2. Byte Length Check (RFC 1929 requirement: 1-255 bytes)
+    val byteLength = trimmed.toByteArray(Charsets.UTF_8).size
+    if (byteLength > 255) {
+        return context.getString(R.string.err_socks_length_exceeded)
+    }
+
+    // 3. Character Validity Check
+    // To prevent detection and maintain compatibility, we avoid spaces and control chars.
+    if (!credentialsRegex.matches(trimmed)) {
+        return context.getString(R.string.err_socks_invalid_chars)
+    }
+
+    return null
+}

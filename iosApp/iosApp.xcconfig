@@ -1,0 +1,17 @@
+// iosApp target — static XrayFAShared still needs LibXrayLite at final link
+// (KMP cinterop does not embed the gomobile archive). The delay shim .m is
+// compiled in this target (see project.yml).
+
+#include "Config.xcconfig"
+
+FRAMEWORK_SEARCH_PATHS[sdk=iphonesimulator*] = $(inherited) \
+  $(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME) \
+  $(SRCROOT)/../AndroidLibXrayLite/LibXrayLite.xcframework/ios-arm64_x86_64-simulator
+
+FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*] = $(inherited) \
+  $(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME) \
+  $(SRCROOT)/../AndroidLibXrayLite/LibXrayLite.xcframework/ios-arm64
+
+HEADER_SEARCH_PATHS = $(inherited) $(SRCROOT)/../core/native-bridge/src/nativeInterop/cinterop/headers
+
+OTHER_LDFLAGS = $(inherited) -framework XrayFAShared -framework LibXrayLite -lresolv

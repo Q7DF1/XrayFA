@@ -201,7 +201,7 @@
 第 3 批 (Phase 3): core:native-bridge → platform:vpn → platform:notification → platform:system
 第 4 批 (Phase 4): feature:home → feature:nodes → feature:settings → feature:subscriptions → feature:logs → feature:qrcode
 第 5 批 (Phase 4): shared (汇聚模块)
-第 6 批 (Phase 5): app-android (精简) + app-ios (新建)
+第 6 批 (Phase 5): androidApp (精简) + iosApp (新建)
 ```
 
 每一批完成后，确保 Android 应用仍可正常运行。

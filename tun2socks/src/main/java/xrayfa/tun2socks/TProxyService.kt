@@ -2,16 +2,11 @@ package xrayfa.tun2socks
 
 import android.content.Context
 import android.util.Log
-import com.android.xrayfa.common.di.qualifier.Application
 import xrayfa.tun2socks.utils.Tun2SocksConfigUtil
-import javax.inject.Inject
-import javax.inject.Singleton
 
-
-@Singleton
-open class TProxyService @Inject constructor(
-    @Application private val context: Context,
-    private val util: Tun2SocksConfigUtil
+open class TProxyService constructor(
+    private val context: Context,
+    private val util: Tun2SocksConfigUtil,
 ) : Tun2SocksService {
 
     var running: Boolean = false
@@ -22,11 +17,15 @@ open class TProxyService @Inject constructor(
 
         @JvmStatic
         @Suppress("FunctionName")
-        external fun TProxyStartService(configPath: String, fd: Int)
+        external fun TProxyStartService(configPath: String, fd: Int): Boolean
 
         @JvmStatic
         @Suppress("FunctionName")
-        external fun TProxyStopService()
+        external fun TProxyStopService(): Boolean
+
+        @JvmStatic
+        @Suppress("FunctionName")
+        external fun TProxyIsRunning(): Boolean
 
         @JvmStatic
         @Suppress("FunctionName")
@@ -37,7 +36,10 @@ open class TProxyService @Inject constructor(
     override suspend fun startTun2Socks(fd: Int) {
         val path = util.configure(context)
         try {
-            TProxyStartService(path, fd)
+            val started = TProxyStartService(path, fd)
+            if (!started) {
+                Log.e("TProxyService", "startTun2Socks: native start failed or already running")
+            }
             running = true
         } catch (e: Exception) {
             Log.e("TProxyService", "startTun2Socks: ${e.message}")

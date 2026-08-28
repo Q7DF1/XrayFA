@@ -6,7 +6,7 @@ dagger = "2.57.1"
 datastorePreferences = "1.1.7"
 gson = "2.11.0"
 javaxAnnotationApi = "1.3.2"
-kotlin = "2.0.21"
+kotlin = "2.1.10"
 coreKtx = "1.17.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
@@ -14,17 +14,27 @@ espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.9.3"
 activityCompose = "1.10.1"
 composeBom = "2026.03.00"
-ksp = "2.0.21-1.0.27"
+ksp = "2.1.10-1.0.31"
 appcompat = "1.7.1"
 loggingInterceptor = "4.12.0"
 material = "1.12.0"
 okhttp = "4.12.0"
 roomCompiler = "2.7.0"
+sqliteBundled = "2.5.0"
 nav3Core = "1.1.0-beta01"
 adaptive = "1.2.0"
 material3AdaptiveNav3 = "1.3.0-alpha09"
 material3 = "1.5.0-alpha15"
-maxmindGeoip2 = "4.2.0"
+koin = "4.0.1"
+ktor = "3.0.3"
+composeMultiplatform = "1.7.3"
+decompose = "3.2.2"
+essenty = "2.3.0"
+# alpha09+ requires compileSdk 37 and AGP 9.1; stay on alpha08 for AGP 8.10 / SDK 36.
+appfunctions = "1.0.0-alpha08"
+kotlinxSerialization = "1.7.3"
+kotlinxCoroutines = "1.9.0"
+qrcodeKotlin = "4.4.1"
 
 
 [libraries]
@@ -34,8 +44,11 @@ androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraCore" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
+androidx-datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastorePreferences" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomCompiler" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomCompiler" }
+androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqliteBundled" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "core" }
 dagger = { module = "com.google.dagger:dagger", version.ref = "dagger" }
 dagger-android = { module = "com.google.dagger:dagger-android", version.ref = "dagger" }
@@ -66,15 +79,33 @@ androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", vers
 androidx-material3-adaptive-navigation3 = { group = "androidx.compose.material3.adaptive", name = "adaptive-navigation3", version.ref = "material3AdaptiveNav3" }
 androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "nav3Core" }
 androidx-compose-adaptive = { group = "androidx.compose.material3.adaptive", name = "adaptive", version.ref = "adaptive" }
-maxmind-geoip2 = {group = "com.maxmind.geoip2", name = "geoip2", version.ref = "maxmindGeoip2"}
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
+ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
+decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
+decompose-extensions-compose = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
+essenty-lifecycle = { module = "com.arkivanov.essenty:lifecycle", version.ref = "essenty" }
+essenty-lifecycle-coroutines = { module = "com.arkivanov.essenty:lifecycle-coroutines", version.ref = "essenty" }
+essenty-state-keeper = { module = "com.arkivanov.essenty:state-keeper", version.ref = "essenty" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
+qrcode-kotlin = { module = "io.github.g0dkar:qrcode-kotlin", version.ref = "qrcodeKotlin" }
+androidx-appfunctions = { group = "androidx.appfunctions", name = "appfunctions", version.ref = "appfunctions" }
+androidx-appfunctions-service = { group = "androidx.appfunctions", name = "appfunctions-service", version.ref = "appfunctions" }
+androidx-appfunctions-compiler = { group = "androidx.appfunctions", name = "appfunctions-compiler", version.ref = "appfunctions" }
 
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-kapt = {id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin"}
 kotlin-ksp = {id = "com.google.devtools.ksp", version.ref = "ksp"}
 kotlin-serialization = {id = "org.jetbrains.kotlin.plugin.serialization",version.ref = "kotlin"}
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 

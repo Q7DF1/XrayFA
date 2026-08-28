@@ -1,0 +1,12 @@
+# Ignore dummy credentials in tests/fixtures. These are not production secrets.
+version: 2
+
+secret:
+  ignored_paths:
+    - '**/src/test/**'
+    - '**/src/androidUnitTest/**'
+    - '**/src/androidTest/**'
+    - '**/commonTest/**'
+    - '**/*Fixtures*.kt'
+    - '**/*Golden*.kt'
+    - '**/*Golden.kt'

@@ -1,0 +1,3 @@
+language = Objective-C
+headers = Libv2ray.objc.h XrayFAMeasureOutboundDelay.h
+headerFilter = Libv2ray.objc.h XrayFAMeasureOutboundDelay.h

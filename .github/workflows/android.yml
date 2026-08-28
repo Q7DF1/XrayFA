@@ -30,7 +30,7 @@ jobs:
 
     - name: Decode keystore
       run: |
-        echo "$KEYSTORE_BASE64" | base64 --decode > app/xrayfa.jks
+        echo "$KEYSTORE_BASE64" | base64 --decode > androidApp/xrayfa.jks
       env:
         KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
 
@@ -101,11 +101,14 @@ jobs:
         # gomobile bind default name is libv2ray.aar for package libv2ray
         gomobile bind -v -trimpath -androidapi 21 -ldflags="-s -w -buildid= -checklinkname=0" ./
 
-        mkdir -p ../app/libs
-        cp libv2ray.aar ../app/libs/
+        mkdir -p ../androidApp/libs
+        cp libv2ray.aar ../androidApp/libs/
     - name: Grant execute permission for gradlew
       working-directory: /home/vagrant/build/com.android.xrayfa
       run: chmod +x gradlew
+    - name: Run unit tests
+      working-directory: /home/vagrant/build/com.android.xrayfa
+      run: ./gradlew test --max-workers=1 --no-daemon
     - name: Build with Gradle
       working-directory: /home/vagrant/build/com.android.xrayfa
       env:
@@ -119,12 +122,12 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: release-apk
-        path: /home/vagrant/build/com.android.xrayfa/app/build/outputs/apk/release/*.apk
+        path: /home/vagrant/build/com.android.xrayfa/androidApp/build/outputs/apk/release/*.apk
 
 # Auto-release step
     - name: Create Release
       uses: softprops/action-gh-release@v2
       if: startsWith(github.ref, 'refs/tags/') # Only execute this step if triggered by a tag push
       with:
-        files: /home/vagrant/build/com.android.xrayfa/app/build/outputs/apk/release/*.apk # Directly use the path of the built APK
+        files: /home/vagrant/build/com.android.xrayfa/androidApp/build/outputs/apk/release/*.apk # Directly use the path of the built APK
         generate_release_notes: true # Automatically generate release notes from PRs/commits

@@ -1,0 +1,161 @@
+package com.android.xrayfa.parser
+
+import com.android.xrayfa.common.core.GeoIpProvider
+import com.android.xrayfa.common.repository.ConfigParserSettingsProvider
+import com.android.xrayfa.config.XrayConfigEncoder
+import com.android.xrayfa.dto.ParseLinkInput
+import com.android.xrayfa.dto.ParsedNode
+import com.android.xrayfa.dto.VLESSConfig
+import com.android.xrayfa.model.MuxObject
+import com.android.xrayfa.model.OutboundObject
+import com.android.xrayfa.model.ServerObject
+import com.android.xrayfa.model.UserObject
+import com.android.xrayfa.model.VLESSOutboundConfigurationObject
+import com.android.xrayfa.model.stream.GrpcSettings
+import com.android.xrayfa.model.stream.RealitySettings
+import com.android.xrayfa.model.stream.RawSettings
+import com.android.xrayfa.model.stream.StreamSettingsObject
+import com.android.xrayfa.model.stream.TlsSettings
+import com.android.xrayfa.model.stream.WsSettings
+import com.android.xrayfa.model.stream.XHttpSettings
+import com.android.xrayfa.common.utils.UrlCodec
+
+class VLESSConfigParser(
+    override val settingsProvider: ConfigParserSettingsProvider,
+    override val geoIpProvider: GeoIpProvider,
+    override val configEncoder: XrayConfigEncoder,
+) : AbstractConfigParser<VLESSOutboundConfigurationObject, VLESSConfig>() {
+    override fun decodeProtocol(url: String): VLESSConfig {
+        val decode = UrlCodec.decode(url)
+        val withoutProtocol = decode.removePrefix("vless://")
+        val (mainPart, remark) = withoutProtocol.split("#").let {
+            it[0] to if (it.size > 1) it[1] else ""
+        }
+        val (userAndServer, query) = mainPart.split("?").let {
+            it[0] to if (it.size > 1) it[1] else ""
+        }
+        val (uuid, serverAndPort) = userAndServer.split("@")
+        val (server, portStr) = serverAndPort.split(":")
+        val port = portStr.toIntOrNull() ?: 0
+        val queryParams = query.split("&").mapNotNull {
+            val kv = it.split("=")
+            if (kv.size == 2) kv[0] to kv[1] else null
+        }.toMap()
+
+        return VLESSConfig(
+            remark = remark,
+            uuid = uuid,
+            server = server,
+            port = port,
+            param = queryParams,
+        )
+    }
+
+    override fun encodeProtocol(protocol: VLESSConfig): String {
+        val mainPart = "${protocol.uuid}@${protocol.server}:${protocol.port}"
+        val query = protocol.param.entries.joinToString("&") { "${it.key}=${it.value}" }
+        val remarkEncoded = protocol.remark?.let { UrlCodec.encode(it) } ?: ""
+        return buildString {
+            append("vless://")
+            append(mainPart)
+            if (query.isNotEmpty()) {
+                append("?")
+                append(query)
+            }
+            if (remarkEncoded.isNotEmpty()) {
+                append("#")
+                append(remarkEncoded)
+            }
+        }
+    }
+
+    companion object {
+        const val TAG = "VLESSConfigParser"
+    }
+
+    override fun parseOutbound(url: String): OutboundObject<VLESSOutboundConfigurationObject> {
+        val parseVLESS = decodeProtocol(url)
+        val queryParams = parseVLESS.param
+        val network = queryParams["type"] ?: "raw"
+        val security = queryParams["security"] ?: "none"
+        return OutboundObject(
+            protocol = "vless",
+            settings = VLESSOutboundConfigurationObject(
+                vnext = listOf(
+                    ServerObject(
+                        address = parseVLESS.server,
+                        port = parseVLESS.port,
+                        users = listOf(
+                            UserObject(
+                                id = parseVLESS.uuid,
+                                encryption = queryParams["encryption"] ?: "",
+                                flow = queryParams["flow"] ?: "",
+                                level = 0,
+                                security = "auto",
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            streamSettings = StreamSettingsObject(
+                network = network,
+                security = security,
+                realitySettings = if (security == "reality") {
+                    RealitySettings(
+                        fingerprint = queryParams["fp"] ?: "",
+                        publicKey = queryParams["pbk"] ?: "",
+                        serverName = queryParams["sni"] ?: "",
+                        spiderX = "",
+                        shortId = queryParams["sid"] ?: "",
+                        show = false,
+                    )
+                } else null,
+                rawSettings = if (network == "raw") {
+                    RawSettings()
+                } else null,
+                wsSettings = if (network == "ws") {
+                    WsSettings(
+                        path = "${queryParams["path"]}",
+                        headers = mapOf(Pair("host", queryParams["host"] ?: "")),
+                    )
+                } else null,
+                grpcSettings = if (network == "grpc") {
+                    GrpcSettings(
+                        serviceName = queryParams["serviceName"] ?: "",
+                        multiMode = false,
+                    )
+                } else null,
+                tlsSettings = if (security == "tls") {
+                    TlsSettings(
+                        serverName = queryParams["host"] ?: "",
+                    )
+                } else null,
+                xhttpSettings = if (network == "xhttp") {
+                    XHttpSettings(
+                        mode = queryParams["mode"],
+                        host = queryParams["host"],
+                        path = queryParams["path"],
+                        extra = null,
+                    )
+                } else null,
+            ),
+            mux = MuxObject(concurrency = -1, enable = false, xudpConcurrency = 8, xudpProxyUDP443 = ""),
+            tag = "proxy",
+        )
+    }
+
+    override suspend fun preParse(link: ParseLinkInput): ParsedNode {
+        val vlessConfig = decodeProtocol(link.content)
+        return ParsedNode(
+            id = link.id,
+            url = link.content,
+            protocolPrefix = link.protocolPrefix,
+            subscriptionId = link.subscriptionId,
+            address = vlessConfig.server,
+            port = vlessConfig.port,
+            selected = link.selected,
+            remark = vlessConfig.remark,
+            countryISO = countryIsoForServer(vlessConfig.server),
+        )
+    }
+}

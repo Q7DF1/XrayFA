@@ -1,7 +1,6 @@
 plugins {
     id("com.android.library")
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.ksp)
 }
 
 android {
@@ -92,15 +91,11 @@ tasks.whenTaskAdded {
 dependencies {
 
     implementation(project(":common"))
+    implementation(project(":core:datastore"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-
-    implementation(libs.dagger)
-    ksp(libs.dagger.compiler)
-    implementation (libs.dagger.android)
-    ksp(libs.dagger.android.processor)
 }

@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">XrayFA</string>
+    <string name="app_label" translatable="false">XrayFA</string>
+    <string name="start">시작</string>
+    <string name="stop">정지</string>
+    <string name="disconnect">연결 끊김</string>
+    <string name="connected">연결 완료</string>
+    <string name="home">메인</string>
+    <string name="config">구성</string>
+    <string name="logcat">로그캣</string>
+    <string name="add_config">설정 추가</string>
+    <string name="clipboard_import">클립보드로 추가</string>
+    <string name="no_configuration">설정 파일이 없습니다</string>
+    <string name="no_configuration_hint">클립보드 또는 QR 코드를 통해 설정을 가져와 시작하세요</string>
+    <string name="create_a_config">첫번째 설정 만들기</string>
+    <string name="select_configuration_notify">설정을 먼저 선택하세요</string>
+    <string name="upload_data">업로드</string>
+    <string name="download_data">다운로드</string>
+    <string name="config_not_ready">설정이 준비되지 않았습니다</string>
+    <string name="qrcode_import">QR 코드로 추가</string>
+    <string name="close_window">닫기</string>
+    <string name="confirm_delete">삭제 확인</string>
+    <string name="cancel">취소</string>
+    <string name="delete">삭제</string>
+    <string name="delete_notify">이 작업은 되돌릴 수 없습니다. 정말 삭제하시겠습니까?</string>
+    <string name="save">저장</string>
+    <string name="enable_ipv6">IPv6 활성화</string>
+    <string name="enable_ipv6_description">IPv6 프록시를 활성화하려면 클릭하세요</string>
+    <string name="theme_select">테마</string>
+    <string name="dark_mode">다크 모드</string>
+    <string name="light_mode">화이트 모드</string>
+    <string name="auto_mode">자동</string>
+    <string name="dark_mode_description">다크 모드를 활성화 하려면 선택하세요</string>
+    <string name="dns_ipv4" translatable="false">DNS IPv4</string>
+    <string name="dns_ipv6" translatable="false">DNS IPv6</string>
+    <string name="socks_port">SOCKS 포트</string>
+    <string name="http_proxy_port" translatable="false">HTTP 프록시 포트</string>
+    <string name="allow_app_settings">앱 프록시 설정 열기</string>
+    <string name="select_app_settings">프록시 설정을 위해 특정 앱을 선택하세요</string>
+    <string name="all_app_settings">앱</string>
+    <string name="repo_site">저장소</string>
+    <string name="no_log_text">로그 비활성화</string>
+    <string name="clipboard_export">클립보드로 내보내기</string>
+    <string name="nick_name">닉네임</string>
+    <string name="subscription_url">구독 URL</string>
+    <string name="confirm">확인</string>
+    <string name="subscribe_failed">구독 실패</string>
+    <string name="repo_description">소스 코드</string>
+    <string name="geo_ip" translatable="false">geoip</string>
+    <string name="geo_site" translatable="false">geosite</string>
+    <string name="geo_ip_description">IP 매칭 테이블</string>
+    <string name="geo_site_description">Site 매칭 테이블</string>
+    <string name="import_geo_failed">GEO 파일 가져오기 실패</string>
+    <string name="download_geo_failed">GEO 파일 다운로드 실패</string>
+    <string name="edit">편집</string>
+    <string name="can_not_be_empty">공백은 허용 안됩니다</string>
+    <string name="geo_import_try_later">다운로드중... 잠시후 다시 시도해 주세요</string>
+    <string name="geo_download_need_service_hint">서비스를 먼저 시작하세요 — 다운로드는 프록시를 통해 GitHub에 안정적으로 접속합니다.</string>
+
+    <string name="err_ipv4_empty">IPv4 주소를 하나 이상 입력해 주세요</string>
+    <string name="err_ipv4_item_empty">%1$d번째 항목이 비어 있습니다. 쉼표나 공백이 있는지 확인하십시오</string>
+    <string name="err_ipv4_invalid">%1$d번째 항목 %2$s는 유효한 IPv4 주소가 아닙니다</string>
+    <string name="err_ipv4_duplicate">%1$d번째 항목 %2$s가 중복되었습니다</string>
+
+    <string name="err_ipv6_empty">IPv6 주소를 하나 이상 입력해 주세요</string>
+    <string name="err_ipv6_item_empty">IPv6 주소 #%d가 비어 있습니다. 확인해 주세요</string>
+    <string name="err_ipv6_invalid">IPv6 주소 #%d가 유효하지 않습니다 - %s</string>
+    <string name="err_ipv6_duplicate">IPv6 주소 #%d가 중복되었습니다 - %s</string>
+    <string name="err_port_invalid">포트는 1에서 65535 사이여야 합니다</string>
+
+    <string name="xrayfa_version">버전</string>
+    <string name="xray_core_version">Xray core 버전</string>
+    <string name="general_part">일반</string>
+    <string name="network_part">네트워크</string>
+    <string name="subscription_part">구독</string>
+    <string name="about_part">기타</string>
+    <string name="geo_lite_title" translatable="false">Geo_ip_lite</string>
+    <string name="geo_ip_lite_description">IP 주소 및 해당 국가 정보</string>
+    <string name="test_url">테스트 URL</string>
+    <string name="default_speed">000.0 KB/s</string>
+    <string name="detail_title">세부 사항</string>
+    <string name="settings_title">설정</string>
+    <string name="subscription_title">구독</string>
+    <string name="menu_subscription">구독</string>
+    <string name="menu_delete_all">모두 삭제</string>
+    <string name="live_update_notification">실시간 업데이트 알림</string>
+    <string name="live_update_notification_desc">알림이 상태 표시줄에 고정됩니다</string>
+    <string name="logcat_desc">자세한 내용은 logcat을 확인하세요</string>
+    <string name="service_close">닫기</string>
+
+    <string name="notification_permission_title">알림 권한</string>
+    <string name="notification_permission_message">더 나은 사용을 위해 알림 권한이 필요합니다</string>
+    <string name="notification_permission_grant_button">승인</string>
+    <string name="notification_permission_reject_button">거부</string>
+    <string name="boot_auto_start">부팅시 자동 실행</string>
+    <string name="boot_auto_start_desc">기기가 켜질 때 앱이 자동으로 실행되도록 허용합니다.</string>
+    <string name="scan_qr_title">QR 코드 스캔</string>
+    <string name="scan_qr_permission_desc">스캔 기능을 사용하려면 카메라 권한을 허용해 주세요</string>
+    <string name="decode_qr_failed">QR 코드 디코딩 실패</string>
+    <string name="connection_detail">연결 세부정보</string>
+    <string name="enable_hextun_title">HexTun 활성화</string>
+    <string name="enable_hex_tun_desc">HexTun을 외부 도구로 활성화합니다</string>
+    <string name="service_start_toast">서비스 시작</string>
+    <string name="service_restart_toast">서비스 재시작</string>
+    <string name="locate_selected_node">선택한 노드로 이동</string>
+    <string name="hide_from_recents_title">최근 작업 목록에서 숨기기</string>
+    <string name="hide_from_recents_desc">최근 작업 목록에서 앱을 제외하세요 (앱을 다시 시작해야 할 수도 있습니다)</string>
+    <string name="socks_username_title">SOCKS 사용자 이름</string>
+    <string name="socks_password_title">SOCKS 비밀번호</string>
+    <string name="err_socks_pass_empty">비밀번호는 필수 입니다</string>
+    <string name="err_socks_user_empty">유저 네임도 필수 입니다</string>
+    <string name="err_socks_length_exceeded">길이는 255바이트를 초과해서는 안 됩니다</string>
+    <string name="err_socks_invalid_chars">유효하지 않은 문자가 포함되어 있습니다</string>
+    <string name="socks_address_listen_title">수신 주소</string>
+    <string name="socks_address_listen_desc">수신 주소 (기본값 127.0.0.1)</string>
+    <string name="lan_socks_proxy_title">LAN SOCKS5 프록시 허용</string>
+    <string name="lan_socks_proxy_desc">같은 Wi-Fi의 기기가 이 기기의 LAN IP와 SOCKS5 프록시 포트를 사용하도록 허용합니다.</string>
+    <string name="lan_http_proxy_title">LAN HTTP 프록시 허용</string>
+    <string name="lan_http_proxy_desc">같은 Wi-Fi의 기기가 이 기기의 LAN IP와 HTTP 프록시 포트를 사용하도록 허용합니다.</string>
+    <string name="send_hwid">HWID 전송</string>
+    <string name="send_hwid_desc">구독 요청 시 HWID를 전송합니다</string>
+
+    <string name="logcat_start">기록 시작</string>
+    <string name="logcat_stop">기록 중지</string>
+    <string name="logcat_duration">지속시간</string>
+    <string name="logcat_duration_30s">30초</string>
+    <string name="logcat_duration_1m">1분</string>
+    <string name="logcat_duration_5m">5분</string>
+    <string name="logcat_duration_infinite">항상</string>
+    <string name="logcat_recording">기록중... %1$ds 남음</string>
+    <string name="copied">클립보드에 복사됨</string>
+    <string name="core_start_failed">Xray-core를 시작할 수 없습니다</string>
+    <string name="route_settings_title">라우팅 설정</string>
+    <string name="route_settings_desc">사용자 정의 라우팅 설정</string>
+    <string name="routing_mode_label">라우팅 모드</string>
+    <string name="routing_mode_global">글로벌 모드</string>
+    <string name="routing_mode_route">라우트 모드</string>
+    <string name="import_manually">수동</string>
+
+    <string name="config_filter_all">전체</string>
+    <string name="config_filter_favorite">즐겨찾기</string>
+    <string name="config_testing">테스트 중…</string>
+    <string name="config_create_node">노드 추가</string>
+    <string name="config_edit_node">노드 편집</string>
+    <string name="config_node_url">노드 URL</string>
+    <string name="config_edit_node_failed">노드 저장 실패. URL을 확인하세요.</string>
+    <string name="config_delete_node_title">노드 삭제</string>
+    <string name="config_delete_node_confirm">이 노드를 삭제하시겠습니까?</string>
+    <string name="config_speed_test_all_cd">전체 속도 테스트</string>
+
+    <string name="bug_report_header">버그 보고</string>
+    <string name="bug_report_title_label">제목</string>
+    <string name="bug_report_desc_label">문제 설명</string>
+    <string name="bug_report_expected_label">예상 동작</string>
+    <string name="bug_report_actual_label">실제 동작</string>
+    <string name="bug_report_submit">GitHub에 제출</string>
+
+    <string name="notification_permission_denied">알림 권한이 거부되었습니다</string>
+    <string name="notification_permission_rationale">서비스를 유지하려면 알림 권한이 필요합니다</string>
+    <string name="cancelled">취소됨</string>
+    <string name="unknown">알 수 없음</string>
+    <string name="timeout">시간 초과</string>
+    <string name="add_to_favorites">즐겨찾기에 추가</string>
+    <string name="remove_from_favorites">즐겨찾기에서 제거</string>
+    <string name="no_subscriptions">구독 없음</string>
+    <string name="add_subscription">구독 추가</string>
+    <string name="edit_subscription">구독 편집</string>
+    <string name="pre_node">이전</string>
+    <string name="next_node">다음</string>
+    <string name="none">없음</string>
+    <string name="share_subscription">구독 공유</string>
+    <string name="err_subscription_mark_duplicate">이미 사용 중인 닉네임입니다</string>
+
+    <string name="apps_permission_required_title">권한 필요</string>
+    <string name="apps_permission_required_desc">개별 앱 프록시를 위해 설치된 앱 목록을 표시하려면, 시스템 설정에서 %1$s에 대해 "모든 앱" / "모든 패키지 요청" 권한을 허용하십시오.</string>
+    <string name="apps_permission_open_settings">설정 열기</string>
+    <string name="apps_permission_retry">다시 시도</string>
+
+    <!-- Node edit screen (shared EditScreen) -->
+    <string name="edit_add_title">추가</string>
+    <string name="edit_protocol_section">프로토콜</string>
+    <string name="edit_basic_settings">기본 설정</string>
+    <string name="edit_remarks">비고</string>
+    <string name="edit_address">주소</string>
+    <string name="edit_port">포트 (0-65535)</string>
+    <string name="edit_protocol_settings">%1$s 설정</string>
+    <string name="edit_uuid">UUID</string>
+    <string name="edit_encryption">암호화 (기본값: none)</string>
+    <string name="edit_flow">Flow</string>
+    <string name="edit_security">보안</string>
+    <string name="edit_password">비밀번호</string>
+    <string name="edit_method">방법</string>
+    <string name="edit_username_optional">사용자 이름 (선택)</string>
+    <string name="edit_password_optional">비밀번호 (선택)</string>
+    <string name="edit_auth">인증</string>
+    <string name="edit_sni">SNI</string>
+    <string name="edit_alpn">ALPN</string>
+    <string name="edit_obfuscation">난독화</string>
+    <string name="edit_obfuscation_password">난독화 비밀번호</string>
+    <string name="edit_allow_insecure">비보안 허용</string>
+    <string name="edit_transport_settings">전송 설정</string>
+    <string name="edit_network">네트워크</string>
+    <string name="edit_ws_path">WS 경로</string>
+    <string name="edit_ws_host">WS 호스트</string>
+    <string name="edit_grpc_service_name">gRPC 서비스 이름</string>
+    <string name="edit_sni_server_name">SNI (서버 이름 표시)</string>
+    <string name="edit_fingerprint">Fingerprint</string>
+    <string name="edit_public_key">공개 키</string>
+    <string name="edit_short_id">Short ID</string>
+    <string name="edit_back_cd">뒤로</string>
+    <string name="edit_save_cd">저장</string>
+    <string name="appfunctions_display_description">설정에서 Agent 기능을 켜면 VPN 상태, 노드, 구독, 설정을 조회할 수 있습니다.</string>
+</resources>

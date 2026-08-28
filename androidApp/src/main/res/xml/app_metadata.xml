@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppFunctionAppMetadata xmlns:appfn="http://schemas.android.com/apk/androidx.appfunctions"
+    appfn:description="XrayFA is a VPN/proxy client. When Agent functions are enabled in Settings, assistants may query connection status, node and subscription summaries, settings (no passwords), traffic speeds, and app version. Share links, node JSON, SOCKS passwords, and subscription URLs are never returned. Write operations are not exposed yet."
+    appfn:displayDescription="@string/appfunctions_display_description" />

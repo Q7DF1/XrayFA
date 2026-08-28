@@ -1,6 +1,11 @@
 # Gradle files
 .gradle/
 build/
+.kotlin/
+
+# Native iOS build products (generated locally / in CI)
+AndroidLibXrayLite/LibXrayLite.xcframework
+**/HevSocks5Tunnel.xcframework
 
 # Local configuration file (sdk path, etc)
 local.properties

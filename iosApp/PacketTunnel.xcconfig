@@ -1,0 +1,24 @@
+// PacketTunnel — LibXrayLite + HevSocks5Tunnel (static xcframework).
+// Build: ./scripts/build_libxray_ios.sh && ./scripts/build_hev_tun_ios.sh
+
+#include "Config.xcconfig"
+
+HEV_TUN_ROOT = $(SRCROOT)/../tun2socks/src/main/jni/hev-socks5-tunnel
+HEV_SIM = $(HEV_TUN_ROOT)/HevSocks5Tunnel.xcframework/ios-arm64_x86_64-simulator
+HEV_DEV = $(HEV_TUN_ROOT)/HevSocks5Tunnel.xcframework/ios-arm64
+
+SWIFT_OBJC_BRIDGING_HEADER = $(SRCROOT)/PacketTunnel/PacketTunnel-Bridging-Header.h
+
+FRAMEWORK_SEARCH_PATHS[sdk=iphonesimulator*] = $(inherited) \
+  $(SRCROOT)/../AndroidLibXrayLite/LibXrayLite.xcframework/ios-arm64_x86_64-simulator
+
+FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*] = $(inherited) \
+  $(SRCROOT)/../AndroidLibXrayLite/LibXrayLite.xcframework/ios-arm64
+
+LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*] = $(inherited) $(HEV_SIM)
+LIBRARY_SEARCH_PATHS[sdk=iphoneos*] = $(inherited) $(HEV_DEV)
+
+HEADER_SEARCH_PATHS[sdk=iphonesimulator*] = $(inherited) $(HEV_SIM)/Headers/HevSocks5Tunnel
+HEADER_SEARCH_PATHS[sdk=iphoneos*] = $(inherited) $(HEV_DEV)/Headers/HevSocks5Tunnel
+
+OTHER_LDFLAGS = $(inherited) -framework LibXrayLite -lhev-socks5-tunnel -lresolv

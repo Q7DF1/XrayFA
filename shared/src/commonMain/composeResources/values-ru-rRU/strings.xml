@@ -1,0 +1,254 @@
+<resources>
+    <string name="app_name" translatable="false">XrayFA</string>
+    <string name="app_label" translatable="false">XrayFA</string>
+    <string name="start">Запустить</string>
+    <string name="stop">Остановить</string>
+    <string name="disconnect">Отключить</string>
+    <string name="connected">Подключено</string>
+    <string name="home">Главная</string>
+    <string name="config">Конфигурация</string>
+    <string name="logcat">Логи</string>
+    <string name="add_config">Добавить конфиг</string>
+    <string name="clipboard_import">Импорт из буфера обмена</string>
+    <string name="no_configuration">Нет конфигурационного файла</string>
+    <string name="no_configuration_hint">Импортируйте конфигурацию из буфера обмена или QR‑кода, чтобы начать работу.</string>
+    <string name="create_a_config">Создать первый конфиг</string>
+    <string name="select_configuration_notify">Сначала выберите конфигурацию</string>
+    <string name="upload_data">Отправить</string>
+    <string name="download_data">Загрузить</string>
+    <string name="config_not_ready">Конфиг не готов</string>
+    <string name="qrcode_import">Импорт QR‑кода</string>
+    <string name="close_window">Закрыть</string>
+    <string name="confirm_delete">Подтвердить удаление</string>
+    <string name="cancel">Отмена</string>
+    <string name="delete">Удалить</string>
+    <string name="delete_notify">Эта операция необратима. Вы уверены, что хотите удалить?</string>
+    <string name="save">Сохранить</string>
+    <string name="enable_ipv6">Включить IPv6</string>
+    <string name="enable_ipv6_description">Нажмите, чтобы включить прокси IPv6</string>
+    <string name="theme_select">Тема</string>
+    <string name="dark_mode">Тёмная</string>
+    <string name="light_mode">Светлая</string>
+    <string name="auto_mode">Авто</string>
+    <string name="dark_mode_description">Выберите, чтобы включить тёмную тему</string>
+    <string name="dns_ipv4" translatable="false">DNS IPv4</string>
+    <string name="dns_ipv6" translatable="false">DNS IPv6</string>
+    <string name="socks_port" translatable="false">SOCKS порт</string>
+    <string name="http_proxy_port" translatable="false">HTTP порт прокси</string>
+    <string name="allow_app_settings">Открыть настройки прокси приложения</string>
+    <string name="select_app_settings">Выбрать отдельное приложение для настройки прокси</string>
+    <string name="all_app_settings" translatable="false">Приложения</string>
+    <string name="repo_site">Репозиторий</string>
+    <string name="no_log_text">Логи не выводятся</string>
+    <string name="clipboard_export">Экспорт в буфер обмена</string>
+    <string name="nick_name">Имя</string>
+    <string name="subscription_url">Ссылка подписки</string>
+    <string name="confirm">Подтвердить</string>
+    <string name="subscribe_failed">Не удалось подключиться по подписке</string>
+    <string name="repo_description">Исходный код</string>
+    <string name="geo_ip" translatable="false">geoip</string>
+    <string name="geo_site" translatable="false">geosite</string>
+    <string name="geo_ip_description">Таблица соответствия IP</string>
+    <string name="geo_site_description">Таблица соответствия сайтов</string>
+    <string name="import_geo_failed">Не удалось импортировать geo‑файл</string>
+    <string name="download_geo_failed">Не удалось загрузить geo‑файл</string>
+    <string name="edit">Изменить</string>
+    <string name="can_not_be_empty">Поле не может быть пустым</string>
+    <string name="geo_import_try_later">Идёт загрузка, попробуйте позже.</string>
+    <string name="geo_download_need_service_hint">Сначала запустите сервис — загрузка идёт через прокси для стабильного доступа к GitHub.</string>
+    <string name="geo_lite_download_unavailable">Загрузка GeoLite на этой платформе недоступна.</string>
+
+    <string name="err_ipv4_empty">Введите хотя бы один IPv4‑адрес</string>
+    <string name="err_ipv4_item_empty">Запись №%1$d пуста, проверьте запятые или пробелы</string>
+    <string name="err_ipv4_invalid">Запись №%1$d «%2$s» не является корректным IPv4‑адресом</string>
+    <string name="err_ipv4_duplicate">Запись №%1$d «%2$s» дублируется</string>
+
+    <string name="err_ipv6_empty">Введите хотя бы один IPv6‑адрес</string>
+    <string name="err_ipv6_item_empty">IPv6‑адрес №%d пуст, проверьте</string>
+    <string name="err_ipv6_invalid">IPv6‑адрес №%d недопустим: %s</string>
+    <string name="err_ipv6_duplicate">IPv6‑адрес №%d повторяется: %s</string>
+    <string name="err_port_invalid">Порт должен быть от 1 до 65535</string>
+
+    <string name="xrayfa_version">Версия</string>
+    <string name="xray_core_version">Версия Xray‑core</string>
+    <string name="general_part">Основное</string>
+    <string name="network_part">Сеть</string>
+    <string name="subscription_part">Подписка</string>
+    <string name="about_part">Дополнительно</string>
+    <string name="geo_lite_title" translatable="false">Geo_ip_lite</string>
+    <string name="geo_ip_lite_description">IP‑адреса и соответствующая информация о странах</string>
+    <string name="test_url">Тестовый URL</string>
+    <string name="default_speed">000.0 КБ/с</string>
+    <string name="detail_title">Подробности</string>
+    <string name="settings_title">Настройки</string>
+    <string name="subscription_title">Подписка</string>
+    <string name="menu_subscription">Подписка</string>
+    <string name="menu_delete_all">Удалить всё</string>
+    <string name="live_update_notification">Уведомления о обновлениях в реальном времени</string>
+    <string name="live_update_notification_desc">Уведомление будет закреплено в строке состояния</string>
+    <string name="logcat_desc">Смотрите логи для получения подробной информации</string>
+    <string name="service_close">Закрыть</string>
+
+    <string name="notification_permission_title">Разрешение на уведомления</string>
+    <string name="notification_permission_message">Требуется разрешение на уведомления для лучшего опыта использования</string>
+    <string name="notification_permission_grant_button">Разрешить</string>
+    <string name="notification_permission_reject_button">Отклонить</string>
+    <string name="boot_auto_start">Запуск при включении</string>
+    <string name="boot_auto_start_desc">Разрешить приложению автоматически запускаться при включении устройства.</string>
+    <string name="agent_functions_title">Функции агента</string>
+    <string name="agent_functions_desc">Разрешить системным помощникам запрашивать статус и выполнять ограниченные действия. По умолчанию выключено.</string>
+    <string name="scan_qr_title">Сканирование QR‑кода</string>
+    <string name="scan_qr_permission_desc">Пожалуйста, разрешите доступ к камере для использования сканирования.</string>
+    <string name="decode_qr_failed">Не удалось распознать QR‑код</string>
+    <string name="connection_detail">Детали подключения</string>
+    <string name="enable_hextun_title">Включить HexTun</string>
+    <string name="enable_hex_tun_desc">Включить HexTun как сторонний инструмент</string>
+    <string name="service_start_toast">Сервис запущен</string>
+    <string name="service_restart_toast">Сервис перезапущен</string>
+    <string name="locate_selected_node">Перейти к выбранному узлу</string>
+    <string name="hide_from_recents_title">Скрыть из списка задач</string>
+    <string name="hide_from_recents_desc">Исключить приложение из списка недавних задач (может потребоваться перезапуск)</string>
+    <string name="socks_username_title">Имя пользователя SOCKS</string>
+    <string name="socks_password_title">Пароль SOCKS</string>
+    <string name="err_socks_pass_empty">Пароль не может быть пустым!</string>
+    <string name="err_socks_user_empty">Имя пользователя не может быть пустым!</string>
+    <string name="err_socks_length_exceeded">Длина не должна превышать 255 байт</string>
+    <string name="err_socks_invalid_chars">Содержатся недопустимые символы</string>
+    <string name="socks_address_listen_title">Адрес прослушивания</string>
+    <string name="socks_address_listen_desc">Адрес прослушивания (127.0.0.1 по умолчанию)</string>
+    <string name="lan_socks_proxy_title">Разрешить SOCKS5 прокси в LAN</string>
+    <string name="lan_socks_proxy_desc">Разрешить устройствам в той же Wi-Fi сети использовать LAN IP этого устройства и SOCKS5 порт прокси.</string>
+    <string name="lan_http_proxy_title">Разрешить HTTP прокси в LAN</string>
+    <string name="lan_http_proxy_desc">Разрешить устройствам в той же Wi-Fi сети использовать LAN IP этого устройства и HTTP порт прокси.</string>
+    <string name="send_hwid">Отправлять hwid</string>
+    <string name="send_hwid_desc">Отправлять hwid при запросе подписки</string>
+
+    <string name="logcat_start">Начать запись</string>
+    <string name="logcat_stop">Остановить запись</string>
+    <string name="logcat_duration">Длительность</string>
+    <string name="logcat_duration_30s">30с</string>
+    <string name="logcat_duration_1m">1м</string>
+    <string name="logcat_duration_5m">5м</string>
+    <string name="logcat_duration_infinite">Всегда</string>
+    <string name="logcat_recording">Запись... Осталось %1$dс</string>
+    <string name="copied">Скопировано в буфер обмена</string>
+    <string name="core_start_failed">Не удалось запустить Xray-core</string>
+    <string name="route_settings_title">Настройки маршрутизации</string>
+    <string name="route_settings_desc">Пользовательские настройки маршрутизации</string>
+    <string name="routing_mode_label">Режим маршрутизации</string>
+    <string name="routing_mode_global">Глобальный режим</string>
+    <string name="routing_mode_route">Режим маршрута</string>
+    <string name="import_manually">Вручную</string>
+
+    <string name="config_filter_all">Все</string>
+    <string name="config_filter_favorite">Избранное</string>
+    <string name="config_testing">Тестирование…</string>
+    <string name="config_create_node">Создать узел</string>
+    <string name="config_edit_node">Изменить узел</string>
+    <string name="config_node_url">URL узла</string>
+    <string name="config_edit_node_failed">Не удалось сохранить узел. Проверьте URL.</string>
+    <string name="config_delete_node_title">Удалить узел</string>
+    <string name="config_delete_node_confirm">Удалить этот узел?</string>
+    <string name="config_speed_test_all_cd">Тест скорости всех</string>
+
+    <string name="bug_report_header">Отчет об ошибке</string>
+    <string name="bug_report_title_label">Заголовок</string>
+    <string name="bug_report_desc_label">Описание проблемы</string>
+    <string name="bug_report_expected_label">Ожидаемое поведение</string>
+    <string name="bug_report_actual_label">Фактическое поведение</string>
+    <string name="bug_report_submit">Отправить на GitHub</string>
+
+    <string name="notification_permission_denied">В разрешении на уведомление отказано</string>
+    <string name="notification_permission_rationale">Необходимо разрешение на уведомление, чтобы служба оставалась активной</string>
+    <string name="cancelled">Отменено</string>
+    <string name="unknown">Неизвестно</string>
+    <string name="timeout">Тайм-аут</string>
+    <string name="add_to_favorites">Добавить в избранное</string>
+    <string name="remove_from_favorites">Удалить из избранного</string>
+    <string name="no_subscriptions">Нет подписок</string>
+    <string name="add_subscription">Добавить подписку</string>
+    <string name="edit_subscription">Изменить подписку</string>
+    <string name="pre_node">Пре-узел</string>
+    <string name="next_node">Пост-узел</string>
+    <string name="none">Нет</string>
+    <string name="share_subscription">Поделиться подпиской</string>
+    <string name="err_subscription_mark_duplicate">Такое имя уже существует</string>
+
+    <string name="apps_permission_required_title">Требуется разрешение</string>
+    <string name="apps_permission_required_desc">Чтобы отобразить список установленных приложений для прокси отдельных приложений, предоставьте разрешение «Все приложения» / «Запрос всех пакетов» для %1$s в настройках системы.</string>
+    <string name="apps_permission_open_settings">Открыть настройки</string>
+    <string name="apps_permission_retry">Повторить</string>
+
+    <!-- Node edit screen (shared EditScreen) -->
+    <string name="edit_add_title">Добавить</string>
+    <string name="edit_protocol_section">Протокол</string>
+    <string name="edit_basic_settings">Основные настройки</string>
+    <string name="edit_remarks">Заметка</string>
+    <string name="edit_address">Адрес</string>
+    <string name="edit_port">Порт (0-65535)</string>
+    <string name="edit_protocol_settings">%1$s — настройки</string>
+    <string name="edit_uuid">UUID</string>
+    <string name="edit_encryption">Шифрование (по умолчанию: none)</string>
+    <string name="edit_flow">Flow</string>
+    <string name="edit_security">Безопасность</string>
+    <string name="edit_password">Пароль</string>
+    <string name="edit_method">Метод</string>
+    <string name="edit_username_optional">Имя пользователя (необяз.)</string>
+    <string name="edit_password_optional">Пароль (необяз.)</string>
+    <string name="edit_auth">Аутентификация</string>
+    <string name="edit_sni">SNI</string>
+    <string name="edit_alpn">ALPN</string>
+    <string name="edit_obfuscation">Обфускация</string>
+    <string name="edit_obfuscation_password">Пароль обфускации</string>
+    <string name="edit_allow_insecure">Разрешить небезопасное</string>
+    <string name="edit_transport_settings">Настройки транспорта</string>
+    <string name="edit_network">Сеть</string>
+    <string name="edit_ws_path">WS путь</string>
+    <string name="edit_ws_host">WS хост</string>
+    <string name="edit_grpc_service_name">Имя gRPC-сервиса</string>
+    <string name="edit_sni_server_name">SNI (Server Name Indication)</string>
+    <string name="edit_fingerprint">Fingerprint</string>
+    <string name="edit_public_key">Публичный ключ</string>
+    <string name="edit_short_id">Short ID</string>
+    <string name="edit_back_cd">Назад</string>
+    <string name="edit_save_cd">Сохранить</string>
+
+    <string name="apps_search">Search</string>
+    <string name="apps_clear_all">Clear all</string>
+    <string name="app_log_clear">Clear</string>
+    <string name="app_log_copy">Copy all</string>
+    <string name="apps_info_message">Per-app proxy management is available on Android. iOS Network Extension integration is not yet available in this build.</string>
+    <string name="apps_configured_summary">Allowed packages (read-only)</string>
+    <string name="apps_no_packages">No per-app allow list configured yet.</string>
+    <string name="platform_unavailable">Available on Android only</string>
+    <string name="in_development">В разработке</string>
+    <string name="in_development_message">Эта функция разрабатывается на iOS.</string>
+    <string name="platform_section">Platform</string>
+    <string name="domain_strategy_section">Domain Strategy</string>
+    <string name="domain_strategy_asis">AsIs</string>
+    <string name="domain_strategy_ip_if_non_match">IPIfNonMatch</string>
+    <string name="domain_strategy_ip_on_demand">IPOnDemand</string>
+    <string name="strategy_field">Strategy</string>
+    <string name="quick_config_presets">Quick Config Presets</string>
+    <string name="bypass_china">Bypass Mainland China</string>
+    <string name="bypass_china_desc">geosite:cn, geoip:cn -&gt; Direct</string>
+    <string name="proxy_telegram_google">Proxy Telegram &amp; Google</string>
+    <string name="proxy_telegram_google_desc">geosite:telegram, geosite:google -&gt; Proxy</string>
+    <string name="block_ads">Block Ads</string>
+    <string name="block_ads_desc">geosite:category-ads-all -&gt; Block</string>
+    <string name="custom_routing_rules">Custom Routing Rules</string>
+    <string name="add_custom_rule">Add Custom Rule</string>
+    <string name="create_custom_rule">Create Custom Rule</string>
+    <string name="rule_name_tag">Rule Name / Tag (Optional)</string>
+    <string name="outbound_tag">Outbound Tag (proxy/direct/block)</string>
+    <string name="domains_comma">Domains (comma separated)</string>
+    <string name="ips_comma">IPs (comma separated)</string>
+    <string name="port_example">Port (e.g., 53, 1-1024)</string>
+    <string name="confirm_and_add">Confirm and Add</string>
+    <string name="custom_rule_fallback">Custom Rule</string>
+    <string name="outbound_tag_short">Outbound Tag</string>
+    <string name="domains_prefix">Domains:</string>
+    <string name="ips_prefix">IPs:</string>
+    <string name="port_prefix">Port:</string>
+
+</resources>

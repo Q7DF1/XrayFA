@@ -15,7 +15,7 @@
 ### 模块结构
 | 模块 | 说明 | 代码量 |
 |------|------|--------|
-| `:app` | 主应用（Compose UI, VPN 服务, ViewModel） | ~5160 LOC |
+| `:androidApp` | 主应用（Compose UI, VPN 服务, ViewModel） | ~5160 LOC |
 | `:common` | 共享工具类 | ~150 LOC |
 | `:tun2socks` | Native TUN2Socks JNI 封装 | ~100 LOC |
 | `AndroidLibXrayLite/` | Xray-core Go 绑定（git submodule） | 外部 |
@@ -59,7 +59,7 @@
 
 | 关注点 | 当前方案 | KMP 目标方案 | 选型理由 |
 |--------|----------|-------------|----------|
-| **依赖注入** | Dagger 2.57.1 | **Koin 4.x** | KMP 原生支持，无注解处理，迁移成本低 |
+| **依赖注入** | Dagger 2.57.1 | **Koin 4.x** | KMP 原生支持，无注解处理，迁移成本低。**当前实际锁定 4.0.1**（Kotlin 2.0.21 + iOS klib 兼容）；见 Step 21「Koin 版本决策」，Kotlin 升级后再 bump |
 | **数据库** | Room 2.7.0 | **Room KMP** | Room 2.7+ 已支持 KMP，可保留现有 migration 和 DAO |
 | **设置存储** | DataStore Prefs | **DataStore KMP** | 官方自 1.1.0 起支持多平台，迁移量极小 |
 | **网络请求** | OkHttp 4.12 | **Ktor 3.x** | KMP 原生 HTTP 客户端，各平台独立引擎 |
@@ -147,17 +147,16 @@ xrayfa/
 │       ├── androidMain/
 │       └── iosMain/                     #   iOS 特有 Kotlin 胶水代码
 │
-├── app-android/                          # Android 应用壳
+├── androidApp/                           # Android 应用壳 (:androidApp)
 │   └── src/main/
 │       ├── AndroidManifest.xml
 │       ├── XrayFAApplication.kt         #   Koin 初始化
 │       ├── MainActivity.kt              #   入口
 │       └── service/                     #   VpnService, TileService, BootReceiver
 │
-├── app-ios/                              # iOS 应用壳
+├── iosApp/                               # iOS 应用壳 (Xcode)
 │   ├── iosApp/
-│   │   ├── AppDelegate.swift
-│   │   ├── ContentView.swift            #   ComposeUIViewController 包装
+│   │   ├── ContentView.swift            #   SwiftUI → ComposeUIViewController (E.6+)
 │   │   └── Info.plist
 │   ├── PacketTunnel/                    #   Network Extension Target
 │   │   ├── PacketTunnelProvider.swift
@@ -220,7 +219,7 @@ kotlin {
 kotlin = "2.1.0"                    # 升级以获得更好的 KMP 支持
 compose-multiplatform = "1.7.0"     # Compose Multiplatform
 ktor = "3.1.0"
-koin = "4.1.0"
+koin = "4.1.0"                      # 目标版本；当前实际 4.0.1，见 Step 21「Koin 版本决策」
 decompose = "3.2.0"
 kotlinx-serialization = "1.7.3"
 kotlinx-datetime = "0.6.2"
@@ -379,7 +378,7 @@ actual fun generateUUID(): String = platform.Foundation.NSUUID().UUIDString()
 
 **1.5 接回 Android App**
 
-更新 `:app` 依赖使用新共享模块：
+更新 `:androidApp` 依赖使用新共享模块：
 ```kotlin
 dependencies {
     implementation(project(":core:model"))
@@ -393,7 +392,7 @@ dependencies {
 ```bash
 ./gradlew :domain:allTests          # JVM + iOS Simulator 双平台运行
 ./gradlew :core:model:allTests      # 序列化往返测试
-./gradlew :app:assembleDebug        # Android 回归验证
+./gradlew :androidApp:assembleDebug        # Android 回归验证
 ```
 
 #### 风险评估
@@ -572,7 +571,7 @@ interface VpnController {
 **3.3 iOS VPN 实现（NEPacketTunnelProvider）**
 
 ```swift
-// app-ios/PacketTunnel/PacketTunnelProvider.swift
+// iosApp/PacketTunnel/PacketTunnelProvider.swift
 class PacketTunnelProvider: NEPacketTunnelProvider {
     override func startTunnel(options: [String: NSObject]?,
                              completionHandler: @escaping (Error?) -> Void) {
@@ -900,6 +899,126 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 
 ---
 
+## 阶段 E.6 进度（Config / Settings iOS parity）
+
+| 步骤 | 内容 | 状态 |
+|------|------|------|
+| E.6o | 共享节点编辑/删除 sheet + iOS Config | ✅ |
+| E.6r | iOS Config 轻量创建 sheet（**临时**） | ✅ |
+| E.6s | 共享 Route Settings + iOS 接入 | ✅ |
+| E.6t | iOS Apps 信息桥接 + allow list | ✅ |
+| E.6u | SharedModalBottomSheet 崩溃修复（Dialog 替代 ModalBottomSheet） | ✅ |
+| E.6v | **共享完整 EditScreen → iOS 与 Android 统一** | ✅ |
+| E.6w | **删除废弃 SharedNodeEditSheet + EditScreen i18n 标签体系** | ✅ |
+| E.6x | **Android ConfigUiLabels / ConfigFilterLabels 本地化补全** | ✅ |
+
+---
+
+## 期中后查漏补缺（2026-08-20）
+
+对照 `docs/KMP_MIGRATION_MIDTERM_REVIEW.md`。交接文档仍按 Step 编号维护（STEP73+）。
+
+| 步骤 | 内容 | 状态 |
+|------|------|------|
+| 73 | `:domain` `commonTest` parser / 配置生成黄金用例 | ✅ `94a88b6` |
+| 74 | CI：`kmp-unit-tests.yml` + ios-shared xcframework + android.yml `test` | ✅ `29ca665` |
+| 75 | 修正 unpublished `AndroidLibXrayLite` gitlink；submodule URL 保持 SSH | ✅ `6f547fc` `048c36d` |
+| 76 | R-2 去重：`EntityMappers` / `RoomNodeRepository` / `KoinQualifiers` / SubscriptionRepository | ✅ `9a95c43` |
+| 77 | 断 `:domain → :core:datastore`：路由类型 / `Rule` / `AppJson` 下沉 `:common` | ✅ `c4b4d9f` |
+| 78 | 拆 `:core:data`：repository / EntityMappers 迁出 `:shared` | ✅ `b0c0670` |
+| 79 | R-1：Android `SubscriptionScreen` → `SharedSubscriptionScreen` 薄封装 | ✅ `e5c6333` |
+| 80 | R-1：Android 底栏 → `XrayFloatingNav` | ✅ |
+| 81 | R-1：Android `LogcatScreen` → `SharedAppLogScreen`（保留录制） | ✅ |
+| 82 | R-1：Android `AppsScreen` → `SharedAppsPickerScreen` | ✅ |
+| 83 | i18n：`strings.xml` → compose-resources | ✅ |
+| 84 | `AGENT.md` 全量重写 | ✅ `7a1abc6` |
+| 85 | iOS 底栏：隐藏逻辑 / 指示条 inset / 间距对齐 Android | ✅ `9175bde` |
+| 86 | R-6：`kotlinx-coroutines` / `serialization-json` 进 catalog | ✅ `3520331` |
+| 87 | R-8：iOS Room DB 迁入 App Group（对齐 DataStore） | ✅ `3f2d253` |
+| 88 | R-8：iOS 流量轮询随 VPN 连接状态启停 | ✅ `edc7c94` |
+| 89 | R-8：NE 错误回传 App Group + `startTunnel` NSError 检查 | ✅ |
+| 90 | R-8：NE Go `GOMEMLIMIT`/`GOGC` + resident 内存采样 | ✅ |
+| 91 | P2：Room Node 索引 + ORDER BY 修复 + `distinctUntilChanged` | ✅ |
+| 92 | R-1：Android `MainActivity` → 共享 `RootContent`（`AndroidAppShell`） | ✅ |
+| 93 | Phase 7 A1：`:domain` `XrayAgentFacade` + DTO + `XrayAgentCatalog` commonTest | ✅ 见 `KMP_MIGRATION_STEP93_HANDOVER.md` |
+| 94 | Phase 7 A2：`:androidApp` `DefaultXrayAgentFacade` + Koin | ✅ 见 `KMP_MIGRATION_STEP94_HANDOVER.md` |
+| 95 | Phase 7 A3：DataStore `agent_functions_enabled` + 设置页总开关 | ✅ 见 `KMP_MIGRATION_STEP95_HANDOVER.md` |
+| 96 | Phase 7 A4：AppFunctions alpha08 + Phase A 只读 `@AppFunction` | ✅ 见 `KMP_MIGRATION_STEP96_HANDOVER.md` |
+| 97 | Phase 7 A5：API 36 真机 `adb cmd app_function` 手测 | ✅ 见 `KMP_MIGRATION_STEP97_HANDOVER.md` |
+| 98 | Phase 7 B1+B2：Phase B 写操作 + `setAppFunctionEnabled` 联动 | ✅ 见 `KMP_MIGRATION_STEP98_HANDOVER.md` |
+| 99 | iOS `darkMode` 接到共享 `XrayTheme`（对齐 Android） | ✅ 见 `KMP_MIGRATION_STEP99_HANDOVER.md` |
+| 100 | iOS `measureOutboundDelay` ObjC shim（不再恒 `-1L`） | ✅ 见 `KMP_MIGRATION_STEP100_HANDOVER.md` |
+| 101 | iOS GeoIP：common MMDB 读 GeoLite2-Country.mmdb，节点国旗不再恒 `""` | ✅ 见 `KMP_MIGRATION_STEP101_HANDOVER.md` |
+| 102 | 共享设置 GeoLite 下载 + 成功后置 `geoLiteInstall` | ✅ 见 `KMP_MIGRATION_STEP102_HANDOVER.md` |
+| 103 | 共享 Home/Config 测速 + iOS `XrayCore` 委托 delay shim | ✅ 见 `KMP_MIGRATION_STEP103_HANDOVER.md` |
+| 104 | iOS CommonCrypto digest（`calculateBytesHash` 不再空串） | ✅ 见 `KMP_MIGRATION_STEP104_HANDOVER.md` |
+| 105 | iOS 关闭 GeoLite 设置下载（无法像 Android 走本机 SOCKS） | ✅ 见 `KMP_MIGRATION_STEP105_HANDOVER.md` |
+| 106 | iOS 宿主链 LibXrayLite + ObjC gomobile 回调（`go_seq_go_to_refnum`） | ✅ 见 `KMP_MIGRATION_STEP106_HANDOVER.md` |
+| 107 | 共享设置延迟测试 URL（iOS 可改 Home/Config 测速地址） | ✅ 见 `KMP_MIGRATION_STEP107_HANDOVER.md` |
+| 108 | 还原 Android 迁移前功能：`MainActivity` 回到 `XrayFAContainer` | ✅ 见 `KMP_MIGRATION_STEP108_HANDOVER.md` |
+| 109 | 单壳：Android 回到 `RootContent`；缺口进 `PlatformRootHooks`；导航对齐原生底栏 | ✅ 见 `KMP_MIGRATION_STEP109_HANDOVER.md` |
+| 110 | Phase 8：活清单 + `IOS_STUBS.md` + `IosPlatformRootHooks` | ✅ 见 `KMP_MIGRATION_STEP110_HANDOVER.md` |
+| 111 | iOS `ShareNode` 二维码 + 剪贴板导出 | ✅ 见 `KMP_MIGRATION_STEP111_HANDOVER.md` |
+
+活清单（完成 / 待办）：**[`KMP_MIGRATION_STATUS.md`](./KMP_MIGRATION_STATUS.md)**。iOS 桩：**[`IOS_STUBS.md`](./IOS_STUBS.md)**。
+
+### Phase 8：保住 Android，增量移植 iOS（2026-08-28）
+
+Step 108/109 换过壳。本阶段 **不再换壳**。
+
+- Android 主路径冻结：`MainActivity` → `AndroidAppShell` → `RootContent` + `AndroidPlatformRootHooks`。底栏 Config \| Home；Settings 等 overlay。
+- iOS 只填 `IosPlatformRootHooks`，不改 overlay 栈语义，不把 iOS 实现写进 `commonMain` 挤掉 Android hook。
+- 不做 Agent Phase C / C1、iOS AppFunctions。不要把 `IosStubTunBridge` 在宿主做真。
+
+| 步骤 | 内容 | 状态 |
+|------|------|------|
+| 110 | 活清单 + 桩清单 + `IosPlatformRootHooks` 骨架 | ✅ |
+| 111 | iOS `ShareNode` | ✅ |
+| 112–116 | 移植后 iOS backlog（geo 导入 / 相册扫码 / Bug report / 分应用 / NE 日志） | ⏭ 见 [`KMP_POST_MIGRATION.md`](./KMP_POST_MIGRATION.md) |
+| 117 / 118 | Phase 9：删除无主路径 `XrayFAContainer` + Android 发版收尾 | ✅ 见 `KMP_MIGRATION_STEP118_HANDOVER.md` |
+
+### Phase 9：Android 可发版，iOS 保底（2026-08-28）
+
+KMP 移植收尾门禁：共享单壳上发布 Android 1.7.0。页面保真不挡发版。iOS 只保连接/列表/导入/设置/分享。
+
+- 不再换壳；不做 Agent Phase C、iOS AppFunctions、三星 Live Update App 改动。
+- 新功能只进 `:shared` + `PlatformRootHooks`。
+- 活清单：[`KMP_MIGRATION_STATUS.md`](./KMP_MIGRATION_STATUS.md)。backlog：[`KMP_POST_MIGRATION.md`](./KMP_POST_MIGRATION.md)。
+
+### Phase 7：Android Agent 可控能力（AppFunctions，KMP 完成后）
+
+> 详细设计见 **[ANDROID_AGENT_APPFUNCTIONS_PLAN.md](./ANDROID_AGENT_APPFUNCTIONS_PLAN.md)**。交接：STEP93–98。必做 A1–A5、B1–B2 已完成。C1 可选。
+
+| 步骤 | 内容 | 状态 |
+|------|------|------|
+| A1 | `:domain` 定义 `XrayAgentFacade` + Agent DTO / 错误码 + `XrayAgentCatalog` | ✅ |
+| A2 | `:androidApp` `DefaultXrayAgentFacade` + Koin | ✅ |
+| A3 | DataStore `agent_functions_enabled` + 设置页总开关 | ✅ |
+| A4 | AppFunctions 依赖 + Phase A 只读 `@AppFunction` | ✅ |
+| A5 | `adb cmd app_function` 手测 | ✅ |
+| B1 | Phase B 写操作（connect/select/refresh）+ VPN prepare | ✅ |
+| B2 | `setAppFunctionEnabled` 与设置联动 | ✅ |
+
+
+**原则：Android 为参照，iOS 最终对齐 Android，不在 Android 上叠轻量创建入口。**
+
+| 平台 | 创建节点 | 编辑节点 | 说明 |
+|------|----------|----------|------|
+| **Android** | 顶栏 Edit / 空态添加 → 全屏 `EditScreen`（`Edit` 路由） | 节点行 Edit → `Detail` → 全屏 `EditScreen` | **保持不变**；剪贴板/QR 导入覆盖「粘贴 URL」场景 |
+| **iOS（当前）** | 与 Android 相同的全屏共享 `EditScreen` | 与 Android 相同 | E.6v 已完成 |
+
+**E.6v 范围（规划）**：
+
+1. `androidApp/.../EditScreen.kt` + `DetailViewmodel` 表单/保存逻辑 → `shared`（或 `feature:nodes`）
+2. 去掉对 Navigation3 / Android `ViewModel` 的绑定；保存走 `NodeRepository` + `ParserFactory`（可扩展 `NodeEditor`）
+3. iOS `ConfigTabScreen`：顶栏 Edit / 节点 Edit → 全屏共享 EditScreen（替代轻量 sheet 作为**主路径**）
+4. Android：`Edit` / `Detail` 路由改为嵌入共享 EditScreen（Strangler 瘦包装），行为与现网一致
+5. iOS 轻量 sheet：共享 EditScreen 落地后可**移除创建入口**；编辑是否保留 sheet 视迁移成本再定
+
+**已知技术债**：shared 模块勿在 commonMain 直接调用 `ModalBottomSheet`、`ExposedDropdownMenuBox`（CMP material3 1.3.1 vs androidApp 1.5.0-alpha15 → `NoSuchMethodError`）；共享 sheet/下拉用 Dialog 模拟直至 CMP/BOM 对齐。
+
+---
+
 ## 迁移时间线
 
 ```
@@ -960,8 +1079,8 @@ feature:qrcode (← domain, platform:system)
     ↓
 shared (汇聚: 导出所有 feature + platform)
     ↓
-app-android (← shared + Android 特有)
-app-ios (← shared framework)
+androidApp (← shared + Android 特有)
+iosApp (← shared framework)
 ```
 
 ---

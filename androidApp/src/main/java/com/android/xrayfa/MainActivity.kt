@@ -1,0 +1,166 @@
+package com.android.xrayfa
+
+import android.annotation.SuppressLint
+import android.app.ActivityManager
+import android.app.AlertDialog
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.Composable
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.flowWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import com.android.xrayfa.ui.AndroidAppShell
+import com.android.xrayfa.ui.navigation.AndroidRootAction
+import com.android.xrayfa.ui.navigation.AndroidRootActionCoordinator
+import com.android.xrayfa.ui.rememberAndroidRootLifecycle
+import com.android.xrayfa.datastore.SettingsRepository
+import com.android.xrayfa.viewmodel.XrayViewmodel
+import com.android.xrayfa.ui.XrayBaseActivity
+import com.android.xrayfa.viewmodel.AppsViewmodel
+import com.android.xrayfa.viewmodel.AppsViewmodelFactory
+import com.android.xrayfa.viewmodel.SettingsViewmodel
+import com.android.xrayfa.viewmodel.SettingsViewmodelFactory
+import com.android.xrayfa.viewmodel.XrayViewmodelFactory
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+class MainActivity constructor(
+    val xrayViewmodelFactory: XrayViewmodelFactory,
+    val settingsViewmodelFactory: SettingsViewmodelFactory,
+    val appViewmodelFactory: AppsViewmodelFactory,
+    val rootActionCoordinator: AndroidRootActionCoordinator,
+    private val settingsRepository: SettingsRepository,
+) : XrayBaseActivity() {
+
+    private lateinit var xrayViewmodel: XrayViewmodel
+
+    private lateinit var settingsViewmodel: SettingsViewmodel
+    @SuppressLint("SourceLockedOrientationActivity")
+    @Composable
+    override fun Content(isLandscape: Boolean) {
+        val appViewmodel =
+            ViewModelProvider.create(this, appViewmodelFactory)[AppsViewmodel::class.java]
+        val lifecycle = rememberAndroidRootLifecycle()
+
+        checkNotificationPermission()
+        AndroidAppShell(
+            lifecycle = lifecycle,
+            settingsViewmodel = settingsViewmodel,
+            appsViewmodel = appViewmodel,
+            xrayViewmodel = xrayViewmodel,
+            rootActionCoordinator = rootActionCoordinator,
+        )
+    }
+
+    companion object {
+        const val TAG = "MainActivity"
+        const val ACTION_OPEN_SCAN = "open_scan"
+        const val ACTION_START_SERVICE = "start_service"
+        const val ACTION_STOP_SERVICE = "stop_service"
+    }
+
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+
+        super.onCreate(savedInstanceState)
+        xrayViewmodel =
+            ViewModelProvider(this, xrayViewmodelFactory)[XrayViewmodel::class.java]
+        settingsViewmodel = ViewModelProvider
+            .create(this, settingsViewmodelFactory)[SettingsViewmodel::class.java]
+        handleShortcutIntent(intent)
+        lifecycleScope.launch {
+            settingsRepository.settingsFlow.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                .collect { state ->
+                    val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+                    activityManager.appTasks.forEach {
+                        val taskInfo = it.taskInfo
+                        val currentTaskId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            taskInfo.taskId
+                        } else {
+                            @Suppress("DEPRECATION")
+                            taskInfo.id
+                        }
+                        if (currentTaskId == taskId) {
+                            //set flag: Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+                            it.setExcludeFromRecents(state.hideFromRecents)
+                        }
+                    }
+                }
+
+        }
+    }
+
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                //TODO migrate to after click the start button
+            } else {
+                Toast.makeText(this, getString(R.string.notification_permission_denied), Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    fun checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            when {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    //todo migrate to after click the start button
+                }
+                shouldShowRequestPermissionRationale(android.Manifest.permission.POST_NOTIFICATIONS) -> {
+                    AlertDialog.Builder(this)
+                        .setTitle(getString(R.string.notification_permission_title))
+                        .setMessage(getString(R.string.notification_permission_rationale))
+                        .setPositiveButton(getString(R.string.notification_permission_grant_button)) { _, _ ->
+                            requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                        .setNegativeButton(getString(R.string.notification_permission_reject_button), null)
+                        .show()
+                }
+                else -> {
+                    requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+        } else {
+            //todo migrate to before click the start button
+        }
+    }
+
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleShortcutIntent(intent)
+    }
+
+    private fun handleShortcutIntent(intent: Intent) {
+        // Retrieve the extra defined in shortcuts.xml
+        val action = intent.getStringExtra("shortcut_action")
+        when(action) {
+            ACTION_OPEN_SCAN -> {
+                rootActionCoordinator.dispatch(AndroidRootAction.OpenQrScan)
+            }
+            ACTION_START_SERVICE -> {
+                if (!xrayViewmodel.isServiceRunning()) {
+                    rootActionCoordinator.dispatch(AndroidRootAction.ConnectVpn)
+                    finish()
+                }
+            }
+            ACTION_STOP_SERVICE -> {
+                if (xrayViewmodel.isServiceRunning()) {
+                    rootActionCoordinator.dispatch(AndroidRootAction.DisconnectVpn)
+                    finish()
+                }
+            }
+        }
+    }
+
+}
