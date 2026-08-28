@@ -128,7 +128,6 @@ class VLESSConfigParser(
                 tlsSettings = if (security == "tls") {
                     TlsSettings(
                         serverName = queryParams["host"] ?: "",
-                        allowInsecure = queryParams["allowInsecure"] == "1",
                     )
                 } else null,
                 xhttpSettings = if (network == "xhttp") {

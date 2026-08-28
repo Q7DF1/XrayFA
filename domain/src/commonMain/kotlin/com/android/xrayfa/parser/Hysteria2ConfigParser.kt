@@ -79,7 +79,6 @@ class Hysteria2ConfigParser(
                 security = "tls",
                 sockopt = Sockopt(),
                 tlsSettings = TlsSettings(
-                    allowInsecure = hysteria2Config.param["allowInsecure"] == "1",
                     alpn = if (alpn != null) listOf(alpn) else null,
                     serverName = hysteria2Config.address,
                 ),

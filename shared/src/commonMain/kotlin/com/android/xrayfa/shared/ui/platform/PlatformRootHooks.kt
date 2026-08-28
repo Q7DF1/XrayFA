@@ -30,8 +30,9 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * Platform-specific hooks for [com.android.xrayfa.shared.ui.RootContent].
- * Android supplies VPN prepare, CameraX QR, geo import, per-app picker, logcat recording.
- * Defaults (iOS): in-development for Android-only capabilities.
+ * Android injects a full implementation (VPN prepare, CameraX, geo import, …).
+ * iOS injects `IosPlatformRootHooks` from iosMain. This file's default is only the
+ * CompositionLocal fallback.
  */
 interface PlatformRootHooks {
     @Composable
@@ -90,29 +91,7 @@ private object DefaultPlatformRootHooks : PlatformRootHooks {
 
     @Composable
     override fun ColumnScope.SettingsNetworkExtras(component: SettingsComponent) {
-        var showInDevelopment by remember { mutableStateOf(false) }
-        val inDevelopmentLabel = stringResource(Res.string.in_development)
-        SharedSettingsFieldRow(
-            title = stringResource(Res.string.geo_ip),
-            content = inDevelopmentLabel,
-            icon = Icons.Outlined.Language,
-            onClick = { showInDevelopment = true },
-        )
-        SharedSettingsFieldRow(
-            title = stringResource(Res.string.geo_site),
-            content = inDevelopmentLabel,
-            icon = Icons.Outlined.Public,
-            onClick = { showInDevelopment = true },
-        )
-        SharedSettingsFieldRow(
-            title = stringResource(Res.string.enable_hextun_title),
-            content = inDevelopmentLabel,
-            icon = Icons.Outlined.Security,
-            onClick = { showInDevelopment = true },
-        )
-        if (showInDevelopment) {
-            InDevelopmentDialog(onDismiss = { showInDevelopment = false })
-        }
+        InDevelopmentSettingsNetworkExtras()
     }
 
     @Composable
@@ -185,7 +164,34 @@ private object DefaultPlatformRootHooks : PlatformRootHooks {
 }
 
 @Composable
-private fun InDevelopmentDialog(onDismiss: () -> Unit) {
+internal fun ColumnScope.InDevelopmentSettingsNetworkExtras() {
+    var showInDevelopment by remember { mutableStateOf(false) }
+    val inDevelopmentLabel = stringResource(Res.string.in_development)
+    SharedSettingsFieldRow(
+        title = stringResource(Res.string.geo_ip),
+        content = inDevelopmentLabel,
+        icon = Icons.Outlined.Language,
+        onClick = { showInDevelopment = true },
+    )
+    SharedSettingsFieldRow(
+        title = stringResource(Res.string.geo_site),
+        content = inDevelopmentLabel,
+        icon = Icons.Outlined.Public,
+        onClick = { showInDevelopment = true },
+    )
+    SharedSettingsFieldRow(
+        title = stringResource(Res.string.enable_hextun_title),
+        content = inDevelopmentLabel,
+        icon = Icons.Outlined.Security,
+        onClick = { showInDevelopment = true },
+    )
+    if (showInDevelopment) {
+        InDevelopmentDialog(onDismiss = { showInDevelopment = false })
+    }
+}
+
+@Composable
+internal fun InDevelopmentDialog(onDismiss: () -> Unit) {
     val inDevelopmentLabel = stringResource(Res.string.in_development)
     AlertDialog(
         onDismissRequest = onDismiss,

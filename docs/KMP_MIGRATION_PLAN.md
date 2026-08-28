@@ -957,6 +957,29 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | 107 | 共享设置延迟测试 URL（iOS 可改 Home/Config 测速地址） | ✅ 见 `KMP_MIGRATION_STEP107_HANDOVER.md` |
 | 108 | 还原 Android 迁移前功能：`MainActivity` 回到 `XrayFAContainer` | ✅ 见 `KMP_MIGRATION_STEP108_HANDOVER.md` |
 | 109 | 单壳：Android 回到 `RootContent`；缺口进 `PlatformRootHooks`；导航对齐原生底栏 | ✅ 见 `KMP_MIGRATION_STEP109_HANDOVER.md` |
+| 110 | Phase 8：活清单 + `IOS_STUBS.md` + `IosPlatformRootHooks` | ✅ 见 `KMP_MIGRATION_STEP110_HANDOVER.md` |
+| 111 | iOS `ShareNode` 二维码 + 剪贴板导出 | ✅ 见 `KMP_MIGRATION_STEP111_HANDOVER.md` |
+
+活清单（完成 / 待办）：**[`KMP_MIGRATION_STATUS.md`](./KMP_MIGRATION_STATUS.md)**。iOS 桩：**[`IOS_STUBS.md`](./IOS_STUBS.md)**。
+
+### Phase 8：保住 Android，增量移植 iOS（2026-08-28）
+
+Step 108/109 换过壳。本阶段 **不再换壳**。
+
+- Android 主路径冻结：`MainActivity` → `AndroidAppShell` → `RootContent` + `AndroidPlatformRootHooks`。底栏 Config \| Home；Settings 等 overlay。
+- iOS 只填 `IosPlatformRootHooks`，不改 overlay 栈语义，不把 iOS 实现写进 `commonMain` 挤掉 Android hook。
+- 不做 Agent Phase C / C1、iOS AppFunctions。不要把 `IosStubTunBridge` 在宿主做真。
+
+| 步骤 | 内容 | 状态 |
+|------|------|------|
+| 110 | 活清单 + 桩清单 + `IosPlatformRootHooks` 骨架 | ✅ |
+| 111 | iOS `ShareNode` | ✅ |
+| 112 | iOS geoip/geosite 文件导入 | ⬜ |
+| 113 | iOS 扫码相册 + 闪光灯 | ⬜ |
+| 114 | iOS Bug report | ⬜ |
+| 115 | 分应用（先拍板） | ⬜ |
+| 116 | overlay 返回、NE 日志桥 | ⬜ |
+| 117 | 冻结/删除 `XrayFAContainer`（Android 真机过后再动） | ⬜ |
 
 ### Phase 7：Android Agent 可控能力（AppFunctions，KMP 完成后）
 

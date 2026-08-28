@@ -114,7 +114,6 @@ class VMESSConfigParser(
                     tlsSettings = if (tls == "tls") {
                         TlsSettings(
                             serverName = if (host.isNotEmpty()) host else address,
-                            allowInsecure = json.optionalString("allowInsecure") == "1",
                         )
                     } else null,
                     grpcSettings = if (network == "grpc") {

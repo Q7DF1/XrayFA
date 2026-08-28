@@ -268,13 +268,6 @@ fun SharedEditScreen(
                             labels.obfuscationPasswordLabel,
                         )
                     }
-                    SharedEditDropdownField(
-                        if (form.allowInsecure) "true" else "false",
-                        { form = form.copy(allowInsecure = it == "true") },
-                        labels.allowInsecureLabel,
-                        listOf("false", "true"),
-                        noneOptionLabel = labels.noneOptionLabel,
-                    )
                 }
             }
 
@@ -332,16 +325,6 @@ fun SharedEditScreen(
                     if (form.transportSecurity == "reality") {
                         SharedEditTextField(form.publicKey, { form = form.copy(publicKey = it) }, labels.publicKeyLabel)
                         SharedEditTextField(form.shortId, { form = form.copy(shortId = it) }, labels.shortIdLabel)
-                    }
-
-                    if (form.transportSecurity == "tls") {
-                        SharedEditDropdownField(
-                            if (form.allowInsecure) "true" else "false",
-                            { form = form.copy(allowInsecure = it == "true") },
-                            labels.allowInsecureLabel,
-                            listOf("false", "true"),
-                            noneOptionLabel = labels.noneOptionLabel,
-                        )
                     }
                 }
             }

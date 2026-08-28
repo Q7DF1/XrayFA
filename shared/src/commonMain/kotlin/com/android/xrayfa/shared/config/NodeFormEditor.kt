@@ -59,7 +59,6 @@ class NodeFormEditor(
                         fingerprint = config.param["fp"] ?: "chrome",
                         publicKey = config.param["pbk"] ?: "",
                         shortId = config.param["sid"] ?: "",
-                        allowInsecure = config.param["allowInsecure"] == "1",
                     )
                 }
                 Protocol.VMESS.protocolType -> {
@@ -77,7 +76,6 @@ class NodeFormEditor(
                         wsPath = others.optionalString("path") ?: "/",
                         sni = others.optionalString("sni") ?: "",
                         fingerprint = others.optionalString("fp") ?: "chrome",
-                        allowInsecure = others.optionalString("allowInsecure") == "1",
                     )
                 }
                 Protocol.TROJAN.protocolType -> {
@@ -93,7 +91,6 @@ class NodeFormEditor(
                         wsHost = config.params["host"] ?: "",
                         grpcServiceName = config.params["serviceName"] ?: "",
                         sni = config.params["sni"] ?: "",
-                        allowInsecure = config.params["allowInsecure"] == "1",
                     )
                 }
                 Protocol.SHADOWSOCKS.protocolType -> {
@@ -117,7 +114,6 @@ class NodeFormEditor(
                         hysteria2Alpn = config.param["alpn"] ?: "",
                         hysteria2Obfs = config.param["obfs"] ?: "",
                         hysteria2ObfsPassword = config.param["obfs-password"] ?: "",
-                        allowInsecure = config.param["allowInsecure"] == "1",
                     )
                 }
                 Protocol.SOCKS.protocolType -> {
@@ -208,9 +204,6 @@ class NodeFormEditor(
                     params["pbk"] = form.publicKey
                     params["sid"] = form.shortId
                 }
-                if (form.transportSecurity == "tls" && form.allowInsecure) {
-                    params["allowInsecure"] = "1"
-                }
                 parserFactory.vlessConfigParser.encodeProtocol(
                     VLESSConfig(
                         remark = form.remarks,
@@ -247,9 +240,6 @@ class NodeFormEditor(
                         put("tls", if (form.transportSecurity == "none") "" else form.transportSecurity)
                         put("sni", form.sni)
                         put("fp", form.fingerprint)
-                        if (form.transportSecurity == "tls" && form.allowInsecure) {
-                            put("allowInsecure", "1")
-                        }
                     }
                 parserFactory.vmessConfigParser.encodeProtocol(
                     VMESSConfig(
@@ -287,9 +277,6 @@ class NodeFormEditor(
                 if (form.transportSecurity == "tls" || form.transportSecurity == "reality") {
                     params["sni"] = form.sni
                 }
-                if (form.transportSecurity == "tls" && form.allowInsecure) {
-                    params["allowInsecure"] = "1"
-                }
                 parserFactory.trojanConfigParser.encodeProtocol(
                     TrojanConfig(
                         scheme = "trojan",
@@ -315,9 +302,6 @@ class NodeFormEditor(
                 }
                 if (form.hysteria2ObfsPassword.isNotBlank()) {
                     params["obfs-password"] = form.hysteria2ObfsPassword
-                }
-                if (form.allowInsecure) {
-                    params["allowInsecure"] = "1"
                 }
                 parserFactory.hysteria2ConfigParser.encodeProtocol(
                     Hysteria2Config(

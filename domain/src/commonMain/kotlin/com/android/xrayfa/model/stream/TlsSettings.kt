@@ -7,6 +7,10 @@ data class TlsSettings(
     val serverName: String? = null,
     val verifyPeerCertInNames: List<String>? = null,
     val rejectUnknownSni: Boolean? = null,
+    /**
+     * Must stay false. Xray-core rejects `allowInsecure: true` after 2026-06-01
+     * (`pinnedPeerCertSha256` / `verifyPeerCertByName` instead).
+     */
     val allowInsecure: Boolean = false,
     val alpn: List<String>? = null,
     val minVersion: String? = null,

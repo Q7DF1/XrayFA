@@ -102,7 +102,6 @@ class TrojanConfigParser(
                 security = trojanConfig.params["security"] ?: "tls",
                 tlsSettings = TlsSettings(
                     serverName = trojanConfig.host,
-                    allowInsecure = trojanConfig.params["allowInsecure"] == "1",
                 ),
                 wsSettings = if (network == "ws") {
                     WsSettings(

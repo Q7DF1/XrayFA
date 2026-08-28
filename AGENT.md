@@ -8,7 +8,7 @@
 
 **XrayFA** is a **Kotlin Multiplatform VPN/proxy client** for **Android and iOS**, built on [Xray-core](https://github.com/XTLS/Xray-core). Protocols: VLESS, VMess, Shadowsocks, Trojan, SOCKS, HTTP, Hysteria2, and others.
 
-- **UI**: Compose Multiplatform shared `RootContent` (Decompose Config\|Home pager + overlays). Android supplies `PlatformRootHooks`; iOS uses the same shell with 开发中 for unsupported features.
+- **UI**: Compose Multiplatform shared `RootContent` (Decompose Config\|Home pager + overlays). Android supplies `AndroidPlatformRootHooks`; iOS supplies `IosPlatformRootHooks` (开发中 for remaining gaps — see `docs/IOS_STUBS.md`).
 - **Logic**: Decompose components + Koin 4.0.1 (not Dagger)
 - **Data**: Room KMP + DataStore KMP; repositories in `:core:data`
 - **VPN**: Android `VpnService`; iOS Network Extension (`NEPacketTunnelProvider`)
@@ -158,7 +158,7 @@ XrayFA/
 3. Android: `XrayBaseService` (`VpnService`) + `tun2socks` TUN → local SOCKS; `XrayCoreManager` starts libv2ray.
 4. iOS: Network Extension starts LibXrayLite + HevSocks5Tunnel; App Group for shared settings.
 
-UI: Android `MainActivity` → `AndroidAppShell` → shared `RootContent` (Decompose pager: Config | Home) plus `PlatformRootHooks` for VPN / CameraX QR / geo import / per-app picker / logcat / share / bug report. Settings, subscriptions, QR, apps, logcat, and route settings are overlays, not tabs. iOS uses the same `RootContent`; Android-only capabilities show 开发中. Labels come from `remember*UiLabels()` (`compose-resources`), not hardcoded English defaults.
+UI: Android `MainActivity` → `AndroidAppShell` → shared `RootContent` (Decompose pager: Config | Home) plus `AndroidPlatformRootHooks` for VPN / CameraX QR / geo import / per-app picker / logcat / share / bug report. Settings, subscriptions, QR, apps, logcat, and route settings are overlays, not tabs. iOS uses the same `RootContent` with `IosPlatformRootHooks` (ShareNode is real; remaining Android-only slots show 开发中). Labels come from `remember*UiLabels()` (`compose-resources`), not hardcoded English defaults.
 
 ---
 
@@ -230,6 +230,8 @@ Verify numbers against `gradle/libs.versions.toml`, `gradle.properties`, `go.mod
 
 - `README.md` / `README_zh-CN.md` / `README_RU.md` / `README_KR.md`
 - `docs/KMP_MIGRATION_PLAN.md` — live step table (73+)
+- `docs/KMP_MIGRATION_STATUS.md` — Phase 8 完成/待办活清单（优先看这份）
+- `docs/IOS_STUBS.md` — iOS 故意桩与用户可见缺口（R-3）
 - `docs/KMP_MIGRATION_STEP93_HANDOVER.md` — Phase 7 A1 Agent 契约
 - `docs/KMP_MIGRATION_STEP94_HANDOVER.md` — Phase 7 A2 Android Facade + Koin
 - `docs/KMP_MIGRATION_STEP95_HANDOVER.md` — Phase 7 A3 Agent 总开关（默认关）
@@ -245,6 +247,10 @@ Verify numbers against `gradle/libs.versions.toml`, `gradle.properties`, `go.mod
 - `docs/KMP_MIGRATION_STEP105_HANDOVER.md` — iOS 关闭 GeoLite 设置下载（无法达 NE SOCKS）
 - `docs/KMP_MIGRATION_STEP106_HANDOVER.md` — iOS 宿主链 LibXrayLite + ObjC gomobile 回调
 - `docs/KMP_MIGRATION_STEP107_HANDOVER.md` — 共享设置延迟测试 URL
+- `docs/KMP_MIGRATION_STEP108_HANDOVER.md` — Android 临时回到 `XrayFAContainer`（已被 109 取代）
+- `docs/KMP_MIGRATION_STEP109_HANDOVER.md` — 单壳 `RootContent` + `PlatformRootHooks`
+- `docs/KMP_MIGRATION_STEP110_HANDOVER.md` — Phase 8 活清单 + `IosPlatformRootHooks`
+- `docs/KMP_MIGRATION_STEP111_HANDOVER.md` — iOS `ShareNode` 二维码分享
 - `docs/ANDROID_AGENT_APPFUNCTIONS_PLAN.md` — **Android-only** Agent 可控能力（AppFunctions 接口与分阶段实施）
 - `docs/IOS_PLATFORM_GUIDE.md`, `docs/DEPENDENCY_MIGRATION_GUIDE.md`
 - `docs/KMP_MIGRATION_MIDTERM_REVIEW.md` — rules R-1…R-10 (local notes; may be untracked)

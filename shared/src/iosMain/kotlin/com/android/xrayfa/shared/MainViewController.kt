@@ -1,9 +1,12 @@
 package com.android.xrayfa.shared
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.window.ComposeUIViewController
 import com.android.xrayfa.shared.navigation.createRootComponent
 import com.android.xrayfa.shared.ui.AppShell
+import com.android.xrayfa.shared.ui.platform.IosPlatformRootHooks
+import com.android.xrayfa.shared.ui.platform.LocalPlatformRootHooks
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
@@ -19,6 +22,8 @@ fun MainViewController(): UIViewController {
             lifecycle.resume()
             onDispose { lifecycle.destroy() }
         }
-        AppShell(rootComponent = rootComponent)
+        CompositionLocalProvider(LocalPlatformRootHooks provides IosPlatformRootHooks) {
+            AppShell(rootComponent = rootComponent)
+        }
     }
 }
