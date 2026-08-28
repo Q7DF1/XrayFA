@@ -170,11 +170,26 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
             return
         }
 
-        let upBytes = controller.queryStats(TrafficStats.proxyTag, direct: TrafficStats.uplink)
-        let downBytes = controller.queryStats(TrafficStats.proxyTag, direct: TrafficStats.downlink)
+        let snapshot = controller.queryAllOutboundTrafficStats()
+        let upBytes = trafficBytes(from: snapshot, tag: TrafficStats.proxyTag, direction: TrafficStats.uplink)
+        let downBytes = trafficBytes(from: snapshot, tag: TrafficStats.proxyTag, direction: TrafficStats.downlink)
         let upKbps = Double(upBytes) / deltaSec / 1024.0
         let downKbps = Double(downBytes) / deltaSec / 1024.0
         writeTrafficSpeedsKbps(upload: upKbps, download: downKbps)
+    }
+
+    private func trafficBytes(from snapshot: String, tag: String, direction: String) -> Int64 {
+        for entry in snapshot.split(separator: ";", omittingEmptySubsequences: true) {
+            let parts = entry.split(separator: ",", omittingEmptySubsequences: false)
+            guard parts.count == 3,
+                  parts[0] == tag,
+                  parts[1] == direction,
+                  let value = Int64(parts[2]) else {
+                continue
+            }
+            return value
+        }
+        return 0
     }
 
     private func writeTrafficSpeedsKbps(upload: Double, download: Double) {

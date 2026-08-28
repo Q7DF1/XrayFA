@@ -15,6 +15,8 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+private const val DUMMY_LOCAL_SOCKS_AUTH = "dummy-local-socks-auth"
+
 class DefaultXrayAgentFacadeTest {
 
     @Test
@@ -45,7 +47,7 @@ class DefaultXrayAgentFacadeTest {
             socksPort = 1080,
             dnsIPv4 = "1.1.1.1",
             ipV6Enable = true,
-            socksPassword = "secret-socks-password",
+            socksPassword = DUMMY_LOCAL_SOCKS_AUTH,
         )
 
         val summary = facade(settings = settings).getSettingsSummary()
@@ -56,7 +58,7 @@ class DefaultXrayAgentFacadeTest {
         assertEquals("1.1.1.1", summary.dnsIpv4)
         assertTrue(summary.ipv6Enabled)
         assertFalse(summary.agentFunctionsEnabled)
-        assertFalse(summary.toString().contains("secret-socks-password"))
+        assertFalse(summary.toString().contains(DUMMY_LOCAL_SOCKS_AUTH))
     }
 
     @Test

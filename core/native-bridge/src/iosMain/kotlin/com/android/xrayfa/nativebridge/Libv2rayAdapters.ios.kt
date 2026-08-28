@@ -55,8 +55,6 @@ internal class Libv2rayCoreControllerAdapter(
             decodeNativeDelayMs(ok, result.value)
         }
 
-    override fun queryStats(
-        tag: String,
-        stream: String,
-    ): Long = controller.queryStats(tag, stream)
+    override fun queryAllOutboundTrafficStats(): String =
+        controller.queryAllOutboundTrafficStats()
 }

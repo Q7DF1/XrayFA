@@ -10,5 +10,11 @@ interface XrayCoreController {
     fun startLoop(configJson: String, tunFd: Int)
     fun stopLoop()
     fun measureDelay(url: String): Long
-    fun queryStats(tag: String, stream: String): Long
+
+    /**
+     * Snapshot of outbound counters from libv2ray `QueryAllOutboundTrafficStats`.
+     * Format: `tag,direction,value;...`. Empty when stats are unavailable.
+     * Each call resets the underlying counters.
+     */
+    fun queryAllOutboundTrafficStats(): String
 }

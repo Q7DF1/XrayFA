@@ -18,6 +18,6 @@ internal class Libv2rayCoreControllerAdapter(
 
     override fun measureDelay(url: String): Long = controller.measureDelay(url)
 
-    override fun queryStats(tag: String, stream: String): Long =
-        controller.queryStats(tag, stream)
+    override fun queryAllOutboundTrafficStats(): String =
+        controller.queryAllOutboundTrafficStats()
 }

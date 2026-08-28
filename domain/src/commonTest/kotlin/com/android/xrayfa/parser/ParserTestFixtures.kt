@@ -14,11 +14,14 @@ import kotlinx.serialization.json.JsonElement
 import kotlin.test.assertEquals
 
 internal object ParserTestFixtures {
+    // Dummy local SOCKS auth for parser unit tests only. Not a real credential.
+    private const val TEST_LOCAL_SOCKS_AUTH = "xrayfa"
+
     val settings = ConfigParserSettings(
         socksListen = "127.0.0.1",
         socksPort = 10808,
-        socksUserName = "xrayfa",
-        socksPassword = "xrayfa",
+        socksUserName = TEST_LOCAL_SOCKS_AUTH,
+        socksPassword = TEST_LOCAL_SOCKS_AUTH,
         lanHttpProxyEnable = false,
         httpPort = 10809,
         dnsIPv4 = "1.1.1.1,8.8.8.8",

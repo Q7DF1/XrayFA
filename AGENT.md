@@ -158,7 +158,8 @@ XrayFA/
 1. Share link / subscription → `:domain` parser → Xray JSON (`XrayConfiguration`).
 2. Selected node + settings → encoder (`AndroidXrayConfigEncoder` / iOS encoder) → core config.
 3. Android: `XrayBaseService` (`VpnService`) + `tun2socks` TUN → local SOCKS; `XrayCoreManager` starts libv2ray.
-4. iOS: Network Extension starts LibXrayLite + HevSocks5Tunnel; App Group for shared settings.
+4. Traffic speeds: one `queryAllOutboundTrafficStats()` snapshot per poll (`tag,direction,value;…`), then parse proxy uplink/downlink. Do **not** call the removed `QueryStats(tag, direct)` API — the pinned `AndroidLibXrayLite` SHA no longer exports it (CI rebuilds the AAR from the submodule).
+5. iOS: Network Extension starts LibXrayLite + HevSocks5Tunnel; App Group for shared settings.
 
 UI: Android `MainActivity` → `AndroidAppShell` → shared `RootContent` (Decompose pager: Config | Home) plus `AndroidPlatformRootHooks` for VPN / CameraX QR / geo import / per-app picker / logcat / share / bug report. Settings, subscriptions, QR, apps, logcat, and route settings are overlays, not tabs. iOS uses the same `RootContent` with `IosPlatformRootHooks` (ShareNode is real; remaining Android-only slots show 开发中). Labels come from `remember*UiLabels()` (`compose-resources`), not hardcoded English defaults.
 
@@ -174,7 +175,7 @@ UI: Android `MainActivity` → `AndroidAppShell` → shared `RootContent` (Decom
 - **iOS stubs (R-3)**: no `TODO()`/`error()`/`return false` actuals without listing them in `docs/IOS_STUBS.md` and leaving the Stage unchecked.
 - **i18n (R-9)**: UI copy lives in `shared/.../composeResources/values*/strings.xml` (4 locales). New `UiLabels` fields must get a string key in the same PR. Android `res/values/strings.xml` remains for Manifest / notifications / non-Compose.
 - **ProGuard**: Release minify is on. After Koin/Decompose/serialization/JNI changes, run `assembleRelease` and smoke-test. Lint `Instantiatable` is disabled: components are created by `XrayAppCompatFactory`, not a default ctor.
-- **Submodules**: do not edit upstream trees unless the task says so; do not pin unpublished SHAs.
+- **Submodules**: do not edit upstream trees unless the task says so; do not pin unpublished SHAs. Bind `libv2ray.aar` / xcframework from the **pinned** SHA (`git submodule update --init --recursive`) so Kotlin/Swift match CI.
 - Comments: intent/trade-offs only.
 
 ---
@@ -197,6 +198,7 @@ F-Droid: `dependenciesInfo.includeInApk/Bundle = false`. Secrets: `KEYSTORE_BASE
 
 - Never commit `androidApp/xrayfa.jks`, `local.properties`, `.env`, entitlements hacks, `androidApp/libs/*.aar`, `LibXrayLite.xcframework`, `.kotlin/`.
 - Do not commit unpublished `AndroidLibXrayLite` SHAs.
+- Test fixtures must not assign string literals to `*password*` fields (GitGuardian Generic Password). Use a named dummy constant; `.gitguardian.yaml` ignores test/golden paths.
 - Debug vs release: LeakCanary + `debuggable` make debug **much** slower on device; judge UI smoothness on release / profileable.
 - This is a legitimate proxy client — do not weaken privacy defaults in parsers/routing.
 
@@ -219,10 +221,10 @@ F-Droid: `dependenciesInfo.includeInApk/Bundle = false`. Secrets: `KEYSTORE_BASE
 | Build / gomobile / xcframework | §3 |
 | Tests | §4 |
 | Modules | §5 |
-| VPN / encoder / UI shell | §6 |
+| VPN / encoder / UI shell / libv2ray APIs | §6 |
 | DI, i18n, layering | §7 |
 | Workflows | §8 |
-| Secrets / artifacts | §9 |
+| Secrets / artifacts / GitGuardian | §9 |
 
 Verify numbers against `gradle/libs.versions.toml`, `gradle.properties`, `go.mod`, and the workflow YAML — not memory.
 

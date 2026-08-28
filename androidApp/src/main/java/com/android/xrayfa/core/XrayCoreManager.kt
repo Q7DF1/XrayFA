@@ -13,6 +13,7 @@ import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.nativebridge.XrayBridge
 import com.android.xrayfa.nativebridge.XrayCoreCallback
 import com.android.xrayfa.nativebridge.XrayCoreController
+import com.android.xrayfa.nativebridge.outboundTrafficValue
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.utils.Device
 import kotlinx.coroutines.CoroutineScope
@@ -139,8 +140,9 @@ class XrayCoreManager(
             delay(3000L)
             while (true) {
                 val cur = System.currentTimeMillis()
-                val up = queryStats(TAG_PROXY, UP_STEAM)
-                val down = queryStats(TAG_PROXY, DOWN_STEAM)
+                val snapshot = coreController?.queryAllOutboundTrafficStats().orEmpty()
+                val up = outboundTrafficValue(snapshot, TAG_PROXY, UP_STEAM)
+                val down = outboundTrafficValue(snapshot, TAG_PROXY, DOWN_STEAM)
                 val deltaTimeSec = (cur - last) / 1000.0
                 val upSpeed = if (deltaTimeSec > 0) (up / deltaTimeSec) / 1024 else 0.0
                 val downSpeed = if (deltaTimeSec > 0) (down / deltaTimeSec) / 1024 else 0.0
@@ -154,14 +156,5 @@ class XrayCoreManager(
     override fun stopTrafficDetection() {
         job?.cancel()
         Log.d(TAG, "stopTrafficDetection: ${job?.isActive}")
-    }
-
-    /**
-     * @param tag direct proxy dns .etc..
-     * @param stream uplink or downlink
-     * @return traffic todo may be ?
-     */
-    private fun queryStats(@Tag tag: String, @Stream stream: String): Long {
-        return coreController?.queryStats(tag, stream) ?: 0L
     }
 }
