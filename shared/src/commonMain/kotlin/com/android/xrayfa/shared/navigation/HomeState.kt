@@ -11,6 +11,6 @@ data class HomeState(
     val connectionErrorMessage: String? = null,
     val uploadSpeedKbps: Double = 0.0,
     val downloadSpeedKbps: Double = 0.0,
-    val delayMs: Long = -1L,
+    val delayMs: Long = 0L,
     val testing: Boolean = false,
 )

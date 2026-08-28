@@ -108,6 +108,7 @@ import com.android.xrayfa.shared.ui.settings.SharedSettingsSubscriptionSection
 import com.android.xrayfa.shared.ui.rememberSettingsUiLabels
 import com.android.xrayfa.ui.settings.rememberAndroidSettingsComponent
 
+@Deprecated("Unused Navigation3 screen; main path is RootContent + AndroidPlatformRootHooks")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(

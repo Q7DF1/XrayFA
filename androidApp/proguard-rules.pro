@@ -30,3 +30,23 @@
 -keep class com.android.xrayfa.common.repository.** { *; }
 -keep class com.android.xrayfa.agent.appfunctions.** { *; }
 -keep class androidx.appfunctions.** { *; }
+
+# Koin (runtime DI; minify would strip modules / factories)
+-keep class org.koin.** { *; }
+-keepclassmembers class * {
+    @org.koin.core.annotation.* <methods>;
+}
+
+# Decompose navigation + kotlinx serializers used by RootTab / RootOverlay
+-keep class com.arkivanov.decompose.** { *; }
+-keep class com.arkivanov.essenty.** { *; }
+-keep class com.android.xrayfa.shared.navigation.** { *; }
+
+-keepattributes *Annotation*, InnerClasses
+-keep,includedescriptorclasses class com.android.xrayfa.**$$serializer { *; }
+-keepclassmembers class com.android.xrayfa.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.android.xrayfa.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}

@@ -76,6 +76,11 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    lint {
+        // Components are constructed by XrayAppCompatFactory (Koin), not the default ctor.
+        disable += "Instantiatable"
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true

@@ -2,9 +2,11 @@
 
 # 🚀 XrayFA
 
-**一款为 [Xray-core](https://github.com/XTLS/Xray-core) 打造的现代、强大且易用的 Android 客户端。**
+**一款为 [Xray-core](https://github.com/XTLS/Xray-core) 打造的现代、强大且易用的 Android（及预览版 iOS）客户端。**
 
 XrayFA 专注于简单与性能，为您提供安全、高速的代理体验。
+
+自 **1.7.0** 起，Android 界面运行在共享的 Kotlin Multiplatform `RootContent` 壳上（Compose Multiplatform + Decompose）。iOS 共用同一套壳，保连接 / 列表 / 导入 / 设置；其余能力见「开发中」。
 
 <p align="center">
   <a href="README.md">English</a> | <b>简体中文</b> | <a href="README_RU.md">Русский</a> | <a href="README_KR.md">한글</a>

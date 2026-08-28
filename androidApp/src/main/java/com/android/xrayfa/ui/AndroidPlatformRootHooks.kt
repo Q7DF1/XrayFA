@@ -95,15 +95,9 @@ internal class AndroidPlatformRootHooks(
                 windowSizeClass.windowWidthSizeClass == WindowWidthSizeClass.MEDIUM
         Box(modifier = modifier) {
             if (isWide) {
-                ExpandedHomeContent(
-                    xrayViewmodel = xrayViewmodel,
-                    homeComponent = component,
-                )
+                ExpandedHomeContent(homeComponent = component)
             } else {
-                CompactHomeContent(
-                    xrayViewmodel = xrayViewmodel,
-                    homeComponent = component,
-                )
+                CompactHomeContent(homeComponent = component)
             }
         }
     }

@@ -7,7 +7,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -50,10 +49,14 @@ import androidx.compose.ui.unit.sp
 import com.android.xrayfa.shared.navigation.RootTab
 import kotlin.math.floor
 
-private val BarHeight = 64.dp
+val FloatingNavBarHeight = 64.dp
+val FloatingNavBottomMargin = 8.dp
 private val BarCorner = 32.dp
 private val IndicatorInset = 6.dp
 private val IndicatorCorner = 28.dp
+
+/** Config list content padding so the last row can scroll above the pill. */
+val FloatingNavContentClearance = FloatingNavBarHeight + FloatingNavBottomMargin + 16.dp
 
 data class FloatingNavItem(
     val id: String,
@@ -104,17 +107,12 @@ fun XrayFloatingNav(
                 modifier =
                     Modifier
                         .width(barWidth)
-                        .height(BarHeight)
-                        .clip(RoundedCornerShape(BarCorner))
-                        .border(
-                            width = 0.5.dp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                            shape = RoundedCornerShape(BarCorner),
-                        ),
+                        .height(FloatingNavBarHeight)
+                        .clip(RoundedCornerShape(BarCorner)),
                 shape = RoundedCornerShape(BarCorner),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                shadowElevation = 2.dp,
-                tonalElevation = 4.dp,
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                shadowElevation = 6.dp,
+                tonalElevation = 2.dp,
             ) {
                 BoxWithConstraints(
                     modifier =

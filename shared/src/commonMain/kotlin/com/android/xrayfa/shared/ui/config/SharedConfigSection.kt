@@ -58,6 +58,7 @@ fun SharedConfigSection(
     onTestNode: ((Node) -> Unit)? = null,
     enableNodeTest: Boolean = false,
     listModifier: Modifier = Modifier,
+    listContentPadding: PaddingValues = PaddingValues(),
     nestedScrollConnection: androidx.compose.ui.input.nestedscroll.NestedScrollConnection? = null,
     rowModifier: (Node) -> Modifier = { Modifier },
     onEmptyAddClick: (() -> Unit)? = null,
@@ -116,7 +117,11 @@ fun SharedConfigSection(
                 } else {
                     listModifier
                 }
-            LazyColumn(state = listState, modifier = scrollModifier) {
+            LazyColumn(
+                state = listState,
+                modifier = scrollModifier,
+                contentPadding = listContentPadding,
+            ) {
                 items(state.nodes, key = { it.id }) { node ->
                     val delayMs = nodeDelayMap[node.id] ?: -1L
                     Column {

@@ -16,9 +16,11 @@
 - **TUN**: C `hev-socks5-tunnel` (Android JNI; iOS xcframework)
 - **Distribution**: GitHub Releases, F-Droid (`com.android.xrayfa`). Google Play is not planned (`APPLICATION_ID_PLAY` kept but unused)
 - **License**: Apache-2.0
-- **Version**: `VERSION_NAME` / `VERSION_CODE` in `gradle.properties` (currently 1.6.4 / 33)
+- **Version**: `VERSION_NAME` / `VERSION_CODE` in `gradle.properties` (currently 1.7.0 / 34)
 
 Product rule: **Android is the reference; iOS aligns to Android.** Do not add a second parallel implementation of a screen.
+
+**KMP migration is closed (Phase 9).** New features go in `:shared` + `PlatformRootHooks` only. iOS gaps iterate via `docs/KMP_POST_MIGRATION.md` / `docs/IOS_STUBS.md`.
 
 ---
 
@@ -171,7 +173,7 @@ UI: Android `MainActivity` → `AndroidAppShell` → shared `RootContent` (Decom
 - **No duplicate common code (R-2)**: after adding `commonMain`, delete the `androidApp` copy.
 - **iOS stubs (R-3)**: no `TODO()`/`error()`/`return false` actuals without listing them in `docs/IOS_STUBS.md` and leaving the Stage unchecked.
 - **i18n (R-9)**: UI copy lives in `shared/.../composeResources/values*/strings.xml` (4 locales). New `UiLabels` fields must get a string key in the same PR. Android `res/values/strings.xml` remains for Manifest / notifications / non-Compose.
-- **ProGuard**: Release minify is on. After Koin/Decompose/serialization/JNI changes, run `assembleRelease` and smoke-test.
+- **ProGuard**: Release minify is on. After Koin/Decompose/serialization/JNI changes, run `assembleRelease` and smoke-test. Lint `Instantiatable` is disabled: components are created by `XrayAppCompatFactory`, not a default ctor.
 - **Submodules**: do not edit upstream trees unless the task says so; do not pin unpublished SHAs.
 - Comments: intent/trade-offs only.
 
@@ -230,7 +232,8 @@ Verify numbers against `gradle/libs.versions.toml`, `gradle.properties`, `go.mod
 
 - `README.md` / `README_zh-CN.md` / `README_RU.md` / `README_KR.md`
 - `docs/KMP_MIGRATION_PLAN.md` — live step table (73+)
-- `docs/KMP_MIGRATION_STATUS.md` — Phase 8 完成/待办活清单（优先看这份）
+- `docs/KMP_MIGRATION_STATUS.md` — Phase 9 活清单（优先看这份）
+- `docs/KMP_POST_MIGRATION.md` — 移植后 backlog（iOS 112–116、页面保真、Agent C）
 - `docs/IOS_STUBS.md` — iOS 故意桩与用户可见缺口（R-3）
 - `docs/KMP_MIGRATION_STEP93_HANDOVER.md` — Phase 7 A1 Agent 契约
 - `docs/KMP_MIGRATION_STEP94_HANDOVER.md` — Phase 7 A2 Android Facade + Koin
@@ -251,6 +254,7 @@ Verify numbers against `gradle/libs.versions.toml`, `gradle.properties`, `go.mod
 - `docs/KMP_MIGRATION_STEP109_HANDOVER.md` — 单壳 `RootContent` + `PlatformRootHooks`
 - `docs/KMP_MIGRATION_STEP110_HANDOVER.md` — Phase 8 活清单 + `IosPlatformRootHooks`
 - `docs/KMP_MIGRATION_STEP111_HANDOVER.md` — iOS `ShareNode` 二维码分享
+- `docs/KMP_MIGRATION_STEP118_HANDOVER.md` — Phase 9 Android 发版收尾
 - `docs/ANDROID_AGENT_APPFUNCTIONS_PLAN.md` — **Android-only** Agent 可控能力（AppFunctions 接口与分阶段实施）
 - `docs/IOS_PLATFORM_GUIDE.md`, `docs/DEPENDENCY_MIGRATION_GUIDE.md`
 - `docs/KMP_MIGRATION_MIDTERM_REVIEW.md` — rules R-1…R-10 (local notes; may be untracked)

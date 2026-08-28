@@ -2,9 +2,11 @@
 
 # 🚀 XrayFA
 
-**A modern, powerful, and user-friendly Android client for [Xray-core](https://github.com/XTLS/Xray-core).**
+**A modern, powerful, and user-friendly Android (and preview iOS) client for [Xray-core](https://github.com/XTLS/Xray-core).**
 
 XrayFA provides a secure, high-speed proxy experience with a focus on simplicity and performance.
+
+From **1.7.0** the Android UI runs on the shared Kotlin Multiplatform `RootContent` shell (Compose Multiplatform + Decompose). iOS uses the same shell with basic VPN / list / import / settings; remaining iOS slots are marked in-progress.
 
 <p align="center">
   <b>English</b> | <a href="README_zh-CN.md">简体中文</a> | <a href="README_RU.md">Русский</a> | <a href="README_KR.md">한글</a>

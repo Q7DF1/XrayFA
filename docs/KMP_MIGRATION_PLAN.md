@@ -974,12 +974,16 @@ Step 108/109 换过壳。本阶段 **不再换壳**。
 |------|------|------|
 | 110 | 活清单 + 桩清单 + `IosPlatformRootHooks` 骨架 | ✅ |
 | 111 | iOS `ShareNode` | ✅ |
-| 112 | iOS geoip/geosite 文件导入 | ⬜ |
-| 113 | iOS 扫码相册 + 闪光灯 | ⬜ |
-| 114 | iOS Bug report | ⬜ |
-| 115 | 分应用（先拍板） | ⬜ |
-| 116 | overlay 返回、NE 日志桥 | ⬜ |
-| 117 | 冻结/删除 `XrayFAContainer`（Android 真机过后再动） | ⬜ |
+| 112–116 | 移植后 iOS backlog（geo 导入 / 相册扫码 / Bug report / 分应用 / NE 日志） | ⏭ 见 [`KMP_POST_MIGRATION.md`](./KMP_POST_MIGRATION.md) |
+| 117 / 118 | Phase 9：删除无主路径 `XrayFAContainer` + Android 发版收尾 | ✅ 见 `KMP_MIGRATION_STEP118_HANDOVER.md` |
+
+### Phase 9：Android 可发版，iOS 保底（2026-08-28）
+
+KMP 移植收尾门禁：共享单壳上发布 Android 1.7.0。页面保真不挡发版。iOS 只保连接/列表/导入/设置/分享。
+
+- 不再换壳；不做 Agent Phase C、iOS AppFunctions、三星 Live Update App 改动。
+- 新功能只进 `:shared` + `PlatformRootHooks`。
+- 活清单：[`KMP_MIGRATION_STATUS.md`](./KMP_MIGRATION_STATUS.md)。backlog：[`KMP_POST_MIGRATION.md`](./KMP_POST_MIGRATION.md)。
 
 ### Phase 7：Android Agent 可控能力（AppFunctions，KMP 完成后）
 

@@ -113,12 +113,12 @@ fun HomeSelectedNodeCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (delayMs != -1L && (delayMs > 0 || delayMs == -2L)) {
-                        Spacer(Modifier.width(8.dp))
-                        HomeDelayChip(delayMs = delayMs, isTesting = false)
-                    } else if (onTest != null && (delayMs == -1L || testing)) {
+                    if (testing) {
                         Spacer(Modifier.width(8.dp))
                         HomeDelayChip(delayMs = -1L, isTesting = true)
+                    } else if (delayMs > 0 || delayMs == -2L) {
+                        Spacer(Modifier.width(8.dp))
+                        HomeDelayChip(delayMs = delayMs, isTesting = false)
                     }
                 }
             }

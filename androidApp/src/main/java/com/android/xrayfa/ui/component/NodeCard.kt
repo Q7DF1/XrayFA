@@ -210,12 +210,12 @@ private fun NodeCardContent(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                if (delayMs != -1L && (delayMs > 0 || delayMs == -2L)) {
-                    Spacer(Modifier.width(8.dp))
-                    DelayChip(delayMs = delayMs, isTesting = false)
-                } else if (delayMs == -1L || testing) {
+                if (testing) {
                     Spacer(Modifier.width(8.dp))
                     DelayChip(delayMs = -1L, isTesting = true)
+                } else if (delayMs > 0 || delayMs == -2L) {
+                    Spacer(Modifier.width(8.dp))
+                    DelayChip(delayMs = delayMs, isTesting = false)
                 }
             }
         }
