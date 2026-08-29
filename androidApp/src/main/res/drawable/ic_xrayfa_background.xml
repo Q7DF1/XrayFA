@@ -1,15 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
+<!--
+  Adaptive-icon background. Covers the full 108dp canvas with no corner
+  radius of its own: the launcher supplies the mask. The highlight sits
+  above centre so it lands in the upper half of the visible 72dp region.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
 
-    <gradient
-        android:type="radial"
-        android:centerX="0.5"
-        android:centerY="0.4"
-        android:gradientRadius="120"
-        android:startColor="#0D47A1"
-    android:centerColor="#1976D2"
-    android:endColor="#42A5F5" />
+    <path android:pathData="M0,0 H108 V108 H0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="54"
+                android:centerY="41"
+                android:gradientRadius="84"
+                android:startColor="#42A5F5"
+                android:centerColor="#1976D2"
+                android:endColor="#0D47A1" />
+        </aapt:attr>
+    </path>
 
-    <corners android:radius="6dp" />
-</shape>
+</vector>

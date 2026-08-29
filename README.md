@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🚀 XrayFA
+<img src="fastlane/metadata/android/en-US/images/icon.png" alt="XrayFA" width="120" />
+
+# XrayFA
 
 **A modern, powerful, and user-friendly Android (and preview iOS) client for [Xray-core](https://github.com/XTLS/Xray-core).**
 

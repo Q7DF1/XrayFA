@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Guard Cat: a cat's face whose jawline resolves into a shield point.
-  All geometry stays inside the 66dp safe circle of the 108dp adaptive-icon
-  canvas, so no launcher mask clips the ear tips or the chin.
+  Monochrome channel for Android 13+ themed icons. Same geometry as the
+  foreground, but drawn in a single opaque colour: the system reads only the
+  alpha and applies its own tint, so a coloured foreground cannot be reused.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
@@ -12,27 +12,27 @@
 
     <path
         android:fillColor="@android:color/transparent"
-        android:strokeColor="#FFFFFF"
+        android:strokeColor="#000000"
         android:strokeWidth="4.52"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:pathData="M38.18,30.27 L47.785,39.31 C50.61,37.05 57.39,37.05 60.215,39.31 L69.82,30.27 C72.08,36.485 74.905,44.395 74.905,54 C74.905,63.04 72.08,69.255 65.865,73.21 C61.345,75.47 56.825,76.035 54,77.73 C51.175,76.035 46.655,75.47 42.135,73.21 C35.92,69.255 33.095,63.04 33.095,54 C33.095,44.395 35.92,36.485 38.18,30.27 Z" />
 
     <path
-        android:fillColor="#FFFFFF"
+        android:fillColor="#000000"
         android:pathData="M42.361,53.435 A3.729,3.729 0 1 0 49.819,53.435 A3.729,3.729 0 1 0 42.361,53.435 Z" />
 
     <path
-        android:fillColor="#FFFFFF"
+        android:fillColor="#000000"
         android:pathData="M58.181,53.435 A3.729,3.729 0 1 0 65.639,53.435 A3.729,3.729 0 1 0 58.181,53.435 Z" />
 
     <path
-        android:fillColor="#FFFFFF"
+        android:fillColor="#000000"
         android:pathData="M51.514,60.215 L56.486,60.215 L54,63.492 Z" />
 
     <path
         android:fillColor="@android:color/transparent"
-        android:strokeColor="#FFFFFF"
+        android:strokeColor="#000000"
         android:strokeWidth="2.599"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
