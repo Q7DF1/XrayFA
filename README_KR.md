@@ -1,5 +1,9 @@
 <div align="center">
-🚀 엑스레이FA
+
+<img src="fastlane/metadata/android/en-US/images/icon.png" alt="XrayFA" width="120" />
+
+# 엑스레이FA
+
 **Xray-core를 위한 현대적이고 강력하며 사용자 친화적인 안드로이드 클라이언트입니다**
 
 XrayFA는 간편함과 성능에 중점을 두고 안전하고 빠른 프록시 환경을 제공합니다.
