@@ -49,6 +49,7 @@ class DefaultConfigComponent(
     private val _state = MutableValue(ConfigState())
     override val state: Value<ConfigState> = _state
 
+    private var allNodesCache: List<Node> = emptyList()
     private var selectedFilterId: Int = ConfigFilterIds.SUB_ALL
     private var searchQuery: String = ""
 
@@ -61,6 +62,7 @@ class DefaultConfigComponent(
             ) { allNodes, favorites, subscriptions ->
                 Triple(allNodes, favorites, subscriptions)
             }.collect { (allNodes, favorites, subscriptions) ->
+                allNodesCache = allNodes
                 val filters = buildFilters(subscriptions)
                 val filteredNodes = filterNodes(allNodes, favorites, selectedFilterId, searchQuery)
                 _state.update { current ->
@@ -75,6 +77,9 @@ class DefaultConfigComponent(
             }
         }
     }
+
+    override fun nodeById(id: Int): Node? =
+        if (id <= 0) null else allNodesCache.firstOrNull { it.id == id }
 
     override fun onSelectFilter(filterId: Int) {
         selectedFilterId = filterId
@@ -113,14 +118,6 @@ class DefaultConfigComponent(
         }
     }
 
-    override fun onOpenEditNode(nodeId: Int) = Unit
-
-    override fun onOpenCreateNode() = Unit
-
-    override fun onCloseNodeEdit() {
-        _state.update { it.copy(editError = false) }
-    }
-
     override fun onSaveNodeEdit(
         nodeId: Int,
         form: NodeEditForm,
@@ -128,7 +125,6 @@ class DefaultConfigComponent(
     ) {
         scope.launch {
             val success = nodeFormEditor.saveForm(nodeId, form)
-            _state.update { it.copy(editError = !success) }
             onDone(success)
         }
     }
@@ -215,6 +211,7 @@ class DefaultConfigComponent(
         scope.launch {
             val allNodes = nodeRepository.allNodes.first()
             val favorites = nodeRepository.favorites.first()
+            allNodesCache = allNodes
             _state.update { current ->
                 current.copy(
                     nodes = filterNodes(allNodes, favorites, selectedFilterId, searchQuery),

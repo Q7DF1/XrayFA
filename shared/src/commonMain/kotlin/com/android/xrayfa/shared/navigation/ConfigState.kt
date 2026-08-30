@@ -15,7 +15,6 @@ data class ConfigState(
     val filters: List<ConfigFilterOption> = emptyList(),
     val selectedFilterId: Int = ConfigFilterIds.SUB_ALL,
     val deleteTarget: Node? = null,
-    val editError: Boolean = false,
     val nodeDelayMap: Map<Int, Long> = emptyMap(),
     val testingAll: Boolean = false,
     val searchQuery: String = "",

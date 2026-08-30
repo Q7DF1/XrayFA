@@ -21,14 +21,12 @@ class FakeHomeComponent : HomeComponent {
 
 class FakeConfigComponent : ConfigComponent {
     override val state: Value<ConfigState> = MutableValue(ConfigState())
+    override fun nodeById(id: Int): Node? = null
     override fun onSelectFilter(filterId: Int) = Unit
     override fun onSelectNode(nodeId: Int) = Unit
     override fun onToggleFavorite(nodeId: Int, favorite: Boolean) = Unit
     override fun onImportFromClipboard() = Unit
     override fun onImportFromLink(link: String) = Unit
-    override fun onOpenEditNode(nodeId: Int) = Unit
-    override fun onOpenCreateNode() = Unit
-    override fun onCloseNodeEdit() = Unit
     override fun onSaveNodeEdit(
         nodeId: Int,
         form: NodeEditForm,
