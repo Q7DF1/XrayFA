@@ -32,7 +32,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.android.xrayfa.model.Node
+import com.android.xrayfa.shared.resources.Res
+import com.android.xrayfa.shared.resources.search_clear
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -119,6 +124,7 @@ internal fun ConfigSearchBarImpl(
         )
     }
 
+    val clearLabel = stringResource(Res.string.search_clear)
     val barModifier =
         if (active) {
             if (useDocked) {
@@ -131,7 +137,6 @@ internal fun ConfigSearchBarImpl(
         } else {
             modifier.size(56.dp)
         }
-    val shape = if (active) SearchBarDefaults.fullScreenShape else CircleShape
     val inputField: @Composable () -> Unit = {
         SearchBarDefaults.InputField(
             query = query,
@@ -152,7 +157,7 @@ internal fun ConfigSearchBarImpl(
                                 onSearch("")
                             },
                         ) {
-                            Icon(Icons.Outlined.Close, contentDescription = "Clear")
+                            Icon(Icons.Outlined.Close, contentDescription = clearLabel)
                         }
                     }
                 } else {
@@ -170,13 +175,27 @@ internal fun ConfigSearchBarImpl(
             shape = if (active) SearchBarDefaults.dockedShape else CircleShape,
             content = results,
         )
+    } else if (active) {
+        Dialog(
+            onDismissRequest = { active = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false),
+        ) {
+            SearchBar(
+                inputField = inputField,
+                expanded = true,
+                onExpandedChange = { active = it },
+                modifier = Modifier.fillMaxSize(),
+                shape = SearchBarDefaults.fullScreenShape,
+                content = results,
+            )
+        }
     } else {
         SearchBar(
             inputField = inputField,
-            expanded = active,
+            expanded = false,
             onExpandedChange = { active = it },
-            modifier = barModifier,
-            shape = shape,
+            modifier = modifier.size(56.dp),
+            shape = CircleShape,
             content = results,
         )
     }

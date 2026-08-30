@@ -151,6 +151,8 @@
     <string name="config_delete_node_title">노드 삭제</string>
     <string name="config_delete_node_confirm">이 노드를 삭제하시겠습니까?</string>
     <string name="config_speed_test_all_cd">전체 속도 테스트</string>
+    <string name="config_search_no_results">일치하는 노드가 없습니다</string>
+    <string name="search_clear">지우기</string>
 
     <string name="bug_report_header">버그 보고</string>
     <string name="bug_report_title_label">제목</string>
@@ -221,6 +223,7 @@
     <string name="apps_info_message">Per-app proxy management is available on Android. iOS Network Extension integration is not yet available in this build.</string>
     <string name="apps_configured_summary">Allowed packages (read-only)</string>
     <string name="apps_no_packages">No per-app allow list configured yet.</string>
+    <string name="apps_search_no_matches">일치하는 앱이 없습니다</string>
     <string name="platform_unavailable">Available on Android only</string>
     <string name="in_development">개발 중</string>
     <string name="in_development_message">이 기능은 iOS에서 개발 중입니다.</string>

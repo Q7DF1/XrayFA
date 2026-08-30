@@ -32,6 +32,9 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.android.xrayfa.shared.resources.Res
+import com.android.xrayfa.shared.resources.search_clear
+import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -117,7 +120,7 @@ internal fun AppsSearchBar(
                                 onSearchQueryChange("")
                             },
                         ) {
-                            Icon(Icons.Outlined.Close, contentDescription = "Clear")
+                            Icon(Icons.Outlined.Close, contentDescription = stringResource(Res.string.search_clear))
                         }
                     }
                 } else {

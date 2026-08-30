@@ -45,7 +45,7 @@ fun SharedListScaffold(
                     colors =
                         TopAppBarDefaults.largeTopAppBarColors(
                             containerColor = MaterialTheme.colorScheme.background,
-                            scrolledContainerColor = MaterialTheme.colorScheme.surface,
+                            scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                         ),
                 )
                 footerUnderBar()

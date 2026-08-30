@@ -60,8 +60,11 @@ import com.android.xrayfa.shared.ui.chrome.SharedListScaffold
 import com.android.xrayfa.shared.ui.widgets.SharedModalBottomSheet
 import com.android.xrayfa.shared.ui.widgets.SharedOptionPickerField
 import com.android.xrayfa.shared.platform.ClipboardWriter
+import com.android.xrayfa.shared.resources.Res
+import com.android.xrayfa.shared.resources.cancel
 import com.android.xrayfa.shared.subscription.validateSubscriptionUrl
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import org.jetbrains.compose.resources.stringResource
 import org.koin.mp.KoinPlatform
 
 @Composable
@@ -82,7 +85,10 @@ fun SharedSubscriptionScreen(
         modifier = modifier,
         navigationIcon = {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(Res.string.cancel),
+                )
             }
         },
         actions = {
