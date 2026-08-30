@@ -2,6 +2,7 @@ package com.android.xrayfa.shared.ui.config
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -104,12 +105,21 @@ fun SharedConfigSection(
         }
 
         if (state.nodes.isEmpty()) {
-            SharedConfigEmptyContent(
-                modifier = Modifier.weight(1f),
-                labels = labels,
-                selectedFilterId = state.selectedFilterId,
-                onAddClick = onEmptyAddClick,
-            )
+            if (state.searchQuery.isNotBlank()) {
+                Box(
+                    modifier = Modifier.weight(1f).fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(labels.searchNoResultsLabel)
+                }
+            } else {
+                SharedConfigEmptyContent(
+                    modifier = Modifier.weight(1f),
+                    labels = labels,
+                    selectedFilterId = state.selectedFilterId,
+                    onAddClick = onEmptyAddClick,
+                )
+            }
         } else {
             val scrollModifier =
                 if (nestedScrollConnection != null) {

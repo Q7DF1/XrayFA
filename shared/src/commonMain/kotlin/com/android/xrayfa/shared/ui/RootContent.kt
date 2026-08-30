@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,7 +27,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.DeleteForever
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.AlertDialog
@@ -37,7 +35,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -61,6 +58,7 @@ import com.android.xrayfa.shared.navigation.RootTab
 import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.resources.*
 import com.android.xrayfa.shared.ui.chrome.SharedListScaffold
+import com.android.xrayfa.shared.ui.config.ActualConfigSearchFab
 import com.android.xrayfa.shared.ui.config.SharedConfigImportMenu
 import com.android.xrayfa.shared.ui.config.SharedConfigSection
 import com.android.xrayfa.shared.ui.config.SharedEditScreen
@@ -100,7 +98,7 @@ fun RootContent(
     val stack by component.stack.subscribeAsState()
     val stackIdle = stack.active.configuration is RootStackConfig.Idle
     val selectedTab = pages.items.getOrNull(pages.selectedIndex)?.configuration ?: RootTab.Home
-    val searchExpandedCoversNav = false
+    var searchExpandedCoversNav by remember { mutableStateOf(false) }
     val floatingNavVisible = remember { mutableStateOf(true) }
     val hideNavOnScroll =
         remember {
@@ -170,6 +168,7 @@ fun RootContent(
                         onOpenSubscriptions = component::openSubscriptions,
                         onOpenQrScanner = component::openQrScanner,
                         hideNavOnScroll = hideNavOnScroll,
+                        onSearchExpanded = { searchExpandedCoversNav = it },
                     )
             }
         }
@@ -300,6 +299,7 @@ private fun ConfigTabScreen(
     onOpenSubscriptions: () -> Unit,
     onOpenQrScanner: () -> Unit,
     hideNavOnScroll: NestedScrollConnection,
+    onSearchExpanded: (Boolean) -> Unit,
 ) {
     val platformHooks = LocalPlatformRootHooks.current
     val configLabels = rememberConfigUiLabels()
@@ -307,20 +307,24 @@ private fun ConfigTabScreen(
     val configState by component.state.subscribeAsState()
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-    var searchExpanded by remember { mutableStateOf(false) }
+    var pendingScrollNodeId by remember { mutableStateOf<Int?>(null) }
     var shareNode by remember { mutableStateOf<Node?>(null) }
     var showBugReport by remember { mutableStateOf(false) }
+
+    LaunchedEffect(pendingScrollNodeId, configState.searchQuery, configState.nodes) {
+        val id = pendingScrollNodeId ?: return@LaunchedEffect
+        if (configState.searchQuery.isNotBlank()) return@LaunchedEffect
+        val index = configState.nodes.indexOfFirst { it.id == id }
+        if (index >= 0) {
+            listState.animateScrollToItem(index)
+        }
+        pendingScrollNodeId = null
+    }
 
     SharedListScaffold(
         title = stringResource(Res.string.config),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         actions = {
-            IconButton(onClick = { searchExpanded = !searchExpanded }) {
-                Icon(
-                    imageVector = Icons.Outlined.Search,
-                    contentDescription = configLabels.searchLabel,
-                )
-            }
             IconButton(onClick = { onOpenNodeEdit(0) }) {
                 Icon(
                     imageVector = Icons.Filled.Edit,
@@ -375,27 +379,15 @@ private fun ConfigTabScreen(
             )
         },
     ) { innerPadding ->
-        Column(
+        Box(
             modifier =
                 Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
         ) {
-            if (searchExpanded) {
-                OutlinedTextField(
-                    value = configState.searchQuery,
-                    onValueChange = component::onSearch,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                    singleLine = true,
-                    label = { Text(configLabels.searchLabel) },
-                )
-            }
             SharedConfigSection(
                 component = component,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxSize(),
                 labels = configLabels,
                 listState = listState,
                 listContentPadding = PaddingValues(bottom = FloatingNavContentClearance),
@@ -424,6 +416,19 @@ private fun ConfigTabScreen(
                         )
                     }
                 },
+            )
+            ActualConfigSearchFab(
+                searchQuery = configState.searchQuery,
+                nodes = configState.nodes,
+                searchLabel = configLabels.searchLabel,
+                searchNoResultsLabel = configLabels.searchNoResultsLabel,
+                onSearch = component::onSearch,
+                onSearchExpanded = onSearchExpanded,
+                onResultChosen = { nodeId -> pendingScrollNodeId = nodeId },
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 20.dp, bottom = FloatingNavContentClearance),
             )
         }
     }

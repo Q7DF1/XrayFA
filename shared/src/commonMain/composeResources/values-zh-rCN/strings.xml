@@ -137,6 +137,7 @@
     <string name="config_delete_node_title">删除节点</string>
     <string name="config_delete_node_confirm">确定删除此节点？</string>
     <string name="config_speed_test_all_cd">全部测速</string>
+    <string name="config_search_no_results">没有匹配的节点</string>
 
     <string name="bug_report_header">问题反馈</string>
     <string name="bug_report_title_label">标题</string>

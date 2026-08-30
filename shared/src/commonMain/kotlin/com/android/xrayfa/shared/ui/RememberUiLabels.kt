@@ -67,6 +67,7 @@ fun rememberConfigUiLabels(): ConfigUiLabels =
         deleteAllLabel = stringResource(Res.string.menu_delete_all),
         bugReportLabel = stringResource(Res.string.bug_report_header),
         searchLabel = stringResource(Res.string.apps_search),
+        searchNoResultsLabel = stringResource(Res.string.config_search_no_results),
         deleteAllTitle = stringResource(Res.string.menu_delete_all),
         deleteAllConfirm = stringResource(Res.string.delete_notify),
     )
