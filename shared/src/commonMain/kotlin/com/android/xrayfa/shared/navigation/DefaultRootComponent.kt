@@ -18,7 +18,7 @@ class DefaultRootComponent(
     componentContext: ComponentContext,
     private val homeComponentFactory: HomeComponentFactory = defaultHomeComponentFactory(),
     private val configComponentFactory: ConfigComponentFactory = defaultConfigComponentFactory(),
-    settingsComponentFactory: SettingsComponentFactory = defaultSettingsComponentFactory(),
+    private val settingsComponentFactory: SettingsComponentFactory = defaultSettingsComponentFactory(),
     private val subscriptionComponentFactory: SubscriptionComponentFactory = defaultSubscriptionComponentFactory(),
 ) : RootComponent,
     ComponentContext by componentContext {
@@ -76,9 +76,13 @@ class DefaultRootComponent(
         when {
             a is RootStackConfig.NodeEdit && b is RootStackConfig.NodeEdit -> a.nodeId == b.nodeId
             a is RootStackConfig.NodeEdit || b is RootStackConfig.NodeEdit -> false
-            else -> a::class == b::class
+            else -> a == b
         }
 
+    /**
+     * Brings [config] to the top, dropping it (and everything above it) from its old slot,
+     * then pushes it. `Idle` stays at the bottom.
+     */
     private fun bringOrPush(config: RootStackConfig) {
         stackNavigation.navigate { current ->
             val base = if (current.firstOrNull() is RootStackConfig.Idle) current else listOf(RootStackConfig.Idle) + current
@@ -88,6 +92,19 @@ class DefaultRootComponent(
             } else {
                 base + config
             }
+        }
+    }
+
+    /**
+     * Settings-only destinations: sit on top of Settings when the user came from there,
+     * otherwise they own the stack so a shortcut does not bury them under
+     * Subscriptions / node edit.
+     */
+    private fun pushOnSettingsOrIdle(config: RootStackConfig) {
+        if (stack.value.active.configuration is RootStackConfig.Settings) {
+            bringOrPush(config)
+        } else {
+            stackNavigation.replaceAll(RootStackConfig.Idle, config)
         }
     }
 
@@ -120,9 +137,9 @@ class DefaultRootComponent(
             navigation.select(index = RootTab.Config.ordinal)
         }
     }
-    override fun openApps() = bringOrPush(RootStackConfig.Apps)
-    override fun openLogcat() = bringOrPush(RootStackConfig.Logcat)
-    override fun openRouteSettings() = bringOrPush(RootStackConfig.RouteSettings)
+    override fun openApps() = pushOnSettingsOrIdle(RootStackConfig.Apps)
+    override fun openLogcat() = pushOnSettingsOrIdle(RootStackConfig.Logcat)
+    override fun openRouteSettings() = pushOnSettingsOrIdle(RootStackConfig.RouteSettings)
     override fun openNodeEdit(nodeId: Int) = bringOrPush(RootStackConfig.NodeEdit(nodeId))
 
     override fun navigateBack() {

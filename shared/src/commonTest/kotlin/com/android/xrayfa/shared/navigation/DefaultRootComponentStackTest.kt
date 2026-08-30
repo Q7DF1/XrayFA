@@ -1,5 +1,6 @@
 package com.android.xrayfa.shared.navigation
 
+import com.android.xrayfa.agent.AgentScreen
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -74,5 +75,81 @@ class DefaultRootComponentStackTest {
         root.openSettings()
         root.selectTab(RootTab.Home)
         assertEquals(listOf(RootStackConfig.Idle), configs(root))
+    }
+
+    @Test
+    fun appsOpenedOutsideSettingsOwnsTheStack() {
+        val root = testRootComponent()
+        root.openSubscriptions()
+        root.openApps()
+        assertEquals(
+            listOf(RootStackConfig.Idle, RootStackConfig.Apps),
+            configs(root),
+        )
+    }
+
+    @Test
+    fun routeSettingsOpenedOverNodeEditOwnsTheStack() {
+        val root = testRootComponent()
+        root.openNodeEdit(3)
+        root.openRouteSettings()
+        assertEquals(
+            listOf(RootStackConfig.Idle, RootStackConfig.RouteSettings),
+            configs(root),
+        )
+    }
+
+    @Test
+    fun agentAppsShortcutPushesOnIdle() {
+        val root = testRootComponent()
+        root.openAgentScreen(AgentScreen.Apps)
+        assertEquals(
+            listOf(RootStackConfig.Idle, RootStackConfig.Apps),
+            configs(root),
+        )
+    }
+
+    @Test
+    fun nodeEditOfDifferentIdsStacksWhileSameIdStaysOnce() {
+        val root = testRootComponent()
+        root.openNodeEdit(5)
+        root.openNodeEdit(5)
+        assertEquals(
+            listOf(RootStackConfig.Idle, RootStackConfig.NodeEdit(5)),
+            configs(root),
+        )
+        root.openNodeEdit(7)
+        assertEquals(
+            listOf(RootStackConfig.Idle, RootStackConfig.NodeEdit(5), RootStackConfig.NodeEdit(7)),
+            configs(root),
+        )
+        root.navigateBack()
+        assertEquals(RootStackConfig.NodeEdit(5), active(root))
+    }
+
+    @Test
+    fun qrScannerBackReturnsToSubscriptions() {
+        val root = testRootComponent()
+        root.openSubscriptions()
+        root.openQrScanner()
+        root.navigateBack()
+        assertEquals(RootStackConfig.Subscriptions, active(root))
+        assertEquals(
+            listOf(RootStackConfig.Idle, RootStackConfig.Subscriptions),
+            configs(root),
+        )
+    }
+
+    @Test
+    fun pageSelectedWhileStackIsOpenKeepsTheStack() {
+        val root = testRootComponent()
+        root.openSettings()
+        val selectedBefore = root.pages.value.selectedIndex
+        root.onPageSelected(RootTab.Config.ordinal)
+        assertEquals(
+            listOf(RootStackConfig.Idle, RootStackConfig.Settings),
+            configs(root),
+        )
+        assertEquals(selectedBefore, root.pages.value.selectedIndex)
     }
 }

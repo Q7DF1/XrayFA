@@ -39,7 +39,7 @@ sealed interface RootStackConfig {
     @Serializable data object Apps : RootStackConfig
     @Serializable data object Logcat : RootStackConfig
     @Serializable data object RouteSettings : RootStackConfig
-    @Serializable data class NodeEdit(val nodeId: Long) : RootStackConfig // 0 = create
+    @Serializable data class NodeEdit(val nodeId: Int) : RootStackConfig // 0 = create, Int matches Node.id
 }
 ```
 
@@ -55,7 +55,7 @@ sealed interface RootStackConfig {
 | `openSubscriptions()` | `selectTab(Config)` | Bring or push `Subscriptions`. |
 | `openQrScanner()` | `selectTab(Config)` when opened from Config or a shortcut. Do not change tab if `Subscriptions` is already active. | Always `push` `QrScanner` (allowed on top of `Subscriptions`). |
 | `openApps()` / `openLogcat()` / `openRouteSettings()` | — | Push on top of `Settings` when Settings is already active; otherwise push on `Idle`. |
-| `onOpenCreateNode()` / `onOpenEditNode(id)` | — | Push `NodeEdit(0)` or `NodeEdit(id)`. |
+| `RootComponent.openNodeEdit(id)` | — | Push `NodeEdit(0)` or `NodeEdit(id)` (`0` = create). |
 | `navigateBack()` | — | `pop()` if active is not `Idle`; no-op on `Idle`. |
 
 Same destination type does not stack twice: if that config is already in the stack, bring it to top (drop the older instance, then push). `NodeEdit` is keyed by `nodeId`, so create and edit of different ids can follow each other; a second edit of the same id replaces the existing one.
