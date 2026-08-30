@@ -25,9 +25,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -65,7 +62,7 @@ fun AppsScreen(
     val isLoading by viewmodel.loading.collectAsState()
     val permissionState by viewmodel.permissionState.collectAsState()
     val appInfos by viewmodel.displayedApps.collectAsState()
-    var searchQuery by remember { mutableStateOf("") }
+    val searchQuery by viewmodel.searchQuery.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer =
@@ -99,10 +96,7 @@ fun AppsScreen(
                     ),
                 onBack = onBack,
                 searchQuery = searchQuery,
-                onSearchQueryChange = { query ->
-                    searchQuery = query
-                    viewmodel.onSearch(query)
-                },
+                onSearchQueryChange = viewmodel::onSearch,
                 onToggle = { packageName, selected ->
                     if (selected) {
                         viewmodel.addAllowPackage(packageName)
@@ -135,10 +129,7 @@ fun AppsScreen(
             modifier = pickerModifier,
             onBack = onBack,
             searchQuery = searchQuery,
-            onSearchQueryChange = { query ->
-                searchQuery = query
-                viewmodel.onSearch(query)
-            },
+            onSearchQueryChange = viewmodel::onSearch,
             onToggle = { packageName, selected ->
                 if (selected) {
                     viewmodel.addAllowPackage(packageName)

@@ -16,14 +16,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.DeleteSweep
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -74,6 +72,18 @@ fun SharedAppsPickerScreen(
             }
         },
         actions = {
+            if (onSearchQueryChange != null && !showPermissionDenied) {
+                AppsSearchBar(
+                    searchQuery = searchQuery,
+                    items = items,
+                    searchLabel = labels.appsSearchLabel,
+                    searchNoResultsLabel = labels.appsNoMatchesMessage,
+                    onSearchQueryChange = onSearchQueryChange,
+                    onItemChosen = { item ->
+                        onToggle?.invoke(item.packageName, !item.selected)
+                    },
+                )
+            }
             if (onClearAll != null && !readOnly) {
                 IconButton(onClick = onClearAll) {
                     Icon(
@@ -91,22 +101,13 @@ fun SharedAppsPickerScreen(
                     .fillMaxSize()
                     .padding(innerPadding),
         ) {
-            if (onSearchQueryChange != null && !showPermissionDenied) {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = onSearchQueryChange,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                    singleLine = true,
-                    leadingIcon = {
-                        Icon(Icons.Outlined.Search, contentDescription = labels.appsSearchLabel)
-                    },
-                    placeholder = { Text(labels.appsSearchLabel) },
+            val emptyMessage =
+                appsListEmptyMessage(
+                    itemsEmpty = items.isEmpty(),
+                    searchQuery = searchQuery,
+                    noPackagesMessage = labels.appsNoPackagesMessage,
+                    noMatchesMessage = labels.appsNoMatchesMessage,
                 )
-            }
-
             when {
                 showPermissionDenied && permissionDeniedContent != null -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -118,10 +119,10 @@ fun SharedAppsPickerScreen(
                         CircularProgressIndicator(modifier = Modifier.size(48.dp))
                     }
                 }
-                items.isEmpty() -> {
+                emptyMessage != null -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = labels.appsNoPackagesMessage,
+                            text = emptyMessage,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

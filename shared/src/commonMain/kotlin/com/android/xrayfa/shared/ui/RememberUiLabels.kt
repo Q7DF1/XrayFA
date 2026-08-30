@@ -246,6 +246,7 @@ fun rememberSettingsUiLabels(): SettingsUiLabels =
         appsInfoMessage = stringResource(Res.string.apps_info_message),
         appsConfiguredSummary = stringResource(Res.string.apps_configured_summary),
         appsNoPackagesMessage = stringResource(Res.string.apps_no_packages),
+        appsNoMatchesMessage = stringResource(Res.string.apps_search_no_matches),
         appsSearchLabel = stringResource(Res.string.apps_search),
         appsClearAllLabel = stringResource(Res.string.apps_clear_all),
         appLogEmptyMessage = stringResource(Res.string.no_log_text),

@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -30,7 +31,8 @@ class AppsViewmodel(
 ) : ViewModel() {
 
     /** 搜索关键字。空串表示不过滤。 */
-    private val searchQuery = MutableStateFlow("")
+    private val searchQueryState = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = searchQueryState.asStateFlow()
 
     /** 当前已选中的允许包列表，供 UI 直接订阅。 */
     val allowedPackagesState = settingsRepo.packagesFlow.stateIn(
@@ -59,7 +61,7 @@ class AppsViewmodel(
     val displayedApps: StateFlow<List<AppInfo>> = combine(
         appInfoRepo.apps,
         settingsRepo.packagesFlow,
-        searchQuery,
+        searchQueryState,
     ) { cached, allowed, query ->
         if (cached == null) return@combine emptyList()
         val allowedSet = allowed.toHashSet()
@@ -117,7 +119,7 @@ class AppsViewmodel(
     }
 
     fun onSearch(query: String) {
-        searchQuery.value = query
+        searchQueryState.value = query
     }
 }
 
