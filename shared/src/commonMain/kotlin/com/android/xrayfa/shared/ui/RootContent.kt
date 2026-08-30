@@ -69,7 +69,7 @@ import com.android.xrayfa.shared.navigation.ConfigComponent
 import com.android.xrayfa.shared.navigation.HomeComponent
 import com.android.xrayfa.shared.navigation.NodeEditTarget
 import com.android.xrayfa.shared.navigation.RootComponent
-import com.android.xrayfa.shared.navigation.RootOverlay
+import com.android.xrayfa.shared.navigation.RootStackConfig
 import com.android.xrayfa.shared.navigation.RootTab
 import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.navigation.rememberSubscriptionComponent
@@ -106,7 +106,8 @@ fun RootContent(
     onOpenQrScannerRequestConsumed: () -> Unit = {},
 ) {
     val pages by component.pages.subscribeAsState()
-    val overlay by component.overlay.subscribeAsState()
+    val stack by component.stack.subscribeAsState()
+    val stackIdle = stack.active.configuration is RootStackConfig.Idle
     val selectedTab = pages.items.getOrNull(pages.selectedIndex)?.configuration ?: RootTab.Home
     var configChromeCovered by remember { mutableStateOf(false) }
     val floatingNavVisible = remember { mutableStateOf(true) }
@@ -126,12 +127,12 @@ fun RootContent(
             }
         }
     val showBottomNav =
-        overlay == RootOverlay.None &&
+        stackIdle &&
             !configChromeCovered &&
             floatingNavVisible.value
 
-    LaunchedEffect(selectedTab, overlay, configChromeCovered) {
-        if (overlay == RootOverlay.None && !configChromeCovered) {
+    LaunchedEffect(selectedTab, stackIdle, configChromeCovered) {
+        if (stackIdle && !configChromeCovered) {
             floatingNavVisible.value = true
         }
     }
@@ -148,7 +149,7 @@ fun RootContent(
     ) {
         val platformHooks = LocalPlatformRootHooks.current
         platformHooks.SystemBackHandler(
-            enabled = overlay != RootOverlay.None,
+            enabled = !stackIdle,
             onBack = component::navigateBack,
         )
 
@@ -179,7 +180,7 @@ fun RootContent(
 
         RootOverlayHost(
             component = component,
-            overlay = overlay,
+            overlay = stack.active.configuration,
             configComponent =
                 pages.items
                     .map { it.instance }
@@ -227,7 +228,7 @@ fun RootContent(
 @Composable
 private fun RootOverlayHost(
     component: RootComponent,
-    overlay: RootOverlay,
+    overlay: RootStackConfig,
     configComponent: ConfigComponent?,
 ) {
     val platformHooks = LocalPlatformRootHooks.current
@@ -235,11 +236,11 @@ private fun RootOverlayHost(
     val routeSettingsLabels = rememberRouteSettingsUiLabels()
     val subscriptionComponent = rememberSubscriptionComponent()
     var displayedOverlay by remember { mutableStateOf(overlay) }
-    if (overlay != RootOverlay.None) {
+    if (overlay !is RootStackConfig.Idle) {
         displayedOverlay = overlay
     }
     val overlayVisible = remember { MutableTransitionState(false) }
-    overlayVisible.targetState = overlay != RootOverlay.None
+    overlayVisible.targetState = overlay !is RootStackConfig.Idle
 
     AnimatedVisibility(
         visibleState = overlayVisible,
@@ -263,8 +264,8 @@ private fun RootOverlayHost(
                         .background(MaterialTheme.colorScheme.background),
             ) {
                 when (current) {
-                RootOverlay.None -> Unit
-                RootOverlay.Settings ->
+                RootStackConfig.Idle -> Unit
+                RootStackConfig.Settings ->
                     SettingsTabScreen(
                         component = component.settingsComponent,
                         onBack = component::navigateBack,
@@ -272,7 +273,7 @@ private fun RootOverlayHost(
                         onLogcatClick = component::openLogcat,
                         onRouteClick = component::openRouteSettings,
                     )
-                RootOverlay.Subscriptions ->
+                RootStackConfig.Subscriptions ->
                     SharedSubscriptionScreen(
                         component = subscriptionComponent,
                         onBack = component::navigateBack,
@@ -283,7 +284,7 @@ private fun RootOverlayHost(
                         },
                         onScanQr = component::openQrScanner,
                     )
-                RootOverlay.QrScanner ->
+                RootStackConfig.QrScanner ->
                     platformHooks.QrScannerScreen(
                         onResult = { result ->
                             configComponent?.onImportFromLink(result)
@@ -293,18 +294,19 @@ private fun RootOverlayHost(
                         title = settingsLabels.qrScannerTitle,
                         permissionRequiredMessage = settingsLabels.qrPermissionRequired,
                     )
-                RootOverlay.Apps ->
+                RootStackConfig.Apps ->
                     platformHooks.AppsScreen(
                         component = component.settingsComponent,
                         onBack = component::navigateBack,
                     )
-                RootOverlay.Logcat -> platformHooks.LogcatScreen(onBack = component::navigateBack)
-                RootOverlay.RouteSettings ->
+                RootStackConfig.Logcat -> platformHooks.LogcatScreen(onBack = component::navigateBack)
+                RootStackConfig.RouteSettings ->
                     SharedRouteSettingsScreen(
                         component = component.settingsComponent,
                         onBack = component::navigateBack,
                         labels = routeSettingsLabels,
                     )
+                is RootStackConfig.NodeEdit -> Unit
             }
             }
         }
