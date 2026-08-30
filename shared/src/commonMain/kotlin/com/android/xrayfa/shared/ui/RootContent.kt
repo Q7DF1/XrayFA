@@ -33,7 +33,6 @@ import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,8 +41,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,8 +50,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.shared.config.NodeFormEditor
@@ -65,6 +60,7 @@ import com.android.xrayfa.shared.navigation.RootStackConfig
 import com.android.xrayfa.shared.navigation.RootTab
 import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.resources.*
+import com.android.xrayfa.shared.ui.chrome.SharedListScaffold
 import com.android.xrayfa.shared.ui.config.SharedConfigImportMenu
 import com.android.xrayfa.shared.ui.config.SharedConfigSection
 import com.android.xrayfa.shared.ui.config.SharedEditScreen
@@ -296,7 +292,6 @@ fun RootContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ConfigTabScreen(
     component: ConfigComponent,
@@ -316,79 +311,69 @@ private fun ConfigTabScreen(
     var shareNode by remember { mutableStateOf<Node?>(null) }
     var showBugReport by remember { mutableStateOf(false) }
 
-    Scaffold(
+    SharedListScaffold(
+        title = stringResource(Res.string.config),
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(Res.string.config), fontWeight = FontWeight.Bold) },
-                actions = {
-                    IconButton(onClick = { searchExpanded = !searchExpanded }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Search,
-                            contentDescription = configLabels.searchLabel,
-                        )
-                    }
-                    IconButton(onClick = { onOpenNodeEdit(0) }) {
-                        Icon(
-                            imageVector = Icons.Filled.Edit,
-                            contentDescription = configLabels.createConfigLabel,
-                        )
-                    }
-                    SharedConfigImportMenu(
-                        onImportFromClipboard = component::onImportFromClipboard,
-                        onManageSubscriptions = onOpenSubscriptions,
-                        onScanQr = onOpenQrScanner,
-                        importFromClipboardLabel = stringResource(Res.string.clipboard_import),
-                        manageSubscriptionsLabel = stringResource(Res.string.menu_subscription),
-                        scanQrLabel = settingsLabels.scanQrLabel,
-                        additionalMenuItems = { dismiss ->
-                            DropdownMenuItem(
-                                text = { Text(configLabels.locateSelectedLabel) },
-                                leadingIcon = {
-                                    Icon(Icons.Outlined.Star, contentDescription = null)
-                                },
-                                onClick = {
-                                    dismiss()
-                                    scope.launch {
-                                        val index = configState.nodes.indexOfFirst { it.selected }
-                                        if (index >= 0) {
-                                            listState.animateScrollToItem(index)
-                                        }
-                                    }
-                                },
-                            )
-                            DropdownMenuItem(
-                                text = { Text(configLabels.deleteAllLabel) },
-                                leadingIcon = {
-                                    Icon(Icons.Outlined.DeleteForever, contentDescription = null)
-                                },
-                                onClick = {
-                                    dismiss()
-                                    component.onShowDeleteAll()
-                                },
-                            )
-                            HorizontalDivider()
-                            DropdownMenuItem(
-                                text = { Text(configLabels.bugReportLabel) },
-                                leadingIcon = {
-                                    Icon(Icons.Outlined.BugReport, contentDescription = null)
-                                },
-                                onClick = {
-                                    dismiss()
-                                    showBugReport = true
-                                },
-                            )
+        actions = {
+            IconButton(onClick = { searchExpanded = !searchExpanded }) {
+                Icon(
+                    imageVector = Icons.Outlined.Search,
+                    contentDescription = configLabels.searchLabel,
+                )
+            }
+            IconButton(onClick = { onOpenNodeEdit(0) }) {
+                Icon(
+                    imageVector = Icons.Filled.Edit,
+                    contentDescription = configLabels.createConfigLabel,
+                )
+            }
+            SharedConfigImportMenu(
+                onImportFromClipboard = component::onImportFromClipboard,
+                onManageSubscriptions = onOpenSubscriptions,
+                onScanQr = onOpenQrScanner,
+                importFromClipboardLabel = stringResource(Res.string.clipboard_import),
+                manageSubscriptionsLabel = stringResource(Res.string.menu_subscription),
+                scanQrLabel = settingsLabels.scanQrLabel,
+                additionalMenuItems = { dismiss ->
+                    DropdownMenuItem(
+                        text = { Text(configLabels.locateSelectedLabel) },
+                        leadingIcon = {
+                            Icon(Icons.Outlined.Star, contentDescription = null)
+                        },
+                        onClick = {
+                            dismiss()
+                            scope.launch {
+                                val index = configState.nodes.indexOfFirst { it.selected }
+                                if (index >= 0) {
+                                    listState.animateScrollToItem(index)
+                                }
+                            }
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(configLabels.deleteAllLabel) },
+                        leadingIcon = {
+                            Icon(Icons.Outlined.DeleteForever, contentDescription = null)
+                        },
+                        onClick = {
+                            dismiss()
+                            component.onShowDeleteAll()
+                        },
+                    )
+                    HorizontalDivider()
+                    DropdownMenuItem(
+                        text = { Text(configLabels.bugReportLabel) },
+                        leadingIcon = {
+                            Icon(Icons.Outlined.BugReport, contentDescription = null)
+                        },
+                        onClick = {
+                            dismiss()
+                            showBugReport = true
                         },
                     )
                 },
-                colors =
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surface,
-                    ),
             )
         },
-        containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Column(
             modifier =
@@ -520,7 +505,6 @@ private fun HomeTabScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingsTabScreen(
     component: SettingsComponent,
@@ -532,26 +516,16 @@ private fun SettingsTabScreen(
     val settingsLabels = rememberSettingsUiLabels()
     val platformHooks = LocalPlatformRootHooks.current
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(Res.string.settings_title), fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = settingsLabels.cancelLabel,
-                        )
-                    }
-                },
-                colors =
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surface,
-                    ),
-            )
+    SharedListScaffold(
+        title = stringResource(Res.string.settings_title),
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = settingsLabels.cancelLabel,
+                )
+            }
         },
-        containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
         Column(
             modifier =
