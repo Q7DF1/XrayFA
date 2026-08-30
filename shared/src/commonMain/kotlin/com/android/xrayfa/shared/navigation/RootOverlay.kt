@@ -20,16 +20,26 @@ enum class RootOverlay {
 
 data class RootNavigationTarget(
     val tab: RootTab? = null,
+    val stack: RootStackConfig = RootStackConfig.Idle,
     val overlay: RootOverlay = RootOverlay.None,
 )
 
 fun AgentScreen.toRootNavigation(): RootNavigationTarget =
     when (this) {
-        AgentScreen.Home -> RootNavigationTarget(tab = RootTab.Home, overlay = RootOverlay.None)
-        AgentScreen.Config -> RootNavigationTarget(tab = RootTab.Config, overlay = RootOverlay.None)
+        AgentScreen.Home ->
+            RootNavigationTarget(tab = RootTab.Home, stack = RootStackConfig.Idle, overlay = RootOverlay.None)
+        AgentScreen.Config ->
+            RootNavigationTarget(tab = RootTab.Config, stack = RootStackConfig.Idle, overlay = RootOverlay.None)
         AgentScreen.Subscriptions ->
-            RootNavigationTarget(tab = RootTab.Config, overlay = RootOverlay.Subscriptions)
-        AgentScreen.Settings -> RootNavigationTarget(overlay = RootOverlay.Settings)
-        AgentScreen.Apps -> RootNavigationTarget(overlay = RootOverlay.Apps)
-        AgentScreen.RouteSettings -> RootNavigationTarget(overlay = RootOverlay.RouteSettings)
+            RootNavigationTarget(
+                tab = RootTab.Config,
+                stack = RootStackConfig.Subscriptions,
+                overlay = RootOverlay.Subscriptions,
+            )
+        AgentScreen.Settings ->
+            RootNavigationTarget(stack = RootStackConfig.Settings, overlay = RootOverlay.Settings)
+        AgentScreen.Apps ->
+            RootNavigationTarget(stack = RootStackConfig.Apps, overlay = RootOverlay.Apps)
+        AgentScreen.RouteSettings ->
+            RootNavigationTarget(stack = RootStackConfig.RouteSettings, overlay = RootOverlay.RouteSettings)
     }
