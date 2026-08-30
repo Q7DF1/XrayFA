@@ -113,45 +113,23 @@ class DefaultConfigComponent(
         }
     }
 
-    override fun onOpenEditNode(nodeId: Int) {
-        scope.launch {
-            val node = nodeRepository.loadLinksById(nodeId).first() ?: return@launch
-            _state.update {
-                it.copy(nodeEditTarget = NodeEditTarget.Edit(node), editError = false)
-            }
-        }
-    }
+    override fun onOpenEditNode(nodeId: Int) = Unit
 
-    override fun onOpenCreateNode() {
-        _state.update {
-            it.copy(nodeEditTarget = NodeEditTarget.Create, editError = false)
-        }
-    }
+    override fun onOpenCreateNode() = Unit
 
     override fun onCloseNodeEdit() {
-        _state.update {
-            it.copy(nodeEditTarget = null, editError = false)
-        }
+        _state.update { it.copy(editError = false) }
     }
 
-    override fun onSaveNodeEdit(form: NodeEditForm) {
-        val target = _state.value.nodeEditTarget ?: return
-        val nodeId =
-            when (target) {
-                is NodeEditTarget.Create -> 0
-                is NodeEditTarget.Edit -> target.node.id
-            }
+    override fun onSaveNodeEdit(
+        nodeId: Int,
+        form: NodeEditForm,
+        onDone: (Boolean) -> Unit,
+    ) {
         scope.launch {
             val success = nodeFormEditor.saveForm(nodeId, form)
-            if (success) {
-                _state.update {
-                    it.copy(nodeEditTarget = null, editError = false)
-                }
-            } else {
-                _state.update {
-                    it.copy(editError = true)
-                }
-            }
+            _state.update { it.copy(editError = !success) }
+            onDone(success)
         }
     }
 

@@ -29,7 +29,11 @@ class FakeConfigComponent : ConfigComponent {
     override fun onOpenEditNode(nodeId: Int) = Unit
     override fun onOpenCreateNode() = Unit
     override fun onCloseNodeEdit() = Unit
-    override fun onSaveNodeEdit(form: NodeEditForm) = Unit
+    override fun onSaveNodeEdit(
+        nodeId: Int,
+        form: NodeEditForm,
+        onDone: (Boolean) -> Unit,
+    ) = Unit
     override fun onShowDeleteNode(node: Node) = Unit
     override fun onDismissDeleteNode() = Unit
     override fun onConfirmDeleteNode() = Unit

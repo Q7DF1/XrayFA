@@ -1,16 +1,10 @@
 package com.android.xrayfa.shared.ui
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -51,7 +45,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -67,12 +60,10 @@ import com.android.xrayfa.model.Node
 import com.android.xrayfa.shared.config.NodeFormEditor
 import com.android.xrayfa.shared.navigation.ConfigComponent
 import com.android.xrayfa.shared.navigation.HomeComponent
-import com.android.xrayfa.shared.navigation.NodeEditTarget
 import com.android.xrayfa.shared.navigation.RootComponent
 import com.android.xrayfa.shared.navigation.RootStackConfig
 import com.android.xrayfa.shared.navigation.RootTab
 import com.android.xrayfa.shared.navigation.SettingsComponent
-import com.android.xrayfa.shared.navigation.rememberSubscriptionComponent
 import com.android.xrayfa.shared.resources.*
 import com.android.xrayfa.shared.ui.config.SharedConfigImportMenu
 import com.android.xrayfa.shared.ui.config.SharedConfigSection
@@ -93,6 +84,10 @@ import com.android.xrayfa.shared.ui.settings.SharedSettingsSubscriptionSection
 import com.android.xrayfa.shared.ui.subscription.SharedSubscriptionScreen
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
+import com.arkivanov.decompose.extensions.compose.stack.Children
+import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.predictiveBackAnimation
+import com.arkivanov.decompose.extensions.compose.stack.animation.slide
+import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -109,7 +104,7 @@ fun RootContent(
     val stack by component.stack.subscribeAsState()
     val stackIdle = stack.active.configuration is RootStackConfig.Idle
     val selectedTab = pages.items.getOrNull(pages.selectedIndex)?.configuration ?: RootTab.Home
-    var configChromeCovered by remember { mutableStateOf(false) }
+    val searchExpandedCoversNav = false
     val floatingNavVisible = remember { mutableStateOf(true) }
     val hideNavOnScroll =
         remember {
@@ -126,13 +121,10 @@ fun RootContent(
                 }
             }
         }
-    val showBottomNav =
-        stackIdle &&
-            !configChromeCovered &&
-            floatingNavVisible.value
+    val showBottomNav = stackIdle && !searchExpandedCoversNav && floatingNavVisible.value
 
-    LaunchedEffect(selectedTab, stackIdle, configChromeCovered) {
-        if (stackIdle && !configChromeCovered) {
+    LaunchedEffect(selectedTab, stackIdle) {
+        if (stackIdle) {
             floatingNavVisible.value = true
         }
     }
@@ -148,6 +140,14 @@ fun RootContent(
         modifier = modifier.fillMaxSize(),
     ) {
         val platformHooks = LocalPlatformRootHooks.current
+        val settingsLabels = rememberSettingsUiLabels()
+        val routeSettingsLabels = rememberRouteSettingsUiLabels()
+        val configComponent =
+            pages.items
+                .map { it.instance }
+                .filterIsInstance<RootComponent.Child.Config>()
+                .firstOrNull()
+                ?.component
         platformHooks.SystemBackHandler(
             enabled = !stackIdle,
             onBack = component::navigateBack,
@@ -170,7 +170,7 @@ fun RootContent(
                     ConfigTabScreen(
                         component = child.component,
                         onNodeSelectedNavigateHome = { component.selectTab(RootTab.Home) },
-                        onChromeCovered = { configChromeCovered = it },
+                        onOpenNodeEdit = component::openNodeEdit,
                         onOpenSubscriptions = component::openSubscriptions,
                         onOpenQrScanner = component::openQrScanner,
                         hideNavOnScroll = hideNavOnScroll,
@@ -178,16 +178,87 @@ fun RootContent(
             }
         }
 
-        RootOverlayHost(
-            component = component,
-            overlay = stack.active.configuration,
-            configComponent =
-                pages.items
-                    .map { it.instance }
-                    .filterIsInstance<RootComponent.Child.Config>()
-                    .firstOrNull()
-                    ?.component,
-        )
+        Children(
+            stack = component.stack,
+            modifier = Modifier.fillMaxSize(),
+            animation =
+                predictiveBackAnimation(
+                    backHandler = component.backHandler,
+                    fallbackAnimation = stackAnimation(slide()),
+                    onBack = component::navigateBack,
+                ),
+        ) { child ->
+            val fill = Modifier.fillMaxSize()
+            when (val instance = child.instance) {
+                RootComponent.StackChild.Idle -> Unit
+                RootComponent.StackChild.Settings ->
+                    SettingsTabScreen(
+                        component = component.settingsComponent,
+                        onBack = component::navigateBack,
+                        onAppsClick = component::openApps,
+                        onLogcatClick = component::openLogcat,
+                        onRouteClick = component::openRouteSettings,
+                    )
+                is RootComponent.StackChild.Subscriptions ->
+                    SharedSubscriptionScreen(
+                        component = instance.component,
+                        onBack = component::navigateBack,
+                        labels = rememberSubscriptionUiLabels(),
+                        onSubscriptionApplied = { subscriptionId ->
+                            configComponent?.onSelectFilter(subscriptionId)
+                            component.navigateBack()
+                        },
+                        onScanQr = component::openQrScanner,
+                    )
+                RootComponent.StackChild.QrScanner ->
+                    platformHooks.QrScannerScreen(
+                        onResult = { result ->
+                            configComponent?.onImportFromLink(result)
+                            component.navigateBack()
+                        },
+                        onBack = component::navigateBack,
+                        title = settingsLabels.qrScannerTitle,
+                        permissionRequiredMessage = settingsLabels.qrPermissionRequired,
+                    )
+                RootComponent.StackChild.Apps ->
+                    platformHooks.AppsScreen(
+                        component = component.settingsComponent,
+                        onBack = component::navigateBack,
+                    )
+                RootComponent.StackChild.Logcat ->
+                    platformHooks.LogcatScreen(onBack = component::navigateBack)
+                RootComponent.StackChild.RouteSettings ->
+                    SharedRouteSettingsScreen(
+                        component = component.settingsComponent,
+                        onBack = component::navigateBack,
+                        labels = routeSettingsLabels,
+                    )
+                is RootComponent.StackChild.NodeEdit -> {
+                    val node =
+                        configComponent
+                            ?.state
+                            ?.value
+                            ?.nodes
+                            ?.firstOrNull { it.id == instance.nodeId }
+                    val nodeFormEditor = remember { KoinPlatform.getKoin().get<NodeFormEditor>() }
+                    SharedEditScreen(
+                        nodeId = instance.nodeId,
+                        protocol = node?.protocolPrefix,
+                        initialContent = node?.url,
+                        initialRemark = node?.remark,
+                        nodeFormEditor = nodeFormEditor,
+                        onBack = component::navigateBack,
+                        onSave = { form ->
+                            configComponent?.onSaveNodeEdit(instance.nodeId, form) { success ->
+                                if (success) component.navigateBack()
+                            }
+                        },
+                        labels = rememberEditUiLabels(),
+                        modifier = fill,
+                    )
+                }
+            }
+        }
 
         AnimatedVisibility(
             visible = showBottomNav,
@@ -225,107 +296,18 @@ fun RootContent(
     }
 }
 
-@Composable
-private fun RootOverlayHost(
-    component: RootComponent,
-    overlay: RootStackConfig,
-    configComponent: ConfigComponent?,
-) {
-    val platformHooks = LocalPlatformRootHooks.current
-    val settingsLabels = rememberSettingsUiLabels()
-    val routeSettingsLabels = rememberRouteSettingsUiLabels()
-    val subscriptionComponent = rememberSubscriptionComponent()
-    var displayedOverlay by remember { mutableStateOf(overlay) }
-    if (overlay !is RootStackConfig.Idle) {
-        displayedOverlay = overlay
-    }
-    val overlayVisible = remember { MutableTransitionState(false) }
-    overlayVisible.targetState = overlay !is RootStackConfig.Idle
-
-    AnimatedVisibility(
-        visibleState = overlayVisible,
-        enter = slideInHorizontally { it } + fadeIn(),
-        exit = slideOutHorizontally { it } + fadeOut(),
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        AnimatedContent(
-            targetState = displayedOverlay,
-            transitionSpec = {
-                (slideInHorizontally { it } + fadeIn()) togetherWith
-                    (slideOutHorizontally { -it / 4 } + fadeOut())
-            },
-            modifier = Modifier.fillMaxSize(),
-            label = "rootOverlay",
-        ) { current ->
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background),
-            ) {
-                when (current) {
-                RootStackConfig.Idle -> Unit
-                RootStackConfig.Settings ->
-                    SettingsTabScreen(
-                        component = component.settingsComponent,
-                        onBack = component::navigateBack,
-                        onAppsClick = component::openApps,
-                        onLogcatClick = component::openLogcat,
-                        onRouteClick = component::openRouteSettings,
-                    )
-                RootStackConfig.Subscriptions ->
-                    SharedSubscriptionScreen(
-                        component = subscriptionComponent,
-                        onBack = component::navigateBack,
-                        labels = rememberSubscriptionUiLabels(),
-                        onSubscriptionApplied = { subscriptionId ->
-                            configComponent?.onSelectFilter(subscriptionId)
-                            component.navigateBack()
-                        },
-                        onScanQr = component::openQrScanner,
-                    )
-                RootStackConfig.QrScanner ->
-                    platformHooks.QrScannerScreen(
-                        onResult = { result ->
-                            configComponent?.onImportFromLink(result)
-                            component.navigateBack()
-                        },
-                        onBack = component::navigateBack,
-                        title = settingsLabels.qrScannerTitle,
-                        permissionRequiredMessage = settingsLabels.qrPermissionRequired,
-                    )
-                RootStackConfig.Apps ->
-                    platformHooks.AppsScreen(
-                        component = component.settingsComponent,
-                        onBack = component::navigateBack,
-                    )
-                RootStackConfig.Logcat -> platformHooks.LogcatScreen(onBack = component::navigateBack)
-                RootStackConfig.RouteSettings ->
-                    SharedRouteSettingsScreen(
-                        component = component.settingsComponent,
-                        onBack = component::navigateBack,
-                        labels = routeSettingsLabels,
-                    )
-                is RootStackConfig.NodeEdit -> Unit
-            }
-            }
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ConfigTabScreen(
     component: ConfigComponent,
     onNodeSelectedNavigateHome: () -> Unit,
-    onChromeCovered: (Boolean) -> Unit,
+    onOpenNodeEdit: (Int) -> Unit,
     onOpenSubscriptions: () -> Unit,
     onOpenQrScanner: () -> Unit,
     hideNavOnScroll: NestedScrollConnection,
 ) {
     val platformHooks = LocalPlatformRootHooks.current
     val configLabels = rememberConfigUiLabels()
-    val editLabels = rememberEditUiLabels()
     val settingsLabels = rememberSettingsUiLabels()
     val configState by component.state.subscribeAsState()
     val listState = rememberLazyListState()
@@ -333,42 +315,6 @@ private fun ConfigTabScreen(
     var searchExpanded by remember { mutableStateOf(false) }
     var shareNode by remember { mutableStateOf<Node?>(null) }
     var showBugReport by remember { mutableStateOf(false) }
-    val covering = configState.nodeEditTarget != null
-    LaunchedEffect(covering) { onChromeCovered(covering) }
-    DisposableEffect(Unit) { onDispose { onChromeCovered(false) } }
-
-    configState.nodeEditTarget?.let { target ->
-        platformHooks.SystemBackHandler(
-            enabled = true,
-            onBack = component::onCloseNodeEdit,
-        )
-        val nodeFormEditor = remember { KoinPlatform.getKoin().get<NodeFormEditor>() }
-        when (target) {
-            is NodeEditTarget.Create ->
-                SharedEditScreen(
-                    nodeId = 0,
-                    protocol = null,
-                    initialContent = null,
-                    initialRemark = null,
-                    nodeFormEditor = nodeFormEditor,
-                    onBack = component::onCloseNodeEdit,
-                    onSave = component::onSaveNodeEdit,
-                    labels = editLabels,
-                )
-            is NodeEditTarget.Edit ->
-                SharedEditScreen(
-                    nodeId = target.node.id,
-                    protocol = target.node.protocolPrefix,
-                    initialContent = target.node.url,
-                    initialRemark = target.node.remark,
-                    nodeFormEditor = nodeFormEditor,
-                    onBack = component::onCloseNodeEdit,
-                    onSave = component::onSaveNodeEdit,
-                    labels = editLabels,
-                )
-        }
-        return
-    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -382,7 +328,7 @@ private fun ConfigTabScreen(
                             contentDescription = configLabels.searchLabel,
                         )
                     }
-                    IconButton(onClick = component::onOpenCreateNode) {
+                    IconButton(onClick = { onOpenNodeEdit(0) }) {
                         Icon(
                             imageVector = Icons.Filled.Edit,
                             contentDescription = configLabels.createConfigLabel,
@@ -474,8 +420,8 @@ private fun ConfigTabScreen(
                     component.onSelectNode(node.id)
                     onNodeSelectedNavigateHome()
                 },
-                onEmptyAddClick = component::onOpenCreateNode,
-                onEditNode = { node -> component.onOpenEditNode(node.id) },
+                onEmptyAddClick = { onOpenNodeEdit(0) },
+                onEditNode = { node -> onOpenNodeEdit(node.id) },
                 onDeleteNode = component::onShowDeleteNode,
                 onShareNode = { node -> shareNode = node },
                 filterTrailingContent = {

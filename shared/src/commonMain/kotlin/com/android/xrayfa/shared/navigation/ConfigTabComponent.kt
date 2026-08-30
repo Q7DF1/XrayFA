@@ -26,7 +26,11 @@ interface ConfigComponent {
 
     fun onCloseNodeEdit()
 
-    fun onSaveNodeEdit(form: NodeEditForm)
+    fun onSaveNodeEdit(
+        nodeId: Int,
+        form: NodeEditForm,
+        onDone: (Boolean) -> Unit = {},
+    )
 
     fun onShowDeleteNode(node: Node)
 

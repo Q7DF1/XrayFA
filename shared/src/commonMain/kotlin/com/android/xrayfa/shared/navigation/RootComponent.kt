@@ -4,8 +4,9 @@ import com.android.xrayfa.agent.AgentScreen
 import com.arkivanov.decompose.router.pages.ChildPages
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandlerOwner
 
-interface RootComponent {
+interface RootComponent : BackHandlerOwner {
     val pages: Value<ChildPages<RootTab, Child>>
 
     val stack: Value<ChildStack<RootStackConfig, StackChild>>
