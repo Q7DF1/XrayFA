@@ -1,6 +1,5 @@
 package com.android.xrayfa.shared.ui.config
 
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,14 +28,13 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.model.protocol.Protocol
@@ -81,13 +79,6 @@ fun SharedEditScreen(
             rememberTopAppBarState(),
         )
     val scrollState = rememberScrollState()
-    val isScrolled by remember {
-        derivedStateOf { scrollState.value > 0 }
-    }
-    val appBarElevation by animateDpAsState(
-        targetValue = if (isScrolled) 4.dp else 0.dp,
-        label = "TopBarShadowElevation",
-    )
 
     Scaffold(
         modifier = modifier,
@@ -116,7 +107,6 @@ fun SharedEditScreen(
                     }
                 },
                 scrollBehavior = scrollBehavior,
-                modifier = Modifier.shadow(appBarElevation),
             )
         },
     ) { paddingValue ->
@@ -126,6 +116,7 @@ fun SharedEditScreen(
                     .fillMaxSize()
                     .padding(paddingValue)
                     .background(MaterialTheme.colorScheme.surface)
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
                     .verticalScroll(scrollState)
                     .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
