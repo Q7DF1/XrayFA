@@ -14,6 +14,7 @@ actual fun ActualConfigSearchFab(
     onSearchExpanded: (Boolean) -> Unit,
     onResultChosen: (nodeId: Int) -> Unit,
     modifier: Modifier,
+    forceCollapsed: Boolean,
 ) {
     ConfigSearchBarImpl(
         useDocked = true,
@@ -25,5 +26,6 @@ actual fun ActualConfigSearchFab(
         onSearchExpanded = onSearchExpanded,
         onResultChosen = onResultChosen,
         modifier = modifier,
+        forceCollapsed = forceCollapsed,
     )
 }

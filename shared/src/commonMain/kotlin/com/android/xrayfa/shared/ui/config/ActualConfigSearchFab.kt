@@ -10,10 +10,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
@@ -48,6 +50,7 @@ expect fun ActualConfigSearchFab(
     onSearchExpanded: (Boolean) -> Unit,
     onResultChosen: (nodeId: Int) -> Unit,
     modifier: Modifier = Modifier,
+    forceCollapsed: Boolean = false,
 )
 
 @OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
@@ -62,6 +65,7 @@ internal fun ConfigSearchBarImpl(
     onSearchExpanded: (Boolean) -> Unit,
     onResultChosen: (nodeId: Int) -> Unit,
     modifier: Modifier = Modifier,
+    forceCollapsed: Boolean = false,
 ) {
     var query by remember { mutableStateOf(searchQuery) }
     var active by remember { mutableStateOf(false) }
@@ -86,6 +90,12 @@ internal fun ConfigSearchBarImpl(
         }
     }
 
+    LaunchedEffect(forceCollapsed) {
+        if (forceCollapsed) {
+            active = false
+        }
+    }
+
     val onImeSearch: (String) -> Unit = {
         focusManager.clearFocus()
         keyboard?.hide()
@@ -101,10 +111,10 @@ internal fun ConfigSearchBarImpl(
             nodes = nodes,
             searchNoResultsLabel = searchNoResultsLabel,
             onResultChosen = { node ->
+                onResultChosen(node.id)
                 query = ""
                 onSearch("")
                 active = false
-                onResultChosen(node.id)
             },
         )
     }
@@ -133,6 +143,21 @@ internal fun ConfigSearchBarImpl(
             leadingIcon = {
                 Icon(Icons.Outlined.Search, contentDescription = searchLabel)
             },
+            trailingIcon =
+                if (query.isNotEmpty()) {
+                    {
+                        IconButton(
+                            onClick = {
+                                query = ""
+                                onSearch("")
+                            },
+                        ) {
+                            Icon(Icons.Outlined.Close, contentDescription = "Clear")
+                        }
+                    }
+                } else {
+                    null
+                },
         )
     }
 

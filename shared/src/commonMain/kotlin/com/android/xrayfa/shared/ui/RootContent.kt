@@ -59,7 +59,9 @@ import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.resources.*
 import com.android.xrayfa.shared.ui.chrome.SharedListScaffold
 import com.android.xrayfa.shared.ui.config.ActualConfigSearchFab
+import com.android.xrayfa.shared.ui.config.OverlayScrollPending
 import com.android.xrayfa.shared.ui.config.SharedConfigImportMenu
+import com.android.xrayfa.shared.ui.config.shouldCommitOverlayScroll
 import com.android.xrayfa.shared.ui.config.SharedConfigSection
 import com.android.xrayfa.shared.ui.config.SharedEditScreen
 import com.android.xrayfa.shared.ui.home.HomeTopBar
@@ -121,6 +123,9 @@ fun RootContent(
         if (stackIdle) {
             floatingNavVisible.value = true
         }
+        if (selectedTab != RootTab.Config) {
+            searchExpandedCoversNav = false
+        }
     }
 
     LaunchedEffect(openQrScannerRequest) {
@@ -169,6 +174,7 @@ fun RootContent(
                         onOpenQrScanner = component::openQrScanner,
                         hideNavOnScroll = hideNavOnScroll,
                         onSearchExpanded = { searchExpandedCoversNav = it },
+                        forceCollapseSearch = selectedTab != RootTab.Config,
                     )
             }
         }
@@ -300,6 +306,7 @@ private fun ConfigTabScreen(
     onOpenQrScanner: () -> Unit,
     hideNavOnScroll: NestedScrollConnection,
     onSearchExpanded: (Boolean) -> Unit,
+    forceCollapseSearch: Boolean,
 ) {
     val platformHooks = LocalPlatformRootHooks.current
     val configLabels = rememberConfigUiLabels()
@@ -307,18 +314,20 @@ private fun ConfigTabScreen(
     val configState by component.state.subscribeAsState()
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-    var pendingScrollNodeId by remember { mutableStateOf<Int?>(null) }
+    var pendingOverlayScroll by remember { mutableStateOf<OverlayScrollPending?>(null) }
     var shareNode by remember { mutableStateOf<Node?>(null) }
     var showBugReport by remember { mutableStateOf(false) }
 
-    LaunchedEffect(pendingScrollNodeId, configState.searchQuery, configState.nodes) {
-        val id = pendingScrollNodeId ?: return@LaunchedEffect
-        if (configState.searchQuery.isNotBlank()) return@LaunchedEffect
-        val index = configState.nodes.indexOfFirst { it.id == id }
+    LaunchedEffect(pendingOverlayScroll, configState.searchQuery, configState.nodes) {
+        val pending = pendingOverlayScroll ?: return@LaunchedEffect
+        if (!shouldCommitOverlayScroll(pending, configState.searchQuery, configState.nodes)) {
+            return@LaunchedEffect
+        }
+        val index = configState.nodes.indexOfFirst { it.id == pending.nodeId }
         if (index >= 0) {
             listState.animateScrollToItem(index)
         }
-        pendingScrollNodeId = null
+        pendingOverlayScroll = null
     }
 
     SharedListScaffold(
@@ -424,7 +433,15 @@ private fun ConfigTabScreen(
                 searchNoResultsLabel = configLabels.searchNoResultsLabel,
                 onSearch = component::onSearch,
                 onSearchExpanded = onSearchExpanded,
-                onResultChosen = { nodeId -> pendingScrollNodeId = nodeId },
+                onResultChosen = { nodeId ->
+                    pendingOverlayScroll =
+                        OverlayScrollPending(
+                            nodeId = nodeId,
+                            nodesAtTap = configState.nodes,
+                            queryWasBlankAtTap = configState.searchQuery.isBlank(),
+                        )
+                },
+                forceCollapsed = forceCollapseSearch,
                 modifier =
                     Modifier
                         .align(Alignment.BottomEnd)
