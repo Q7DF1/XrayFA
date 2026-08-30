@@ -19,24 +19,20 @@ import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.shared.navigation.SettingsComponent
+import com.android.xrayfa.shared.ui.chrome.SharedListScaffold
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 
 data class SharedAppListItem(
@@ -45,7 +41,6 @@ data class SharedAppListItem(
     val selected: Boolean,
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SharedAppsPickerScreen(
     items: List<SharedAppListItem>,
@@ -65,40 +60,30 @@ fun SharedAppsPickerScreen(
 ) {
     val listState = rememberLazyListState()
 
-    Scaffold(
+    SharedListScaffold(
+        title = labels.appsInfoTitle,
         modifier = modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = { Text(labels.appsInfoTitle, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    if (onBack != null) {
-                        IconButton(onClick = onBack) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = labels.cancelLabel,
-                            )
-                        }
-                    }
-                },
-                actions = {
-                    if (onClearAll != null && !readOnly) {
-                        IconButton(onClick = onClearAll) {
-                            Icon(
-                                imageVector = Icons.Outlined.DeleteSweep,
-                                contentDescription = labels.appsClearAllLabel,
-                            )
-                        }
-                    }
-                    extraActions()
-                },
-                colors =
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        scrolledContainerColor = MaterialTheme.colorScheme.surface,
-                    ),
-            )
+        navigationIcon = {
+            if (onBack != null) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = labels.cancelLabel,
+                    )
+                }
+            }
         },
-        containerColor = MaterialTheme.colorScheme.background,
+        actions = {
+            if (onClearAll != null && !readOnly) {
+                IconButton(onClick = onClearAll) {
+                    Icon(
+                        imageVector = Icons.Outlined.DeleteSweep,
+                        contentDescription = labels.appsClearAllLabel,
+                    )
+                }
+            }
+            extraActions()
+        },
     ) { innerPadding ->
         Column(
             modifier =
