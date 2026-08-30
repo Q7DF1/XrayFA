@@ -78,6 +78,7 @@ import com.android.xrayfa.shared.ui.settings.SharedSettingsGeneralSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsPlatformSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsSubscriptionSection
 import com.android.xrayfa.shared.ui.subscription.SharedSubscriptionScreen
+import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
 import com.arkivanov.decompose.extensions.compose.stack.Children
@@ -89,12 +90,11 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.koin.mp.KoinPlatform
 
+@OptIn(ExperimentalDecomposeApi::class)
 @Composable
 fun RootContent(
     component: RootComponent,
     modifier: Modifier = Modifier,
-    openQrScannerRequest: Boolean = false,
-    onOpenQrScannerRequestConsumed: () -> Unit = {},
 ) {
     val pages by component.pages.subscribeAsState()
     val stack by component.stack.subscribeAsState()
@@ -128,13 +128,6 @@ fun RootContent(
         }
     }
 
-    LaunchedEffect(openQrScannerRequest) {
-        if (openQrScannerRequest) {
-            component.openQrScanner()
-            onOpenQrScannerRequestConsumed()
-        }
-    }
-
     Box(
         modifier = modifier.fillMaxSize(),
     ) {
@@ -147,10 +140,12 @@ fun RootContent(
                 .filterIsInstance<RootComponent.Child.Config>()
                 .firstOrNull()
                 ?.component
-        platformHooks.SystemBackHandler(
-            enabled = !stackIdle,
-            onBack = component::navigateBack,
-        )
+        if (!platformHooks.usesDecomposePredictiveBack) {
+            platformHooks.SystemBackHandler(
+                enabled = !stackIdle,
+                onBack = component::navigateBack,
+            )
+        }
 
         ChildPages(
             modifier = Modifier.fillMaxSize(),
@@ -183,11 +178,15 @@ fun RootContent(
             stack = component.stack,
             modifier = Modifier.fillMaxSize(),
             animation =
-                predictiveBackAnimation(
-                    backHandler = component.backHandler,
-                    fallbackAnimation = stackAnimation(slide()),
-                    onBack = component::navigateBack,
-                ),
+                if (platformHooks.usesDecomposePredictiveBack) {
+                    predictiveBackAnimation(
+                        backHandler = component.backHandler,
+                        fallbackAnimation = stackAnimation(slide()),
+                        onBack = component::navigateBack,
+                    )
+                } else {
+                    stackAnimation(slide())
+                },
         ) { child ->
             val fill = Modifier.fillMaxSize()
             when (val instance = child.instance) {
@@ -235,12 +234,12 @@ fun RootContent(
                         labels = routeSettingsLabels,
                     )
                 is RootComponent.StackChild.NodeEdit -> {
-                    val node =
-                        configComponent
-                            ?.state
-                            ?.value
-                            ?.nodes
-                            ?.firstOrNull { it.id == instance.nodeId }
+                    val latestNode = configComponent?.nodeById(instance.nodeId)
+                    val nodeState = remember(instance.nodeId) { mutableStateOf<Node?>(null) }
+                    if (nodeState.value == null && latestNode != null) {
+                        nodeState.value = latestNode
+                    }
+                    val node = nodeState.value
                     val nodeFormEditor = remember { KoinPlatform.getKoin().get<NodeFormEditor>() }
                     SharedEditScreen(
                         nodeId = instance.nodeId,

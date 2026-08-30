@@ -1,6 +1,5 @@
 package com.android.xrayfa.ui
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +49,7 @@ internal class AndroidPlatformRootHooks(
     private val appsViewmodel: AppsViewmodel,
     private val xrayViewmodel: XrayViewmodel,
 ) : PlatformRootHooks {
+    override val usesDecomposePredictiveBack: Boolean = true
     @Composable
     override fun ColumnScope.SettingsGeneralExtras(component: SettingsComponent) {
         AndroidSettingsGeneralViewModelExtras(settingsViewmodel)
@@ -175,6 +175,6 @@ internal class AndroidPlatformRootHooks(
         enabled: Boolean,
         onBack: () -> Unit,
     ) {
-        BackHandler(enabled = enabled, onBack = onBack)
+        // Predictive back is owned by Decompose BackDispatcher + PredictiveBackGestureOverlay.
     }
 }

@@ -77,6 +77,14 @@ interface PlatformRootHooks {
         onDismiss: () -> Unit,
     )
 
+    /**
+     * When true, [com.android.xrayfa.shared.ui.RootContent] uses Decompose
+     * [com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.predictiveBackAnimation]
+     * and must not also install [SystemBackHandler] (that would steal the gesture).
+     */
+    val usesDecomposePredictiveBack: Boolean
+        get() = false
+
     @Composable
     fun SystemBackHandler(
         enabled: Boolean,
