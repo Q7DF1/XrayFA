@@ -1,3 +1,6 @@
+# Visual brainstorm companion session files
+.superpowers/
+
 # Gradle files
 .gradle/
 build/
