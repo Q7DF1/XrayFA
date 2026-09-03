@@ -1,24 +1,10 @@
 package com.android.xrayfa.shared.ui.config
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.DockedSearchBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
-import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,12 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.android.xrayfa.model.Node
-import com.android.xrayfa.shared.resources.Res
-import com.android.xrayfa.shared.resources.search_clear
-import org.jetbrains.compose.resources.stringResource
+import com.android.xrayfa.shared.ui.chrome.SharedSearchChrome
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -46,7 +28,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 @Composable
-expect fun ActualConfigSearchFab(
+fun ActualConfigSearchFab(
     searchQuery: String,
     nodes: List<Node>,
     searchLabel: String,
@@ -56,12 +38,23 @@ expect fun ActualConfigSearchFab(
     onResultChosen: (nodeId: Int) -> Unit,
     modifier: Modifier = Modifier,
     forceCollapsed: Boolean = false,
-)
+) {
+    ConfigSearchBarImpl(
+        searchQuery = searchQuery,
+        nodes = nodes,
+        searchLabel = searchLabel,
+        searchNoResultsLabel = searchNoResultsLabel,
+        onSearch = onSearch,
+        onSearchExpanded = onSearchExpanded,
+        onResultChosen = onResultChosen,
+        modifier = modifier,
+        forceCollapsed = forceCollapsed,
+    )
+}
 
-@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
+@OptIn(FlowPreview::class)
 @Composable
 internal fun ConfigSearchBarImpl(
-    useDocked: Boolean,
     searchQuery: String,
     nodes: List<Node>,
     searchLabel: String,
@@ -110,95 +103,28 @@ internal fun ConfigSearchBarImpl(
         }
     }
 
-    val results: @Composable ColumnScope.() -> Unit = {
-        ConfigSearchOverlayResults(
-            searchQuery = searchQuery,
-            nodes = nodes,
-            searchNoResultsLabel = searchNoResultsLabel,
-            onResultChosen = { node ->
-                onResultChosen(node.id)
-                query = ""
-                onSearch("")
-                active = false
-            },
-        )
-    }
-
-    val clearLabel = stringResource(Res.string.search_clear)
-    val barModifier =
-        if (active) {
-            if (useDocked) {
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            } else {
-                Modifier.fillMaxSize()
-            }
-        } else {
-            modifier.size(56.dp)
-        }
-    val inputField: @Composable () -> Unit = {
-        SearchBarDefaults.InputField(
-            query = query,
-            onQueryChange = { query = it },
-            onSearch = onImeSearch,
-            expanded = active,
-            onExpandedChange = { active = it },
-            placeholder = { Text(searchLabel) },
-            leadingIcon = {
-                Icon(Icons.Outlined.Search, contentDescription = searchLabel)
-            },
-            trailingIcon =
-                if (query.isNotEmpty()) {
-                    {
-                        IconButton(
-                            onClick = {
-                                query = ""
-                                onSearch("")
-                            },
-                        ) {
-                            Icon(Icons.Outlined.Close, contentDescription = clearLabel)
-                        }
-                    }
-                } else {
-                    null
+    SharedSearchChrome(
+        query = query,
+        onQueryChange = { query = it },
+        expanded = active,
+        onExpandedChange = { active = it },
+        searchLabel = searchLabel,
+        onImeSearch = onImeSearch,
+        modifier = modifier,
+        results = {
+            ConfigSearchOverlayResults(
+                searchQuery = searchQuery,
+                nodes = nodes,
+                searchNoResultsLabel = searchNoResultsLabel,
+                onResultChosen = { node ->
+                    onResultChosen(node.id)
+                    query = ""
+                    onSearch("")
+                    active = false
                 },
-        )
-    }
-
-    if (useDocked) {
-        DockedSearchBar(
-            inputField = inputField,
-            expanded = active,
-            onExpandedChange = { active = it },
-            modifier = barModifier,
-            shape = if (active) SearchBarDefaults.dockedShape else CircleShape,
-            content = results,
-        )
-    } else if (active) {
-        Dialog(
-            onDismissRequest = { active = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false),
-        ) {
-            SearchBar(
-                inputField = inputField,
-                expanded = true,
-                onExpandedChange = { active = it },
-                modifier = Modifier.fillMaxSize(),
-                shape = SearchBarDefaults.fullScreenShape,
-                content = results,
             )
-        }
-    } else {
-        SearchBar(
-            inputField = inputField,
-            expanded = false,
-            onExpandedChange = { active = it },
-            modifier = modifier.size(56.dp),
-            shape = CircleShape,
-            content = results,
-        )
-    }
+        },
+    )
 }
 
 @Composable
