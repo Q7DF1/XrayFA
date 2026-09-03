@@ -27,7 +27,6 @@ import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,12 +36,9 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -60,14 +56,17 @@ import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.Subscription
 import com.android.xrayfa.shared.navigation.EmptySubscription
 import com.android.xrayfa.shared.navigation.SubscriptionComponent
+import com.android.xrayfa.shared.ui.chrome.SharedListScaffold
 import com.android.xrayfa.shared.ui.widgets.SharedModalBottomSheet
 import com.android.xrayfa.shared.ui.widgets.SharedOptionPickerField
 import com.android.xrayfa.shared.platform.ClipboardWriter
+import com.android.xrayfa.shared.resources.Res
+import com.android.xrayfa.shared.resources.cancel
 import com.android.xrayfa.shared.subscription.validateSubscriptionUrl
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import org.jetbrains.compose.resources.stringResource
 import org.koin.mp.KoinPlatform
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SharedSubscriptionScreen(
     component: SubscriptionComponent,
@@ -81,30 +80,23 @@ fun SharedSubscriptionScreen(
     val clipboardWriter = remember { KoinPlatform.getKoin().get<ClipboardWriter>() }
     var copiedMessage by remember { mutableStateOf<String?>(null) }
 
-    Scaffold(
+    SharedListScaffold(
+        title = labels.title,
         modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(labels.title, fontWeight = FontWeight.Bold)
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    if (onScanQr != null) {
-                        IconButton(onClick = onScanQr) {
-                            Icon(Icons.Filled.QrCode, contentDescription = labels.scanQr)
-                        }
-                    }
-                },
-                colors =
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                    ),
-            )
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(Res.string.cancel),
+                )
+            }
+        },
+        actions = {
+            if (onScanQr != null) {
+                IconButton(onClick = onScanQr) {
+                    Icon(Icons.Filled.QrCode, contentDescription = labels.scanQr)
+                }
+            }
         },
         floatingActionButton = {
             FloatingActionButton(onClick = component::openAddSheet) {

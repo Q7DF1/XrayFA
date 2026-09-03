@@ -8,21 +8,22 @@ import com.arkivanov.decompose.router.pages.Pages
 import com.arkivanov.decompose.router.pages.PagesNavigation
 import com.arkivanov.decompose.router.pages.childPages
 import com.arkivanov.decompose.router.pages.select
-import com.arkivanov.decompose.value.MutableValue
+import com.arkivanov.decompose.router.stack.StackNavigation
+import com.arkivanov.decompose.router.stack.childStack
+import com.arkivanov.decompose.router.stack.navigate
+import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.value.Value
 
 class DefaultRootComponent(
     componentContext: ComponentContext,
     private val homeComponentFactory: HomeComponentFactory = defaultHomeComponentFactory(),
     private val configComponentFactory: ConfigComponentFactory = defaultConfigComponentFactory(),
-    settingsComponentFactory: SettingsComponentFactory = defaultSettingsComponentFactory(),
+    private val settingsComponentFactory: SettingsComponentFactory = defaultSettingsComponentFactory(),
+    private val subscriptionComponentFactory: SubscriptionComponentFactory = defaultSubscriptionComponentFactory(),
 ) : RootComponent,
     ComponentContext by componentContext {
     private val navigation = PagesNavigation<RootTab>()
-    private val overlayStack = ArrayList<RootOverlay>()
-    private val _overlay = MutableValue(RootOverlay.None)
-
-    override val overlay: Value<RootOverlay> = _overlay
+    private val stackNavigation = StackNavigation<RootStackConfig>()
 
     override val settingsComponent: SettingsComponent =
         settingsComponentFactory(childContext("settings"))
@@ -50,80 +51,114 @@ class DefaultRootComponent(
             }
         }
 
+    override val stack =
+        childStack(
+            source = stackNavigation,
+            serializer = RootStackConfig.serializer(),
+            initialStack = { listOf(RootStackConfig.Idle) },
+            handleBackButton = false,
+            childFactory = { config, childContext ->
+                when (config) {
+                    RootStackConfig.Idle -> RootComponent.StackChild.Idle
+                    RootStackConfig.Settings -> RootComponent.StackChild.Settings
+                    RootStackConfig.Subscriptions ->
+                        RootComponent.StackChild.Subscriptions(subscriptionComponentFactory(childContext))
+                    RootStackConfig.QrScanner -> RootComponent.StackChild.QrScanner
+                    RootStackConfig.Apps -> RootComponent.StackChild.Apps
+                    RootStackConfig.Logcat -> RootComponent.StackChild.Logcat
+                    RootStackConfig.RouteSettings -> RootComponent.StackChild.RouteSettings
+                    is RootStackConfig.NodeEdit -> RootComponent.StackChild.NodeEdit(config.nodeId)
+                }
+            },
+        )
+
+    private fun sameDestination(a: RootStackConfig, b: RootStackConfig): Boolean =
+        when {
+            a is RootStackConfig.NodeEdit && b is RootStackConfig.NodeEdit -> a.nodeId == b.nodeId
+            a is RootStackConfig.NodeEdit || b is RootStackConfig.NodeEdit -> false
+            else -> a == b
+        }
+
+    /**
+     * Brings [config] to the top, dropping it (and everything above it) from its old slot,
+     * then pushes it. `Idle` stays at the bottom.
+     */
+    private fun bringOrPush(config: RootStackConfig) {
+        stackNavigation.navigate { current ->
+            val base = if (current.firstOrNull() is RootStackConfig.Idle) current else listOf(RootStackConfig.Idle) + current
+            val existingIndex = base.indexOfFirst { sameDestination(it, config) }
+            if (existingIndex >= 0) {
+                base.take(existingIndex + 1)
+            } else {
+                base + config
+            }
+        }
+    }
+
+    /**
+     * Settings-only destinations: sit on top of Settings when the user came from there,
+     * otherwise they own the stack so a shortcut does not bury them under
+     * Subscriptions / node edit.
+     */
+    private fun pushOnSettingsOrIdle(config: RootStackConfig) {
+        if (stack.value.active.configuration is RootStackConfig.Settings) {
+            bringOrPush(config)
+        } else {
+            stackNavigation.replaceAll(RootStackConfig.Idle, config)
+        }
+    }
+
+    private fun clearStack() {
+        stackNavigation.replaceAll(RootStackConfig.Idle)
+    }
+
+    private fun isSubscriptionsActive(): Boolean =
+        stack.value.active.configuration is RootStackConfig.Subscriptions
+
     override fun selectTab(index: Int) {
-        clearOverlays()
+        clearStack()
         navigation.select(index = index)
     }
 
     override fun onPageSelected(index: Int) {
-        if (overlayStack.isNotEmpty()) {
-            return
-        }
+        if (stack.value.active.configuration !is RootStackConfig.Idle) return
         navigation.select(index = index)
     }
 
-    override fun openSettings() {
-        pushOverlay(RootOverlay.Settings)
-    }
-
+    override fun openSettings() = bringOrPush(RootStackConfig.Settings)
     override fun openSubscriptions() {
-        pushOverlay(RootOverlay.Subscriptions)
+        bringOrPush(RootStackConfig.Subscriptions)
         navigation.select(index = RootTab.Config.ordinal)
     }
-
     override fun openQrScanner() {
-        pushOverlay(RootOverlay.QrScanner)
-        navigation.select(index = RootTab.Config.ordinal)
+        val stayOnSubscriptions = isSubscriptionsActive()
+        bringOrPush(RootStackConfig.QrScanner)
+        if (!stayOnSubscriptions) {
+            navigation.select(index = RootTab.Config.ordinal)
+        }
     }
-
-    override fun openApps() {
-        pushOverlay(RootOverlay.Apps)
-    }
-
-    override fun openLogcat() {
-        pushOverlay(RootOverlay.Logcat)
-    }
-
-    override fun openRouteSettings() {
-        pushOverlay(RootOverlay.RouteSettings)
-    }
+    override fun openApps() = pushOnSettingsOrIdle(RootStackConfig.Apps)
+    override fun openLogcat() = pushOnSettingsOrIdle(RootStackConfig.Logcat)
+    override fun openRouteSettings() = pushOnSettingsOrIdle(RootStackConfig.RouteSettings)
+    override fun openNodeEdit(nodeId: Int) = bringOrPush(RootStackConfig.NodeEdit(nodeId))
 
     override fun navigateBack() {
-        if (overlayStack.isEmpty()) {
-            return
+        stackNavigation.navigate { current ->
+            if (current.size <= 1) current else current.dropLast(1)
         }
-        overlayStack.removeAt(overlayStack.lastIndex)
-        _overlay.value = overlayStack.lastOrNull() ?: RootOverlay.None
     }
 
     override fun openAgentScreen(screen: AgentScreen) {
         val target = screen.toRootNavigation()
-        when (target.overlay) {
-            RootOverlay.None -> {
-                val tab = target.tab ?: return
-                selectTab(tab)
-            }
-            RootOverlay.Subscriptions -> openSubscriptions()
-            RootOverlay.Settings -> openSettings()
-            RootOverlay.Apps -> openApps()
-            RootOverlay.RouteSettings -> openRouteSettings()
-            RootOverlay.QrScanner -> openQrScanner()
-            RootOverlay.Logcat -> openLogcat()
+        when (val dest = target.stack) {
+            RootStackConfig.Idle -> target.tab?.let { selectTab(it) }
+            RootStackConfig.Subscriptions -> openSubscriptions()
+            RootStackConfig.Settings -> openSettings()
+            RootStackConfig.Apps -> openApps()
+            RootStackConfig.RouteSettings -> openRouteSettings()
+            RootStackConfig.QrScanner -> openQrScanner()
+            RootStackConfig.Logcat -> openLogcat()
+            is RootStackConfig.NodeEdit -> openNodeEdit(dest.nodeId)
         }
-    }
-
-    private fun pushOverlay(item: RootOverlay) {
-        if (item == RootOverlay.None) {
-            clearOverlays()
-            return
-        }
-        overlayStack.remove(item)
-        overlayStack.add(item)
-        _overlay.value = item
-    }
-
-    private fun clearOverlays() {
-        overlayStack.clear()
-        _overlay.value = RootOverlay.None
     }
 }

@@ -67,6 +67,7 @@ fun rememberConfigUiLabels(): ConfigUiLabels =
         deleteAllLabel = stringResource(Res.string.menu_delete_all),
         bugReportLabel = stringResource(Res.string.bug_report_header),
         searchLabel = stringResource(Res.string.apps_search),
+        searchNoResultsLabel = stringResource(Res.string.config_search_no_results),
         deleteAllTitle = stringResource(Res.string.menu_delete_all),
         deleteAllConfirm = stringResource(Res.string.delete_notify),
     )
@@ -245,6 +246,7 @@ fun rememberSettingsUiLabels(): SettingsUiLabels =
         appsInfoMessage = stringResource(Res.string.apps_info_message),
         appsConfiguredSummary = stringResource(Res.string.apps_configured_summary),
         appsNoPackagesMessage = stringResource(Res.string.apps_no_packages),
+        appsNoMatchesMessage = stringResource(Res.string.apps_search_no_matches),
         appsSearchLabel = stringResource(Res.string.apps_search),
         appsClearAllLabel = stringResource(Res.string.apps_clear_all),
         appLogEmptyMessage = stringResource(Res.string.no_log_text),

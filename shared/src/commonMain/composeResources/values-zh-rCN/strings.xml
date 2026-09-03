@@ -137,6 +137,8 @@
     <string name="config_delete_node_title">删除节点</string>
     <string name="config_delete_node_confirm">确定删除此节点？</string>
     <string name="config_speed_test_all_cd">全部测速</string>
+    <string name="config_search_no_results">没有匹配的节点</string>
+    <string name="search_clear">清除</string>
 
     <string name="bug_report_header">问题反馈</string>
     <string name="bug_report_title_label">标题</string>
@@ -207,6 +209,7 @@
     <string name="apps_info_message">分应用代理目前仅 Android 可用。本构建尚未接入 iOS Network Extension。</string>
     <string name="apps_configured_summary">已允许的包名（只读）</string>
     <string name="apps_no_packages">尚未配置分应用白名单。</string>
+    <string name="apps_search_no_matches">没有匹配的应用</string>
     <string name="platform_unavailable">仅 Android 可用</string>
     <string name="in_development">开发中</string>
     <string name="in_development_message">该功能在 iOS 上正在开发中。</string>

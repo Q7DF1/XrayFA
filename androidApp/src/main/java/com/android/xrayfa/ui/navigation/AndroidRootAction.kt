@@ -13,7 +13,7 @@ sealed interface AndroidRootAction {
     data class OpenScreen(val screen: AgentScreen) : AndroidRootAction
 }
 
-/** Maps Agent openScreen targets onto the Android Navigation3 graph (not collapsed tabs). */
+/** Legacy Navigation3 mapping; production routing uses [com.android.xrayfa.shared.navigation.toRootNavigation]. */
 fun AgentScreen.toDestination(): NavigateDestination =
     when (this) {
         AgentScreen.Home -> Home

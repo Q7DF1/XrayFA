@@ -1,16 +1,9 @@
 package com.android.xrayfa.ui
 
 import com.android.xrayfa.agent.AgentScreen
-import com.android.xrayfa.shared.navigation.RootOverlay
+import com.android.xrayfa.shared.navigation.RootStackConfig
 import com.android.xrayfa.shared.navigation.RootTab
 import com.android.xrayfa.shared.navigation.toRootNavigation
-import com.android.xrayfa.ui.navigation.Apps
-import com.android.xrayfa.ui.navigation.Config
-import com.android.xrayfa.ui.navigation.Home
-import com.android.xrayfa.ui.navigation.RouteSettings
-import com.android.xrayfa.ui.navigation.Settings
-import com.android.xrayfa.ui.navigation.Subscription
-import com.android.xrayfa.ui.navigation.toDestination
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -21,27 +14,27 @@ class AgentScreenRootTabTest {
     fun mapsToSharedRootNavigationMatchingAndroidDestinations() {
         val home = AgentScreen.Home.toRootNavigation()
         assertEquals(RootTab.Home, home.tab)
-        assertEquals(RootOverlay.None, home.overlay)
+        assertEquals(RootStackConfig.Idle, home.stack)
 
         val config = AgentScreen.Config.toRootNavigation()
         assertEquals(RootTab.Config, config.tab)
-        assertEquals(RootOverlay.None, config.overlay)
+        assertEquals(RootStackConfig.Idle, config.stack)
 
         val subscriptions = AgentScreen.Subscriptions.toRootNavigation()
         assertEquals(RootTab.Config, subscriptions.tab)
-        assertEquals(RootOverlay.Subscriptions, subscriptions.overlay)
+        assertEquals(RootStackConfig.Subscriptions, subscriptions.stack)
 
         val settings = AgentScreen.Settings.toRootNavigation()
         assertNull(settings.tab)
-        assertEquals(RootOverlay.Settings, settings.overlay)
+        assertEquals(RootStackConfig.Settings, settings.stack)
 
         val apps = AgentScreen.Apps.toRootNavigation()
         assertNull(apps.tab)
-        assertEquals(RootOverlay.Apps, apps.overlay)
+        assertEquals(RootStackConfig.Apps, apps.stack)
 
         val routeSettings = AgentScreen.RouteSettings.toRootNavigation()
         assertNull(routeSettings.tab)
-        assertEquals(RootOverlay.RouteSettings, routeSettings.overlay)
+        assertEquals(RootStackConfig.RouteSettings, routeSettings.stack)
     }
 
     @Test
@@ -51,13 +44,4 @@ class AgentScreenRootTabTest {
         assertEquals(2, RootTab.entries.size)
     }
 
-    @Test
-    fun mapsToAndroidNavigationDestinations() {
-        assertEquals(Home, AgentScreen.Home.toDestination())
-        assertEquals(Config, AgentScreen.Config.toDestination())
-        assertEquals(Subscription, AgentScreen.Subscriptions.toDestination())
-        assertEquals(Settings, AgentScreen.Settings.toDestination())
-        assertEquals(Apps, AgentScreen.Apps.toDestination())
-        assertEquals(RouteSettings, AgentScreen.RouteSettings.toDestination())
-    }
 }

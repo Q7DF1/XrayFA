@@ -31,6 +31,7 @@ data class ConfigUiLabels(
     val deleteAllLabel: String = "Delete all",
     val bugReportLabel: String = "Bug report",
     val searchLabel: String = "Search",
+    val searchNoResultsLabel: String = "No matching nodes",
     val deleteAllTitle: String = "Delete all",
     val deleteAllConfirm: String = "This cannot be undone. Delete all nodes?",
 )

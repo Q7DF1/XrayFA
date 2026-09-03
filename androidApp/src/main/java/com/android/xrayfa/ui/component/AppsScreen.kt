@@ -7,7 +7,6 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,25 +14,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -53,43 +44,25 @@ import com.android.xrayfa.ui.navigation.Apps
 import com.android.xrayfa.viewmodel.AppsViewmodel
 import com.android.xrayfa.viewmodel.AppInfo
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AndroidAppsScreen(
     viewmodel: AppsViewmodel,
     onBack: () -> Unit,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Apps") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-            )
-        },
-    ) { innerPadding ->
-        AppsScreen(
-            viewmodel = viewmodel,
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = innerPadding,
-        )
-    }
+    AppsScreen(viewmodel = viewmodel, onBack = onBack)
 }
 
 @Composable
 fun AppsScreen(
     viewmodel: AppsViewmodel,
+    onBack: () -> Unit,
     sharedTransitionScope: SharedTransitionScope? = null,
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(),
 ) {
     val isLoading by viewmodel.loading.collectAsState()
     val permissionState by viewmodel.permissionState.collectAsState()
     val appInfos by viewmodel.displayedApps.collectAsState()
-    var searchQuery by remember { mutableStateOf("") }
+    val searchQuery by viewmodel.searchQuery.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer =
@@ -109,7 +82,7 @@ fun AppsScreen(
     }
 
     val labels = rememberSettingsUiLabels()
-    val pickerModifier = modifier.fillMaxSize().padding(contentPadding)
+    val pickerModifier = modifier.fillMaxSize()
     val sharedScope = sharedTransitionScope
     if (sharedScope != null) {
         with(sharedScope) {
@@ -121,11 +94,9 @@ fun AppsScreen(
                         sharedContentState = rememberSharedContentState(key = Apps.route),
                         animatedVisibilityScope = LocalNavAnimatedContentScope.current,
                     ),
+                onBack = onBack,
                 searchQuery = searchQuery,
-                onSearchQueryChange = { query ->
-                    searchQuery = query
-                    viewmodel.onSearch(query)
-                },
+                onSearchQueryChange = viewmodel::onSearch,
                 onToggle = { packageName, selected ->
                     if (selected) {
                         viewmodel.addAllowPackage(packageName)
@@ -156,11 +127,9 @@ fun AppsScreen(
             items = appInfos.toSharedAppListItems(),
             labels = labels,
             modifier = pickerModifier,
+            onBack = onBack,
             searchQuery = searchQuery,
-            onSearchQueryChange = { query ->
-                searchQuery = query
-                viewmodel.onSearch(query)
-            },
+            onSearchQueryChange = viewmodel::onSearch,
             onToggle = { packageName, selected ->
                 if (selected) {
                     viewmodel.addAllowPackage(packageName)

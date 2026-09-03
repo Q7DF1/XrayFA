@@ -76,6 +76,13 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.qrcode.kotlin)
         }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+        }
+        androidUnitTest.dependencies {
+            implementation(libs.junit)
+            implementation(kotlin("test"))
+        }
     }
 }
 

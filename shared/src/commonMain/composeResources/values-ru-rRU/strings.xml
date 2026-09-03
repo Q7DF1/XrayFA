@@ -150,6 +150,8 @@
     <string name="config_delete_node_title">Удалить узел</string>
     <string name="config_delete_node_confirm">Удалить этот узел?</string>
     <string name="config_speed_test_all_cd">Тест скорости всех</string>
+    <string name="config_search_no_results">Нет подходящих узлов</string>
+    <string name="search_clear">Очистить</string>
 
     <string name="bug_report_header">Отчет об ошибке</string>
     <string name="bug_report_title_label">Заголовок</string>
@@ -220,6 +222,7 @@
     <string name="apps_info_message">Per-app proxy management is available on Android. iOS Network Extension integration is not yet available in this build.</string>
     <string name="apps_configured_summary">Allowed packages (read-only)</string>
     <string name="apps_no_packages">No per-app allow list configured yet.</string>
+    <string name="apps_search_no_matches">Нет подходящих приложений</string>
     <string name="platform_unavailable">Available on Android only</string>
     <string name="in_development">В разработке</string>
     <string name="in_development_message">Эта функция разрабатывается на iOS.</string>

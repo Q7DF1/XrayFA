@@ -154,6 +154,8 @@
     <string name="config_delete_node_title">Delete node</string>
     <string name="config_delete_node_confirm">Delete this node?</string>
     <string name="config_speed_test_all_cd">Speed test all</string>
+    <string name="config_search_no_results">No matching nodes</string>
+    <string name="search_clear">Clear</string>
 
     <string name="bug_report_header">Bug Report</string>
     <string name="bug_report_title_label">Title</string>
@@ -224,6 +226,7 @@
     <string name="apps_info_message">Per-app proxy management is available on Android. iOS Network Extension integration is not yet available in this build.</string>
     <string name="apps_configured_summary">Allowed packages (read-only)</string>
     <string name="apps_no_packages">No per-app allow list configured yet.</string>
+    <string name="apps_search_no_matches">No matching apps</string>
     <string name="platform_unavailable">Available on Android only</string>
     <string name="in_development">In development</string>
     <string name="in_development_message">This feature is in development on iOS.</string>

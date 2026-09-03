@@ -49,6 +49,7 @@ class DefaultConfigComponent(
     private val _state = MutableValue(ConfigState())
     override val state: Value<ConfigState> = _state
 
+    private var allNodesCache: List<Node> = emptyList()
     private var selectedFilterId: Int = ConfigFilterIds.SUB_ALL
     private var searchQuery: String = ""
 
@@ -61,6 +62,7 @@ class DefaultConfigComponent(
             ) { allNodes, favorites, subscriptions ->
                 Triple(allNodes, favorites, subscriptions)
             }.collect { (allNodes, favorites, subscriptions) ->
+                allNodesCache = allNodes
                 val filters = buildFilters(subscriptions)
                 val filteredNodes = filterNodes(allNodes, favorites, selectedFilterId, searchQuery)
                 _state.update { current ->
@@ -75,6 +77,9 @@ class DefaultConfigComponent(
             }
         }
     }
+
+    override fun nodeById(id: Int): Node? =
+        if (id <= 0) null else allNodesCache.firstOrNull { it.id == id }
 
     override fun onSelectFilter(filterId: Int) {
         selectedFilterId = filterId
@@ -113,45 +118,14 @@ class DefaultConfigComponent(
         }
     }
 
-    override fun onOpenEditNode(nodeId: Int) {
-        scope.launch {
-            val node = nodeRepository.loadLinksById(nodeId).first() ?: return@launch
-            _state.update {
-                it.copy(nodeEditTarget = NodeEditTarget.Edit(node), editError = false)
-            }
-        }
-    }
-
-    override fun onOpenCreateNode() {
-        _state.update {
-            it.copy(nodeEditTarget = NodeEditTarget.Create, editError = false)
-        }
-    }
-
-    override fun onCloseNodeEdit() {
-        _state.update {
-            it.copy(nodeEditTarget = null, editError = false)
-        }
-    }
-
-    override fun onSaveNodeEdit(form: NodeEditForm) {
-        val target = _state.value.nodeEditTarget ?: return
-        val nodeId =
-            when (target) {
-                is NodeEditTarget.Create -> 0
-                is NodeEditTarget.Edit -> target.node.id
-            }
+    override fun onSaveNodeEdit(
+        nodeId: Int,
+        form: NodeEditForm,
+        onDone: (Boolean) -> Unit,
+    ) {
         scope.launch {
             val success = nodeFormEditor.saveForm(nodeId, form)
-            if (success) {
-                _state.update {
-                    it.copy(nodeEditTarget = null, editError = false)
-                }
-            } else {
-                _state.update {
-                    it.copy(editError = true)
-                }
-            }
+            onDone(success)
         }
     }
 
@@ -237,6 +211,7 @@ class DefaultConfigComponent(
         scope.launch {
             val allNodes = nodeRepository.allNodes.first()
             val favorites = nodeRepository.favorites.first()
+            allNodesCache = allNodes
             _state.update { current ->
                 current.copy(
                     nodes = filterNodes(allNodes, favorites, selectedFilterId, searchQuery),

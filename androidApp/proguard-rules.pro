@@ -37,7 +37,7 @@
     @org.koin.core.annotation.* <methods>;
 }
 
-# Decompose navigation + kotlinx serializers used by RootTab / RootOverlay
+# Decompose navigation + kotlinx serializers used by RootTab / RootStackConfig
 -keep class com.arkivanov.decompose.** { *; }
 -keep class com.arkivanov.essenty.** { *; }
 -keep class com.android.xrayfa.shared.navigation.** { *; }

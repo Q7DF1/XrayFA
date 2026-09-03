@@ -7,6 +7,9 @@ import com.arkivanov.decompose.value.Value
 interface ConfigComponent {
     val state: Value<ConfigState>
 
+    /** Unfiltered lookup (repository / cache), never [ConfigState.nodes]. */
+    fun nodeById(id: Int): Node?
+
     fun onSelectFilter(filterId: Int)
 
     fun onSelectNode(nodeId: Int)
@@ -20,13 +23,11 @@ interface ConfigComponent {
 
     fun onImportFromLink(link: String)
 
-    fun onOpenEditNode(nodeId: Int)
-
-    fun onOpenCreateNode()
-
-    fun onCloseNodeEdit()
-
-    fun onSaveNodeEdit(form: NodeEditForm)
+    fun onSaveNodeEdit(
+        nodeId: Int,
+        form: NodeEditForm,
+        onDone: (Boolean) -> Unit = {},
+    )
 
     fun onShowDeleteNode(node: Node)
 
