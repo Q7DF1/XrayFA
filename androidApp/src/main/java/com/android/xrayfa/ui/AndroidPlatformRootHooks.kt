@@ -36,7 +36,7 @@ import com.android.xrayfa.ui.component.AndroidAppsScreen
 import com.android.xrayfa.ui.component.AndroidLogcatScreen
 import com.android.xrayfa.ui.component.AndroidSettingsGeneralViewModelExtras
 import com.android.xrayfa.ui.component.AndroidSettingsNetworkViewModelExtras
-import com.android.xrayfa.ui.component.BugReportDialog
+import com.android.xrayfa.shared.ui.settings.SharedBugReport
 import com.android.xrayfa.ui.component.CompactHomeContent
 import com.android.xrayfa.ui.component.ExpandedHomeContent
 import com.android.xrayfa.ui.component.QRCodeScannerScreen
@@ -157,17 +157,7 @@ internal class AndroidPlatformRootHooks(
         visible: Boolean,
         onDismiss: () -> Unit,
     ) {
-        if (!visible) {
-            return
-        }
-        val context = LocalContext.current
-        BugReportDialog(
-            onDismiss = onDismiss,
-            onSubmit = { data ->
-                xrayViewmodel.submitBugReport(context, data)
-                onDismiss()
-            },
-        )
+        SharedBugReport(visible = visible, onDismiss = onDismiss)
     }
 
     @Composable

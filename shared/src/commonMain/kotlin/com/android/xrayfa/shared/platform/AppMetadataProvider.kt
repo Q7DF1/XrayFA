@@ -3,6 +3,12 @@ package com.android.xrayfa.shared.platform
 interface AppMetadataProvider {
     fun getAppVersion(): String
 
+    fun getOsName(): String
+
+    fun getOsVersion(): String
+
+    fun getDeviceModel(): String
+
     fun openUrl(url: String)
 }
 

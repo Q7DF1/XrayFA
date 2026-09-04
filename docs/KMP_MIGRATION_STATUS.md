@@ -30,6 +30,7 @@
 | 108–109 | Android 功能回到共享壳 + hooks；导航对齐原生底栏 |
 | **110** | 本清单 + `IOS_STUBS.md` + `IosPlatformRootHooks` 骨架 |
 | **111** | iOS `ShareNode` 二维码 + 剪贴板导出 |
+| **119** | iOS `BugReport` 共享表单 + GitHub issue URL |
 | **118** | Phase 9：Android 发版收尾文档、Home 测速统一 `DelayProbe`、删除无主路径 Navigation3 壳 |
 
 核心已打通、不要当桩修：`IosXrayConfigEncoder`（kotlinx）、GeoIP、digest、`measureOutboundDelay`。
@@ -59,13 +60,13 @@
 | 15 | 系统返回：overlay 栈；编辑节点返回列表 | ⬜ 真机 |
 | 16 | 进程被杀后设置仍在；再连 VPN 仍用当前节点 | ⬜ 真机 |
 
-**iOS 抽检（不挡 Android 发版）：** 连接 → Home 流量 → 断开。崩溃才修。相册 / 分应用 / bug report 继续「开发中」。⬜
+**iOS 抽检（不挡 Android 发版）：** 连接 → Home 流量 → 断开。崩溃才修。相册 / 分应用继续「开发中」。bug report 已接 GitHub。⬜
 
 ---
 
 ## 刻意停放（不要再捡进收尾）
 
-- **移植后 iOS（原 Step 112–116）：** geo 文件导入、扫码相册+闪光灯、Bug report、分应用（先拍板）、overlay 返回 / NE 日志桥、GeoLite 手动放入 App Group
+- **移植后 iOS（原 Step 112–116）：** geo 文件导入、扫码相册+闪光灯、分应用（先拍板）、overlay 返回 / NE 日志桥、GeoLite 手动放入 App Group（Bug report 已在 Step 119）
 - **Android：** Widget、On-Demand VPN、Agent Phase C / 写删除/改路由
 - **三星 Live Update / Now Bar：** One UI 开发者选项「允许所有应用的动态通知」；不改 `NotificationHelper`
 - **页面保真：** 全屏搜索、共享元素、滚动藏底栏、平板 Config 分栏
@@ -80,4 +81,5 @@
 | 110 | 活清单 + 桩清单 + `IosPlatformRootHooks` | ✅ |
 | 111 | iOS `ShareNode` | ✅ |
 | 112–116 | 移植后 iOS backlog（本阶段不排） | ⏭ 见 [`KMP_POST_MIGRATION.md`](./KMP_POST_MIGRATION.md) |
+| 119 | iOS `BugReport` | ✅ |
 | 117 / 118 | 删除无主路径 `XrayFAContainer` + Phase 9 收尾 | ✅ |
