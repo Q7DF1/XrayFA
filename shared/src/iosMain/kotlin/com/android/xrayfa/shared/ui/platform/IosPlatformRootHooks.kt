@@ -29,6 +29,7 @@ import com.android.xrayfa.shared.ui.home.HomeUiLabels
 import com.android.xrayfa.shared.ui.qr.SharedQrScannerScreen
 import com.android.xrayfa.shared.ui.rememberConfigUiLabels
 import com.android.xrayfa.shared.ui.rememberSettingsUiLabels
+import com.android.xrayfa.shared.ui.settings.SharedBugReport
 import com.android.xrayfa.shared.ui.settings.SharedInDevelopmentScreen
 import com.android.xrayfa.shared.ui.settings.SharedInProcessAppLogScreen
 import org.jetbrains.compose.resources.stringResource
@@ -36,7 +37,7 @@ import org.koin.mp.KoinPlatform
 
 /**
  * iOS [PlatformRootHooks]. Unimplemented Android-only slots stay on the
- * in-development UI; fill one hook per step (see `docs/KMP_MIGRATION_STATUS.md`).
+ * in-development UI; ShareNode and BugReport are real.
  */
 object IosPlatformRootHooks : PlatformRootHooks {
     @Composable
@@ -144,8 +145,6 @@ object IosPlatformRootHooks : PlatformRootHooks {
         visible: Boolean,
         onDismiss: () -> Unit,
     ) {
-        if (visible) {
-            InDevelopmentDialog(onDismiss = onDismiss)
-        }
+        SharedBugReport(visible = visible, onDismiss = onDismiss)
     }
 }

@@ -1,8 +1,17 @@
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+
 package com.android.xrayfa.shared.platform
 
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.toKString
 import platform.Foundation.NSBundle
 import platform.Foundation.NSURL
 import platform.UIKit.UIApplication
+import platform.UIKit.UIDevice
+import platform.posix.uname
+import platform.posix.utsname
 
 class IosAppMetadataProvider : AppMetadataProvider {
     override fun getAppVersion(): String {
@@ -13,6 +22,20 @@ class IosAppMetadataProvider : AppMetadataProvider {
             version != null && build != null -> "$version ($build)"
             version != null -> version
             else -> "unknown"
+        }
+    }
+
+    override fun getOsName(): String = "iOS"
+
+    override fun getOsVersion(): String = UIDevice.currentDevice.systemVersion
+
+    override fun getDeviceModel(): String = memScoped {
+        val info = alloc<utsname>()
+        if (uname(info.ptr) == 0) {
+            val machine = info.machine.toKString()
+            if (machine.isNotEmpty()) machine else UIDevice.currentDevice.model
+        } else {
+            UIDevice.currentDevice.model
         }
     }
 

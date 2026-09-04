@@ -15,7 +15,7 @@
 |--------|------|------|
 | 112 | geoip.dat / geosite.dat 文件导入 | 现为「开发中」 |
 | 113 | 扫码相册 + 闪光灯 | 现仅 AVFoundation 实时相机 |
-| 114 | Bug report | 开发中对话框 |
+| 114 / 119 | Bug report | ✅ 共享表单 + GitHub issue URL |
 | 115 | 分应用代理 | 系统 API 受限，先拍板 |
 | 116 | overlay 系统返回 / NE 日志桥 | 靠手势；日志是进程内 `AppLogStore` |
 | — | GeoLite 手动放入 App Group | 下载钮已关（宿主到不了 NE SOCKS） |

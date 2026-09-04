@@ -959,6 +959,7 @@ LibxrayliteSetMemoryLimit(12 * 1024 * 1024) // 12MB
 | 109 | 单壳：Android 回到 `RootContent`；缺口进 `PlatformRootHooks`；导航对齐原生底栏 | ✅ 见 `KMP_MIGRATION_STEP109_HANDOVER.md` |
 | 110 | Phase 8：活清单 + `IOS_STUBS.md` + `IosPlatformRootHooks` | ✅ 见 `KMP_MIGRATION_STEP110_HANDOVER.md` |
 | 111 | iOS `ShareNode` 二维码 + 剪贴板导出 | ✅ 见 `KMP_MIGRATION_STEP111_HANDOVER.md` |
+| 119 | iOS `BugReport` 共享表单 + GitHub issue URL | ✅ 见 `KMP_MIGRATION_STEP119_HANDOVER.md` |
 
 活清单（完成 / 待办）：**[`KMP_MIGRATION_STATUS.md`](./KMP_MIGRATION_STATUS.md)**。iOS 桩：**[`IOS_STUBS.md`](./IOS_STUBS.md)**。
 
@@ -974,7 +975,8 @@ Step 108/109 换过壳。本阶段 **不再换壳**。
 |------|------|------|
 | 110 | 活清单 + 桩清单 + `IosPlatformRootHooks` 骨架 | ✅ |
 | 111 | iOS `ShareNode` | ✅ |
-| 112–116 | 移植后 iOS backlog（geo 导入 / 相册扫码 / Bug report / 分应用 / NE 日志） | ⏭ 见 [`KMP_POST_MIGRATION.md`](./KMP_POST_MIGRATION.md) |
+| 112–116 | 移植后 iOS backlog（geo 导入 / 相册扫码 / 分应用 / NE 日志；Bug report 见 119） | ⏭ 见 [`KMP_POST_MIGRATION.md`](./KMP_POST_MIGRATION.md) |
+| 119 | iOS `BugReport` | ✅ |
 | 117 / 118 | Phase 9：删除无主路径 `XrayFAContainer` + Android 发版收尾 | ✅ 见 `KMP_MIGRATION_STEP118_HANDOVER.md` |
 
 ### Phase 9：Android 可发版，iOS 保底（2026-08-28）
