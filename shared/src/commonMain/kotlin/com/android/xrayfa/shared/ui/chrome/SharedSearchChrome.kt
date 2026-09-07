@@ -57,6 +57,7 @@ internal fun SharedSearchChrome(
     searchLabel: String,
     onImeSearch: (String) -> Unit,
     modifier: Modifier = Modifier,
+    showCollapsedTrigger: Boolean = true,
     results: @Composable ColumnScope.() -> Unit,
 ) {
     val clearLabel = stringResource(Res.string.search_clear)
@@ -115,7 +116,7 @@ internal fun SharedSearchChrome(
                 }
             }
         }
-    } else {
+    } else if (showCollapsedTrigger) {
         Surface(
             modifier =
                 modifier

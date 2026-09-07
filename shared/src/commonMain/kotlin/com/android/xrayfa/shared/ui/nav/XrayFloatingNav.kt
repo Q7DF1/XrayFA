@@ -14,14 +14,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Language
@@ -38,11 +42,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,12 +57,38 @@ import kotlin.math.floor
 
 val FloatingNavBarHeight = 64.dp
 val FloatingNavBottomMargin = 8.dp
+/** Extra space so the last Config row can rest above the pill. */
+val FloatingNavExtraContentPadding = 24.dp
 private val BarCorner = 32.dp
 private val IndicatorInset = 6.dp
 private val IndicatorCorner = 28.dp
+private val BottomFadeExtra = 36.dp
 
-/** Config list content padding so the last row can scroll above the pill. */
-val FloatingNavContentClearance = FloatingNavBarHeight + FloatingNavBottomMargin + 16.dp
+@Composable
+fun rememberFloatingNavClearance(extraAboveBar: Dp = FloatingNavExtraContentPadding): Dp {
+    val systemBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    return systemBottom + FloatingNavBarHeight + FloatingNavBottomMargin + extraAboveBar
+}
+
+@Composable
+fun FloatingNavBottomFade(modifier: Modifier = Modifier) {
+    val fadeHeight = rememberFloatingNavClearance(extraAboveBar = BottomFadeExtra)
+    val background = MaterialTheme.colorScheme.background
+    Box(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(fadeHeight)
+                .background(
+                    Brush.verticalGradient(
+                        0f to Color.Transparent,
+                        0.4f to background.copy(alpha = 0.55f),
+                        0.72f to background.copy(alpha = 0.88f),
+                        1f to background,
+                    ),
+                ),
+    )
+}
 
 data class FloatingNavItem(
     val id: String,
@@ -79,6 +111,8 @@ fun XrayFloatingNav(
     modifier: Modifier = Modifier,
     selectedColor: Color = MaterialTheme.colorScheme.primary,
     unselectedColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+    trailingContent: @Composable (() -> Unit)? = null,
+    onTrailingClick: (() -> Unit)? = null,
 ) {
     val density = LocalDensity.current
     val itemCount = items.size.coerceAtLeast(1)
@@ -96,12 +130,14 @@ fun XrayFloatingNav(
             ) {
                 280.dp
             } else {
-                (maxWidth * 0.75f).coerceAtMost(320.dp)
+                (maxWidth * 0.62f).coerceAtMost(280.dp).coerceAtLeast(200.dp)
             }
+        val chromeColor = MaterialTheme.colorScheme.surfaceContainerHighest
 
-        Box(
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center,
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Surface(
                 modifier =
@@ -110,9 +146,9 @@ fun XrayFloatingNav(
                         .height(FloatingNavBarHeight)
                         .clip(RoundedCornerShape(BarCorner)),
                 shape = RoundedCornerShape(BarCorner),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
-                shadowElevation = 6.dp,
-                tonalElevation = 2.dp,
+                color = chromeColor,
+                shadowElevation = 10.dp,
+                tonalElevation = 6.dp,
             ) {
                 BoxWithConstraints(
                     modifier =
@@ -120,93 +156,123 @@ fun XrayFloatingNav(
                             .fillMaxSize()
                             .clip(RoundedCornerShape(BarCorner)),
                 ) {
-                    val maxWidthPx = constraints.maxWidth.toFloat().coerceAtLeast(1f)
-                    val slotWidthPx = maxWidthPx / itemCount
-                    val slotStartPx = slotWidthPx * selectedIndex
-                    val maxOffsetPx = (maxWidthPx - slotWidthPx).coerceAtLeast(0f)
-                    val slotWidthDp = with(density) { floor(slotWidthPx.toDouble()).toFloat().toDp() }
+                        val maxWidthPx = constraints.maxWidth.toFloat().coerceAtLeast(1f)
+                        val slotWidthPx = maxWidthPx / itemCount
+                        val slotStartPx = slotWidthPx * selectedIndex
+                        val maxOffsetPx = (maxWidthPx - slotWidthPx).coerceAtLeast(0f)
+                        val slotWidthDp = with(density) { floor(slotWidthPx.toDouble()).toFloat().toDp() }
 
-                    LaunchedEffect(selectedIndex, slotWidthPx, maxWidthPx) {
-                        val target = slotStartPx.coerceIn(0f, maxOffsetPx)
-                        animOffsetX.snapTo(animOffsetX.value.coerceIn(0f, maxOffsetPx))
-                        animOffsetX.animateTo(
-                            targetValue = target,
-                            animationSpec =
-                                spring(
-                                    dampingRatio = Spring.DampingRatioNoBouncy,
-                                    stiffness = Spring.StiffnessMedium,
-                                ),
+                        LaunchedEffect(selectedIndex, slotWidthPx, maxWidthPx) {
+                            val target = slotStartPx.coerceIn(0f, maxOffsetPx)
+                            animOffsetX.snapTo(animOffsetX.value.coerceIn(0f, maxOffsetPx))
+                            animOffsetX.animateTo(
+                                targetValue = target,
+                                animationSpec =
+                                    spring(
+                                        dampingRatio = Spring.DampingRatioNoBouncy,
+                                        stiffness = Spring.StiffnessMedium,
+                                    ),
+                            )
+                        }
+
+                        Box(
+                            modifier =
+                                Modifier
+                                    .offset {
+                                        IntOffset(animOffsetX.value.coerceIn(0f, maxOffsetPx).toInt(), 0)
+                                    }
+                                    .width(slotWidthDp)
+                                    .fillMaxHeight()
+                                    .padding(IndicatorInset)
+                                    .clip(RoundedCornerShape(IndicatorCorner))
+                                    .background(selectedColor.copy(alpha = 0.12f)),
                         )
-                    }
 
-                    // Sliding capsule inset 6dp from the outer pill (matches Android).
-                    Box(
-                        modifier =
-                            Modifier
-                                .offset {
-                                    IntOffset(animOffsetX.value.coerceIn(0f, maxOffsetPx).toInt(), 0)
-                                }
-                                .width(slotWidthDp)
-                                .fillMaxHeight()
-                                .padding(IndicatorInset)
-                                .clip(RoundedCornerShape(IndicatorCorner))
-                                .background(selectedColor.copy(alpha = 0.12f)),
-                    )
-
-                    Row(modifier = Modifier.fillMaxSize()) {
-                        items.forEachIndexed { index, item ->
-                            val selected = index == selectedIndex
-                            val iconScale by
-                                animateFloatAsState(
-                                    targetValue = if (selected) 1.15f else 1f,
-                                    animationSpec = tween(300),
-                                )
-                            val contentColor by
-                                animateColorAsState(
-                                    targetValue = if (selected) selectedColor else unselectedColor,
-                                    animationSpec = tween(300),
-                                )
-
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .weight(1f)
-                                        .fillMaxHeight()
-                                        .clickable(
-                                            indication = null,
-                                            interactionSource = remember { MutableInteractionSource() },
-                                        ) { onItemSelected(item) },
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center,
-                                    modifier = Modifier.padding(horizontal = 4.dp),
-                                ) {
-                                    Icon(
-                                        imageVector = item.icon,
-                                        contentDescription = item.label,
-                                        tint = contentColor,
-                                        modifier =
-                                            Modifier
-                                                .size(26.dp)
-                                                .scale(iconScale),
+                        Row(modifier = Modifier.fillMaxSize()) {
+                            items.forEachIndexed { index, item ->
+                                val selected = index == selectedIndex
+                                val iconScale by
+                                    animateFloatAsState(
+                                        targetValue = if (selected) 1.15f else 1f,
+                                        animationSpec = tween(300),
                                     )
-                                    if (selected) {
-                                        Text(
-                                            text = item.label,
-                                            color = contentColor,
-                                            fontSize = 11.sp,
-                                            lineHeight = 12.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            textAlign = TextAlign.Center,
-                                            maxLines = 1,
-                                            modifier = Modifier.padding(top = 2.dp),
+                                val contentColor by
+                                    animateColorAsState(
+                                        targetValue = if (selected) selectedColor else unselectedColor,
+                                        animationSpec = tween(300),
+                                    )
+
+                                Box(
+                                    modifier =
+                                        Modifier
+                                            .weight(1f)
+                                            .fillMaxHeight()
+                                            .clickable(
+                                                indication = null,
+                                                interactionSource = remember { MutableInteractionSource() },
+                                            ) { onItemSelected(item) },
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center,
+                                        modifier = Modifier.padding(horizontal = 4.dp),
+                                    ) {
+                                        Icon(
+                                            imageVector = item.icon,
+                                            contentDescription = item.label,
+                                            tint = contentColor,
+                                            modifier =
+                                                Modifier
+                                                    .size(26.dp)
+                                                    .scale(iconScale),
                                         )
+                                        if (selected) {
+                                            Text(
+                                                text = item.label,
+                                                color = contentColor,
+                                                fontSize = 11.sp,
+                                                lineHeight = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                textAlign = TextAlign.Center,
+                                                maxLines = 1,
+                                                modifier = Modifier.padding(top = 2.dp),
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
+                    }
+            }
+            if (trailingContent != null) {
+                Box(modifier = Modifier.width(12.dp).height(FloatingNavBarHeight))
+                Surface(
+                    modifier =
+                        Modifier
+                            .size(FloatingNavBarHeight)
+                            .clip(CircleShape)
+                            .then(
+                                if (onTrailingClick != null) {
+                                    Modifier.clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        onClick = onTrailingClick,
+                                    )
+                                } else {
+                                    Modifier
+                                },
+                            ),
+                    shape = CircleShape,
+                    color = chromeColor,
+                    shadowElevation = 10.dp,
+                    tonalElevation = 6.dp,
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        trailingContent()
                     }
                 }
             }

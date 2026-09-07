@@ -9,16 +9,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -27,6 +23,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.DeleteForever
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.AlertDialog
@@ -65,11 +62,11 @@ import com.android.xrayfa.shared.ui.config.shouldCommitOverlayScroll
 import com.android.xrayfa.shared.ui.config.SharedConfigSection
 import com.android.xrayfa.shared.ui.config.SharedEditScreen
 import com.android.xrayfa.shared.ui.home.HomeTopBar
-import com.android.xrayfa.shared.ui.nav.FloatingNavBarHeight
+import com.android.xrayfa.shared.ui.nav.FloatingNavBottomFade
 import com.android.xrayfa.shared.ui.nav.FloatingNavBottomMargin
-import com.android.xrayfa.shared.ui.nav.FloatingNavContentClearance
 import com.android.xrayfa.shared.ui.nav.FloatingNavItem
 import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
+import com.android.xrayfa.shared.ui.nav.rememberFloatingNavClearance
 import com.android.xrayfa.shared.ui.nav.toFloatingNavItem
 import com.android.xrayfa.shared.ui.platform.LocalPlatformRootHooks
 import com.android.xrayfa.shared.ui.settings.SharedRouteSettingsScreen
@@ -101,28 +98,11 @@ fun RootContent(
     val stackIdle = stack.active.configuration is RootStackConfig.Idle
     val selectedTab = pages.items.getOrNull(pages.selectedIndex)?.configuration ?: RootTab.Home
     var searchExpandedCoversNav by remember { mutableStateOf(false) }
-    val floatingNavVisible = remember { mutableStateOf(true) }
-    val hideNavOnScroll =
-        remember {
-            object : NestedScrollConnection {
-                override fun onPreScroll(
-                    available: Offset,
-                    source: NestedScrollSource,
-                ): Offset {
-                    when {
-                        available.y < -8f -> floatingNavVisible.value = false
-                        available.y > 8f -> floatingNavVisible.value = true
-                    }
-                    return Offset.Zero
-                }
-            }
-        }
-    val showBottomNav = stackIdle && !searchExpandedCoversNav && floatingNavVisible.value
+    var requestOpenSearch by remember { mutableStateOf(false) }
+    val showBottomNav = stackIdle && !searchExpandedCoversNav
+    val configLabels = rememberConfigUiLabels()
 
-    LaunchedEffect(selectedTab, stackIdle) {
-        if (stackIdle) {
-            floatingNavVisible.value = true
-        }
+    LaunchedEffect(selectedTab) {
         if (selectedTab != RootTab.Config) {
             searchExpandedCoversNav = false
         }
@@ -158,7 +138,6 @@ fun RootContent(
                     HomeTabScreen(
                         component = child.component,
                         onSettingsClick = component::openSettings,
-                        hideNavOnScroll = hideNavOnScroll,
                     )
                 is RootComponent.Child.Config ->
                     ConfigTabScreen(
@@ -167,9 +146,10 @@ fun RootContent(
                         onOpenNodeEdit = component::openNodeEdit,
                         onOpenSubscriptions = component::openSubscriptions,
                         onOpenQrScanner = component::openQrScanner,
-                        hideNavOnScroll = hideNavOnScroll,
                         onSearchExpanded = { searchExpandedCoversNav = it },
                         forceCollapseSearch = selectedTab != RootTab.Config,
+                        openSearch = requestOpenSearch,
+                        onOpenSearchConsumed = { requestOpenSearch = false },
                     )
             }
         }
@@ -264,10 +244,7 @@ fun RootContent(
             visible = showBottomNav,
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
-            modifier =
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .windowInsetsPadding(WindowInsets.navigationBars),
+            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
         ) {
             val navItems =
                 listOf(
@@ -282,16 +259,35 @@ fun RootContent(
                         label = stringResource(Res.string.home),
                     ),
                 )
-            XrayFloatingNav(
-                items = navItems,
-                selectedId = selectedTab.name,
-                onItemSelected = { item ->
-                    component.selectTab(
-                        if (item.id == RootTab.Config.name) RootTab.Config else RootTab.Home,
-                    )
-                },
-                modifier = Modifier.padding(bottom = FloatingNavBottomMargin, start = 16.dp, end = 16.dp),
-            )
+            Box(modifier = Modifier.fillMaxWidth()) {
+                FloatingNavBottomFade(modifier = Modifier.align(Alignment.BottomCenter))
+                XrayFloatingNav(
+                    items = navItems,
+                    selectedId = selectedTab.name,
+                    onItemSelected = { item ->
+                        component.selectTab(
+                            if (item.id == RootTab.Config.name) RootTab.Config else RootTab.Home,
+                        )
+                    },
+                    trailingContent = {
+                        Icon(
+                            imageVector = Icons.Outlined.Search,
+                            contentDescription = configLabels.searchLabel,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            modifier = Modifier.size(26.dp),
+                        )
+                    },
+                    onTrailingClick = {
+                        requestOpenSearch = true
+                        component.selectTab(RootTab.Config)
+                    },
+                    modifier =
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .windowInsetsPadding(WindowInsets.navigationBars)
+                            .padding(bottom = FloatingNavBottomMargin, start = 16.dp, end = 16.dp),
+                )
+            }
         }
     }
 }
@@ -303,14 +299,16 @@ private fun ConfigTabScreen(
     onOpenNodeEdit: (Int) -> Unit,
     onOpenSubscriptions: () -> Unit,
     onOpenQrScanner: () -> Unit,
-    hideNavOnScroll: NestedScrollConnection,
     onSearchExpanded: (Boolean) -> Unit,
     forceCollapseSearch: Boolean,
+    openSearch: Boolean,
+    onOpenSearchConsumed: () -> Unit,
 ) {
     val platformHooks = LocalPlatformRootHooks.current
     val configLabels = rememberConfigUiLabels()
     val settingsLabels = rememberSettingsUiLabels()
     val configState by component.state.subscribeAsState()
+    val configBottomClearance = rememberFloatingNavClearance()
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     var pendingOverlayScroll by remember { mutableStateOf<OverlayScrollPending?>(null) }
@@ -331,6 +329,7 @@ private fun ConfigTabScreen(
 
     SharedListScaffold(
         title = stringResource(Res.string.config),
+        largeTitle = false,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         actions = {
             IconButton(onClick = { onOpenNodeEdit(0) }) {
@@ -398,8 +397,7 @@ private fun ConfigTabScreen(
                 modifier = Modifier.fillMaxSize(),
                 labels = configLabels,
                 listState = listState,
-                listContentPadding = PaddingValues(bottom = FloatingNavContentClearance),
-                nestedScrollConnection = hideNavOnScroll,
+                listContentPadding = PaddingValues(bottom = configBottomClearance),
                 nodeDelayMap = configState.nodeDelayMap,
                 onNodeSelected = { node ->
                     component.onSelectNode(node.id)
@@ -441,10 +439,9 @@ private fun ConfigTabScreen(
                         )
                 },
                 forceCollapsed = forceCollapseSearch,
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 20.dp, bottom = FloatingNavContentClearance),
+                showCollapsedTrigger = false,
+                openSearch = openSearch,
+                onOpenSearchConsumed = onOpenSearchConsumed,
             )
         }
     }
@@ -495,14 +492,10 @@ private fun ConfigTabScreen(
 private fun HomeTabScreen(
     component: HomeComponent,
     onSettingsClick: () -> Unit,
-    hideNavOnScroll: NestedScrollConnection,
 ) {
     val homeLabels = rememberHomeUiLabels()
     val platformHooks = LocalPlatformRootHooks.current
-    val homeNavClearance =
-        WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() +
-            FloatingNavBarHeight +
-            FloatingNavBottomMargin
+    val homeNavClearance = rememberFloatingNavClearance(extraAboveBar = 8.dp)
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
@@ -520,8 +513,7 @@ private fun HomeTabScreen(
                 Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .padding(bottom = homeNavClearance)
-                    .nestedScroll(hideNavOnScroll),
+                    .padding(bottom = homeNavClearance),
         )
     }
 }

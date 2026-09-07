@@ -38,6 +38,9 @@ fun ActualConfigSearchFab(
     onResultChosen: (nodeId: Int) -> Unit,
     modifier: Modifier = Modifier,
     forceCollapsed: Boolean = false,
+    showCollapsedTrigger: Boolean = true,
+    openSearch: Boolean = false,
+    onOpenSearchConsumed: () -> Unit = {},
 ) {
     ConfigSearchBarImpl(
         searchQuery = searchQuery,
@@ -49,6 +52,9 @@ fun ActualConfigSearchFab(
         onResultChosen = onResultChosen,
         modifier = modifier,
         forceCollapsed = forceCollapsed,
+        showCollapsedTrigger = showCollapsedTrigger,
+        openSearch = openSearch,
+        onOpenSearchConsumed = onOpenSearchConsumed,
     )
 }
 
@@ -64,6 +70,9 @@ internal fun ConfigSearchBarImpl(
     onResultChosen: (nodeId: Int) -> Unit,
     modifier: Modifier = Modifier,
     forceCollapsed: Boolean = false,
+    showCollapsedTrigger: Boolean = true,
+    openSearch: Boolean = false,
+    onOpenSearchConsumed: () -> Unit = {},
 ) {
     var query by remember { mutableStateOf(searchQuery) }
     var active by remember { mutableStateOf(false) }
@@ -88,8 +97,11 @@ internal fun ConfigSearchBarImpl(
         }
     }
 
-    LaunchedEffect(forceCollapsed) {
-        if (forceCollapsed) {
+    LaunchedEffect(openSearch, forceCollapsed) {
+        if (openSearch && !forceCollapsed) {
+            active = true
+            onOpenSearchConsumed()
+        } else if (forceCollapsed && !openSearch) {
             active = false
         }
     }
@@ -111,6 +123,7 @@ internal fun ConfigSearchBarImpl(
         searchLabel = searchLabel,
         onImeSearch = onImeSearch,
         modifier = modifier,
+        showCollapsedTrigger = showCollapsedTrigger,
         results = {
             ConfigSearchOverlayResults(
                 searchQuery = searchQuery,
