@@ -10,6 +10,7 @@ import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -23,6 +24,7 @@ import androidx.compose.material3.Text
 fun SharedListScaffold(
     title: String,
     modifier: Modifier = Modifier,
+    largeTitle: Boolean = true,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
     footerUnderBar: @Composable () -> Unit = {},
@@ -30,24 +32,47 @@ fun SharedListScaffold(
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (innerBottomPadding: androidx.compose.foundation.layout.PaddingValues) -> Unit,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior =
+        if (largeTitle) {
+            TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+        } else {
+            null
+        }
     Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier =
+            if (scrollBehavior != null) {
+                modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+            } else {
+                modifier
+            },
         contentWindowInsets = contentWindowInsets,
         floatingActionButton = floatingActionButton,
         topBar = {
             Column {
-                LargeTopAppBar(
-                    title = { Text(title, fontWeight = FontWeight.Bold) },
-                    navigationIcon = navigationIcon,
-                    actions = actions,
-                    scrollBehavior = scrollBehavior,
-                    colors =
-                        TopAppBarDefaults.largeTopAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.background,
-                            scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                        ),
-                )
+                if (largeTitle) {
+                    LargeTopAppBar(
+                        title = { Text(title, fontWeight = FontWeight.Bold) },
+                        navigationIcon = navigationIcon,
+                        actions = actions,
+                        scrollBehavior = scrollBehavior,
+                        colors =
+                            TopAppBarDefaults.largeTopAppBarColors(
+                                containerColor = MaterialTheme.colorScheme.background,
+                                scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            ),
+                    )
+                } else {
+                    TopAppBar(
+                        title = { Text(title, fontWeight = FontWeight.Bold) },
+                        navigationIcon = navigationIcon,
+                        actions = actions,
+                        colors =
+                            TopAppBarDefaults.topAppBarColors(
+                                containerColor = MaterialTheme.colorScheme.background,
+                                scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            ),
+                    )
+                }
                 footerUnderBar()
             }
         },
