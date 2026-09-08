@@ -29,6 +29,15 @@ private val DarkColorScheme =
         surfaceVariant = SurfaceVariantDark,
         onSurfaceVariant = OnSurfaceVariantDark,
         outline = OutlineDark,
+        outlineVariant = OutlineVariantDark,
+        surfaceTint = PrimaryDark,
+        surfaceDim = SurfaceDimDark,
+        surfaceBright = SurfaceBrightDark,
+        surfaceContainerLowest = SurfaceContainerLowestDark,
+        surfaceContainerLow = SurfaceContainerLowDark,
+        surfaceContainer = SurfaceContainerDark,
+        surfaceContainerHigh = SurfaceContainerHighDark,
+        surfaceContainerHighest = SurfaceContainerHighestDark,
     )
 
 private val LightColorScheme =
@@ -54,6 +63,15 @@ private val LightColorScheme =
         surfaceVariant = SurfaceVariantLight,
         onSurfaceVariant = OnSurfaceVariantLight,
         outline = OutlineLight,
+        outlineVariant = OutlineVariantLight,
+        surfaceTint = PrimaryLight,
+        surfaceDim = SurfaceDimLight,
+        surfaceBright = SurfaceBrightLight,
+        surfaceContainerLowest = SurfaceContainerLowestLight,
+        surfaceContainerLow = SurfaceContainerLowLight,
+        surfaceContainer = SurfaceContainerLight,
+        surfaceContainerHigh = SurfaceContainerHighLight,
+        surfaceContainerHighest = SurfaceContainerHighestLight,
     )
 
 /** Shared Material theme aligned with Android `V2rayForAndroidUITheme` static palette. */

@@ -59,6 +59,7 @@ import com.android.xrayfa.shared.ui.config.ActualConfigSearchFab
 import com.android.xrayfa.shared.ui.config.OverlayScrollPending
 import com.android.xrayfa.shared.ui.config.SharedConfigImportMenu
 import com.android.xrayfa.shared.ui.config.shouldCommitOverlayScroll
+import com.android.xrayfa.shared.ui.config.SharedConfigFilterBar
 import com.android.xrayfa.shared.ui.config.SharedConfigSection
 import com.android.xrayfa.shared.ui.config.SharedEditScreen
 import com.android.xrayfa.shared.ui.home.HomeTopBar
@@ -330,7 +331,29 @@ private fun ConfigTabScreen(
     SharedListScaffold(
         title = stringResource(Res.string.config),
         largeTitle = false,
+        collapseTitleOnScroll = true,
+        titleExpandKey = configState.selectedFilterId,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        footerUnderBar = {
+            SharedConfigFilterBar(
+                component = component,
+                trailingContent = {
+                    IconButton(onClick = component::onTestAllDelays) {
+                        Icon(
+                            imageVector = Icons.Outlined.Speed,
+                            contentDescription = configLabels.speedTestAllLabel,
+                            tint =
+                                if (configState.testingAll) {
+                                    MaterialTheme.colorScheme.secondary
+                                } else {
+                                    MaterialTheme.colorScheme.primary
+                                },
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                },
+            )
+        },
         actions = {
             IconButton(onClick = { onOpenNodeEdit(0) }) {
                 Icon(
@@ -397,6 +420,7 @@ private fun ConfigTabScreen(
                 modifier = Modifier.fillMaxSize(),
                 labels = configLabels,
                 listState = listState,
+                showFilterBar = false,
                 listContentPadding = PaddingValues(bottom = configBottomClearance),
                 nodeDelayMap = configState.nodeDelayMap,
                 onNodeSelected = { node ->
@@ -407,21 +431,6 @@ private fun ConfigTabScreen(
                 onEditNode = { node -> onOpenNodeEdit(node.id) },
                 onDeleteNode = component::onShowDeleteNode,
                 onShareNode = { node -> shareNode = node },
-                filterTrailingContent = {
-                    IconButton(onClick = component::onTestAllDelays) {
-                        Icon(
-                            imageVector = Icons.Outlined.Speed,
-                            contentDescription = configLabels.speedTestAllLabel,
-                            tint =
-                                if (configState.testingAll) {
-                                    MaterialTheme.colorScheme.secondary
-                                } else {
-                                    MaterialTheme.colorScheme.primary
-                                },
-                            modifier = Modifier.size(20.dp),
-                        )
-                    }
-                },
             )
             ActualConfigSearchFab(
                 searchQuery = configState.searchQuery,
