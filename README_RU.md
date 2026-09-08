@@ -119,12 +119,3 @@ XrayFA обеспечивает безопасное и быстрое прок�
 ## 📄 Лицензия
 
 Распространяется под лицензией **Apache‑2.0**. Подробности в файле [LICENSE](LICENSE).
-
----
-<div align="center">
-
-### 🌟 История звёзд
-
-[![Star History Chart](https://api.star-history.com/svg?repos=q7df1/xrayFA&type=Date)](https://star-history.com/q7df1/xrayFA)
-
-</div>
