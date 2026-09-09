@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -52,20 +53,9 @@ fun HomeSelectedNodeCard(
     enableTest: Boolean = false,
     onTest: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    framed: Boolean = true,
 ) {
-    ElevatedCard(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors =
-            CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            ),
-        elevation =
-            CardDefaults.elevatedCardElevation(
-                defaultElevation = 1.dp,
-                pressedElevation = 2.dp,
-            ),
-    ) {
+    val body: @Composable () -> Unit = {
         Row(
             modifier =
                 Modifier
@@ -105,7 +95,10 @@ fun HomeSelectedNodeCard(
                     modifier = Modifier.basicMarquee(),
                 )
                 Spacer(Modifier.height(2.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.heightIn(min = DelayChipHeight),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Text(
                         text =
                             protocolPrefixMap[node.protocolPrefix]?.protocolType
@@ -113,13 +106,11 @@ fun HomeSelectedNodeCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (testing) {
-                        Spacer(Modifier.width(8.dp))
-                        HomeDelayChip(delayMs = -1L, isTesting = true)
-                    } else if (delayMs > 0 || delayMs == -2L) {
-                        Spacer(Modifier.width(8.dp))
-                        HomeDelayChip(delayMs = delayMs, isTesting = false)
-                    }
+                    Spacer(Modifier.width(8.dp))
+                    HomeDelayChip(
+                        delayMs = delayMs,
+                        isTesting = testing,
+                    )
                 }
             }
 
@@ -170,26 +161,39 @@ fun HomeSelectedNodeCard(
             }
         }
     }
+    if (framed) {
+        ElevatedCard(
+            modifier = modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors =
+                CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                ),
+            elevation =
+                CardDefaults.elevatedCardElevation(
+                    defaultElevation = 1.dp,
+                    pressedElevation = 2.dp,
+                ),
+        ) {
+            body()
+        }
+    } else {
+        Box(modifier = modifier.fillMaxWidth()) { body() }
+    }
 }
 
 @Composable
 fun HomeEmptyNodeCard(
     message: String,
     modifier: Modifier = Modifier,
+    framed: Boolean = true,
 ) {
-    ElevatedCard(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors =
-            CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            ),
-    ) {
+    val body: @Composable () -> Unit = {
         Column(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(28.dp),
+                    .padding(if (framed) 28.dp else 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -215,13 +219,30 @@ fun HomeEmptyNodeCard(
             )
         }
     }
+    if (framed) {
+        ElevatedCard(
+            modifier = modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors =
+                CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                ),
+        ) {
+            body()
+        }
+    } else {
+        Box(modifier = modifier.fillMaxWidth()) { body() }
+    }
 }
+
+private val DelayChipHeight = 20.dp
 
 @Composable
 private fun HomeDelayChip(
     delayMs: Long,
     isTesting: Boolean = false,
 ) {
+    val visible = isTesting || delayMs > 0 || delayMs == -2L
     val delayColor =
         when {
             isTesting -> MaterialTheme.colorScheme.primary
@@ -240,15 +261,27 @@ private fun HomeDelayChip(
     Box(
         modifier =
             Modifier
-                .clip(RoundedCornerShape(6.dp))
-                .background(delayColor.copy(alpha = 0.12f))
-                .padding(horizontal = 6.dp, vertical = 2.dp),
+                .height(DelayChipHeight)
+                .then(
+                    if (visible) {
+                        Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(delayColor.copy(alpha = 0.12f))
+                            .padding(horizontal = 6.dp)
+                    } else {
+                        Modifier
+                    },
+                ),
+        contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = displayText,
-            style = MaterialTheme.typography.labelSmall,
-            color = delayColor,
-            fontWeight = FontWeight.SemiBold,
-        )
+        if (visible) {
+            Text(
+                text = displayText,
+                style = MaterialTheme.typography.labelSmall,
+                color = delayColor,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+            )
+        }
     }
 }

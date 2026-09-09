@@ -9,17 +9,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material3.CardDefaults
@@ -32,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -41,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import com.android.xrayfa.R
 import com.android.xrayfa.shared.navigation.HomeComponent
 import com.android.xrayfa.shared.ui.SharedHomeSection
-import com.android.xrayfa.shared.ui.home.HomeSectionHeader
 import com.android.xrayfa.shared.ui.rememberHomeUiLabels
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 
@@ -49,10 +43,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 fun CompactHomeContent(
     homeComponent: HomeComponent,
 ) {
-    val homeState by homeComponent.state.subscribeAsState()
-    val selectedNode = homeState.selectedNode
     val context = LocalContext.current
-
     val homeLabels = rememberHomeUiLabels()
 
     val vpnPermissionLauncher =
@@ -64,60 +55,24 @@ fun CompactHomeContent(
             }
         }
 
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        SharedHomeSection(
-            component = homeComponent,
-            showNodeCard = false,
-            scrollEnabled = false,
-            labels = homeLabels,
-            onConnectToggle = {
-                val state = homeComponent.state.value
-                if (state.isConnected) {
-                    homeComponent.onConnectToggle()
-                    return@SharedHomeSection
-                }
-                val prepare = VpnService.prepare(context)
-                if (prepare != null) {
-                    vpnPermissionLauncher.launch(prepare)
-                } else {
-                    homeComponent.onConnectToggle()
-                }
-            },
-        )
-
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
-        ) {
-            selectedNode?.let { node ->
-                HomeSectionHeader(
-                    text = stringResource(R.string.connection_detail),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                NodeCard(
-                    node = node,
-                    onTest = homeComponent::onTestDelay,
-                    delayMs = homeState.delayMs,
-                    testing = homeState.testing,
-                    roundCorner = true,
-                    enableTest = homeState.isConnected,
-                )
-            } ?: EmptyNodeCard(
-                text = stringResource(R.string.select_configuration_notify),
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-    }
+    SharedHomeSection(
+        component = homeComponent,
+        labels = homeLabels,
+        modifier = Modifier.fillMaxSize(),
+        onConnectToggle = {
+            val state = homeComponent.state.value
+            if (state.isConnected) {
+                homeComponent.onConnectToggle()
+                return@SharedHomeSection
+            }
+            val prepare = VpnService.prepare(context)
+            if (prepare != null) {
+                vpnPermissionLauncher.launch(prepare)
+            } else {
+                homeComponent.onConnectToggle()
+            }
+        },
+    )
 }
 
 @Composable

@@ -16,13 +16,12 @@ import androidx.compose.ui.text.font.FontWeight
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeTopBar(
-    title: String,
     onSettingsClick: () -> Unit,
 ) {
     TopAppBar(
         title = {
             Text(
-                text = title,
+                text = "XrayFA",
                 fontWeight = FontWeight.Bold,
             )
         },

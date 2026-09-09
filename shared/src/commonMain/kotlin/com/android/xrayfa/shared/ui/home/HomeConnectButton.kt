@@ -16,12 +16,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.PowerSettingsNew
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,37 +28,32 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.android.xrayfa.shared.ui.theme.XrayBrand
 
-/**
- * Large circular VPN toggle — visual parity with Android [V2rayStarterLarge].
- * Platform-specific permission / service logic stays in the caller via [onToggle].
- */
 @Composable
 fun HomeConnectButton(
     isConnected: Boolean,
     enabled: Boolean,
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
+    diameter: Dp = 200.dp,
+    innerDiameter: Dp = 148.dp,
 ) {
-    val primary = MaterialTheme.colorScheme.primary
-    val tertiary = MaterialTheme.colorScheme.tertiary
-    val surfaceVariant = MaterialTheme.colorScheme.surfaceVariant
-
     val buttonBrush =
         if (isConnected) {
-            Brush.linearGradient(colors = listOf(primary, tertiary))
+            Brush.linearGradient(colors = listOf(XrayBrand.BlueLight, XrayBrand.BlueDeep))
         } else {
             Brush.linearGradient(
                 colors =
                     listOf(
-                        surfaceVariant,
-                        surfaceVariant.copy(alpha = 0.65f),
+                        XrayBrand.Blue.copy(alpha = 0.22f),
+                        XrayBrand.BlueDeep.copy(alpha = 0.12f),
                     ),
             )
         }
-
-    val shadowColor = if (isConnected) primary.copy(alpha = 0.45f) else Color.Transparent
+    val shadowColor = if (isConnected) XrayBrand.Blue.copy(alpha = 0.45f) else Color.Transparent
     val scale = remember { Animatable(1.0f) }
 
     LaunchedEffect(isConnected) {
@@ -83,17 +73,17 @@ fun HomeConnectButton(
 
     Box(
         contentAlignment = Alignment.Center,
-        modifier = modifier.size(200.dp),
+        modifier = modifier.size(diameter),
     ) {
         if (isConnected) {
-            HomeConnectPulseRings(color = primary)
+            HomeConnectPulseRings(color = XrayBrand.Blue)
         }
 
         Box(
             contentAlignment = Alignment.Center,
             modifier =
                 Modifier
-                    .size(148.dp)
+                    .size(innerDiameter)
                     .scale(scale.value)
                     .shadow(
                         elevation = if (isConnected) 24.dp else 4.dp,
@@ -111,21 +101,11 @@ fun HomeConnectButton(
                 enabled = enabled,
                 modifier = Modifier.fillMaxSize(),
             ) {
-                Icon(
-                    imageVector =
-                        if (isConnected) {
-                            Icons.Default.Check
-                        } else {
-                            Icons.Default.PowerSettingsNew
-                        },
+                GuardCatMark(
+                    size = innerDiameter * 0.42f,
+                    bodyTint = if (isConnected) Color.White else XrayBrand.Blue,
+                    eyeTint = if (isConnected) XrayBrand.CatEyeGreen else XrayBrand.CatEyeAmber,
                     contentDescription = "Toggle VPN",
-                    tint =
-                        if (isConnected) {
-                            Color.White
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                    modifier = Modifier.size(60.dp),
                 )
             }
         }

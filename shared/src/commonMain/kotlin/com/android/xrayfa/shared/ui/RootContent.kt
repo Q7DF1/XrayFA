@@ -508,10 +508,7 @@ private fun HomeTabScreen(
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            HomeTopBar(
-                title = stringResource(Res.string.home),
-                onSettingsClick = onSettingsClick,
-            )
+            HomeTopBar(onSettingsClick = onSettingsClick)
         },
         containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->

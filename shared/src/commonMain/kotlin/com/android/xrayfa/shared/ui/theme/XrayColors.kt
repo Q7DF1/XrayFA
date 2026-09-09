@@ -66,3 +66,12 @@ internal val ErrorLight = Color(0xFFBA1A1A)
 internal val OnErrorLight = Color(0xFFFFFFFF)
 internal val ErrorDark = Color(0xFFFFB4AB)
 internal val OnErrorDark = Color(0xFF690005)
+
+/** Guard Cat launcher palette — stays brand-blue even when dynamic color is on. */
+object XrayBrand {
+    val BlueLight = Color(0xFF42A5F5)
+    val Blue = Color(0xFF1976D2)
+    val BlueDeep = Color(0xFF0D47A1)
+    val CatEyeAmber = Color(0xFFFFC107)
+    val CatEyeGreen = Color(0xFF4CAF50)
+}

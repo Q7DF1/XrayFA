@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -202,21 +203,18 @@ private fun NodeCardContent(
                 modifier = Modifier.basicMarquee()
             )
             Spacer(Modifier.height(2.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.heightIn(min = DelayChipHeight),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
                     text = protocolPrefixMap[node.protocolPrefix]?.protocolType
                         ?: stringResource(R.string.unknown),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
-                if (testing) {
-                    Spacer(Modifier.width(8.dp))
-                    DelayChip(delayMs = -1L, isTesting = true)
-                } else if (delayMs > 0 || delayMs == -2L) {
-                    Spacer(Modifier.width(8.dp))
-                    DelayChip(delayMs = delayMs, isTesting = false)
-                }
+                Spacer(Modifier.width(8.dp))
+                DelayChip(delayMs = delayMs, isTesting = testing)
             }
         }
 
@@ -318,14 +316,16 @@ private fun NodeCardContent(
     }
 }
 
+private val DelayChipHeight = 20.dp
+
 @Composable
 private fun DelayChip(delayMs: Long, isTesting: Boolean = false) {
-    // Delay semantic colors: keep universal green/orange/red semantics, but tone down to Material-friendly saturation
+    val visible = isTesting || delayMs > 0 || delayMs == -2L
     val delayColor = when {
-        isTesting -> MaterialTheme.colorScheme.primary // Blue for loading
+        isTesting -> MaterialTheme.colorScheme.primary
         delayMs == -2L -> MaterialTheme.colorScheme.error
-        delayMs < 300 -> Color(0xFF2E7D32) // green 800
-        delayMs < 900 -> Color(0xFFE65100) // orange 900
+        delayMs < 300 -> Color(0xFF2E7D32)
+        delayMs < 900 -> Color(0xFFE65100)
         else -> MaterialTheme.colorScheme.error
     }
     val displayText = when {
@@ -336,16 +336,28 @@ private fun DelayChip(delayMs: Long, isTesting: Boolean = false) {
 
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(delayColor.copy(alpha = 0.12f))
-            .padding(horizontal = 6.dp, vertical = 2.dp)
+            .height(DelayChipHeight)
+            .then(
+                if (visible) {
+                    Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(delayColor.copy(alpha = 0.12f))
+                        .padding(horizontal = 6.dp)
+                } else {
+                    Modifier
+                }
+            ),
+        contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = displayText,
-            style = MaterialTheme.typography.labelSmall,
-            color = delayColor,
-            fontWeight = FontWeight.SemiBold
-        )
+        if (visible) {
+            Text(
+                text = displayText,
+                style = MaterialTheme.typography.labelSmall,
+                color = delayColor,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+            )
+        }
     }
 }
 
