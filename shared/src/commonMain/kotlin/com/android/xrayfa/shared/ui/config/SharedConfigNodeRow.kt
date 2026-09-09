@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -125,7 +126,10 @@ fun SharedConfigNodeRow(
                     modifier = Modifier.basicMarquee(),
                 )
                 Spacer(Modifier.height(2.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.heightIn(min = DelayChipHeight),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Text(
                         text =
                             protocolPrefixMap[node.protocolPrefix]?.protocolType
@@ -133,23 +137,13 @@ fun SharedConfigNodeRow(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    if (delayMs != -1L && (delayMs > 0 || delayMs == -2L)) {
-                        Spacer(Modifier.width(8.dp))
-                        ConfigDelayChip(
-                            delayMs = delayMs,
-                            isTesting = false,
-                            timeoutLabel = labels.timeoutLabel,
-                            testingLabel = labels.testingLabel,
-                        )
-                    } else if (onTest != null && (delayMs == -1L || testing)) {
-                        Spacer(Modifier.width(8.dp))
-                        ConfigDelayChip(
-                            delayMs = -1L,
-                            isTesting = true,
-                            timeoutLabel = labels.timeoutLabel,
-                            testingLabel = labels.testingLabel,
-                        )
-                    }
+                    Spacer(Modifier.width(8.dp))
+                    ConfigDelayChip(
+                        delayMs = delayMs,
+                        isTesting = testing,
+                        timeoutLabel = labels.timeoutLabel,
+                        testingLabel = labels.testingLabel,
+                    )
                 }
             }
 
@@ -262,6 +256,8 @@ fun SharedConfigNodeRow(
     }
 }
 
+private val DelayChipHeight = 20.dp
+
 @Composable
 private fun ConfigDelayChip(
     delayMs: Long,
@@ -269,6 +265,7 @@ private fun ConfigDelayChip(
     timeoutLabel: String,
     testingLabel: String,
 ) {
+    val visible = isTesting || delayMs > 0 || delayMs == -2L
     val delayColor =
         when {
             isTesting -> MaterialTheme.colorScheme.primary
@@ -287,15 +284,27 @@ private fun ConfigDelayChip(
     Box(
         modifier =
             Modifier
-                .clip(RoundedCornerShape(6.dp))
-                .background(delayColor.copy(alpha = 0.12f))
-                .padding(horizontal = 6.dp, vertical = 2.dp),
+                .height(DelayChipHeight)
+                .then(
+                    if (visible) {
+                        Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(delayColor.copy(alpha = 0.12f))
+                            .padding(horizontal = 6.dp)
+                    } else {
+                        Modifier
+                    },
+                ),
+        contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = displayText,
-            style = MaterialTheme.typography.labelSmall,
-            color = delayColor,
-            fontWeight = FontWeight.SemiBold,
-        )
+        if (visible) {
+            Text(
+                text = displayText,
+                style = MaterialTheme.typography.labelSmall,
+                color = delayColor,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+            )
+        }
     }
 }

@@ -39,19 +39,13 @@ fun HomeTrafficStatusCard(
     uploadLabel: String,
     downloadLabel: String,
     modifier: Modifier = Modifier,
+    framed: Boolean = true,
 ) {
-    ElevatedCard(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors =
-            CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            ),
-    ) {
+    val body: @Composable () -> Unit = {
         Row(
             modifier =
                 Modifier
-                    .padding(horizontal = 20.dp, vertical = 18.dp)
+                    .padding(horizontal = if (framed) 20.dp else 4.dp, vertical = if (framed) 18.dp else 4.dp)
                     .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -72,6 +66,20 @@ fun HomeTrafficStatusCard(
                 color = MaterialTheme.colorScheme.secondary,
             )
         }
+    }
+    if (framed) {
+        ElevatedCard(
+            modifier = modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors =
+                CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                ),
+        ) {
+            body()
+        }
+    } else {
+        Box(modifier = modifier.fillMaxWidth()) { body() }
     }
 }
 
