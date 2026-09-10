@@ -537,6 +537,7 @@ private fun SettingsTabScreen(
 
     SharedListScaffold(
         title = stringResource(Res.string.settings_title),
+        lockCollapsedTitle = true,
         navigationIcon = {
             IconButton(onClick = onBack) {
                 Icon(
@@ -551,7 +552,8 @@ private fun SettingsTabScreen(
                 Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .verticalScroll(rememberScrollState()),
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = 16.dp),
         ) {
             SharedSettingsGeneralSection(
                 component = component,

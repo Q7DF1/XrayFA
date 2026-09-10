@@ -22,8 +22,10 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -54,21 +56,38 @@ fun SharedSettingsGroup(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+    ) {
         Text(
             text = groupName,
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp),
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
         )
-        Column(
+        ElevatedCard(
             modifier =
                 Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp),
+            shape = RoundedCornerShape(24.dp),
+            colors =
+                CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                ),
+            elevation =
+                CardDefaults.elevatedCardElevation(
+                    defaultElevation = 1.dp,
+                    pressedElevation = 1.dp,
+                ),
         ) {
-            content()
+            Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                content()
+            }
         }
     }
 }
