@@ -9,14 +9,13 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -55,6 +53,7 @@ fun HomeConnectButton(
         }
     val shadowColor = if (isConnected) XrayBrand.Blue.copy(alpha = 0.45f) else Color.Transparent
     val scale = remember { Animatable(1.0f) }
+    val interactionSource = remember { MutableInteractionSource() }
 
     LaunchedEffect(isConnected) {
         scale.animateTo(
@@ -85,29 +84,24 @@ fun HomeConnectButton(
                 Modifier
                     .size(innerDiameter)
                     .scale(scale.value)
-                    .shadow(
-                        elevation = if (isConnected) 24.dp else 4.dp,
-                        shape = CircleShape,
-                        spotColor = shadowColor,
-                        ambientColor = shadowColor,
+                    .connectButtonSurface(
+                        brush = buttonBrush,
+                        shadowElevation = if (isConnected) 24.dp else 4.dp,
+                        shadowColor = shadowColor,
                     )
-                    .clip(CircleShape)
-                    .background(buttonBrush),
+                    .clickable(
+                        enabled = enabled,
+                        indication = null,
+                        interactionSource = interactionSource,
+                        onClick = onToggle,
+                    ),
         ) {
-            IconButton(
-                onClick = {
-                    if (enabled) onToggle()
-                },
-                enabled = enabled,
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                GuardCatMark(
-                    size = innerDiameter * 0.42f,
-                    bodyTint = if (isConnected) Color.White else XrayBrand.Blue,
-                    eyeTint = if (isConnected) XrayBrand.CatEyeGreen else XrayBrand.CatEyeAmber,
-                    contentDescription = "Toggle VPN",
-                )
-            }
+            GuardCatMark(
+                size = innerDiameter * 0.42f,
+                bodyTint = if (isConnected) Color.White else XrayBrand.Blue,
+                eyeTint = if (isConnected) XrayBrand.CatEyeGreen else XrayBrand.CatEyeAmber,
+                contentDescription = "Toggle VPN",
+            )
         }
     }
 }
@@ -141,3 +135,9 @@ private fun BoxScope.HomeConnectPulseRings(color: Color) {
         )
     }
 }
+
+internal expect fun Modifier.connectButtonSurface(
+    brush: Brush,
+    shadowElevation: Dp,
+    shadowColor: Color,
+): Modifier
