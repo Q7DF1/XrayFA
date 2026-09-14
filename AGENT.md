@@ -61,6 +61,8 @@ Submodules: `AndroidLibXrayLite/` (Xray-core gomobile), `tun2socks/src/main/jni/
 # or: cd AndroidLibXrayLite && gomobile bind … && cp libv2ray.aar ../androidApp/libs/
 ```
 
+`app` is a git symlink to `androidApp` so F-Droid metadata can keep `subdir: app` and `cp libv2ray.aar ../app/libs/`. Do not add `:app` in `settings.gradle.kts` (same directory as `:androidApp`).
+
 `preBuild` does **not** depend on `copyXrayLib` (intentional).
 
 ### 3.3 iOS native core (`LibXrayLite.xcframework`)
@@ -81,6 +83,8 @@ Output: `AndroidLibXrayLite/LibXrayLite.xcframework` (gitignored). CI caches it 
 ./gradlew :androidApp:compileDebugKotlin
 ./gradlew :shared:compileDebugKotlin
 ```
+
+KMP `iosArm64` / `iosSimulatorArm64` / `iosX64` targets are registered **only on macOS** (Linux / F-Droid skip Kotlin/Native). Force with `-PenableIosTargets=true|false`.
 
 - Signing: `KEYSTORE_PASSWORD` / `KEY_ALIAS` / `KEY_PASSWORD` + `androidApp/xrayfa.jks`
 - Override applicationId with `-PAPPLICATION_ID=`
@@ -122,6 +126,7 @@ Output: `AndroidLibXrayLite/LibXrayLite.xcframework` (gitignored). CI caches it 
 ```
 XrayFA/
 ├── androidApp/          # Android application: Activity, VpnService, Agent facade, thin UI wrappers
+├── app -> androidApp    # F-Droid `subdir: app` compatibility symlink (not a Gradle module)
 ├── iosApp/              # Xcode app + PacketTunnel Network Extension
 ├── shared/              # CMP UI + Decompose + Koin modules → XrayFAShared.framework
 │   └── src/commonMain/composeResources/   # en / zh-rCN / ko / ru-rRU strings
@@ -190,7 +195,7 @@ UI: Android `MainActivity` → `AndroidAppShell` → shared `RootContent` (Decom
 | `google-play.yml` | unused | Play variant kept disabled |
 | `update_submodules.yaml` | cron | Submodule bump PR |
 
-F-Droid: `dependenciesInfo.includeInApk/Bundle = false`. Secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
+F-Droid: `dependenciesInfo.includeInApk/Bundle = false`. Debian builders skip iOS KMP targets (no konan download). Secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
 
 ---
 

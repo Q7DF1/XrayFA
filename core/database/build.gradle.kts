@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.ksp)
 }
 
+val enableIosTargets = rootProject.extra["enableIosTargets"] as Boolean
+
 kotlin {
     androidTarget {
         compilations.all {
@@ -14,9 +16,11 @@ kotlin {
             }
         }
     }
-    iosArm64()
-    iosSimulatorArm64()
-    iosX64()
+    if (enableIosTargets) {
+        iosArm64()
+        iosSimulatorArm64()
+        iosX64()
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -27,19 +31,23 @@ kotlin {
             implementation(libs.androidx.room.ktx)
             implementation(libs.androidx.core.ktx)
         }
-        iosMain.dependencies {
-            implementation(project(":common"))
-            implementation(libs.androidx.room.runtime)
-            implementation(libs.androidx.sqlite.bundled)
+        if (enableIosTargets) {
+            iosMain.dependencies {
+                implementation(project(":common"))
+                implementation(libs.androidx.room.runtime)
+                implementation(libs.androidx.sqlite.bundled)
+            }
         }
     }
 }
 
 dependencies {
     add("kspAndroid", libs.androidx.room.compiler)
-    add("kspIosArm64", libs.androidx.room.compiler)
-    add("kspIosSimulatorArm64", libs.androidx.room.compiler)
-    add("kspIosX64", libs.androidx.room.compiler)
+    if (enableIosTargets) {
+        add("kspIosArm64", libs.androidx.room.compiler)
+        add("kspIosSimulatorArm64", libs.androidx.room.compiler)
+        add("kspIosX64", libs.androidx.room.compiler)
+    }
 }
 
 android {

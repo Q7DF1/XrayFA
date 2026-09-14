@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+val enableIosTargets = rootProject.extra["enableIosTargets"] as Boolean
+
 kotlin {
     androidTarget {
         compilations.all {
@@ -14,9 +16,11 @@ kotlin {
             }
         }
     }
-    iosArm64()
-    iosSimulatorArm64()
-    iosX64()
+    if (enableIosTargets) {
+        iosArm64()
+        iosSimulatorArm64()
+        iosX64()
+    }
 
     sourceSets {
         commonMain.dependencies {
