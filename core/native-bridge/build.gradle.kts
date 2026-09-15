@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.android.library)
 }
 
+val enableIosTargets = rootProject.extra["enableIosTargets"] as Boolean
 val libXrayXcframework = rootProject.file("AndroidLibXrayLite/LibXrayLite.xcframework")
 
 gradle.taskGraph.whenReady {
@@ -39,22 +40,24 @@ kotlin {
             }
         }
     }
-    listOf(iosArm64(), iosSimulatorArm64(), iosX64()).forEach { target ->
-        target.compilations.getByName("main") {
-            cinterops {
-                val libv2ray by creating {
-                    defFile(project.file("src/nativeInterop/cinterop/libv2ray.def"))
-                    val slice = iosXcframeworkSlice(target.name)
-                    val frameworkDir = libXrayXcframework.resolve("$slice/LibXrayLite.framework")
-                    includeDirs(project.file("src/nativeInterop/cinterop/headers"))
-                    compilerOpts("-F${frameworkDir.parent}")
+    if (enableIosTargets) {
+        listOf(iosArm64(), iosSimulatorArm64(), iosX64()).forEach { target ->
+            target.compilations.getByName("main") {
+                cinterops {
+                    val libv2ray by creating {
+                        defFile(project.file("src/nativeInterop/cinterop/libv2ray.def"))
+                        val slice = iosXcframeworkSlice(target.name)
+                        val frameworkDir = libXrayXcframework.resolve("$slice/LibXrayLite.framework")
+                        includeDirs(project.file("src/nativeInterop/cinterop/headers"))
+                        compilerOpts("-F${frameworkDir.parent}")
+                    }
                 }
             }
-        }
-        target.binaries.all {
-            val slice = iosXcframeworkSlice(target.name)
-            linkerOpts("-F${libXrayXcframework.resolve(slice)}")
-            linkerOpts("-framework", "LibXrayLite")
+            target.binaries.all {
+                val slice = iosXcframeworkSlice(target.name)
+                linkerOpts("-F${libXrayXcframework.resolve(slice)}")
+                linkerOpts("-framework", "LibXrayLite")
+            }
         }
     }
 
@@ -98,7 +101,7 @@ fun iosSdkAndArch(targetName: String): Pair<String, String> =
         else -> error("Unsupported iOS target: $targetName")
     }
 
-listOf("iosArm64", "iosSimulatorArm64", "iosX64").forEach { targetName ->
+if (enableIosTargets) listOf("iosArm64", "iosSimulatorArm64", "iosX64").forEach { targetName ->
     val capital = targetName.replaceFirstChar { it.uppercase() }
     val outFile = layout.buildDirectory.file("nativeDelayShim/$targetName/XrayFAMeasureOutboundDelay.o")
     tasks.register<Exec>("compileDelayShim$capital") {

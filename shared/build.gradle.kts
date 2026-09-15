@@ -6,6 +6,8 @@ plugins {
     alias(libs.plugins.android.library)
 }
 
+val enableIosTargets = rootProject.extra["enableIosTargets"] as Boolean
+
 kotlin {
     androidTarget {
         compilations.all {
@@ -16,7 +18,7 @@ kotlin {
             }
         }
     }
-    listOf(iosArm64(), iosSimulatorArm64(), iosX64()).forEach { target ->
+    if (enableIosTargets) listOf(iosArm64(), iosSimulatorArm64(), iosX64()).forEach { target ->
         target.binaries.framework {
             baseName = "XrayFAShared"
             isStatic = true
@@ -71,10 +73,12 @@ kotlin {
             implementation(libs.koin.compose)
             implementation(libs.koin.android)
         }
-        iosMain.dependencies {
-            implementation(libs.koin.core)
-            implementation(libs.koin.compose)
-            implementation(libs.qrcode.kotlin)
+        if (enableIosTargets) {
+            iosMain.dependencies {
+                implementation(libs.koin.core)
+                implementation(libs.koin.compose)
+                implementation(libs.qrcode.kotlin)
+            }
         }
         commonTest.dependencies {
             implementation(kotlin("test"))

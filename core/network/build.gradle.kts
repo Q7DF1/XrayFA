@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.android.library)
 }
 
+val enableIosTargets = rootProject.extra["enableIosTargets"] as Boolean
+
 kotlin {
     androidTarget {
         compilations.all {
@@ -13,9 +15,11 @@ kotlin {
             }
         }
     }
-    iosArm64()
-    iosSimulatorArm64()
-    iosX64()
+    if (enableIosTargets) {
+        iosArm64()
+        iosSimulatorArm64()
+        iosX64()
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -27,8 +31,10 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
         }
-        iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
+        if (enableIosTargets) {
+            iosMain.dependencies {
+                implementation(libs.ktor.client.darwin)
+            }
         }
     }
 }
