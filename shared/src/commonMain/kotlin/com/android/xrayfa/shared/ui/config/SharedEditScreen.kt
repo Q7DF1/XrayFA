@@ -1,31 +1,24 @@
 package com.android.xrayfa.shared.ui.config
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -33,15 +26,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.shared.config.NodeEditForm
 import com.android.xrayfa.shared.config.NodeFormEditor
+import com.android.xrayfa.shared.ui.chrome.SharedListScaffold
+import com.android.xrayfa.shared.ui.chrome.SharedUnderlineTabBar
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SharedEditScreen(
     nodeId: Int,
@@ -74,39 +65,39 @@ fun SharedEditScreen(
             )
     }
 
-    val scrollBehavior =
-        TopAppBarDefaults.pinnedScrollBehavior(
-            rememberTopAppBarState(),
-        )
     val scrollState = rememberScrollState()
 
-    Scaffold(
+    SharedListScaffold(
+        title = if (nodeId > 0) labels.editTitle else labels.addTitle,
         modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = if (nodeId > 0) labels.editTitle else labels.addTitle,
-                        fontWeight = FontWeight.Bold,
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = labels.backContentDescription,
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = { onSave(form) },
-                        modifier = Modifier.size(48.dp),
-                    ) {
-                        Icon(Icons.Filled.Done, contentDescription = labels.saveContentDescription)
-                    }
-                },
-                scrollBehavior = scrollBehavior,
+        largeTitle = false,
+        collapseTitleOnScroll = true,
+        titleExpandKey = form.selectedProtocol,
+        contentWindowInsets = WindowInsets.navigationBars.union(WindowInsets.ime),
+        navigationIcon = {
+            IconButton(onClick = onBack) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = labels.backContentDescription,
+                )
+            }
+        },
+        actions = {
+            IconButton(
+                onClick = { onSave(form) },
+                modifier = Modifier.size(48.dp),
+            ) {
+                Icon(Icons.Filled.Done, contentDescription = labels.saveContentDescription)
+            }
+        },
+        footerUnderBar = {
+            SharedUnderlineTabBar(
+                items = Protocol.entries,
+                selectedKey = form.selectedProtocol,
+                itemKey = { it },
+                onSelect = { form = form.copy(selectedProtocol = it) },
+                label = { it.name.lowercase() },
+                itemEnabled = { protocolChangeEnabled },
             )
         },
     ) { paddingValue ->
@@ -115,45 +106,10 @@ fun SharedEditScreen(
                 Modifier
                     .fillMaxSize()
                     .padding(paddingValue)
-                    .background(MaterialTheme.colorScheme.surface)
-                    .nestedScroll(scrollBehavior.nestedScrollConnection)
                     .verticalScroll(scrollState)
                     .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                labels.protocolSectionTitle,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                items(Protocol.entries, key = { it.name }) { protocolOption ->
-                    FilterChip(
-                        selected = form.selectedProtocol == protocolOption,
-                        onClick = { form = form.copy(selectedProtocol = protocolOption) },
-                        enabled = protocolChangeEnabled,
-                        label = { Text(protocolOption.name.lowercase()) },
-                        colors =
-                            FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                            ),
-                        border =
-                            FilterChipDefaults.filterChipBorder(
-                                enabled = protocolChangeEnabled,
-                                selected = form.selectedProtocol == protocolOption,
-                                borderColor = MaterialTheme.colorScheme.outlineVariant,
-                                selectedBorderColor = Color.Transparent,
-                            ),
-                    )
-                }
-            }
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
             Text(
                 labels.basicSettingsTitle,
                 style = MaterialTheme.typography.titleMedium,
