@@ -62,7 +62,10 @@ val appAgentDiModule: Module = module {
             trafficStatsSource = get(),
             appInfo = AgentAppInfo(
                 versionName = BuildConfig.VERSION_NAME,
-                versionCode = BuildConfig.VERSION_CODE,
+                versionCode = context.packageManager
+                    .getPackageInfo(context.packageName, 0)
+                    .longVersionCode
+                    .toInt(),
             ),
             vpnConnectCoordinator = get(),
             vpnPermissionGranted = { VpnService.prepare(context) == null },
