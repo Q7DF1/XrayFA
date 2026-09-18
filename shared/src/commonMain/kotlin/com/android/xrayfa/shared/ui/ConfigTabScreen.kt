@@ -11,7 +11,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Speed
-import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -26,7 +26,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -48,7 +48,8 @@ import com.android.xrayfa.shared.ui.platform.LocalPlatformRootHooks
 import com.android.xrayfa.shared.ui.transitions.TransitionDestinations
 import com.android.xrayfa.shared.ui.transitions.sharedContainer
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import com.android.xrayfa.shared.ui.config.selectedNodeViewport
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -57,7 +58,7 @@ internal fun ConfigTabScreen(
     chromeState: ConfigTabChromeState,
     onNodeSelectedNavigateHome: () -> Unit,
     onOpenNodeEdit: (Int) -> Unit,
-    onOpenSubscriptions: () -> Unit,
+    onOpenSearch: () -> Unit,
     onOpenQrScanner: () -> Unit,
     onOpenJsonConfig: (Int) -> Unit,
 ) {
@@ -66,9 +67,21 @@ internal fun ConfigTabScreen(
     val settingsLabels = rememberSettingsUiLabels()
     val configState by component.state.subscribeAsState()
     val configBottomClearance = rememberFloatingNavClearance()
-    val scope = rememberCoroutineScope()
     var shareNode by remember { mutableStateOf<Node?>(null) }
     var showBugReport by remember { mutableStateOf(false) }
+
+    val selectedIndex = configState.nodes.indexOfFirst { it.selected }
+    LaunchedEffect(selectedIndex, configState.nodes) {
+        snapshotFlow {
+            selectedNodeViewport(selectedIndex, chromeState.listState.layoutInfo.visibleItemsInfo.map { it.index })
+        }.distinctUntilChanged().collect { chromeState.selectedNodeViewport = it }
+    }
+    LaunchedEffect(chromeState.requestLocateSelected) {
+        if (chromeState.requestLocateSelected) {
+            if (selectedIndex >= 0) chromeState.listState.animateScrollToItem(selectedIndex)
+            chromeState.requestLocateSelected = false
+        }
+    }
 
     LaunchedEffect(chromeState.pendingOverlayScroll, configState.searchQuery, configState.nodes) {
         val pending = chromeState.pendingOverlayScroll ?: return@LaunchedEffect
@@ -111,6 +124,16 @@ internal fun ConfigTabScreen(
         },
         actions = {
             IconButton(
+                onClick = onOpenSearch,
+                modifier = Modifier.sharedContainer(
+                    destination = TransitionDestinations.SEARCH,
+                    shape = CircleShape,
+                    containerColor = Color.Transparent,
+                ),
+            ) {
+                Icon(Icons.Outlined.Search, contentDescription = configLabels.searchLabel)
+            }
+            IconButton(
                 onClick = { onOpenNodeEdit(0) },
                 modifier =
                     Modifier.sharedContainer(
@@ -126,23 +149,15 @@ internal fun ConfigTabScreen(
             }
             SharedConfigImportMenu(
                 onImportFromClipboard = component::onImportFromClipboard,
-                // 一个按钮开两个目的地（菜单里的订阅与扫码），key 不同，所以叠两层。
                 modifier =
                     Modifier
-                        .sharedContainer(
-                            destination = TransitionDestinations.SUBSCRIPTIONS,
-                            shape = CircleShape,
-                            containerColor = Color.Transparent,
-                        )
                         .sharedContainer(
                             destination = TransitionDestinations.QR,
                             shape = CircleShape,
                             containerColor = Color.Transparent,
                         ),
-                onManageSubscriptions = onOpenSubscriptions,
                 onScanQr = onOpenQrScanner,
                 importFromClipboardLabel = stringResource(Res.string.clipboard_import),
-                manageSubscriptionsLabel = stringResource(Res.string.menu_subscription),
                 scanQrLabel = settingsLabels.scanQrLabel,
                 additionalMenuItems = { dismiss ->
                     DropdownMenuItem(
@@ -151,21 +166,6 @@ internal fun ConfigTabScreen(
                             Icon(Icons.Outlined.UploadFile, contentDescription = null)
                         },
                         onClick = { dismiss(); onOpenJsonConfig(0) },
-                    )
-                    DropdownMenuItem(
-                        text = { Text(configLabels.locateSelectedLabel) },
-                        leadingIcon = {
-                            Icon(Icons.Outlined.Star, contentDescription = null)
-                        },
-                        onClick = {
-                            dismiss()
-                            scope.launch {
-                                val index = configState.nodes.indexOfFirst { it.selected }
-                                if (index >= 0) {
-                                    chromeState.listState.animateScrollToItem(index)
-                                }
-                            }
-                        },
                     )
                     DropdownMenuItem(
                         text = { Text(configLabels.deleteAllLabel) },
