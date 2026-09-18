@@ -61,6 +61,7 @@ fun SharedAppsPickerScreen(
     SharedListScaffold(
         title = labels.appsInfoTitle,
         modifier = modifier.fillMaxSize(),
+        lockCollapsedTitle = true,
         navigationIcon = {
             if (onBack != null) {
                 IconButton(onClick = onBack) {

@@ -84,6 +84,7 @@ fun SharedSubscriptionScreen(
     SharedListScaffold(
         title = labels.title,
         modifier = modifier,
+        lockCollapsedTitle = true,
         navigationIcon = {
             IconButton(onClick = onBack) {
                 Icon(
