@@ -16,7 +16,7 @@
 - **TUN**: C `hev-socks5-tunnel` (Android JNI; iOS xcframework)
 - **Distribution**: GitHub Releases, F-Droid (`com.android.xrayfa`). Google Play is not planned (`APPLICATION_ID_PLAY` kept but unused)
 - **License**: Apache-2.0
-- **Version**: `VERSION_NAME` / `VERSION_CODE` in `gradle.properties` (currently 1.7.0 / 34)
+- **Version**: `VERSION_NAME` / `VERSION_CODE` in `gradle.properties` (currently 1.7.1 / 35)
 
 Product rule: **Android is the reference; iOS aligns to Android.** Do not add a second parallel implementation of a screen.
 
@@ -61,9 +61,9 @@ Submodules: `AndroidLibXrayLite/` (Xray-core gomobile), `tun2socks/src/main/jni/
 # or: cd AndroidLibXrayLite && gomobile bind … && cp libv2ray.aar ../androidApp/libs/
 ```
 
-`app` is a git symlink to `androidApp` so F-Droid metadata can keep `subdir: app` and `cp libv2ray.aar ../app/libs/`. Do not add `:app` in `settings.gradle.kts` (same directory as `:androidApp`).
-
 `preBuild` does **not** depend on `copyXrayLib` (intentional).
+
+F-Droid / GitHub Release native prep is `scripts/fdroid.sh` (`prebuild` then `bind`). The fdroiddata recipe in `fdroid/builds.yml` only calls that script — geo files, Go bootstrap, gomobile, and ABI pinning live here, not in fdroiddata.
 
 ### 3.3 iOS native core (`LibXrayLite.xcframework`)
 
@@ -126,8 +126,9 @@ KMP `iosArm64` / `iosSimulatorArm64` / `iosX64` targets are registered **only on
 ```
 XrayFA/
 ├── androidApp/          # Android application: Activity, VpnService, Agent facade, thin UI wrappers
-├── app -> androidApp    # F-Droid `subdir: app` compatibility symlink (not a Gradle module)
 ├── iosApp/              # Xcode app + PacketTunnel Network Extension
+├── scripts/fdroid.sh    # F-Droid + GitHub Release geo/gomobile/ABI prep
+├── fdroid/builds.yml    # fdroiddata Builds snippet (no `subdir: app`)
 ├── shared/              # CMP UI + Decompose + Koin modules → XrayFAShared.framework
 │   └── src/commonMain/composeResources/   # en / zh-rCN / ko / ru-rRU strings
 ├── common/              # Kernel types: RoutingMode, DomainStrategy, Rule JSON, AppJson, logging
@@ -195,7 +196,7 @@ UI: Android `MainActivity` → `AndroidAppShell` → shared `RootContent` (Decom
 | `google-play.yml` | unused | Play variant kept disabled |
 | `update_submodules.yaml` | cron | Submodule bump PR |
 
-F-Droid: `dependenciesInfo.includeInApk/Bundle = false`. Debian builders skip iOS KMP targets (no konan download). Secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
+F-Droid: `dependenciesInfo.includeInApk/Bundle = false`. Debian builders skip iOS KMP targets (no konan download). Recipe: `fdroid/builds.yml` → fdroiddata (no `subdir`; `scripts/fdroid.sh` does geo / gomobile / ABI). Secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`.
 
 ---
 

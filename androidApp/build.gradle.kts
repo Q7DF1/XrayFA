@@ -1,4 +1,5 @@
-import com.android.build.api.variant.FilterConfiguration.FilterType.*
+import com.android.build.VariantOutput
+import com.android.build.gradle.api.ApkVariantOutput
 
 plugins {
     alias(libs.plugins.android.application)
@@ -93,22 +94,47 @@ android {
             // "Sequence contains more than one matching element" in buildReleasePreBundle
             isEnable = gradle.startParameter.taskNames.none { it.contains("Bundle", true) }
             reset()
-            include("armeabi-v7a","arm64-v8a","x86","x86_64")
-            isUniversalApk = true
+            val fdroidAbi = (findProperty("fdroidAbi") as String?)?.trim().orEmpty()
+            if (fdroidAbi.isNotEmpty()) {
+                include(fdroidAbi)
+                isUniversalApk = false
+            } else {
+                include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+                isUniversalApk = true
+            }
         }
     }
 
     val abiCodes = mapOf("armeabi-v7a" to 1, "arm64-v8a" to 2, "x86" to 3, "x86_64" to 4)
 
-    androidComponents  {
-        onVariants { variant ->
-            variant.outputs.forEach { output->
-                val name = output.filters.find { it.filterType == ABI } ?.identifier
-
-
-                val baseAbiCode = abiCodes[name] ?: 0
-
-                output.versionCode.set((baseAbiCode + 1000 * output.versionCode.get()))
+    // Manifest versionCode is ABI-specific (35001..). AGP 8 still copies that into
+    // BuildConfig.VERSION_CODE, so GitHub's all-ABI build (universal → 35000) and
+    // F-Droid's single-ABI recipe (armeabi-v7a → 35001) bake different constants
+    // into classes.dex. Pin BuildConfig to gradle.properties VERSION_CODE.
+    applicationVariants.configureEach {
+        val baseVersionCode = (project.findProperty("VERSION_CODE") as String).toInt()
+        val variantDirName = dirName
+        outputs.configureEach {
+            val apkOutput = this as ApkVariantOutput
+            val abi = apkOutput.getFilter(VariantOutput.FilterType.ABI)
+            val abiCode = abiCodes[abi] ?: 0
+            apkOutput.versionCodeOverride = baseVersionCode * 1000 + abiCode
+        }
+        tasks.named("generate${name.replaceFirstChar { it.uppercase() }}BuildConfig") {
+            doLast {
+                val buildConfigFile = layout.buildDirectory.get().asFile.resolve(
+                    "generated/source/buildConfig/$variantDirName/com/android/xrayfa/BuildConfig.java",
+                )
+                check(buildConfigFile.isFile) {
+                    "BuildConfig.java not found at $buildConfigFile"
+                }
+                val original = buildConfigFile.readText()
+                val pinned = "VERSION_CODE = $baseVersionCode;"
+                val updated = original.replace(Regex("""VERSION_CODE = \d+;"""), pinned)
+                check(updated.contains(pinned)) {
+                    "Failed to pin BuildConfig.VERSION_CODE to $baseVersionCode in $buildConfigFile"
+                }
+                buildConfigFile.writeText(updated)
             }
         }
     }

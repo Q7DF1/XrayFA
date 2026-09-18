@@ -43,12 +43,6 @@ jobs:
       with:
         go-version-file: './AndroidLibXrayLite/go.mod'
 
-    - name: Install gomobile
-      run: |
-        go install golang.org/x/mobile/cmd/gobind@latest
-        go install golang.org/x/mobile/cmd/gomobile@latest
-        echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-
     - name: Setup EXACT NDK for Reproducibility
       run: |
         wget -qO android-ndk.zip https://dl.google.com/android/repository/android-ndk-r28c-linux.zip
@@ -69,36 +63,13 @@ jobs:
         sudo chown -R $USER:$USER /home/vagrant
         cp -a . /home/vagrant/build/${{ env.PLAY_APPLICATION_ID }}/
 
-    - name: Update GeoIP and GeoSite for AndroidLibXrayLite
-      working-directory: /home/vagrant/build/${{ env.PLAY_APPLICATION_ID }}
-      run: |
-        GEO_IP_VERSION=$(grep "^GEO_IP_VERSION=" gradle.properties | cut -d'=' -f2 | tr -d '\r')
-        GEO_SITE_VERSION=$(grep "^GEO_SITE_VERSION=" gradle.properties | cut -d'=' -f2 | tr -d '\r')
-        echo "Syncing dat files for versions: IP=$GEO_IP_VERSION, Site=$GEO_SITE_VERSION"
-        LIB_ASSETS_DIR="AndroidLibXrayLite/assets"
-        mkdir -p "$LIB_ASSETS_DIR"
-        echo "Downloading geoip.dat to $LIB_ASSETS_DIR..."
-        wget -qO "$LIB_ASSETS_DIR/geoip.dat" "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/${GEO_IP_VERSION}/geoip.dat"
-        echo "Downloading geosite.dat to $LIB_ASSETS_DIR..."
-        wget -qO "$LIB_ASSETS_DIR/geosite.dat" "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/${GEO_SITE_VERSION}/geosite.dat"
-        echo "Library assets updated."
-
-    - name: Prepare AAR
+    - name: Prepare native AAR
       working-directory: /home/vagrant/build/${{ env.PLAY_APPLICATION_ID }}
       env:
         ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
-        GOFLAGS: -buildvcs=false
-        CGO_LDFLAGS: -Wl,--build-id=none
       run: |
-        cd AndroidLibXrayLite
-        gomobile init
-        go mod tidy -v
-        CURRENT_PATH=$(pwd)
-        export CGO_CFLAGS="-ffile-prefix-map=$CURRENT_PATH=."
-        export CGO_CXXFLAGS="-ffile-prefix-map=$CURRENT_PATH=."
-        gomobile bind -v -trimpath -androidapi 21 -ldflags="-s -w -buildid= -checklinkname=0" ./
-        mkdir -p ../androidApp/libs
-        cp libv2ray.aar ../androidApp/libs/
+        bash scripts/fdroid.sh prebuild
+        bash scripts/fdroid.sh bind
 
     - name: Grant execute permission for gradlew
       working-directory: /home/vagrant/build/${{ env.PLAY_APPLICATION_ID }}
