@@ -83,6 +83,7 @@ fun SharedAppLogScreen(
     SharedListScaffold(
         title = labels.logcatTitle,
         modifier = modifier.fillMaxSize(),
+        lockCollapsedTitle = true,
         navigationIcon = {
             when {
                 navigationIcon != null -> navigationIcon()

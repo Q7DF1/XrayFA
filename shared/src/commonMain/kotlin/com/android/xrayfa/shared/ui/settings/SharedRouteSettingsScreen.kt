@@ -133,6 +133,7 @@ fun SharedRouteSettingsScreen(
     SharedListScaffold(
         title = labels.title,
         modifier = modifier.fillMaxSize(),
+        lockCollapsedTitle = true,
         navigationIcon = {
             if (onBack != null) {
                 IconButton(onClick = onBack) {
