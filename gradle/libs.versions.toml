@@ -27,9 +27,10 @@ material3AdaptiveNav3 = "1.3.0-alpha09"
 material3 = "1.5.0-alpha15"
 koin = "4.0.1"
 ktor = "3.0.3"
-composeMultiplatform = "1.7.3"
-decompose = "3.2.2"
-essenty = "2.3.0"
+composeMultiplatform = "1.9.3"
+decompose = "3.5.0"
+essenty = "2.5.0"
+materialIcons = "1.7.3"
 # alpha09+ requires compileSdk 37 and AGP 9.1; stay on alpha08 for AGP 8.10 / SDK 36.
 appfunctions = "1.0.0-alpha08"
 kotlinxSerialization = "1.7.3"
@@ -87,6 +88,9 @@ ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "kto
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
 decompose-extensions-compose = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
+decompose-extensions-compose-experimental = { module = "com.arkivanov.decompose:extensions-compose-experimental", version.ref = "decompose" }
+compose-material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "materialIcons" }
+compose-material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "materialIcons" }
 essenty-lifecycle = { module = "com.arkivanov.essenty:lifecycle", version.ref = "essenty" }
 essenty-lifecycle-coroutines = { module = "com.arkivanov.essenty:lifecycle-coroutines", version.ref = "essenty" }
 essenty-state-keeper = { module = "com.arkivanov.essenty:state-keeper", version.ref = "essenty" }
