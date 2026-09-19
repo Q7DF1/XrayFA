@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,6 +45,11 @@ fun SharedSearchScreen(
     val focusManager = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
 
+    // 退出时补交。弹栈会销毁本屏并取消下面的防抖，不满 300ms 的最后几个按键就丢了，
+    // Config 列表会被一个残缺的查询词过滤。必须在事件时刻同步记录，不能用
+    // rememberUpdatedState —— 子节点被弹出时未必还会重组一次。
+    val queryOnExit = remember { mutableStateOf(query) }
+
     LaunchedEffect(Unit) {
         snapshotFlow { query }
             .debounce(300)
@@ -51,9 +57,21 @@ fun SharedSearchScreen(
             .collectLatest { component.onSearch(it) }
     }
 
+    DisposableEffect(component) {
+        onDispose {
+            // onSearch 会重查数据库，值没变就别白跑一趟。
+            if (queryOnExit.value != component.state.value.searchQuery) {
+                component.onSearch(queryOnExit.value)
+            }
+        }
+    }
+
     SharedSearchChrome(
         query = query,
-        onQueryChange = { query = it },
+        onQueryChange = {
+            query = it
+            queryOnExit.value = it
+        },
         searchLabel = labels.searchLabel,
         onImeSearch = {
             focusManager.clearFocus()
@@ -70,6 +88,7 @@ fun SharedSearchScreen(
                 onResultChosen = { node ->
                     onResultChosen(node.id)
                     query = ""
+                    queryOnExit.value = ""
                     component.onSearch("")
                     onBack()
                 },
