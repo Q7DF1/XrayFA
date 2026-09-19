@@ -74,16 +74,15 @@ Compose 的 `sharedBounds` / `sharedElement` 需要一个 `AnimatedVisibilitySco
 composeMultiplatform = "1.9.3"   # was 1.7.3；基于 Jetpack Compose 1.9.4
 decompose = "3.5.0"              # was 3.2.2
 essenty = "2.5.0"                # was 2.3.0（Decompose 3.5.0 要求）
-jbMaterial3 = "1.9.0"            # 新增；基于 androidx Material3 1.4.0
 materialIcons = "1.7.3"          # 新增；显式固定
 ```
 
 `shared/build.gradle.kts` 的 `commonMain`：
 
 - 新增 `com.arkivanov.decompose:extensions-compose-experimental`
-- 把 `compose.material3` 换成 `org.jetbrains.compose.material3:material3:1.9.0`
 - 显式加 `org.jetbrains.compose.material:material-icons-extended:1.7.3` 与
   `org.jetbrains.compose.material:material-icons-core:1.7.3`
+- `compose.material3` 保持不动（详见第 7 节：刻意不引入更新的 material3）
 
 保持不变：Kotlin 2.1.10、KSP 2.1.10-1.0.31、AGP 8.10.0、`appfunctions` 1.0.0-alpha08、
 `androidApp` 的 androidx Compose BOM 2026.03.00。
@@ -92,9 +91,8 @@ materialIcons = "1.7.3"          # 新增；显式固定
 
 - CMP 1.9.3 的最低 Kotlin 要求是 2.1.0，当前 2.1.10 已满足，因此 Kotlin / KSP / AGP 链条无需变动，
   `libs.versions.toml` 里「appfunctions 必须留在 alpha08」的约束也不受影响。
-- CMP 1.9 起 Material3 采用独立版本线，`compose.material3` 指向较旧的 Material3 1.8.2。
-  `MaterialTheme.motionScheme` 在 androidx Material3 1.4.0 才转正，所以必须显式依赖
-  `org.jetbrains.compose.material3:material3:1.9.0`。
+- CMP 1.9 起 Material3 采用独立版本线，`compose.material3` 指向 Material3 1.8.2（相对当前仍是升级）。
+  刻意不引入更新的 material3，理由见第 7 节。
 - CMP 1.8.2 起移除了 `material-icons-core` 的隐式传递依赖，`compose.materialIconsExtended` 也已
   标记废弃（固定在 1.7.3 且不再更新）。显式声明这两个产物即可，**代码中的 `Icons.*` 用法完全不用迁移**。
 - Compose 1.8 对 shared transition API 做过参数重命名。因为升到 1.9.4，统一使用新名：
@@ -285,25 +283,32 @@ Navigation3 屏幕就是拿它们挂 shared element 的）。
 
 ## 7. 动效令牌
 
-`ui/transitions/XrayMotion.kt`。`XrayTheme` 中启用 expressive 方案：
+`ui/transitions/XrayMotion.kt`。采用 M3 Expressive 方案的数值，但**硬编码为 `spring()` 常量，
+不使用 `MaterialTheme.motionScheme`**。
 
-```kotlin
-MaterialTheme(motionScheme = MotionScheme.expressive(), ...)
-```
-
-| 用途 | 令牌 | 等价值（阻尼比 / 刚度） |
+| 用途 | 对应 M3 令牌 | 阻尼比 / 刚度 |
 |---|---|---|
-| 全屏容器扩张的 bounds | `slowSpatialSpec<Rect>()` | 0.8 / 200 |
-| 所有淡入淡出 | `defaultEffectsSpec<Float>()` | 1.0 / 1600 |
-| 底栏滑出、局部位移 | `defaultSpatialSpec()` | 0.8 / 380 |
-| 底座 `fade() + scale()` | effects spec | 1.0 / 1600 |
+| 全屏容器扩张的 bounds | expressive slow spatial | 0.8 / 200 |
+| 所有淡入淡出 | effects default | 1.0 / 1600 |
+| 底栏滑出、圆角插值等局部位移 | expressive default spatial | 0.8 / 380 |
+| 底座 `fade() + scale()` | effects default | 1.0 / 1600 |
 
 `boundsTransform` 需要 `FiniteAnimationSpec<Rect>`，spring 的 `visibilityThreshold` 取
-`Rect.VisibilityThreshold`。第 6.5 节的圆角插值用 `defaultSpatialSpec<Dp>()`（表中第三行同一组参数）。
+`Rect.VisibilityThreshold`。第 6.5 节的圆角插值用表中第三行的参数。
 
-降级预案：`MotionScheme` 在 androidx Material3 1.4.0 已转正，而 `jbMaterial3 1.9.0` 正基于 1.4.0，
-因此预期可直接使用。升级后第一步即验证该 API 可解析；若 JB 版本仍带 experimental 注解且不愿 opt-in，
-改为硬编码上表数值的 `spring()` 常量，视觉完全等价。
+**为什么不用 `MotionScheme`**：本项目已有两处明确记录的教训 —— `SharedModalBottomSheet` 避开
+`ModalBottomSheet`、`SharedSearchChrome` 避开 `SearchBar`，注释均写明原因是「CMP material3 与
+androidx material3 二进制不匹配导致 Android 上 NoSuchMethodError」。根因是 `androidApp` 同时依赖
+androidx Compose BOM，Android 运行时由 androidx material3（当前 1.5.0-alpha15）胜出，而 `:shared`
+是按 JB material3 编译的。`MaterialTheme.motionScheme` 与 `MotionScheme.expressive()` 正属于这类较新
+material3 API（`MotionScheme.expressive()` 见于 1.5.0-alpha2x，比 alpha15 更新），属于同一风险类别。
+
+硬编码 `spring()` 只依赖 `androidx.compose.animation.core` —— 与提供 `sharedBounds` 的是同一个产物，
+完全不碰 material3 命名空间，且视觉结果与令牌方案等价。同时可以不引入 `jbMaterial3` 依赖，
+少一个变动面。
+
+佐证：项目当前就是 CMP 1.7.3 编译、运行在 BOM 2026.03.00 的 androidx Compose 上，跨 5 个版本正常工作；
+已踩的坑全部集中在 material3，animation / foundation / ui 一直稳定。
 
 选 spring 而非 tween 的理由：预测返回手势会把进度直接喂给同一个 transition，spring 被打断和反向时
 自然，tween 会顿。
@@ -321,7 +326,9 @@ MaterialTheme(motionScheme = MotionScheme.expressive(), ...)
 - 新增 `SharedSearchScreen`：接管原 `ActualConfigSearchFab` 的防抖逻辑与结果列表，根容器挂
   `"search"` 的共享容器修饰符
 - `SharedSearchChrome` 去掉 `Dialog`，改为普通全屏 `Surface`；折叠态的圆形触发器随之删除
-  （Config 页本来就传 `showCollapsedTrigger = false`）
+  （Config 页本来就传 `showCollapsedTrigger = false`）。**继续使用 `OutlinedTextField`，
+  不得改用 Material3 `SearchBar` / `DockedSearchBar`** —— 该文件原有注释记录的 NoSuchMethodError
+  约束依然有效
 - 结果选中后：写入 `pendingOverlayScroll` → `navigateBack()`
 - 删除以下参数与状态：`ConfigTabScreen` 的 `forceCollapseSearch`、`openSearch`、
   `onOpenSearchConsumed`、`onSearchExpanded`，以及 `RootContent` 的 `requestOpenSearch`、
@@ -368,7 +375,8 @@ MaterialTheme(motionScheme = MotionScheme.expressive(), ...)
 | 在编辑页里删掉该节点后返回 | 同上降级 |
 | 连续快点两个不同节点行 | key 不同，spring 支持打断重插值，第二个转场接管 |
 | 转场进行中触发预测返回 | `StackAnimationScope` 由 Decompose 驱动，手势进度喂给同一 transition |
-| `MotionScheme` 不可用 | 退回硬编码 spring 常量（见第 7 节） |
+| 作用域 CompositionLocal 为 null | `sharedContainer()` 返回原 `Modifier`，该处只是没有动画，不崩（见第 6.3 节） |
+| `sharedBounds` 在 Android 上二进制不匹配 | 若 checkpoint 1/3 装机出现 `NoSuchMethodError`，收敛办法是把 `androidApp` 的 `composeBom` 对齐到与 CMP 1.9.3 匹配的版本。属于受控的单点改动 |
 
 ### 残余风险：返回时的重组成本
 
