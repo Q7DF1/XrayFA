@@ -243,8 +243,12 @@ fun Modifier.sharedContainer(
 - 两端的 destination 必须一致，修饰符相对 `sharedBounds` 的顺序也必须一致 —— 由上面的封装保证。
 - 尺寸与 padding 修饰符放在 `.sharedContainer()` 之后。放在之前会参与初始/目标边界的推导，
   两端不一致就跳。
-- 目的地页面内的非共享内容一律加 `animateEnterExit(enter = fadeIn(), exit = fadeOut())`。
-  不加的话正文会在容器还在扩张时就以满不透明度糊上去。
+- 目的地页面内部**不需要**再逐个加 `animateEnterExit`。本设计里共享容器挂在屏幕根节点上，
+  `sharedBounds` 自带的 `enter = fadeIn()` / `exit = fadeOut()` 已经覆盖整棵子树，正文会随容器
+  一起淡入。官方示例中之所以要对正文单独加 `animateEnterExit`，是因为那些场景里只有局部元素
+  （例如一张图）参与共享，屏幕其余部分不在 `sharedBounds` 之内。
+  唯一需要 `animateEnterExit` 的是浮动底栏 —— 它被 `renderInSharedTransitionScopeOverlay`
+  提到了 overlay，脱离了根容器的淡入淡出（见第 4 节）。
 - 仅当子内容会溢出容器边界时才额外传 `clipInOverlayDuringTransition = OverlayClip(shape)`；
   默认的 `ParentClip` 配合上面的 `.clip(shape)` 已足够。
 
