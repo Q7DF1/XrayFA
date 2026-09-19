@@ -165,6 +165,20 @@ SharedTransitionLayout {
 | `pendingOverlayScroll` | `ConfigTabScreen` 内 | 搜索选中结果后要滚动定位，跨了一次导航 |
 
 不提升：`shareNode`、`showBugReport`。它们是瞬态对话框开关，全屏页打开时本就该关闭。
+`HomeLayouts` 的 `rememberScrollState()` 也不提升 —— 首页只有 hero 与两三张卡片，几乎滚不动。
+（已确认 `SharedConfigFilterBar` 不含任何 `remember` 状态，筛选栏不受影响。）
+
+另需配套修一处会被这次重构暴露出来的既有问题：`HomeConnectButton` 的 `LaunchedEffect(isConnected)`
+没有首帧保护，首次组合时也会执行。`Idle` 被释放后每次返回首页都会重放一次 1→1.2→1 的弹跳。
+加一个首帧标记即可，且因为 `remember` 在新组合中同样重置，正好能区分「新组合」与「真的切换了连接状态」：
+
+```kotlin
+var skipInitial by remember { mutableStateOf(true) }
+LaunchedEffect(isConnected) {
+    if (skipInitial) { skipInitial = false; return@LaunchedEffect }
+    // 原有弹跳动画
+}
+```
 
 实现方式：新增 `ConfigTabChromeState` holder 类与 `rememberConfigTabChromeState()`，持有上述三项，
 在 `RootContent` 中 remember 一次后往下传。`SharedConfigSection` 已有 `listState` 参数，直接传即可；
@@ -355,6 +369,19 @@ MaterialTheme(motionScheme = MotionScheme.expressive(), ...)
 | 连续快点两个不同节点行 | key 不同，spring 支持打断重插值，第二个转场接管 |
 | 转场进行中触发预测返回 | `StackAnimationScope` 由 Decompose 驱动，手势进度喂给同一 transition |
 | `MotionScheme` 不可用 | 退回硬编码 spring 常量（见第 7 节） |
+
+### 残余风险：返回时的重组成本
+
+嵌套结构下 `Idle` 在压栈时被释放，返回时要重新组合整棵 tab 树，这个成本落在返回动画的第一帧上。
+当前并列结构没有这个成本（tabs 始终存活），因此这是本次重构新引入的。量级上 `LazyColumn` 只组合
+可见的十几行，预期无感，但可能掉 1~2 帧。
+
+checkpoint 2 专门用于测量它 —— 那一步只做结构重构、不接任何 shared element，可以干净地对比手感。
+
+若实测卡顿明显，退路是改用第 2.1 节否决的方案二：`ChildPages` 留在 `ChildStack` 外，起点改用
+`sharedElementWithCallerManagedVisibility`。该方案零状态丢失、零重组成本，代价是需手动管理
+`visible` 并在转场结束后移除退场副本。切换退路不影响其它设计：转场 5（设置 → 子页）两端本就在栈内，
+第 3、7、8 节（依赖、结构、搜索改造）也都保持不变。
 
 ## 11. 验证策略
 
