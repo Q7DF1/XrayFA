@@ -55,13 +55,13 @@ import com.android.xrayfa.shared.navigation.RootTab
 import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.resources.*
 import com.android.xrayfa.shared.ui.chrome.SharedListScaffold
-import com.android.xrayfa.shared.ui.config.ActualConfigSearchFab
 import com.android.xrayfa.shared.ui.config.OverlayScrollPending
 import com.android.xrayfa.shared.ui.config.SharedConfigImportMenu
 import com.android.xrayfa.shared.ui.config.shouldCommitOverlayScroll
 import com.android.xrayfa.shared.ui.config.SharedConfigFilterBar
 import com.android.xrayfa.shared.ui.config.SharedConfigSection
 import com.android.xrayfa.shared.ui.config.SharedEditScreen
+import com.android.xrayfa.shared.ui.config.SharedSearchScreen
 import com.android.xrayfa.shared.ui.home.HomeTopBar
 import com.android.xrayfa.shared.ui.nav.FloatingNavBottomFade
 import com.android.xrayfa.shared.ui.nav.FloatingNavBottomMargin
@@ -98,16 +98,9 @@ fun RootContent(
     val stack by component.stack.subscribeAsState()
     val stackIdle = stack.active.configuration is RootStackConfig.Idle
     val selectedTab = pages.items.getOrNull(pages.selectedIndex)?.configuration ?: RootTab.Home
-    var searchExpandedCoversNav by remember { mutableStateOf(false) }
-    var requestOpenSearch by remember { mutableStateOf(false) }
-    val showBottomNav = stackIdle && !searchExpandedCoversNav
+    val showBottomNav = stackIdle
     val configLabels = rememberConfigUiLabels()
-
-    LaunchedEffect(selectedTab) {
-        if (selectedTab != RootTab.Config) {
-            searchExpandedCoversNav = false
-        }
-    }
+    var pendingOverlayScroll by remember { mutableStateOf<OverlayScrollPending?>(null) }
 
     Box(
         modifier = modifier.fillMaxSize(),
@@ -147,10 +140,8 @@ fun RootContent(
                         onOpenNodeEdit = component::openNodeEdit,
                         onOpenSubscriptions = component::openSubscriptions,
                         onOpenQrScanner = component::openQrScanner,
-                        onSearchExpanded = { searchExpandedCoversNav = it },
-                        forceCollapseSearch = selectedTab != RootTab.Config,
-                        openSearch = requestOpenSearch,
-                        onOpenSearchConsumed = { requestOpenSearch = false },
+                        pendingOverlayScroll = pendingOverlayScroll,
+                        onPendingOverlayScrollHandled = { pendingOverlayScroll = null },
                     )
             }
         }
@@ -214,6 +205,26 @@ fun RootContent(
                         onBack = component::navigateBack,
                         labels = routeSettingsLabels,
                     )
+                RootComponent.StackChild.Search -> {
+                    val cfg = configComponent
+                    if (cfg != null) {
+                        SharedSearchScreen(
+                            component = cfg,
+                            labels = configLabels,
+                            backContentDescription = settingsLabels.cancelLabel,
+                            onBack = component::navigateBack,
+                            onResultChosen = { nodeId ->
+                                pendingOverlayScroll =
+                                    OverlayScrollPending(
+                                        nodeId = nodeId,
+                                        nodesAtTap = cfg.state.value.nodes,
+                                        queryWasBlankAtTap = cfg.state.value.searchQuery.isBlank(),
+                                    )
+                            },
+                            modifier = fill,
+                        )
+                    }
+                }
                 is RootComponent.StackChild.NodeEdit -> {
                     val latestNode = configComponent?.nodeById(instance.nodeId)
                     val nodeState = remember(instance.nodeId) { mutableStateOf<Node?>(null) }
@@ -278,10 +289,7 @@ fun RootContent(
                             modifier = Modifier.size(26.dp),
                         )
                     },
-                    onTrailingClick = {
-                        requestOpenSearch = true
-                        component.selectTab(RootTab.Config)
-                    },
+                    onTrailingClick = component::openSearch,
                     modifier =
                         Modifier
                             .align(Alignment.BottomCenter)
@@ -300,10 +308,8 @@ private fun ConfigTabScreen(
     onOpenNodeEdit: (Int) -> Unit,
     onOpenSubscriptions: () -> Unit,
     onOpenQrScanner: () -> Unit,
-    onSearchExpanded: (Boolean) -> Unit,
-    forceCollapseSearch: Boolean,
-    openSearch: Boolean,
-    onOpenSearchConsumed: () -> Unit,
+    pendingOverlayScroll: OverlayScrollPending?,
+    onPendingOverlayScrollHandled: () -> Unit,
 ) {
     val platformHooks = LocalPlatformRootHooks.current
     val configLabels = rememberConfigUiLabels()
@@ -312,7 +318,6 @@ private fun ConfigTabScreen(
     val configBottomClearance = rememberFloatingNavClearance()
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-    var pendingOverlayScroll by remember { mutableStateOf<OverlayScrollPending?>(null) }
     var shareNode by remember { mutableStateOf<Node?>(null) }
     var showBugReport by remember { mutableStateOf(false) }
 
@@ -325,7 +330,7 @@ private fun ConfigTabScreen(
         if (index >= 0) {
             listState.animateScrollToItem(index)
         }
-        pendingOverlayScroll = null
+        onPendingOverlayScrollHandled()
     }
 
     SharedListScaffold(
@@ -409,50 +414,26 @@ private fun ConfigTabScreen(
             )
         },
     ) { innerPadding ->
-        Box(
+        SharedConfigSection(
+            component = component,
             modifier =
                 Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
-        ) {
-            SharedConfigSection(
-                component = component,
-                modifier = Modifier.fillMaxSize(),
-                labels = configLabels,
-                listState = listState,
-                showFilterBar = false,
-                listContentPadding = PaddingValues(bottom = configBottomClearance),
-                nodeDelayMap = configState.nodeDelayMap,
-                onNodeSelected = { node ->
-                    component.onSelectNode(node.id)
-                    onNodeSelectedNavigateHome()
-                },
-                onEmptyAddClick = { onOpenNodeEdit(0) },
-                onEditNode = { node -> onOpenNodeEdit(node.id) },
-                onDeleteNode = component::onShowDeleteNode,
-                onShareNode = { node -> shareNode = node },
-            )
-            ActualConfigSearchFab(
-                searchQuery = configState.searchQuery,
-                nodes = configState.nodes,
-                searchLabel = configLabels.searchLabel,
-                searchNoResultsLabel = configLabels.searchNoResultsLabel,
-                onSearch = component::onSearch,
-                onSearchExpanded = onSearchExpanded,
-                onResultChosen = { nodeId ->
-                    pendingOverlayScroll =
-                        OverlayScrollPending(
-                            nodeId = nodeId,
-                            nodesAtTap = configState.nodes,
-                            queryWasBlankAtTap = configState.searchQuery.isBlank(),
-                        )
-                },
-                forceCollapsed = forceCollapseSearch,
-                showCollapsedTrigger = false,
-                openSearch = openSearch,
-                onOpenSearchConsumed = onOpenSearchConsumed,
-            )
-        }
+            labels = configLabels,
+            listState = listState,
+            showFilterBar = false,
+            listContentPadding = PaddingValues(bottom = configBottomClearance),
+            nodeDelayMap = configState.nodeDelayMap,
+            onNodeSelected = { node ->
+                component.onSelectNode(node.id)
+                onNodeSelectedNavigateHome()
+            },
+            onEmptyAddClick = { onOpenNodeEdit(0) },
+            onEditNode = { node -> onOpenNodeEdit(node.id) },
+            onDeleteNode = component::onShowDeleteNode,
+            onShareNode = { node -> shareNode = node },
+        )
     }
 
     configState.deleteTarget?.let { node ->

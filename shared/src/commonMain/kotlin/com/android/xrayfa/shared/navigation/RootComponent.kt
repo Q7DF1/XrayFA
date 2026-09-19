@@ -36,6 +36,8 @@ interface RootComponent : BackHandlerOwner {
 
     fun openNodeEdit(nodeId: Int)
 
+    fun openSearch()
+
     fun navigateBack()
 
     fun openAgentScreen(screen: AgentScreen)
@@ -54,6 +56,7 @@ interface RootComponent : BackHandlerOwner {
         data object Apps : StackChild()
         data object Logcat : StackChild()
         data object RouteSettings : StackChild()
+        data object Search : StackChild()
         class NodeEdit(val nodeId: Int) : StackChild()
     }
 }

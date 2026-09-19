@@ -12,6 +12,7 @@ sealed interface RootStackConfig {
     @Serializable data object Apps : RootStackConfig
     @Serializable data object Logcat : RootStackConfig
     @Serializable data object RouteSettings : RootStackConfig
+    @Serializable data object Search : RootStackConfig
     @Serializable data class NodeEdit(val nodeId: Int) : RootStackConfig
 }
 
