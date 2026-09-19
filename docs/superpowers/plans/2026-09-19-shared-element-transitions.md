@@ -17,7 +17,8 @@
 - Kotlin 保持 `2.1.10`、KSP 保持 `2.1.10-1.0.31`、AGP 保持 `8.10.0`、`appfunctions` 保持 `1.0.0-alpha08`（`libs.versions.toml` 中已有注释说明 alpha09+ 需要 compileSdk 37 / AGP 9.1）。**本计划不得改动这四项。**
 - `androidApp` 的 `composeBom = "2026.03.00"` 与 `material3 = "1.5.0-alpha15"` 不动。
 - `androidApp/src/main/java/com/android/xrayfa/ui/component/SettingsScreen.kt`、`AppsScreen.kt`、`LogcatScreen.kt` 是已标 `@Deprecated` 的 Navigation3 遗留屏幕，**不在本计划范围内，不要改动**。
-- 所有 shared transition API 使用 Compose 1.8+ 的新参数名：`sharedContentState =`、`placeholderSize`、`ResizeMode.scaleToBounds(...)`。需要 `@OptIn(ExperimentalSharedTransitionApi::class)`。
+- 所有 shared transition API 使用 `sharedContentState =` / `placeholderSize` 这套新参数名，并需要 `@OptIn(ExperimentalSharedTransitionApi::class)`。
+- **resize mode 的正确写法是 `SharedTransitionScope.ResizeMode.ScaleToBounds()`** —— 大写开头且必须调用。小写的 `scaleToBounds()` 在本项目锁定的 Compose 版本上**不存在**（Task 1 的编译探针已实测确认：`Unresolved reference 'scaleToBounds'`）。
 - Windows 环境下 Gradle 命令用 `.\gradlew.bat`。PowerShell 5.1 **不支持 `&&`**，多条命令用 `;` 分隔。
 - iOS 目标默认只在 macOS 启用（`enableIosTargets`）。在 Windows 上无法编译 iOS，但**所有 `commonMain` 改动不得引入 Android 专有 API**，且 `iosMain` 的 `IosPlatformRootHooks` 必须与接口变更同步修改。
 
@@ -220,7 +221,7 @@ private fun Probe(component: RootComponent) {
                                         visibilityThreshold = Rect.VisibilityThreshold,
                                     )
                                 },
-                                resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(),
+                                resizeMode = SharedTransitionScope.ResizeMode.ScaleToBounds(),
                             )
                             .renderInSharedTransitionScopeOverlay(zIndexInOverlay = 1f)
                             .then(with(avScope) { Modifier.animateEnterExit() }),
@@ -1504,7 +1505,7 @@ fun Modifier.sharedContainer(
                 enter = fadeIn(XrayMotion.EffectsFloat),
                 exit = fadeOut(XrayMotion.EffectsFloat),
                 boundsTransform = XrayMotion.ContainerBounds,
-                resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(),
+                resizeMode = SharedTransitionScope.ResizeMode.ScaleToBounds(),
             )
             .background(containerColor, shape)
             .clip(shape)

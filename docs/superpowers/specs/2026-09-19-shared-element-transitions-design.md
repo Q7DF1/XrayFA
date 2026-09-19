@@ -96,7 +96,8 @@ materialIcons = "1.7.3"          # 新增；显式固定
 - CMP 1.8.2 起移除了 `material-icons-core` 的隐式传递依赖，`compose.materialIconsExtended` 也已
   标记废弃（固定在 1.7.3 且不再更新）。显式声明这两个产物即可，**代码中的 `Icons.*` 用法完全不用迁移**。
 - Compose 1.8 对 shared transition API 做过参数重命名。因为升到 1.9.4，统一使用新名：
-  `sharedContentState =`、`placeholderSize`、`ResizeMode.scaleToBounds(...)`。
+  `sharedContentState =`、`placeholderSize`、`ResizeMode.ScaleToBounds(...)`
+  （大写开头且必须调用；小写的 `scaleToBounds()` 在本项目锁定的版本上不存在，已由编译探针实测确认）。
   `@OptIn(ExperimentalSharedTransitionApi::class)` 在 1.9.4 仍需要（1.10 才转正）。
 
 ## 4. `RootContent` 结构重构
@@ -226,7 +227,7 @@ fun Modifier.sharedContainer(
                 animatedVisibilityScope = avScope,
                 enter = fadeIn(XrayMotion.effectsSpec()),
                 exit = fadeOut(XrayMotion.effectsSpec()),
-                resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(),
+                resizeMode = SharedTransitionScope.ResizeMode.ScaleToBounds(),
                 boundsTransform = XrayMotion.containerBoundsTransform(),
             )
             // 背景与裁剪必须在 sharedBounds 之后，才会跟着元素进入 overlay
