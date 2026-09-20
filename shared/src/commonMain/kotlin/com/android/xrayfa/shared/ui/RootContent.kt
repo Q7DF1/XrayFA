@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -55,6 +54,7 @@ import com.android.xrayfa.shared.navigation.RootTab
 import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.resources.*
 import com.android.xrayfa.shared.ui.chrome.SharedListScaffold
+import com.android.xrayfa.shared.ui.config.ConfigTabChromeState
 import com.android.xrayfa.shared.ui.config.OverlayScrollPending
 import com.android.xrayfa.shared.ui.config.SharedConfigImportMenu
 import com.android.xrayfa.shared.ui.config.shouldCommitOverlayScroll
@@ -62,6 +62,7 @@ import com.android.xrayfa.shared.ui.config.SharedConfigFilterBar
 import com.android.xrayfa.shared.ui.config.SharedConfigSection
 import com.android.xrayfa.shared.ui.config.SharedEditScreen
 import com.android.xrayfa.shared.ui.config.SharedSearchScreen
+import com.android.xrayfa.shared.ui.config.rememberConfigTabChromeState
 import com.android.xrayfa.shared.ui.home.HomeTopBar
 import com.android.xrayfa.shared.ui.nav.FloatingNavBottomFade
 import com.android.xrayfa.shared.ui.nav.FloatingNavBottomMargin
@@ -100,7 +101,7 @@ fun RootContent(
     val selectedTab = pages.items.getOrNull(pages.selectedIndex)?.configuration ?: RootTab.Home
     val showBottomNav = stackIdle
     val configLabels = rememberConfigUiLabels()
-    var pendingOverlayScroll by remember { mutableStateOf<OverlayScrollPending?>(null) }
+    val configChromeState = rememberConfigTabChromeState()
 
     Box(
         modifier = modifier.fillMaxSize(),
@@ -136,12 +137,11 @@ fun RootContent(
                 is RootComponent.Child.Config ->
                     ConfigTabScreen(
                         component = child.component,
+                        chromeState = configChromeState,
                         onNodeSelectedNavigateHome = { component.selectTab(RootTab.Home) },
                         onOpenNodeEdit = component::openNodeEdit,
                         onOpenSubscriptions = component::openSubscriptions,
                         onOpenQrScanner = component::openQrScanner,
-                        pendingOverlayScroll = pendingOverlayScroll,
-                        onPendingOverlayScrollHandled = { pendingOverlayScroll = null },
                     )
             }
         }
@@ -214,7 +214,7 @@ fun RootContent(
                             backContentDescription = settingsLabels.cancelLabel,
                             onBack = component::navigateBack,
                             onResultChosen = { nodeId ->
-                                pendingOverlayScroll =
+                                configChromeState.pendingOverlayScroll =
                                     OverlayScrollPending(
                                         nodeId = nodeId,
                                         nodesAtTap = cfg.state.value.nodes,
@@ -304,33 +304,31 @@ fun RootContent(
 @Composable
 private fun ConfigTabScreen(
     component: ConfigComponent,
+    chromeState: ConfigTabChromeState,
     onNodeSelectedNavigateHome: () -> Unit,
     onOpenNodeEdit: (Int) -> Unit,
     onOpenSubscriptions: () -> Unit,
     onOpenQrScanner: () -> Unit,
-    pendingOverlayScroll: OverlayScrollPending?,
-    onPendingOverlayScrollHandled: () -> Unit,
 ) {
     val platformHooks = LocalPlatformRootHooks.current
     val configLabels = rememberConfigUiLabels()
     val settingsLabels = rememberSettingsUiLabels()
     val configState by component.state.subscribeAsState()
     val configBottomClearance = rememberFloatingNavClearance()
-    val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     var shareNode by remember { mutableStateOf<Node?>(null) }
     var showBugReport by remember { mutableStateOf(false) }
 
-    LaunchedEffect(pendingOverlayScroll, configState.searchQuery, configState.nodes) {
-        val pending = pendingOverlayScroll ?: return@LaunchedEffect
+    LaunchedEffect(chromeState.pendingOverlayScroll, configState.searchQuery, configState.nodes) {
+        val pending = chromeState.pendingOverlayScroll ?: return@LaunchedEffect
         if (!shouldCommitOverlayScroll(pending, configState.searchQuery, configState.nodes)) {
             return@LaunchedEffect
         }
         val index = configState.nodes.indexOfFirst { it.id == pending.nodeId }
         if (index >= 0) {
-            listState.animateScrollToItem(index)
+            chromeState.listState.animateScrollToItem(index)
         }
-        onPendingOverlayScrollHandled()
+        chromeState.pendingOverlayScroll = null
     }
 
     SharedListScaffold(
@@ -338,6 +336,7 @@ private fun ConfigTabScreen(
         largeTitle = false,
         collapseTitleOnScroll = true,
         titleExpandKey = configState.selectedFilterId,
+        titleCollapseState = chromeState.titleCollapseState,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         footerUnderBar = {
             SharedConfigFilterBar(
@@ -384,7 +383,7 @@ private fun ConfigTabScreen(
                             scope.launch {
                                 val index = configState.nodes.indexOfFirst { it.selected }
                                 if (index >= 0) {
-                                    listState.animateScrollToItem(index)
+                                    chromeState.listState.animateScrollToItem(index)
                                 }
                             }
                         },
@@ -421,7 +420,7 @@ private fun ConfigTabScreen(
                     .fillMaxSize()
                     .padding(innerPadding),
             labels = configLabels,
-            listState = listState,
+            listState = chromeState.listState,
             showFilterBar = false,
             listContentPadding = PaddingValues(bottom = configBottomClearance),
             nodeDelayMap = configState.nodeDelayMap,

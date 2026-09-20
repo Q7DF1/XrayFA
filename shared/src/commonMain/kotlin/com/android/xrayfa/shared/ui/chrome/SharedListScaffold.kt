@@ -53,6 +53,7 @@ fun SharedListScaffold(
     collapseTitleOnScroll: Boolean = false,
     lockCollapsedTitle: Boolean = false,
     titleExpandKey: Any? = null,
+    titleCollapseState: TitleCollapseState? = null,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
     footerUnderBar: @Composable () -> Unit = {},
@@ -64,7 +65,7 @@ fun SharedListScaffold(
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (innerBottomPadding: androidx.compose.foundation.layout.PaddingValues) -> Unit,
 ) {
-    val titleCollapse = rememberTitleCollapseState()
+    val titleCollapse = titleCollapseState ?: rememberTitleCollapseState()
     val density = LocalDensity.current
     LaunchedEffect(density) {
         titleCollapse.maxHeightPx = with(density) { CollapsingTitleHeight.toPx() }
