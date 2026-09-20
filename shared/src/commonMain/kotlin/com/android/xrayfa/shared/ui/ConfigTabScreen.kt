@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.BugReport
@@ -105,7 +106,15 @@ internal fun ConfigTabScreen(
             )
         },
         actions = {
-            IconButton(onClick = { onOpenNodeEdit(0) }) {
+            IconButton(
+                onClick = { onOpenNodeEdit(0) },
+                modifier =
+                    Modifier.sharedContainer(
+                        destination = TransitionDestinations.NODE_EDIT_NEW,
+                        shape = CircleShape,
+                        containerColor = Color.Transparent,
+                    ),
+            ) {
                 Icon(
                     imageVector = Icons.Filled.Edit,
                     contentDescription = configLabels.createConfigLabel,
@@ -113,6 +122,19 @@ internal fun ConfigTabScreen(
             }
             SharedConfigImportMenu(
                 onImportFromClipboard = component::onImportFromClipboard,
+                // 一个按钮开两个目的地（菜单里的订阅与扫码），key 不同，所以叠两层。
+                modifier =
+                    Modifier
+                        .sharedContainer(
+                            destination = TransitionDestinations.SUBSCRIPTIONS,
+                            shape = CircleShape,
+                            containerColor = Color.Transparent,
+                        )
+                        .sharedContainer(
+                            destination = TransitionDestinations.QR,
+                            shape = CircleShape,
+                            containerColor = Color.Transparent,
+                        ),
                 onManageSubscriptions = onOpenSubscriptions,
                 onScanQr = onOpenQrScanner,
                 importFromClipboardLabel = stringResource(Res.string.clipboard_import),

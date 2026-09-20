@@ -130,7 +130,12 @@ fun RootContent(
                                 onAppsClick = component::openApps,
                                 onLogcatClick = component::openLogcat,
                                 onRouteClick = component::openRouteSettings,
-                                modifier = fill,
+                                modifier =
+                                    fill.sharedContainer(
+                                        destination = TransitionDestinations.SETTINGS,
+                                        shape = rememberDestinationShape(startCorner = 20.dp),
+                                        containerColor = MaterialTheme.colorScheme.background,
+                                    ),
                             )
                         is RootComponent.StackChild.Subscriptions ->
                             SharedSubscriptionScreen(
@@ -142,7 +147,12 @@ fun RootContent(
                                     component.navigateBack()
                                 },
                                 onScanQr = component::openQrScanner,
-                                modifier = fill,
+                                modifier =
+                                    fill.sharedContainer(
+                                        destination = TransitionDestinations.SUBSCRIPTIONS,
+                                        shape = rememberDestinationShape(startCorner = 20.dp),
+                                        containerColor = MaterialTheme.colorScheme.background,
+                                    ),
                             )
                         RootComponent.StackChild.QrScanner ->
                             platformHooks.QrScannerScreen(
@@ -153,6 +163,12 @@ fun RootContent(
                                 onBack = component::navigateBack,
                                 title = settingsLabels.qrScannerTitle,
                                 permissionRequiredMessage = settingsLabels.qrPermissionRequired,
+                                modifier =
+                                    fill.sharedContainer(
+                                        destination = TransitionDestinations.QR,
+                                        shape = rememberDestinationShape(startCorner = 20.dp),
+                                        containerColor = MaterialTheme.colorScheme.background,
+                                    ),
                             )
                         RootComponent.StackChild.Apps ->
                             platformHooks.AppsScreen(
@@ -241,7 +257,13 @@ fun RootContent(
                                     fill.sharedContainer(
                                         destination =
                                             TransitionDestinations.nodeEdit(instance.nodeId),
-                                        shape = RectangleShape,
+                                        // 起点是列表里的矩形行，或顶栏那个圆形 Edit 按钮。
+                                        shape =
+                                            if (instance.nodeId > 0) {
+                                                RectangleShape
+                                            } else {
+                                                rememberDestinationShape(startCorner = 20.dp)
+                                            },
                                         containerColor = MaterialTheme.colorScheme.background,
                                     ),
                             )
