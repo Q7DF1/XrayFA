@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
@@ -21,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.model.Node
@@ -47,6 +49,7 @@ import com.android.xrayfa.shared.ui.transitions.LocalSharedTransitionScope
 import com.android.xrayfa.shared.ui.transitions.LocalStackAnimationScope
 import com.android.xrayfa.shared.ui.transitions.TransitionDestinations
 import com.android.xrayfa.shared.ui.transitions.floatingNavOverlay
+import com.android.xrayfa.shared.ui.transitions.rememberDestinationShape
 import com.android.xrayfa.shared.ui.transitions.sharedContainer
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.experimental.stack.ChildStack
@@ -201,7 +204,13 @@ fun RootContent(
                                                     cfg.state.value.searchQuery.isBlank(),
                                             )
                                     },
-                                    modifier = fill,
+                                    modifier =
+                                        fill.sharedContainer(
+                                            destination = TransitionDestinations.SEARCH,
+                                            // 28dp 对应 64dp 圆形按钮的半径，起点看起来才是圆的。
+                                            shape = rememberDestinationShape(startCorner = 28.dp),
+                                            containerColor = MaterialTheme.colorScheme.surface,
+                                        ),
                                 )
                             }
                         }
@@ -303,12 +312,26 @@ private fun IdleContent(
                     )
                 },
                 trailingContent = {
-                    Icon(
-                        imageVector = Icons.Outlined.Search,
-                        contentDescription = configLabels.searchLabel,
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        modifier = Modifier.size(26.dp),
-                    )
+                    Box(
+                        modifier =
+                            Modifier
+                                .sharedContainer(
+                                    destination = TransitionDestinations.SEARCH,
+                                    shape = CircleShape,
+                                    // `XrayFloatingNav` 自己的 Surface 已经画了圆形底色，
+                                    // 再叠一层会变色。
+                                    containerColor = Color.Transparent,
+                                )
+                                .fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Search,
+                            contentDescription = configLabels.searchLabel,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            modifier = Modifier.size(26.dp),
+                        )
+                    }
                 },
                 onTrailingClick = component::openSearch,
                 modifier =
