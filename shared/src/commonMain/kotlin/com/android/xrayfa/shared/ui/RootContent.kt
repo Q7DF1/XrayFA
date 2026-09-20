@@ -1,10 +1,5 @@
 package com.android.xrayfa.shared.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +25,8 @@ import com.android.xrayfa.shared.navigation.RootComponent
 import com.android.xrayfa.shared.navigation.RootStackConfig
 import com.android.xrayfa.shared.navigation.RootTab
 import com.android.xrayfa.shared.resources.*
+import com.android.xrayfa.shared.ui.config.ConfigTabChromeState
+import com.android.xrayfa.shared.ui.config.ConfigUiLabels
 import com.android.xrayfa.shared.ui.config.OverlayScrollPending
 import com.android.xrayfa.shared.ui.config.SharedEditScreen
 import com.android.xrayfa.shared.ui.config.SharedSearchScreen
@@ -43,12 +40,15 @@ import com.android.xrayfa.shared.ui.platform.LocalPlatformRootHooks
 import com.android.xrayfa.shared.ui.settings.SharedRouteSettingsScreen
 import com.android.xrayfa.shared.ui.subscription.SharedSubscriptionScreen
 import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.extensions.compose.experimental.stack.ChildStack
+import com.arkivanov.decompose.extensions.compose.experimental.stack.animation.PredictiveBackParams
+import com.arkivanov.decompose.extensions.compose.experimental.stack.animation.fade
+import com.arkivanov.decompose.extensions.compose.experimental.stack.animation.plus
+import com.arkivanov.decompose.extensions.compose.experimental.stack.animation.scale
+import com.arkivanov.decompose.extensions.compose.experimental.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
-import com.arkivanov.decompose.extensions.compose.stack.Children
-import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.predictiveBackAnimation
-import com.arkivanov.decompose.extensions.compose.stack.animation.slide
-import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
+import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.materialPredictiveBackAnimatable
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.jetbrains.compose.resources.stringResource
 import org.koin.mp.KoinPlatform
@@ -59,11 +59,8 @@ fun RootContent(
     component: RootComponent,
     modifier: Modifier = Modifier,
 ) {
-    val pages by component.pages.subscribeAsState()
     val stack by component.stack.subscribeAsState()
     val stackIdle = stack.active.configuration is RootStackConfig.Idle
-    val selectedTab = pages.items.getOrNull(pages.selectedIndex)?.configuration ?: RootTab.Home
-    val showBottomNav = stackIdle
     val configLabels = rememberConfigUiLabels()
     val configChromeState = rememberConfigTabChromeState()
 
@@ -73,6 +70,7 @@ fun RootContent(
         val platformHooks = LocalPlatformRootHooks.current
         val settingsLabels = rememberSettingsUiLabels()
         val routeSettingsLabels = rememberRouteSettingsUiLabels()
+        val pages by component.pages.subscribeAsState()
         val configComponent =
             pages.items
                 .map { it.instance }
@@ -86,47 +84,33 @@ fun RootContent(
             )
         }
 
-        ChildPages(
-            modifier = Modifier.fillMaxSize(),
-            pages = component.pages,
-            onPageSelected = component::onPageSelected,
-            scrollAnimation = PagesScrollAnimation.Default,
-        ) { _, child ->
-            when (child) {
-                is RootComponent.Child.Home ->
-                    HomeTabScreen(
-                        component = child.component,
-                        onSettingsClick = component::openSettings,
-                    )
-                is RootComponent.Child.Config ->
-                    ConfigTabScreen(
-                        component = child.component,
-                        chromeState = configChromeState,
-                        onNodeSelectedNavigateHome = { component.selectTab(RootTab.Home) },
-                        onOpenNodeEdit = component::openNodeEdit,
-                        onOpenSubscriptions = component::openSubscriptions,
-                        onOpenQrScanner = component::openQrScanner,
-                    )
-            }
-        }
-
-        Children(
+        ChildStack(
             stack = component.stack,
             modifier = Modifier.fillMaxSize(),
             animation =
-                if (platformHooks.usesDecomposePredictiveBack) {
-                    predictiveBackAnimation(
-                        backHandler = component.backHandler,
-                        fallbackAnimation = stackAnimation(slide()),
-                        onBack = component::navigateBack,
-                    )
-                } else {
-                    stackAnimation(slide())
-                },
+                stackAnimation(
+                    animator = fade() + scale(),
+                    predictiveBackParams = {
+                        if (!platformHooks.usesDecomposePredictiveBack) {
+                            null
+                        } else {
+                            PredictiveBackParams(
+                                backHandler = component.backHandler,
+                                onBack = component::navigateBack,
+                                animatable = ::materialPredictiveBackAnimatable,
+                            )
+                        }
+                    },
+                ),
         ) { child ->
             val fill = Modifier.fillMaxSize()
             when (val instance = child.instance) {
-                RootComponent.StackChild.Idle -> Unit
+                RootComponent.StackChild.Idle ->
+                    IdleContent(
+                        component = component,
+                        chromeState = configChromeState,
+                        configLabels = configLabels,
+                    )
                 RootComponent.StackChild.Settings ->
                     SettingsTabScreen(
                         component = component.settingsComponent,
@@ -134,6 +118,7 @@ fun RootContent(
                         onAppsClick = component::openApps,
                         onLogcatClick = component::openLogcat,
                         onRouteClick = component::openRouteSettings,
+                        modifier = fill,
                     )
                 is RootComponent.StackChild.Subscriptions ->
                     SharedSubscriptionScreen(
@@ -145,6 +130,7 @@ fun RootContent(
                             component.navigateBack()
                         },
                         onScanQr = component::openQrScanner,
+                        modifier = fill,
                     )
                 RootComponent.StackChild.QrScanner ->
                     platformHooks.QrScannerScreen(
@@ -168,6 +154,7 @@ fun RootContent(
                         component = component.settingsComponent,
                         onBack = component::navigateBack,
                         labels = routeSettingsLabels,
+                        modifier = fill,
                     )
                 RootComponent.StackChild.Search -> {
                     val cfg = configComponent
@@ -216,51 +203,82 @@ fun RootContent(
             }
         }
 
-        AnimatedVisibility(
-            visible = showBottomNav,
-            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
-            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
-        ) {
-            val navItems =
-                listOf(
-                    FloatingNavItem(
-                        id = RootTab.Config.name,
-                        icon = RootTab.Config.toFloatingNavItem().icon,
-                        label = stringResource(Res.string.config),
-                    ),
-                    FloatingNavItem(
-                        id = RootTab.Home.name,
-                        icon = RootTab.Home.toFloatingNavItem().icon,
-                        label = stringResource(Res.string.home),
-                    ),
-                )
-            Box(modifier = Modifier.fillMaxWidth()) {
-                FloatingNavBottomFade(modifier = Modifier.align(Alignment.BottomCenter))
-                XrayFloatingNav(
-                    items = navItems,
-                    selectedId = selectedTab.name,
-                    onItemSelected = { item ->
-                        component.selectTab(
-                            if (item.id == RootTab.Config.name) RootTab.Config else RootTab.Home,
-                        )
-                    },
-                    trailingContent = {
-                        Icon(
-                            imageVector = Icons.Outlined.Search,
-                            contentDescription = configLabels.searchLabel,
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            modifier = Modifier.size(26.dp),
-                        )
-                    },
-                    onTrailingClick = component::openSearch,
-                    modifier =
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .windowInsetsPadding(WindowInsets.navigationBars)
-                            .padding(bottom = FloatingNavBottomMargin, start = 16.dp, end = 16.dp),
-                )
+    }
+}
+
+@OptIn(ExperimentalDecomposeApi::class)
+@Composable
+private fun IdleContent(
+    component: RootComponent,
+    chromeState: ConfigTabChromeState,
+    configLabels: ConfigUiLabels,
+) {
+    val pages by component.pages.subscribeAsState()
+    val selectedTab = pages.items.getOrNull(pages.selectedIndex)?.configuration ?: RootTab.Home
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        ChildPages(
+            modifier = Modifier.fillMaxSize(),
+            pages = component.pages,
+            onPageSelected = component::onPageSelected,
+            scrollAnimation = PagesScrollAnimation.Default,
+        ) { _, child ->
+            when (child) {
+                is RootComponent.Child.Home ->
+                    HomeTabScreen(
+                        component = child.component,
+                        onSettingsClick = component::openSettings,
+                    )
+                is RootComponent.Child.Config ->
+                    ConfigTabScreen(
+                        component = child.component,
+                        chromeState = chromeState,
+                        onNodeSelectedNavigateHome = { component.selectTab(RootTab.Home) },
+                        onOpenNodeEdit = component::openNodeEdit,
+                        onOpenSubscriptions = component::openSubscriptions,
+                        onOpenQrScanner = component::openQrScanner,
+                    )
             }
+        }
+
+        val navItems =
+            listOf(
+                FloatingNavItem(
+                    id = RootTab.Config.name,
+                    icon = RootTab.Config.toFloatingNavItem().icon,
+                    label = stringResource(Res.string.config),
+                ),
+                FloatingNavItem(
+                    id = RootTab.Home.name,
+                    icon = RootTab.Home.toFloatingNavItem().icon,
+                    label = stringResource(Res.string.home),
+                ),
+            )
+        Box(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()) {
+            FloatingNavBottomFade(modifier = Modifier.align(Alignment.BottomCenter))
+            XrayFloatingNav(
+                items = navItems,
+                selectedId = selectedTab.name,
+                onItemSelected = { item ->
+                    component.selectTab(
+                        if (item.id == RootTab.Config.name) RootTab.Config else RootTab.Home,
+                    )
+                },
+                trailingContent = {
+                    Icon(
+                        imageVector = Icons.Outlined.Search,
+                        contentDescription = configLabels.searchLabel,
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        modifier = Modifier.size(26.dp),
+                    )
+                },
+                onTrailingClick = component::openSearch,
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .windowInsetsPadding(WindowInsets.navigationBars)
+                        .padding(bottom = FloatingNavBottomMargin, start = 16.dp, end = 16.dp),
+            )
         }
     }
 }

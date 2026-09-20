@@ -19,7 +19,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,7 +57,14 @@ fun HomeConnectButton(
     val scale = remember { Animatable(1.0f) }
     val interactionSource = remember { MutableInteractionSource() }
 
+    // Idle 子节点在压栈时会被释放，返回时是一次全新组合。没有这个保护，每次从设置页返回
+    // 都会重放一次入场弹跳。
+    var skipInitialBounce by remember { mutableStateOf(true) }
     LaunchedEffect(isConnected) {
+        if (skipInitialBounce) {
+            skipInitialBounce = false
+            return@LaunchedEffect
+        }
         scale.animateTo(
             targetValue = 1.2f,
             animationSpec = tween(durationMillis = 150),

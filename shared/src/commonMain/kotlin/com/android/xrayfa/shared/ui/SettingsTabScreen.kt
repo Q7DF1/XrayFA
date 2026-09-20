@@ -29,12 +29,14 @@ internal fun SettingsTabScreen(
     onAppsClick: () -> Unit,
     onLogcatClick: () -> Unit,
     onRouteClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val settingsLabels = rememberSettingsUiLabels()
     val platformHooks = LocalPlatformRootHooks.current
 
     SharedListScaffold(
         title = stringResource(Res.string.settings_title),
+        modifier = modifier,
         lockCollapsedTitle = true,
         navigationIcon = {
             IconButton(onClick = onBack) {
