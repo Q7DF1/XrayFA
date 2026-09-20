@@ -9,8 +9,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.resources.*
@@ -20,6 +22,8 @@ import com.android.xrayfa.shared.ui.settings.SharedSettingsAboutSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsGeneralSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsPlatformSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsSubscriptionSection
+import com.android.xrayfa.shared.ui.transitions.TransitionDestinations
+import com.android.xrayfa.shared.ui.transitions.sharedContainer
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -66,11 +70,30 @@ internal fun SettingsTabScreen(
                     with(platformHooks) { SettingsNetworkExtras(component) }
                 },
             )
+            val rowColor = MaterialTheme.colorScheme.surfaceContainerLow
             SharedSettingsPlatformSection(
                 labels = settingsLabels,
                 onAppsClick = onAppsClick,
                 onLogcatClick = onLogcatClick,
                 onRouteClick = onRouteClick,
+                appsModifier =
+                    Modifier.sharedContainer(
+                        destination = TransitionDestinations.APPS,
+                        shape = RectangleShape,
+                        containerColor = rowColor,
+                    ),
+                logcatModifier =
+                    Modifier.sharedContainer(
+                        destination = TransitionDestinations.LOGCAT,
+                        shape = RectangleShape,
+                        containerColor = rowColor,
+                    ),
+                routeModifier =
+                    Modifier.sharedContainer(
+                        destination = TransitionDestinations.ROUTE,
+                        shape = RectangleShape,
+                        containerColor = rowColor,
+                    ),
             )
             SharedSettingsSubscriptionSection(component = component, labels = settingsLabels)
             SharedSettingsAboutSection(component = component, labels = settingsLabels)

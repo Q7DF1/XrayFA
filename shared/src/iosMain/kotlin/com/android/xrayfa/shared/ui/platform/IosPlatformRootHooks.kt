@@ -1,6 +1,7 @@
 package com.android.xrayfa.shared.ui.platform
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
@@ -52,21 +53,27 @@ object IosPlatformRootHooks : PlatformRootHooks {
     override fun AppsScreen(
         component: SettingsComponent,
         onBack: () -> Unit,
+        modifier: Modifier,
     ) {
         val labels = rememberSettingsUiLabels()
         SharedInDevelopmentScreen(
             title = labels.appsTitle,
             message = stringResource(Res.string.in_development_message),
             onBack = onBack,
+            modifier = modifier,
             backContentDescription = labels.cancelLabel,
         )
     }
 
     @Composable
-    override fun LogcatScreen(onBack: () -> Unit) {
+    override fun LogcatScreen(
+        onBack: () -> Unit,
+        modifier: Modifier,
+    ) {
         SharedInProcessAppLogScreen(
             onBack = onBack,
             labels = rememberSettingsUiLabels(),
+            modifier = modifier,
         )
     }
 
@@ -76,13 +83,17 @@ object IosPlatformRootHooks : PlatformRootHooks {
         onBack: () -> Unit,
         title: String,
         permissionRequiredMessage: String,
+        modifier: Modifier,
     ) {
-        SharedQrScannerScreen(
-            onResult = onResult,
-            onBack = onBack,
-            title = title,
-            permissionRequiredMessage = permissionRequiredMessage,
-        )
+        // `SharedQrScannerScreen` 是 expect/actual，没有 modifier 参数；包一层承载共享容器。
+        Box(modifier = modifier) {
+            SharedQrScannerScreen(
+                onResult = onResult,
+                onBack = onBack,
+                title = title,
+                permissionRequiredMessage = permissionRequiredMessage,
+            )
+        }
     }
 
     @Composable

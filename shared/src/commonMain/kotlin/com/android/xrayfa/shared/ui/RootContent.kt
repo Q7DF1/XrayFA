@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.shared.config.NodeFormEditor
@@ -44,7 +45,9 @@ import com.android.xrayfa.shared.ui.settings.SharedRouteSettingsScreen
 import com.android.xrayfa.shared.ui.subscription.SharedSubscriptionScreen
 import com.android.xrayfa.shared.ui.transitions.LocalSharedTransitionScope
 import com.android.xrayfa.shared.ui.transitions.LocalStackAnimationScope
+import com.android.xrayfa.shared.ui.transitions.TransitionDestinations
 import com.android.xrayfa.shared.ui.transitions.floatingNavOverlay
+import com.android.xrayfa.shared.ui.transitions.sharedContainer
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.experimental.stack.ChildStack
 import com.arkivanov.decompose.extensions.compose.experimental.stack.animation.PredictiveBackParams
@@ -152,15 +155,34 @@ fun RootContent(
                             platformHooks.AppsScreen(
                                 component = component.settingsComponent,
                                 onBack = component::navigateBack,
+                                modifier =
+                                    fill.sharedContainer(
+                                        destination = TransitionDestinations.APPS,
+                                        shape = RectangleShape,
+                                        containerColor = MaterialTheme.colorScheme.background,
+                                    ),
                             )
                         RootComponent.StackChild.Logcat ->
-                            platformHooks.LogcatScreen(onBack = component::navigateBack)
+                            platformHooks.LogcatScreen(
+                                onBack = component::navigateBack,
+                                modifier =
+                                    fill.sharedContainer(
+                                        destination = TransitionDestinations.LOGCAT,
+                                        shape = RectangleShape,
+                                        containerColor = MaterialTheme.colorScheme.background,
+                                    ),
+                            )
                         RootComponent.StackChild.RouteSettings ->
                             SharedRouteSettingsScreen(
                                 component = component.settingsComponent,
                                 onBack = component::navigateBack,
                                 labels = routeSettingsLabels,
-                                modifier = fill,
+                                modifier =
+                                    fill.sharedContainer(
+                                        destination = TransitionDestinations.ROUTE,
+                                        shape = RectangleShape,
+                                        containerColor = MaterialTheme.colorScheme.background,
+                                    ),
                             )
                         RootComponent.StackChild.Search -> {
                             val cfg = configComponent
