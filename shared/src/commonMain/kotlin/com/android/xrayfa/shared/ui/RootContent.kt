@@ -1,5 +1,7 @@
 package com.android.xrayfa.shared.ui
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +15,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +42,9 @@ import com.android.xrayfa.shared.ui.nav.toFloatingNavItem
 import com.android.xrayfa.shared.ui.platform.LocalPlatformRootHooks
 import com.android.xrayfa.shared.ui.settings.SharedRouteSettingsScreen
 import com.android.xrayfa.shared.ui.subscription.SharedSubscriptionScreen
+import com.android.xrayfa.shared.ui.transitions.LocalSharedTransitionScope
+import com.android.xrayfa.shared.ui.transitions.LocalStackAnimationScope
+import com.android.xrayfa.shared.ui.transitions.floatingNavOverlay
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.experimental.stack.ChildStack
 import com.arkivanov.decompose.extensions.compose.experimental.stack.animation.PredictiveBackParams
@@ -53,7 +59,7 @@ import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.jetbrains.compose.resources.stringResource
 import org.koin.mp.KoinPlatform
 
-@OptIn(ExperimentalDecomposeApi::class)
+@OptIn(ExperimentalDecomposeApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun RootContent(
     component: RootComponent,
@@ -64,145 +70,149 @@ fun RootContent(
     val configLabels = rememberConfigUiLabels()
     val configChromeState = rememberConfigTabChromeState()
 
-    Box(
-        modifier = modifier.fillMaxSize(),
-    ) {
-        val platformHooks = LocalPlatformRootHooks.current
-        val settingsLabels = rememberSettingsUiLabels()
-        val routeSettingsLabels = rememberRouteSettingsUiLabels()
-        val pages by component.pages.subscribeAsState()
-        val configComponent =
-            pages.items
-                .map { it.instance }
-                .filterIsInstance<RootComponent.Child.Config>()
-                .firstOrNull()
-                ?.component
-        if (!platformHooks.usesDecomposePredictiveBack) {
-            platformHooks.SystemBackHandler(
-                enabled = !stackIdle,
-                onBack = component::navigateBack,
-            )
-        }
+    SharedTransitionLayout(modifier = modifier.fillMaxSize()) {
+        CompositionLocalProvider(LocalSharedTransitionScope provides this) {
+            val platformHooks = LocalPlatformRootHooks.current
+            val settingsLabels = rememberSettingsUiLabels()
+            val routeSettingsLabels = rememberRouteSettingsUiLabels()
+            val pages by component.pages.subscribeAsState()
+            val configComponent =
+                pages.items
+                    .map { it.instance }
+                    .filterIsInstance<RootComponent.Child.Config>()
+                    .firstOrNull()
+                    ?.component
+            if (!platformHooks.usesDecomposePredictiveBack) {
+                platformHooks.SystemBackHandler(
+                    enabled = !stackIdle,
+                    onBack = component::navigateBack,
+                )
+            }
 
-        ChildStack(
-            stack = component.stack,
-            modifier = Modifier.fillMaxSize(),
-            animation =
-                stackAnimation(
-                    animator = fade() + scale(),
-                    predictiveBackParams = {
-                        if (!platformHooks.usesDecomposePredictiveBack) {
-                            null
-                        } else {
-                            PredictiveBackParams(
-                                backHandler = component.backHandler,
-                                onBack = component::navigateBack,
-                                animatable = ::materialPredictiveBackAnimatable,
-                            )
-                        }
-                    },
-                ),
-        ) { child ->
-            val fill = Modifier.fillMaxSize()
-            when (val instance = child.instance) {
-                RootComponent.StackChild.Idle ->
-                    IdleContent(
-                        component = component,
-                        chromeState = configChromeState,
-                        configLabels = configLabels,
-                    )
-                RootComponent.StackChild.Settings ->
-                    SettingsTabScreen(
-                        component = component.settingsComponent,
-                        onBack = component::navigateBack,
-                        onAppsClick = component::openApps,
-                        onLogcatClick = component::openLogcat,
-                        onRouteClick = component::openRouteSettings,
-                        modifier = fill,
-                    )
-                is RootComponent.StackChild.Subscriptions ->
-                    SharedSubscriptionScreen(
-                        component = instance.component,
-                        onBack = component::navigateBack,
-                        labels = rememberSubscriptionUiLabels(),
-                        onSubscriptionApplied = { subscriptionId ->
-                            configComponent?.onSelectFilter(subscriptionId)
-                            component.navigateBack()
-                        },
-                        onScanQr = component::openQrScanner,
-                        modifier = fill,
-                    )
-                RootComponent.StackChild.QrScanner ->
-                    platformHooks.QrScannerScreen(
-                        onResult = { result ->
-                            configComponent?.onImportFromLink(result)
-                            component.navigateBack()
-                        },
-                        onBack = component::navigateBack,
-                        title = settingsLabels.qrScannerTitle,
-                        permissionRequiredMessage = settingsLabels.qrPermissionRequired,
-                    )
-                RootComponent.StackChild.Apps ->
-                    platformHooks.AppsScreen(
-                        component = component.settingsComponent,
-                        onBack = component::navigateBack,
-                    )
-                RootComponent.StackChild.Logcat ->
-                    platformHooks.LogcatScreen(onBack = component::navigateBack)
-                RootComponent.StackChild.RouteSettings ->
-                    SharedRouteSettingsScreen(
-                        component = component.settingsComponent,
-                        onBack = component::navigateBack,
-                        labels = routeSettingsLabels,
-                        modifier = fill,
-                    )
-                RootComponent.StackChild.Search -> {
-                    val cfg = configComponent
-                    if (cfg != null) {
-                        SharedSearchScreen(
-                            component = cfg,
-                            labels = configLabels,
-                            backContentDescription = settingsLabels.cancelLabel,
-                            onBack = component::navigateBack,
-                            onResultChosen = { nodeId ->
-                                configChromeState.pendingOverlayScroll =
-                                    OverlayScrollPending(
-                                        nodeId = nodeId,
-                                        nodesAtTap = cfg.state.value.nodes,
-                                        queryWasBlankAtTap = cfg.state.value.searchQuery.isBlank(),
-                                    )
-                            },
-                            modifier = fill,
-                        )
-                    }
-                }
-                is RootComponent.StackChild.NodeEdit -> {
-                    val latestNode = configComponent?.nodeById(instance.nodeId)
-                    val nodeState = remember(instance.nodeId) { mutableStateOf<Node?>(null) }
-                    if (nodeState.value == null && latestNode != null) {
-                        nodeState.value = latestNode
-                    }
-                    val node = nodeState.value
-                    val nodeFormEditor = remember { KoinPlatform.getKoin().get<NodeFormEditor>() }
-                    SharedEditScreen(
-                        nodeId = instance.nodeId,
-                        protocol = node?.protocolPrefix,
-                        initialContent = node?.url,
-                        initialRemark = node?.remark,
-                        nodeFormEditor = nodeFormEditor,
-                        onBack = component::navigateBack,
-                        onSave = { form ->
-                            configComponent?.onSaveNodeEdit(instance.nodeId, form) { success ->
-                                if (success) component.navigateBack()
+            ChildStack(
+                stack = component.stack,
+                modifier = Modifier.fillMaxSize(),
+                animation =
+                    stackAnimation(
+                        animator = fade() + scale(),
+                        predictiveBackParams = {
+                            if (!platformHooks.usesDecomposePredictiveBack) {
+                                null
+                            } else {
+                                PredictiveBackParams(
+                                    backHandler = component.backHandler,
+                                    onBack = component::navigateBack,
+                                    animatable = ::materialPredictiveBackAnimatable,
+                                )
                             }
                         },
-                        labels = rememberEditUiLabels(),
-                        modifier = fill,
-                    )
+                    ),
+            ) { child ->
+                CompositionLocalProvider(LocalStackAnimationScope provides this) {
+                    val fill = Modifier.fillMaxSize()
+                    when (val instance = child.instance) {
+                        RootComponent.StackChild.Idle ->
+                            IdleContent(
+                                component = component,
+                                chromeState = configChromeState,
+                                configLabels = configLabels,
+                            )
+                        RootComponent.StackChild.Settings ->
+                            SettingsTabScreen(
+                                component = component.settingsComponent,
+                                onBack = component::navigateBack,
+                                onAppsClick = component::openApps,
+                                onLogcatClick = component::openLogcat,
+                                onRouteClick = component::openRouteSettings,
+                                modifier = fill,
+                            )
+                        is RootComponent.StackChild.Subscriptions ->
+                            SharedSubscriptionScreen(
+                                component = instance.component,
+                                onBack = component::navigateBack,
+                                labels = rememberSubscriptionUiLabels(),
+                                onSubscriptionApplied = { subscriptionId ->
+                                    configComponent?.onSelectFilter(subscriptionId)
+                                    component.navigateBack()
+                                },
+                                onScanQr = component::openQrScanner,
+                                modifier = fill,
+                            )
+                        RootComponent.StackChild.QrScanner ->
+                            platformHooks.QrScannerScreen(
+                                onResult = { result ->
+                                    configComponent?.onImportFromLink(result)
+                                    component.navigateBack()
+                                },
+                                onBack = component::navigateBack,
+                                title = settingsLabels.qrScannerTitle,
+                                permissionRequiredMessage = settingsLabels.qrPermissionRequired,
+                            )
+                        RootComponent.StackChild.Apps ->
+                            platformHooks.AppsScreen(
+                                component = component.settingsComponent,
+                                onBack = component::navigateBack,
+                            )
+                        RootComponent.StackChild.Logcat ->
+                            platformHooks.LogcatScreen(onBack = component::navigateBack)
+                        RootComponent.StackChild.RouteSettings ->
+                            SharedRouteSettingsScreen(
+                                component = component.settingsComponent,
+                                onBack = component::navigateBack,
+                                labels = routeSettingsLabels,
+                                modifier = fill,
+                            )
+                        RootComponent.StackChild.Search -> {
+                            val cfg = configComponent
+                            if (cfg != null) {
+                                SharedSearchScreen(
+                                    component = cfg,
+                                    labels = configLabels,
+                                    backContentDescription = settingsLabels.cancelLabel,
+                                    onBack = component::navigateBack,
+                                    onResultChosen = { nodeId ->
+                                        configChromeState.pendingOverlayScroll =
+                                            OverlayScrollPending(
+                                                nodeId = nodeId,
+                                                nodesAtTap = cfg.state.value.nodes,
+                                                queryWasBlankAtTap =
+                                                    cfg.state.value.searchQuery.isBlank(),
+                                            )
+                                    },
+                                    modifier = fill,
+                                )
+                            }
+                        }
+                        is RootComponent.StackChild.NodeEdit -> {
+                            val latestNode = configComponent?.nodeById(instance.nodeId)
+                            val nodeState =
+                                remember(instance.nodeId) { mutableStateOf<Node?>(null) }
+                            if (nodeState.value == null && latestNode != null) {
+                                nodeState.value = latestNode
+                            }
+                            val node = nodeState.value
+                            val nodeFormEditor =
+                                remember { KoinPlatform.getKoin().get<NodeFormEditor>() }
+                            SharedEditScreen(
+                                nodeId = instance.nodeId,
+                                protocol = node?.protocolPrefix,
+                                initialContent = node?.url,
+                                initialRemark = node?.remark,
+                                nodeFormEditor = nodeFormEditor,
+                                onBack = component::navigateBack,
+                                onSave = { form ->
+                                    configComponent?.onSaveNodeEdit(instance.nodeId, form) { ok ->
+                                        if (ok) component.navigateBack()
+                                    }
+                                },
+                                labels = rememberEditUiLabels(),
+                                modifier = fill,
+                            )
+                        }
+                    }
                 }
             }
         }
-
     }
 }
 
@@ -276,6 +286,7 @@ private fun IdleContent(
                 modifier =
                     Modifier
                         .align(Alignment.BottomCenter)
+                        .floatingNavOverlay()
                         .windowInsetsPadding(WindowInsets.navigationBars)
                         .padding(bottom = FloatingNavBottomMargin, start = 16.dp, end = 16.dp),
             )
