@@ -27,6 +27,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.shared.navigation.ConfigComponent
@@ -39,6 +41,8 @@ import com.android.xrayfa.shared.ui.config.SharedConfigSection
 import com.android.xrayfa.shared.ui.config.shouldCommitOverlayScroll
 import com.android.xrayfa.shared.ui.nav.rememberFloatingNavClearance
 import com.android.xrayfa.shared.ui.platform.LocalPlatformRootHooks
+import com.android.xrayfa.shared.ui.transitions.TransitionDestinations
+import com.android.xrayfa.shared.ui.transitions.sharedContainer
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -169,6 +173,13 @@ internal fun ConfigTabScreen(
             onNodeSelected = { node ->
                 component.onSelectNode(node.id)
                 onNodeSelectedNavigateHome()
+            },
+            rowModifier = { node ->
+                Modifier.sharedContainer(
+                    destination = TransitionDestinations.nodeEdit(node.id),
+                    shape = RectangleShape,
+                    containerColor = Color.Transparent,
+                )
             },
             onEmptyAddClick = { onOpenNodeEdit(0) },
             onEditNode = { node -> onOpenNodeEdit(node.id) },

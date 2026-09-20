@@ -228,7 +228,13 @@ fun RootContent(
                                     }
                                 },
                                 labels = rememberEditUiLabels(),
-                                modifier = fill,
+                                modifier =
+                                    fill.sharedContainer(
+                                        destination =
+                                            TransitionDestinations.nodeEdit(instance.nodeId),
+                                        shape = RectangleShape,
+                                        containerColor = MaterialTheme.colorScheme.background,
+                                    ),
                             )
                         }
                     }
