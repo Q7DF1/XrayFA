@@ -74,9 +74,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
     lint {
         // Components are constructed by XrayAppCompatFactory (Koin), not the default ctor.
         disable += "Instantiatable"
@@ -140,7 +137,11 @@ android {
     }
 }
 
-
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+    }
+}
 
 val xrayLibDir = rootProject.file("AndroidLibXrayLite")
 val aarOutput = xrayLibDir.resolve("libv2ray.aar")
