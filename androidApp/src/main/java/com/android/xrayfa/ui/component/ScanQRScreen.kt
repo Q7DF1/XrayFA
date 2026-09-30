@@ -1,7 +1,12 @@
 package com.android.xrayfa.ui.component
 
 import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.pm.PackageManager
+import android.os.Build
+import android.view.Display
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -58,6 +63,7 @@ import com.google.zxing.MultiFormatReader
 import java.util.EnumMap
 import java.util.concurrent.Executors
 import kotlin.collections.set
+import kotlinx.coroutines.awaitCancellation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -202,6 +208,8 @@ fun CameraPreview(onResult: (String) -> Unit, isTorchOn: Boolean) {
     }
 
     LaunchedEffect(lifecycleOwner) {
+        val activity = context.findActivity()
+        val previousModeId = activity?.currentDisplay()?.mode?.modeId ?: 0
         val cameraProvider = ProcessCameraProvider.getInstance(context).get()
 
         val preview = Preview.Builder().build().apply {
@@ -232,8 +240,15 @@ fun CameraPreview(onResult: (String) -> Unit, isTorchOn: Boolean) {
                 preview,
                 imageAnalysis
             )
+            awaitCancellation()
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
             e.printStackTrace()
+        } finally {
+            runCatching { cameraProvider.unbindAll() }
+            surfaceRequest = null
+            camera = null
+            activity?.restoreDisplayMode(previousModeId)
         }
     }
 
@@ -283,4 +298,30 @@ fun ScannerOverlay() {
             style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.dp.toPx())
         )
     }
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+
+private fun Activity.currentDisplay(): Display =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        display ?: @Suppress("DEPRECATION") windowManager.defaultDisplay
+    } else {
+        @Suppress("DEPRECATION")
+        windowManager.defaultDisplay
+    }
+
+/** 相机会把窗口锁在 60Hz。离开扫码后把进页面前的显示模式写回去。 */
+private fun Activity.restoreDisplayMode(modeId: Int) {
+    if (modeId == 0) return
+    val apply = {
+        val attrs = window.attributes
+        attrs.preferredDisplayModeId = modeId
+        window.attributes = attrs
+    }
+    apply()
+    window.decorView.post(apply)
 }

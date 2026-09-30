@@ -23,6 +23,7 @@ import com.android.xrayfa.shared.ui.settings.SharedSettingsGeneralSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsPlatformSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsSubscriptionSection
 import com.android.xrayfa.shared.ui.transitions.TransitionDestinations
+import com.android.xrayfa.shared.ui.transitions.platformRowShape
 import com.android.xrayfa.shared.ui.transitions.sharedContainer
 import org.jetbrains.compose.resources.stringResource
 
@@ -70,7 +71,8 @@ internal fun SettingsTabScreen(
                     with(platformHooks) { SettingsNetworkExtras(component) }
                 },
             )
-            val rowColor = MaterialTheme.colorScheme.surfaceContainerLow
+            // 与 SharedSettingsGroup 的卡片底色一致，避免共享容器在静止时把这三行涂成另一块灰。
+            val rowColor = MaterialTheme.colorScheme.surfaceContainerLowest
             SharedSettingsPlatformSection(
                 labels = settingsLabels,
                 onAppsClick = onAppsClick,
@@ -79,7 +81,7 @@ internal fun SettingsTabScreen(
                 appsModifier =
                     Modifier.sharedContainer(
                         destination = TransitionDestinations.APPS,
-                        shape = RectangleShape,
+                        shape = platformRowShape(roundTop = true),
                         containerColor = rowColor,
                     ),
                 logcatModifier =
@@ -91,7 +93,7 @@ internal fun SettingsTabScreen(
                 routeModifier =
                     Modifier.sharedContainer(
                         destination = TransitionDestinations.ROUTE,
-                        shape = RectangleShape,
+                        shape = platformRowShape(roundTop = false),
                         containerColor = rowColor,
                     ),
             )

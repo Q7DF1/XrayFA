@@ -42,17 +42,19 @@ interface PlatformRootHooks {
     @Composable
     fun ColumnScope.SettingsNetworkExtras(component: SettingsComponent)
 
+    // modifier 不能带默认值。接口在 :shared、实现在 androidApp，两边的 Compose 编译器
+    // 会为默认参生成不同的 JVM 签名（实现多一个 default mask），调用时 AbstractMethodError。
     @Composable
     fun AppsScreen(
         component: SettingsComponent,
         onBack: () -> Unit,
-        modifier: Modifier = Modifier,
+        modifier: Modifier,
     )
 
     @Composable
     fun LogcatScreen(
         onBack: () -> Unit,
-        modifier: Modifier = Modifier,
+        modifier: Modifier,
     )
 
     @Composable
@@ -61,7 +63,7 @@ interface PlatformRootHooks {
         onBack: () -> Unit,
         title: String,
         permissionRequiredMessage: String,
-        modifier: Modifier = Modifier,
+        modifier: Modifier,
     )
 
     @Composable

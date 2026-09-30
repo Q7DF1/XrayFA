@@ -47,6 +47,7 @@ import com.android.xrayfa.shared.ui.settings.SharedRouteSettingsScreen
 import com.android.xrayfa.shared.ui.subscription.SharedSubscriptionScreen
 import com.android.xrayfa.shared.ui.transitions.LocalSharedTransitionScope
 import com.android.xrayfa.shared.ui.transitions.LocalStackAnimationScope
+import com.android.xrayfa.shared.ui.transitions.PlatformRowOuterCorner
 import com.android.xrayfa.shared.ui.transitions.TransitionDestinations
 import com.android.xrayfa.shared.ui.transitions.floatingNavOverlay
 import com.android.xrayfa.shared.ui.transitions.rememberDestinationShape
@@ -55,8 +56,6 @@ import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.experimental.stack.ChildStack
 import com.arkivanov.decompose.extensions.compose.experimental.stack.animation.PredictiveBackParams
 import com.arkivanov.decompose.extensions.compose.experimental.stack.animation.fade
-import com.arkivanov.decompose.extensions.compose.experimental.stack.animation.plus
-import com.arkivanov.decompose.extensions.compose.experimental.stack.animation.scale
 import com.arkivanov.decompose.extensions.compose.experimental.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.pages.ChildPages
 import com.arkivanov.decompose.extensions.compose.pages.PagesScrollAnimation
@@ -100,7 +99,9 @@ fun RootContent(
                 modifier = Modifier.fillMaxSize(),
                 animation =
                     stackAnimation(
-                        animator = fade() + scale(),
+                        // 只淡入淡出。再叠一层整页 scale 会和共享元素各缩一次，结束时跳一下，
+                        // 而且这段时间输入被动画吃掉。
+                        animator = fade(),
                         predictiveBackParams = {
                             if (!platformHooks.usesDecomposePredictiveBack) {
                                 null
@@ -115,7 +116,6 @@ fun RootContent(
                     ),
             ) { child ->
                 CompositionLocalProvider(LocalStackAnimationScope provides this) {
-                    val fill = Modifier.fillMaxSize()
                     when (val instance = child.instance) {
                         RootComponent.StackChild.Idle ->
                             IdleContent(
@@ -131,11 +131,12 @@ fun RootContent(
                                 onLogcatClick = component::openLogcat,
                                 onRouteClick = component::openRouteSettings,
                                 modifier =
-                                    fill.sharedContainer(
+                                    Modifier.sharedContainer(
                                         destination = TransitionDestinations.SETTINGS,
                                         shape = rememberDestinationShape(startCorner = 20.dp),
                                         containerColor = MaterialTheme.colorScheme.background,
-                                    ),
+                                    )
+                                    .fillMaxSize(),
                             )
                         is RootComponent.StackChild.Subscriptions ->
                             SharedSubscriptionScreen(
@@ -148,11 +149,12 @@ fun RootContent(
                                 },
                                 onScanQr = component::openQrScanner,
                                 modifier =
-                                    fill.sharedContainer(
+                                    Modifier.sharedContainer(
                                         destination = TransitionDestinations.SUBSCRIPTIONS,
                                         shape = rememberDestinationShape(startCorner = 20.dp),
                                         containerColor = MaterialTheme.colorScheme.background,
-                                    ),
+                                    )
+                                    .fillMaxSize(),
                             )
                         RootComponent.StackChild.QrScanner ->
                             platformHooks.QrScannerScreen(
@@ -164,32 +166,41 @@ fun RootContent(
                                 title = settingsLabels.qrScannerTitle,
                                 permissionRequiredMessage = settingsLabels.qrPermissionRequired,
                                 modifier =
-                                    fill.sharedContainer(
+                                    Modifier.sharedContainer(
                                         destination = TransitionDestinations.QR,
                                         shape = rememberDestinationShape(startCorner = 20.dp),
                                         containerColor = MaterialTheme.colorScheme.background,
-                                    ),
+                                    )
+                                    .fillMaxSize(),
                             )
                         RootComponent.StackChild.Apps ->
                             platformHooks.AppsScreen(
                                 component = component.settingsComponent,
                                 onBack = component::navigateBack,
                                 modifier =
-                                    fill.sharedContainer(
+                                    Modifier.sharedContainer(
                                         destination = TransitionDestinations.APPS,
-                                        shape = RectangleShape,
+                                        shape =
+                                            rememberDestinationShape(
+                                                topStart = PlatformRowOuterCorner,
+                                                topEnd = PlatformRowOuterCorner,
+                                                bottomStart = 0.dp,
+                                                bottomEnd = 0.dp,
+                                            ),
                                         containerColor = MaterialTheme.colorScheme.background,
-                                    ),
+                                    )
+                                    .fillMaxSize(),
                             )
                         RootComponent.StackChild.Logcat ->
                             platformHooks.LogcatScreen(
                                 onBack = component::navigateBack,
                                 modifier =
-                                    fill.sharedContainer(
+                                    Modifier.sharedContainer(
                                         destination = TransitionDestinations.LOGCAT,
                                         shape = RectangleShape,
                                         containerColor = MaterialTheme.colorScheme.background,
-                                    ),
+                                    )
+                                    .fillMaxSize(),
                             )
                         RootComponent.StackChild.RouteSettings ->
                             SharedRouteSettingsScreen(
@@ -197,11 +208,18 @@ fun RootContent(
                                 onBack = component::navigateBack,
                                 labels = routeSettingsLabels,
                                 modifier =
-                                    fill.sharedContainer(
+                                    Modifier.sharedContainer(
                                         destination = TransitionDestinations.ROUTE,
-                                        shape = RectangleShape,
+                                        shape =
+                                            rememberDestinationShape(
+                                                topStart = 0.dp,
+                                                topEnd = 0.dp,
+                                                bottomStart = PlatformRowOuterCorner,
+                                                bottomEnd = PlatformRowOuterCorner,
+                                            ),
                                         containerColor = MaterialTheme.colorScheme.background,
-                                    ),
+                                    )
+                                    .fillMaxSize(),
                             )
                         RootComponent.StackChild.Search -> {
                             val cfg = configComponent
@@ -221,12 +239,13 @@ fun RootContent(
                                             )
                                     },
                                     modifier =
-                                        fill.sharedContainer(
+                                        Modifier.sharedContainer(
                                             destination = TransitionDestinations.SEARCH,
                                             // 28dp 对应 64dp 圆形按钮的半径，起点看起来才是圆的。
                                             shape = rememberDestinationShape(startCorner = 28.dp),
                                             containerColor = MaterialTheme.colorScheme.surface,
-                                        ),
+                                        )
+                                        .fillMaxSize(),
                                 )
                             }
                         }
@@ -254,7 +273,7 @@ fun RootContent(
                                 },
                                 labels = rememberEditUiLabels(),
                                 modifier =
-                                    fill.sharedContainer(
+                                    Modifier.sharedContainer(
                                         destination =
                                             TransitionDestinations.nodeEdit(instance.nodeId),
                                         // 起点是列表里的矩形行，或顶栏那个圆形 Edit 按钮。
@@ -265,7 +284,8 @@ fun RootContent(
                                                 rememberDestinationShape(startCorner = 20.dp)
                                             },
                                         containerColor = MaterialTheme.colorScheme.background,
-                                    ),
+                                    )
+                                    .fillMaxSize(),
                             )
                         }
                     }

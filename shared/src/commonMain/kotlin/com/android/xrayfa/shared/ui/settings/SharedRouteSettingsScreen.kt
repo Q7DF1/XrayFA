@@ -57,6 +57,15 @@ private object RoutePresetTags {
     const val AD_BLOCK = "Ad Block"
 }
 
+private fun String?.toRouteRuleTitle(labels: RouteSettingsUiLabels): String =
+    when (this) {
+        null -> labels.customRuleFallbackTitle
+        RoutePresetTags.TELEGRAM -> labels.proxyTelegramGoogleLabel
+        RoutePresetTags.CHINA -> labels.bypassChinaLabel
+        RoutePresetTags.AD_BLOCK -> labels.blockAdsLabel
+        else -> this
+    }
+
 @Composable
 fun SharedRouteSettingsScreen(
     component: SettingsComponent,
@@ -488,7 +497,7 @@ private fun SharedManualRuleCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = rule.ruleTag ?: labels.customRuleFallbackTitle,
+                        text = rule.ruleTag.toRouteRuleTitle(labels),
                         style = MaterialTheme.typography.titleSmall,
                         color =
                             if (enabled) {

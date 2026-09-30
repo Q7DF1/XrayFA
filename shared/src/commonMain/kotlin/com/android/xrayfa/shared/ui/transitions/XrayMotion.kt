@@ -21,12 +21,14 @@ import androidx.compose.ui.unit.IntOffset
  */
 @OptIn(ExperimentalSharedTransitionApi::class)
 object XrayMotion {
-    /** expressive slow spatial（0.8 / 200）—— 全屏级容器扩张。 */
+    /**
+     * 全屏容器扩张。临界阻尼，避免过冲后回弹；那段回弹会占住输入，看起来像卡住。
+     */
     val ContainerBounds: BoundsTransform =
         BoundsTransform { _, _ ->
             spring(
-                dampingRatio = 0.8f,
-                stiffness = 200f,
+                dampingRatio = 1f,
+                stiffness = 800f,
                 visibilityThreshold = Rect.VisibilityThreshold,
             )
         }
@@ -35,15 +37,15 @@ object XrayMotion {
     val EffectsFloat: FiniteAnimationSpec<Float> =
         spring(dampingRatio = 1f, stiffness = 1600f)
 
-    /** expressive default spatial（0.8 / 380）—— 圆角插值等局部尺寸变化。 */
+    /** 圆角插值。临界阻尼，避免冲过 0 再弹回来。 */
     val SpatialDp: FiniteAnimationSpec<Dp> =
-        spring(dampingRatio = 0.8f, stiffness = 380f, visibilityThreshold = Dp.VisibilityThreshold)
+        spring(dampingRatio = 1f, stiffness = 800f, visibilityThreshold = Dp.VisibilityThreshold)
 
-    /** expressive default spatial（0.8 / 380）—— 底栏滑出等局部位移。 */
+    /** 底栏滑出。临界阻尼，和容器同时结束。 */
     val SpatialIntOffset: FiniteAnimationSpec<IntOffset> =
         spring(
-            dampingRatio = 0.8f,
-            stiffness = 380f,
+            dampingRatio = 1f,
+            stiffness = 800f,
             visibilityThreshold = IntOffset.VisibilityThreshold,
         )
 }
