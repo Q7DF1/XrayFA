@@ -43,7 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.xrayfa.shared.navigation.RootTab
 
-val FloatingNavBarHeight = 64.dp
+/** Floating pill height. 56dp is the minimum touch target used by compact bottom bars. */
+val FloatingNavBarHeight = 56.dp
 val FloatingNavBottomMargin = 8.dp
 /** Extra space so the last Config row can rest above the pill. */
 val FloatingNavExtraContentPadding = 24.dp
@@ -163,7 +164,7 @@ fun XrayFloatingNav(
                                     tint = contentColor,
                                     modifier =
                                         Modifier
-                                            .size(26.dp)
+                                            .size(22.dp)
                                             .scale(iconScale),
                                 )
                                 if (selected) {

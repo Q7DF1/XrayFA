@@ -82,7 +82,7 @@ kotlin {
 
 android {
     namespace = "com.android.xrayfa.nativebridge"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 28

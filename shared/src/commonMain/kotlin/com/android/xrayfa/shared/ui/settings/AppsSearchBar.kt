@@ -44,8 +44,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.android.xrayfa.shared.ui.theme.AppRadius
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.android.xrayfa.shared.resources.Res
 import com.android.xrayfa.shared.resources.search_clear
 import kotlinx.coroutines.FlowPreview
@@ -139,8 +139,9 @@ private fun AppsSearchChrome(
     if (expanded) {
         Dialog(
             onDismissRequest = { onExpandedChange(false) },
-            properties = DialogProperties(usePlatformDefaultWidth = false),
+            properties = appsSearchDialogProperties(),
         ) {
+            AppsSearchDialogBars()
             Surface(
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.surface,
@@ -178,6 +179,7 @@ private fun AppsSearchChrome(
                             } else {
                                 null
                             },
+                        shape = AppRadius.shapeField,
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(onSearch = { onImeSearch(query) }),

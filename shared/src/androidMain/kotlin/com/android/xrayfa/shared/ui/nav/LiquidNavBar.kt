@@ -185,7 +185,7 @@ internal fun LiquidNavBar(
                     onDrawSurface = { drawRect(containerColor) }
                 )
                 .then(interactiveHighlight.modifier)
-                .height(64f.dp)
+                .height(FloatingNavBarHeight)
                 .fillMaxWidth()
                 .padding(4f.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -224,7 +224,7 @@ internal fun LiquidNavBar(
                         onDrawSurface = { drawRect(containerColor) }
                     )
                     .then(interactiveHighlight.modifier)
-                    .height(56f.dp)
+                    .height(FloatingNavBarHeight - 8.dp)
                     .fillMaxWidth()
                     .padding(horizontal = 4f.dp)
                     .graphicsLayer(colorFilter = ColorFilter.tint(accentColor)),
@@ -286,7 +286,7 @@ internal fun LiquidNavBar(
                         drawRect(Color.Black.copy(alpha = 0.03f * progress))
                     }
                 )
-                .height(56f.dp)
+                .height(FloatingNavBarHeight - 8.dp)
                 .fillMaxWidth(1f / tabsCount)
         )
     }

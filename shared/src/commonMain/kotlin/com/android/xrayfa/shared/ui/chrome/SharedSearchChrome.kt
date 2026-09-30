@@ -29,8 +29,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.android.xrayfa.shared.ui.theme.AppRadius
 import com.android.xrayfa.shared.resources.Res
 import com.android.xrayfa.shared.resources.search_clear
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -59,15 +61,17 @@ internal fun SharedSearchChrome(
         color = MaterialTheme.colorScheme.surface,
     ) {
         val focusRequester = remember { FocusRequester() }
+        // Wait out the shared-element enter. Focusing immediately opens the IME
+        // while bounds are still moving, and the field ends up stuck at the top.
         LaunchedEffect(Unit) {
+            delay(400)
             focusRequester.requestFocus()
         }
         Column(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.statusBars)
-                    .imePadding(),
+                    .windowInsetsPadding(WindowInsets.statusBars),
         ) {
             OutlinedTextField(
                 value = query,
@@ -77,6 +81,7 @@ internal fun SharedSearchChrome(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                         .focusRequester(focusRequester),
+                shape = AppRadius.shapeField,
                 placeholder = { Text(searchLabel) },
                 leadingIcon = {
                     IconButton(onClick = onBack) {
@@ -102,7 +107,9 @@ internal fun SharedSearchChrome(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = { onImeSearch(query) }),
             )
-            results()
+            Column(Modifier.weight(1f).fillMaxWidth().imePadding()) {
+                results()
+            }
         }
     }
 }

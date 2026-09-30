@@ -45,7 +45,7 @@ kotlin {
 
 android {
     namespace = "com.android.xrayfa.domain"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 28

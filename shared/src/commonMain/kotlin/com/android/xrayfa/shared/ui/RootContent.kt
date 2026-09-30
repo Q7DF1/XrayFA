@@ -377,7 +377,7 @@ private fun IdleContent(
                             imageVector = Icons.Outlined.Search,
                             contentDescription = configLabels.searchLabel,
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            modifier = Modifier.size(26.dp),
+                            modifier = Modifier.size(22.dp),
                         )
                     }
                 },

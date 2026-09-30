@@ -2,6 +2,7 @@ package com.android.xrayfa.shared.ui.nav
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -12,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
@@ -28,6 +30,7 @@ import com.kyant.backdrop.isRuntimeShaderSupported
 import com.kyant.backdrop.effects.blur
 import com.kyant.backdrop.effects.lens
 import com.kyant.backdrop.effects.vibrancy
+import com.kyant.shapes.Capsule
 
 /** Backdrop sampled from `ChildPages`. Android only; `null` falls back to a solid surface. */
 val LocalFloatingNavBackdrop = staticCompositionLocalOf<Backdrop?> { null }
@@ -81,19 +84,19 @@ actual fun FloatingNavChrome(
             modifier
                 .clip(shape)
                 .background(MaterialTheme.colorScheme.surfaceContainerHighest, shape)
-                .height(64.dp)
+                .height(FloatingNavBarHeight)
                 .fillMaxWidth(),
         ) {
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .height(64.dp)
+                    .height(FloatingNavBarHeight)
                     .padding(4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 content()
             }
-            Row(Modifier.fillMaxWidth().height(64.dp)) {
+            Row(Modifier.fillMaxWidth().height(FloatingNavBarHeight)) {
                 repeat(tabsCount) { index ->
                     Box(
                         Modifier
@@ -134,7 +137,7 @@ actual fun FloatingNavSearchChrome(
         val containerColor = liquidNavContainerColor(isLiquidNavLightTheme())
         modifier.drawBackdrop(
             backdrop = backdrop,
-            shape = { CircleShape },
+            shape = { Capsule() },
             effects = {
                 vibrancy()
                 blur(8f.dp.toPx())
@@ -146,7 +149,12 @@ actual fun FloatingNavSearchChrome(
     Box(
         glassModifier
             .clip(CircleShape)
-            .clickable(role = Role.Button, onClick = onClick),
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                role = Role.Button,
+                onClick = onClick,
+            ),
         contentAlignment = Alignment.Center,
     ) {
         content()

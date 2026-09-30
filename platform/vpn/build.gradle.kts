@@ -31,7 +31,7 @@ kotlin {
 
 android {
     namespace = "com.android.xrayfa.vpn"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 28
