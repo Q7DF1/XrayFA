@@ -2,7 +2,6 @@ package com.android.xrayfa.shared.ui.nav
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -25,6 +24,7 @@ import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.isRuntimeShaderSupported
 import com.kyant.backdrop.effects.blur
 import com.kyant.backdrop.effects.lens
 import com.kyant.backdrop.effects.vibrancy
@@ -33,6 +33,16 @@ import com.kyant.backdrop.effects.vibrancy
 val LocalFloatingNavBackdrop = staticCompositionLocalOf<Backdrop?> { null }
 
 private val LocalFloatingNavBackdropLayer = staticCompositionLocalOf<LayerBackdrop?> { null }
+
+/**
+ * Returns the backdrop only when its effects can run (lens needs RuntimeShader, API 33+, per
+ * Backdrop's own [isRuntimeShaderSupported]); otherwise null so callers paint the solid surface.
+ */
+@Composable
+private fun liquidNavBackdropOrNull(): Backdrop? {
+    val backdrop = LocalFloatingNavBackdrop.current
+    return if (backdrop != null && isRuntimeShaderSupported()) backdrop else null
+}
 
 @Composable
 actual fun ProvideFloatingNavBackdrop(content: @Composable () -> Unit) {
@@ -64,7 +74,7 @@ actual fun FloatingNavChrome(
     modifier: Modifier,
     content: @Composable () -> Unit,
 ) {
-    val backdrop = LocalFloatingNavBackdrop.current
+    val backdrop = liquidNavBackdropOrNull()
     if (backdrop == null) {
         val shape = RoundedCornerShape(32.dp)
         Box(
@@ -117,11 +127,11 @@ actual fun FloatingNavSearchChrome(
     modifier: Modifier,
     content: @Composable () -> Unit,
 ) {
-    val backdrop = LocalFloatingNavBackdrop.current
+    val backdrop = liquidNavBackdropOrNull()
     val glassModifier = if (backdrop == null) {
         modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape)
     } else {
-        val containerColor = liquidNavContainerColor(!isSystemInDarkTheme())
+        val containerColor = liquidNavContainerColor(isLiquidNavLightTheme())
         modifier.drawBackdrop(
             backdrop = backdrop,
             shape = { CircleShape },

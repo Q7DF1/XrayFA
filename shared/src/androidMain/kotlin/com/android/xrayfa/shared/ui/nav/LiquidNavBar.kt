@@ -3,7 +3,7 @@ package com.android.xrayfa.shared.ui.nav
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
@@ -27,6 +27,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -53,6 +54,14 @@ import kotlin.math.sign
 /** Scale applied to tab content while the slider is pressed (catalog `LocalLiquidBottomTabScale`). */
 internal val LocalLiquidNavTabScale = staticCompositionLocalOf { { 1f } }
 
+/**
+ * Follows the app theme (AppShell/XrayTheme resolve Settings `darkMode` into MaterialTheme),
+ * not the raw system dark-mode flag.
+ */
+@Composable
+internal fun isLiquidNavLightTheme(): Boolean =
+    MaterialTheme.colorScheme.surface.luminance() > 0.5f
+
 internal fun liquidNavContainerColor(isLightTheme: Boolean): Color =
     if (isLightTheme) Color(0xFFFAFAFA).copy(0.4f)
     else Color(0xFF121212).copy(0.4f)
@@ -69,7 +78,7 @@ internal fun LiquidNavBar(
     modifier: Modifier = Modifier,
     content: @Composable RowScope.() -> Unit,
 ) {
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = isLiquidNavLightTheme()
     val accentColor =
         if (isLightTheme) Color(0xFF0088FF)
         else Color(0xFF0091FF)
@@ -87,17 +96,21 @@ internal fun LiquidNavBar(
             (constraints.maxWidth.toFloat() - 8f.dp.toPx()) / tabsCount
         }
 
+        val maxWidthPx by rememberUpdatedState(constraints.maxWidth)
+        val isLtr = LocalLayoutDirection.current == LayoutDirection.Ltr
+        val currentTabWidth by rememberUpdatedState(tabWidth)
+        val currentIsLtr by rememberUpdatedState(isLtr)
+
         val offsetAnimation = remember { Animatable(0f) }
         val panelOffset by remember(density) {
             derivedStateOf {
-                val fraction = (offsetAnimation.value / constraints.maxWidth).fastCoerceIn(-1f, 1f)
+                val fraction = (offsetAnimation.value / maxWidthPx).fastCoerceIn(-1f, 1f)
                 with(density) {
                     4f.dp.toPx() * fraction.sign * EaseOut.transform(abs(fraction))
                 }
             }
         }
 
-        val isLtr = LocalLayoutDirection.current == LayoutDirection.Ltr
         val animationScope = rememberCoroutineScope()
         val dampedDragAnimation = remember(animationScope, tabsCount) {
             DampedDragAnimation(
@@ -121,7 +134,7 @@ internal fun LiquidNavBar(
                 },
                 onDrag = { _, dragAmount ->
                     updateValue(
-                        (targetValue + dragAmount.x / tabWidth * if (isLtr) 1f else -1f)
+                        (targetValue + dragAmount.x / currentTabWidth * if (currentIsLtr) 1f else -1f)
                             .fastCoerceIn(0f, (tabsCount - 1).toFloat())
                     )
                     animationScope.launch {
@@ -142,8 +155,8 @@ internal fun LiquidNavBar(
                 animationScope = animationScope,
                 position = { size, offset ->
                     Offset(
-                        if (isLtr) (dampedDragAnimation.value + 0.5f) * tabWidth + panelOffset
-                        else size.width - (dampedDragAnimation.value + 0.5f) * tabWidth + panelOffset,
+                        if (currentIsLtr) (dampedDragAnimation.value + 0.5f) * currentTabWidth + panelOffset
+                        else size.width - (dampedDragAnimation.value + 0.5f) * currentTabWidth + panelOffset,
                         size.height / 2f
                     )
                 }
