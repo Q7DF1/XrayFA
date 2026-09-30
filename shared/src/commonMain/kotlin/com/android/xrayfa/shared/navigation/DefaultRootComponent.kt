@@ -67,6 +67,7 @@ class DefaultRootComponent(
                     RootStackConfig.Apps -> RootComponent.StackChild.Apps
                     RootStackConfig.Logcat -> RootComponent.StackChild.Logcat
                     RootStackConfig.RouteSettings -> RootComponent.StackChild.RouteSettings
+                    RootStackConfig.Search -> RootComponent.StackChild.Search
                     is RootStackConfig.NodeEdit -> RootComponent.StackChild.NodeEdit(config.nodeId)
                 }
             },
@@ -141,6 +142,10 @@ class DefaultRootComponent(
     override fun openLogcat() = pushOnSettingsOrIdle(RootStackConfig.Logcat)
     override fun openRouteSettings() = pushOnSettingsOrIdle(RootStackConfig.RouteSettings)
     override fun openNodeEdit(nodeId: Int) = bringOrPush(RootStackConfig.NodeEdit(nodeId))
+    override fun openSearch() {
+        bringOrPush(RootStackConfig.Search)
+        navigation.select(index = RootTab.Config.ordinal)
+    }
 
     override fun navigateBack() {
         stackNavigation.navigate { current ->
@@ -158,6 +163,7 @@ class DefaultRootComponent(
             RootStackConfig.RouteSettings -> openRouteSettings()
             RootStackConfig.QrScanner -> openQrScanner()
             RootStackConfig.Logcat -> openLogcat()
+            RootStackConfig.Search -> openSearch()
             is RootStackConfig.NodeEdit -> openNodeEdit(dest.nodeId)
         }
     }

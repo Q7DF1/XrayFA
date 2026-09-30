@@ -152,4 +152,45 @@ class DefaultRootComponentStackTest {
         )
         assertEquals(selectedBefore, root.pages.value.selectedIndex)
     }
+
+    @Test
+    fun openSearchPushesOnIdleAndSelectsConfigTab() {
+        val root = testRootComponent()
+        root.openSearch()
+        assertEquals(
+            listOf(RootStackConfig.Idle, RootStackConfig.Search),
+            configs(root),
+        )
+        assertEquals(
+            RootTab.Config,
+            root.pages.value.items[root.pages.value.selectedIndex].configuration,
+        )
+    }
+
+    @Test
+    fun searchPopsOnBack() {
+        val root = testRootComponent()
+        root.openSearch()
+        root.navigateBack()
+        assertEquals(RootStackConfig.Idle, active(root))
+    }
+
+    @Test
+    fun secondOpenSearchDoesNotStackTwice() {
+        val root = testRootComponent()
+        root.openSearch()
+        root.openSearch()
+        assertEquals(
+            listOf(RootStackConfig.Idle, RootStackConfig.Search),
+            configs(root),
+        )
+    }
+
+    @Test
+    fun selectTabClearsSearch() {
+        val root = testRootComponent()
+        root.openSearch()
+        root.selectTab(RootTab.Home)
+        assertEquals(listOf(RootStackConfig.Idle), configs(root))
+    }
 }

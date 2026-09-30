@@ -57,7 +57,7 @@ fun SharedConfigSection(
     listModifier: Modifier = Modifier,
     listContentPadding: PaddingValues = PaddingValues(),
     nestedScrollConnection: androidx.compose.ui.input.nestedscroll.NestedScrollConnection? = null,
-    rowModifier: (Node) -> Modifier = { Modifier },
+    rowModifier: @Composable (Node) -> Modifier = { Modifier },
     onEmptyAddClick: (() -> Unit)? = null,
 ) {
     val state by component.state.subscribeAsState()

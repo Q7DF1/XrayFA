@@ -60,17 +60,27 @@ internal class AndroidPlatformRootHooks(
         AndroidSettingsNetworkViewModelExtras(settingsViewmodel)
     }
 
+    // 这三个屏幕的实现都在 `ui/component/` 下，那是本计划明令不得改动的 Navigation3 遗留目录，
+    // 所以 modifier 挂在外面包的 Box 上，而不是下传给它们。
     @Composable
     override fun AppsScreen(
         component: SettingsComponent,
         onBack: () -> Unit,
+        modifier: Modifier,
     ) {
-        AndroidAppsScreen(viewmodel = appsViewmodel, onBack = onBack)
+        Box(modifier = modifier) {
+            AndroidAppsScreen(viewmodel = appsViewmodel, onBack = onBack)
+        }
     }
 
     @Composable
-    override fun LogcatScreen(onBack: () -> Unit) {
-        AndroidLogcatScreen(viewmodel = xrayViewmodel, onBack = onBack)
+    override fun LogcatScreen(
+        onBack: () -> Unit,
+        modifier: Modifier,
+    ) {
+        Box(modifier = modifier) {
+            AndroidLogcatScreen(viewmodel = xrayViewmodel, onBack = onBack)
+        }
     }
 
     @Composable
@@ -79,8 +89,11 @@ internal class AndroidPlatformRootHooks(
         onBack: () -> Unit,
         title: String,
         permissionRequiredMessage: String,
+        modifier: Modifier,
     ) {
-        QRCodeScannerScreen(onBack = onBack, onResult = onResult)
+        Box(modifier = modifier) {
+            QRCodeScannerScreen(onBack = onBack, onResult = onResult)
+        }
     }
 
     @Composable

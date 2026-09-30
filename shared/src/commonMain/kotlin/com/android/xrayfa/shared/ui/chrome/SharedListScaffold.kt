@@ -53,6 +53,11 @@ fun SharedListScaffold(
     collapseTitleOnScroll: Boolean = false,
     lockCollapsedTitle: Boolean = false,
     titleExpandKey: Any? = null,
+    /**
+     * 供需要让折叠状态跨导航存活的调用方传入。一个调用点要么始终传、要么始终不传 ——
+     * 在两者之间切换会违反 `remember` 的规则，把折叠状态劈成两份。
+     */
+    titleCollapseState: TitleCollapseState? = null,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
     footerUnderBar: @Composable () -> Unit = {},
@@ -64,7 +69,7 @@ fun SharedListScaffold(
     floatingActionButton: @Composable () -> Unit = {},
     content: @Composable (innerBottomPadding: androidx.compose.foundation.layout.PaddingValues) -> Unit,
 ) {
-    val titleCollapse = rememberTitleCollapseState()
+    val titleCollapse = titleCollapseState ?: rememberTitleCollapseState()
     val density = LocalDensity.current
     LaunchedEffect(density) {
         titleCollapse.maxHeightPx = with(density) { CollapsingTitleHeight.toPx() }

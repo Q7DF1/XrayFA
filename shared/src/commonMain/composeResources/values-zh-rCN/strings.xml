@@ -122,6 +122,8 @@
     <string name="logcat_duration_infinite">一直记录</string>
     <string name="logcat_recording">正在记录... 剩余 %1$d秒</string>
     <string name="copied">已复制到剪切板</string>
+    <string name="route_settings_title">路由设置</string>
+    <string name="route_settings_desc">自定义路由规则</string>
     <string name="routing_mode_label">分流模式设置</string>
     <string name="routing_mode_global">全局模式</string>
     <string name="routing_mode_route">路由模式</string>
@@ -221,11 +223,11 @@
     <string name="strategy_field">策略</string>
     <string name="quick_config_presets">快捷预设</string>
     <string name="bypass_china">绕过中国大陆</string>
-    <string name="bypass_china_desc">geosite:cn, geoip:cn -&gt; Direct</string>
+    <string name="bypass_china_desc">geosite:cn, geoip:cn -&gt; 直连</string>
     <string name="proxy_telegram_google">代理 Telegram 与 Google</string>
-    <string name="proxy_telegram_google_desc">geosite:telegram, geosite:google -&gt; Proxy</string>
+    <string name="proxy_telegram_google_desc">geosite:telegram, geosite:google -&gt; 代理</string>
     <string name="block_ads">拦截广告</string>
-    <string name="block_ads_desc">geosite:category-ads-all -&gt; Block</string>
+    <string name="block_ads_desc">geosite:category-ads-all -&gt; 拦截</string>
     <string name="custom_routing_rules">自定义路由规则</string>
     <string name="add_custom_rule">添加自定义规则</string>
     <string name="create_custom_rule">创建自定义规则</string>
