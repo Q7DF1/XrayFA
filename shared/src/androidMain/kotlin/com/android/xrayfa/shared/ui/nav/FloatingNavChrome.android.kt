@@ -1,0 +1,116 @@
+package com.android.xrayfa.shared.ui.nav
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
+import com.kyant.backdrop.Backdrop
+import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.effects.blur
+import com.kyant.backdrop.effects.lens
+import com.kyant.backdrop.effects.vibrancy
+
+/** Backdrop sampled from `ChildPages`. Android only; `null` falls back to a solid surface. */
+val LocalFloatingNavBackdrop = staticCompositionLocalOf<Backdrop?> { null }
+
+@Composable
+actual fun FloatingNavChrome(
+    selectedIndex: Int,
+    onIndexSettled: (Int) -> Unit,
+    tabsCount: Int,
+    modifier: Modifier,
+    content: @Composable () -> Unit,
+) {
+    val backdrop = LocalFloatingNavBackdrop.current
+    if (backdrop == null) {
+        val shape = RoundedCornerShape(32.dp)
+        Box(
+            modifier
+                .clip(shape)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest, shape)
+                .height(64.dp)
+                .fillMaxWidth(),
+        ) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .height(64.dp)
+                    .padding(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                content()
+            }
+            Row(Modifier.fillMaxWidth().height(64.dp)) {
+                repeat(tabsCount) { index ->
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clickable(
+                                interactionSource = null,
+                                indication = null,
+                                role = Role.Tab,
+                            ) { onIndexSettled(index) },
+                    )
+                }
+            }
+        }
+    } else {
+        LiquidNavBar(
+            selectedIndex = selectedIndex,
+            onIndexSettled = onIndexSettled,
+            tabsCount = tabsCount,
+            backdrop = backdrop,
+            modifier = modifier,
+        ) {
+            content()
+        }
+    }
+}
+
+@Composable
+actual fun FloatingNavSearchChrome(
+    onClick: () -> Unit,
+    modifier: Modifier,
+    content: @Composable () -> Unit,
+) {
+    val backdrop = LocalFloatingNavBackdrop.current
+    val glassModifier = if (backdrop == null) {
+        modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape)
+    } else {
+        val containerColor = liquidNavContainerColor(!isSystemInDarkTheme())
+        modifier.drawBackdrop(
+            backdrop = backdrop,
+            shape = { CircleShape },
+            effects = {
+                vibrancy()
+                blur(8f.dp.toPx())
+                lens(24f.dp.toPx(), 24f.dp.toPx())
+            },
+            onDrawSurface = { drawRect(containerColor) },
+        )
+    }
+    Box(
+        glassModifier
+            .clip(CircleShape)
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        content()
+    }
+}
