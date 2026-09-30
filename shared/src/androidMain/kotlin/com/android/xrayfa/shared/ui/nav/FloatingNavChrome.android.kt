@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +21,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.kyant.backdrop.Backdrop
+import com.kyant.backdrop.backdrops.LayerBackdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.kyant.backdrop.drawBackdrop
 import com.kyant.backdrop.effects.blur
 import com.kyant.backdrop.effects.lens
@@ -27,6 +31,30 @@ import com.kyant.backdrop.effects.vibrancy
 
 /** Backdrop sampled from `ChildPages`. Android only; `null` falls back to a solid surface. */
 val LocalFloatingNavBackdrop = staticCompositionLocalOf<Backdrop?> { null }
+
+private val LocalFloatingNavBackdropLayer = staticCompositionLocalOf<LayerBackdrop?> { null }
+
+@Composable
+actual fun ProvideFloatingNavBackdrop(content: @Composable () -> Unit) {
+    val layerBackdrop = rememberLayerBackdrop()
+    CompositionLocalProvider(
+        LocalFloatingNavBackdropLayer provides layerBackdrop,
+        LocalFloatingNavBackdrop provides layerBackdrop,
+    ) {
+        content()
+    }
+}
+
+@Composable
+actual fun FloatingNavBackdropSource(
+    modifier: Modifier,
+    content: @Composable () -> Unit,
+) {
+    val layer = LocalFloatingNavBackdropLayer.current
+    Box(if (layer != null) modifier.layerBackdrop(layer) else modifier) {
+        content()
+    }
+}
 
 @Composable
 actual fun FloatingNavChrome(

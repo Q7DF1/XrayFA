@@ -48,6 +48,19 @@ actual fun FloatingNavChrome(
 }
 
 @Composable
+actual fun ProvideFloatingNavBackdrop(content: @Composable () -> Unit) {
+    content()
+}
+
+@Composable
+actual fun FloatingNavBackdropSource(
+    modifier: Modifier,
+    content: @Composable () -> Unit,
+) {
+    Box(modifier) { content() }
+}
+
+@Composable
 actual fun FloatingNavSearchChrome(
     onClick: () -> Unit,
     modifier: Modifier,
