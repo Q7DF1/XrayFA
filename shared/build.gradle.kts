@@ -72,6 +72,7 @@ kotlin {
             implementation(libs.koin.compose)
         }
         androidMain.dependencies {
+            implementation("io.github.kyant0:backdrop:2.0.1")
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.android)
