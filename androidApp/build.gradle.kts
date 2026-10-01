@@ -11,7 +11,7 @@ plugins {
 
 android {
     namespace = "com.android.xrayfa"
-    compileSdk = 36
+    compileSdk = 37
     ndkVersion = "28.2.13676358"
 
     defaultConfig {
@@ -73,9 +73,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
     }
     lint {
         // Components are constructed by XrayAppCompatFactory (Koin), not the default ctor.
@@ -140,7 +137,11 @@ android {
     }
 }
 
-
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+    }
+}
 
 val xrayLibDir = rootProject.file("AndroidLibXrayLite")
 val aarOutput = xrayLibDir.resolve("libv2ray.aar")
@@ -198,6 +199,14 @@ tasks.named("preBuild") {
 
 ksp {
     arg("appfunctions:aggregateAppFunctions", "true")
+}
+
+// AGP 9 names the Kotlin module "xrayfa:xrayfaRelease". AppFunctions writes that
+// string into a generated filename, and ':' is illegal on Windows.
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {
+    (compilerOptions as org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompilerOptions)
+        .moduleName
+        .set(name.removePrefix("compile").removeSuffix("Kotlin"))
 }
 
 dependencies {
@@ -260,17 +269,4 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.14")
-}
-
-// CMP 1.9.3 按 androidx.compose.animation 1.9.4 编译 sharedBounds。
-// Compose BOM 2026.03 会把它升到 1.11.0-alpha06，默认参合成方法对不上，共享元素一调用就崩。
-configurations.configureEach {
-    resolutionStrategy {
-        force(
-            "androidx.compose.animation:animation:1.9.4",
-            "androidx.compose.animation:animation-android:1.9.4",
-            "androidx.compose.animation:animation-core:1.9.4",
-            "androidx.compose.animation:animation-core-android:1.9.4",
-        )
-    }
 }

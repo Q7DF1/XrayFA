@@ -52,7 +52,7 @@ dependencies {
 
 android {
     namespace = "com.android.xrayfa.database"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 28

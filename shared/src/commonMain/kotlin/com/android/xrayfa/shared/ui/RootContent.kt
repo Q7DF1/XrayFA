@@ -37,9 +37,11 @@ import com.android.xrayfa.shared.ui.config.OverlayScrollPending
 import com.android.xrayfa.shared.ui.config.SharedEditScreen
 import com.android.xrayfa.shared.ui.config.SharedSearchScreen
 import com.android.xrayfa.shared.ui.config.rememberConfigTabChromeState
+import com.android.xrayfa.shared.ui.nav.FloatingNavBackdropSource
 import com.android.xrayfa.shared.ui.nav.FloatingNavBottomFade
 import com.android.xrayfa.shared.ui.nav.FloatingNavBottomMargin
 import com.android.xrayfa.shared.ui.nav.FloatingNavItem
+import com.android.xrayfa.shared.ui.nav.ProvideFloatingNavBackdrop
 import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
 import com.android.xrayfa.shared.ui.nav.toFloatingNavItem
 import com.android.xrayfa.shared.ui.platform.LocalPlatformRootHooks
@@ -305,7 +307,10 @@ private fun IdleContent(
     val pages by component.pages.subscribeAsState()
     val selectedTab = pages.items.getOrNull(pages.selectedIndex)?.configuration ?: RootTab.Home
 
+    ProvideFloatingNavBackdrop {
     Box(modifier = Modifier.fillMaxSize()) {
+        // Only the tab pages feed the nav backdrop; the bottom fade and nav stay outside the source.
+        FloatingNavBackdropSource(modifier = Modifier.fillMaxSize()) {
         ChildPages(
             modifier = Modifier.fillMaxSize(),
             pages = component.pages,
@@ -328,6 +333,7 @@ private fun IdleContent(
                         onOpenQrScanner = component::openQrScanner,
                     )
             }
+        }
         }
 
         val navItems =
@@ -371,7 +377,7 @@ private fun IdleContent(
                             imageVector = Icons.Outlined.Search,
                             contentDescription = configLabels.searchLabel,
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            modifier = Modifier.size(26.dp),
+                            modifier = Modifier.size(22.dp),
                         )
                     }
                 },
@@ -384,5 +390,6 @@ private fun IdleContent(
                         .padding(bottom = FloatingNavBottomMargin, start = 16.dp, end = 16.dp),
             )
         }
+    }
     }
 }

@@ -82,10 +82,10 @@ class MainActivity constructor(
                     activityManager.appTasks.forEach {
                         val taskInfo = it.taskInfo
                         val currentTaskId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            taskInfo.taskId
+                            taskInfo?.taskId
                         } else {
                             @Suppress("DEPRECATION")
-                            taskInfo.id
+                            taskInfo?.id
                         }
                         if (currentTaskId == taskId) {
                             //set flag: Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS

@@ -72,6 +72,8 @@ kotlin {
             implementation(libs.koin.compose)
         }
         androidMain.dependencies {
+            implementation("io.github.kyant0:backdrop:2.0.1")
+            implementation("io.github.kyant0:shapes:1.2.1")
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.android)
@@ -95,7 +97,7 @@ kotlin {
 
 android {
     namespace = "com.android.xrayfa.shared"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 28
