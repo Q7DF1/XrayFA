@@ -34,6 +34,7 @@ import platform.UIKit.UIBlurEffectStyle
 import platform.UIKit.UIColor
 import platform.UIKit.UIDevice
 import platform.UIKit.UIGlassEffect
+import platform.UIKit.labelColor
 import platform.UIKit.UIVisualEffectView
 import kotlin.math.roundToInt
 
@@ -73,7 +74,7 @@ private fun GlassSurface(
             glassOrBlurView().also { view ->
                 if (tint) {
                     // Separates the slider lens from the bar surface it sits on.
-                    view.contentView.backgroundColor = UIColor.labelColor.colorWithAlphaComponent(0.08)
+                    view.contentView.backgroundColor = UIColor.Companion.labelColor.colorWithAlphaComponent(0.08)
                 }
             }
         },
