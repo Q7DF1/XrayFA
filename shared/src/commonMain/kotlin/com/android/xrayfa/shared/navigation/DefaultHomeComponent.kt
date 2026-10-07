@@ -6,6 +6,7 @@ import com.android.xrayfa.common.core.XrayCore
 import com.android.xrayfa.common.core.homeDelayTestEnabled
 import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.parser.ParserFactory
+import com.android.xrayfa.model.isJsonConfig
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.shared.vpn.EmptyTrafficStatsSource
 import com.android.xrayfa.shared.vpn.TrafficStatsSource
@@ -62,17 +63,17 @@ class DefaultHomeComponent(
 
     override fun onConnectToggle() {
         val current = _state.value
+        if (current.busy) return
+        if (current.isConnected) {
+            coordinator.disconnect()
+            return
+        }
         if (current.selectedNode == null) {
             scope.launch {
                 _state.update { it.copy(showConfigError = true) }
                 delay(CONFIG_ERROR_VISIBLE_MS)
                 _state.update { it.copy(showConfigError = false) }
             }
-            return
-        }
-
-        if (current.isConnected) {
-            coordinator.disconnect()
             return
         }
 
@@ -89,6 +90,9 @@ class DefaultHomeComponent(
                     delay(CONNECTION_ERROR_VISIBLE_MS)
                     _state.update { it.copy(connectionErrorMessage = null) }
                 }
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                _state.update { it.copy(connectionErrorMessage = if (current.selectedNode.isJsonConfig) "JSON_CONFIG_ERROR" else vpnController.connectError.value ?: "Connection failed") }
             } finally {
                 _state.update { it.copy(busy = false) }
             }
@@ -97,6 +101,7 @@ class DefaultHomeComponent(
 
     override fun onTestDelay() {
         val snapshot = _state.value
+        if (snapshot.selectedNode?.isJsonConfig == true) return
         if (!homeDelayTestEnabled(snapshot.isConnected, snapshot.testing)) return
         scope.launch {
             _state.update { it.copy(testing = true, delayMs = DelayMeasurement.TESTING_SENTINEL) }

@@ -243,4 +243,19 @@
     <string name="ips_prefix">IP：</string>
     <string name="port_prefix">端口：</string>
 
+    <string name="json_config_title">JSON 配置</string>
+    <string name="json_config_import">导入 JSON 文件</string>
+    <string name="json_config_name">配置名称</string>
+    <string name="json_config_content">Xray JSON 配置内容</string>
+    <string name="json_config_inbound">VPN 入口标签（可选）</string>
+    <string name="json_config_hint">保留文件的出口、路由与 DNS。应用将所选入口适配为手机 VPN，并添加专用 DNS 通道。</string>
+    <string name="json_config_mapping_hint">路由使用 inboundTag 时，请选择下方标签。留空则新增 VPN 入口。</string>
+    <string name="json_config_limits">JSON 配置暂不支持链接分享、离线测速、应用前后置链与速率统计。</string>
+    <string name="json_config_stats_unavailable">JSON 配置的速率统计暂不可用</string>
+    <string name="json_config_invalid">Xray JSON 配置无效或不受支持，请检查配置内容。</string>
+    <string name="json_config_read_error">无法读取文件，请选择不超过 1 MiB 的 UTF-8 JSON 文件。</string>
+    <string name="json_config_too_large">JSON 文件不能超过 1 MiB。</string>
+    <string name="json_config_mapping_error">请选择文件中已有的入口标签，以保留入口路由规则。</string>
+    <string name="json_config_conflict">配置与 VPN 通道冲突，请检查重复标签、监听端口及额外 TUN 入口。</string>
+    <string name="json_config_external_file">配置引用了外部文件，请内嵌内容或移除文件日志设置后导入。</string>
 </resources>

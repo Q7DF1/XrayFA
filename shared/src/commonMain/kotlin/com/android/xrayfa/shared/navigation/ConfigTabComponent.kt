@@ -12,7 +12,7 @@ interface ConfigComponent {
 
     fun onSelectFilter(filterId: Int)
 
-    fun onSelectNode(nodeId: Int)
+    fun onSelectNode(nodeId: Int, onSelected: () -> Unit = {})
 
     fun onToggleFavorite(
         nodeId: Int,
@@ -22,6 +22,8 @@ interface ConfigComponent {
     fun onImportFromClipboard()
 
     fun onImportFromLink(link: String)
+    fun onSaveJsonConfig(id: Int, name: String, text: String, inboundTag: String?, onDone: (String?) -> Unit)
+    fun onDismissConfigError()
 
     fun onSaveNodeEdit(
         nodeId: Int,

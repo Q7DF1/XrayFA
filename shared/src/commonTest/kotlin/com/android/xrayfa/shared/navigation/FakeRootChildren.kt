@@ -20,10 +20,12 @@ class FakeHomeComponent : HomeComponent {
 }
 
 class FakeConfigComponent : ConfigComponent {
+    override fun onSaveJsonConfig(id: Int, name: String, text: String, inboundTag: String?, onDone: (String?) -> Unit) = Unit
+    override fun onDismissConfigError() = Unit
     override val state: Value<ConfigState> = MutableValue(ConfigState())
     override fun nodeById(id: Int): Node? = null
     override fun onSelectFilter(filterId: Int) = Unit
-    override fun onSelectNode(nodeId: Int) = Unit
+    override fun onSelectNode(nodeId: Int, onSelected: () -> Unit) = onSelected()
     override fun onToggleFavorite(nodeId: Int, favorite: Boolean) = Unit
     override fun onImportFromClipboard() = Unit
     override fun onImportFromLink(link: String) = Unit

@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.model.Node
+import com.android.xrayfa.model.isJsonConfig
 import com.android.xrayfa.shared.navigation.ConfigComponent
 import com.android.xrayfa.shared.navigation.ConfigFilterIds
 import com.android.xrayfa.shared.ui.chrome.SharedUnderlineTabBar
@@ -109,14 +110,14 @@ fun SharedConfigSection(
                             favorite = node.favorite,
                             delayMs = delayMs,
                             testing = delayMs == -1L && nodeDelayMap.containsKey(node.id),
-                            enableTest = enableNodeTest,
+                            enableTest = enableNodeTest && !node.isJsonConfig,
                             countryEmoji = node.countryISO,
                             onChoose = { onNodeSelected(node) },
                             onFavorite = {
                                 component.onToggleFavorite(node.id, !node.favorite)
                             },
-                            onTest = onTestNode?.let { { it(node) } },
-                            onShare = onShareNode?.let { { it(node) } },
+                            onTest = onTestNode?.takeUnless { node.isJsonConfig }?.let { { it(node) } },
+                            onShare = onShareNode?.takeUnless { node.isJsonConfig }?.let { { it(node) } },
                             onEdit = onEditNode?.let { { it(node) } },
                             onDelete = onDeleteNode?.let { { it(node) } },
                         )

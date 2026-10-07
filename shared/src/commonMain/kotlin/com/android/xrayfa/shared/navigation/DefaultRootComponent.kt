@@ -69,6 +69,7 @@ class DefaultRootComponent(
                     RootStackConfig.RouteSettings -> RootComponent.StackChild.RouteSettings
                     RootStackConfig.Search -> RootComponent.StackChild.Search
                     is RootStackConfig.NodeEdit -> RootComponent.StackChild.NodeEdit(config.nodeId)
+                    is RootStackConfig.JsonConfigEdit -> RootComponent.StackChild.JsonConfigEdit(config.nodeId)
                 }
             },
         )
@@ -142,6 +143,7 @@ class DefaultRootComponent(
     override fun openLogcat() = pushOnSettingsOrIdle(RootStackConfig.Logcat)
     override fun openRouteSettings() = pushOnSettingsOrIdle(RootStackConfig.RouteSettings)
     override fun openNodeEdit(nodeId: Int) = bringOrPush(RootStackConfig.NodeEdit(nodeId))
+    override fun openJsonConfigEdit(nodeId: Int) = bringOrPush(RootStackConfig.JsonConfigEdit(nodeId))
     override fun openSearch() {
         bringOrPush(RootStackConfig.Search)
         navigation.select(index = RootTab.Config.ordinal)
@@ -165,6 +167,7 @@ class DefaultRootComponent(
             RootStackConfig.Logcat -> openLogcat()
             RootStackConfig.Search -> openSearch()
             is RootStackConfig.NodeEdit -> openNodeEdit(dest.nodeId)
+            is RootStackConfig.JsonConfigEdit -> openJsonConfigEdit(dest.nodeId)
         }
     }
 }

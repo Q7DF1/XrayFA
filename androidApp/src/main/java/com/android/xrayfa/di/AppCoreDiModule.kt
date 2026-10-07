@@ -47,6 +47,7 @@ val appCoreDiModule: Module = module {
             subscriptionRepository = get(),
             trafficDetector = get<TrafficDetector>(),
             context = androidContext(),
+            settingsRepository = get(),
         )
     }
     single<VpnController> {

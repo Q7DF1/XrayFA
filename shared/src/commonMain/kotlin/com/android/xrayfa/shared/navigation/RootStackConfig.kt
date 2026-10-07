@@ -14,6 +14,7 @@ sealed interface RootStackConfig {
     @Serializable data object RouteSettings : RootStackConfig
     @Serializable data object Search : RootStackConfig
     @Serializable data class NodeEdit(val nodeId: Int) : RootStackConfig
+    @Serializable data class JsonConfigEdit(val nodeId: Int = 0) : RootStackConfig
 }
 
 data class RootNavigationTarget(

@@ -12,6 +12,7 @@ import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -32,6 +33,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.model.Node
+import com.android.xrayfa.model.isJsonConfig
+import com.android.xrayfa.shared.ui.config.jsonConfigErrorText
 import com.android.xrayfa.shared.navigation.ConfigComponent
 import com.android.xrayfa.shared.resources.*
 import com.android.xrayfa.shared.ui.chrome.SharedListScaffold
@@ -56,6 +59,7 @@ internal fun ConfigTabScreen(
     onOpenNodeEdit: (Int) -> Unit,
     onOpenSubscriptions: () -> Unit,
     onOpenQrScanner: () -> Unit,
+    onOpenJsonConfig: (Int) -> Unit,
 ) {
     val platformHooks = LocalPlatformRootHooks.current
     val configLabels = rememberConfigUiLabels()
@@ -142,6 +146,13 @@ internal fun ConfigTabScreen(
                 scanQrLabel = settingsLabels.scanQrLabel,
                 additionalMenuItems = { dismiss ->
                     DropdownMenuItem(
+                        text = { Text(stringResource(Res.string.json_config_import)) },
+                        leadingIcon = {
+                            Icon(Icons.Outlined.UploadFile, contentDescription = null)
+                        },
+                        onClick = { dismiss(); onOpenJsonConfig(0) },
+                    )
+                    DropdownMenuItem(
                         text = { Text(configLabels.locateSelectedLabel) },
                         leadingIcon = {
                             Icon(Icons.Outlined.Star, contentDescription = null)
@@ -193,8 +204,7 @@ internal fun ConfigTabScreen(
             listContentPadding = PaddingValues(bottom = configBottomClearance),
             nodeDelayMap = configState.nodeDelayMap,
             onNodeSelected = { node ->
-                component.onSelectNode(node.id)
-                onNodeSelectedNavigateHome()
+                component.onSelectNode(node.id, onNodeSelectedNavigateHome)
             },
             rowModifier = { node ->
                 Modifier.sharedContainer(
@@ -204,12 +214,15 @@ internal fun ConfigTabScreen(
                 )
             },
             onEmptyAddClick = { onOpenNodeEdit(0) },
-            onEditNode = { node -> onOpenNodeEdit(node.id) },
+            onEditNode = { node -> if (node.isJsonConfig) onOpenJsonConfig(node.id) else onOpenNodeEdit(node.id) },
             onDeleteNode = component::onShowDeleteNode,
             onShareNode = { node -> shareNode = node },
         )
     }
 
+    configState.configError?.let { reason ->
+        AlertDialog(onDismissRequest = component::onDismissConfigError, text = { Text(jsonConfigErrorText(reason)) }, confirmButton = { TextButton(onClick = component::onDismissConfigError) { Text(configLabels.cancelLabel) } })
+    }
     configState.deleteTarget?.let { node ->
         AlertDialog(
             onDismissRequest = component::onDismissDeleteNode,

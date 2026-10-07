@@ -10,6 +10,8 @@ fun defaultConfigComponentFactory(
 ): ConfigComponentFactory =
     { componentContext ->
         val koin = KoinPlatform.getKoin()
+        // Initializes the platform restart preparation hook as well as the home path.
+        koin.get<com.android.xrayfa.shared.vpn.VpnConnectCoordinator>()
         DefaultConfigComponent(
             componentContext = componentContext,
             nodeRepository = koin.get(),
@@ -22,5 +24,6 @@ fun defaultConfigComponentFactory(
             settingsRepository = koin.get(),
             xrayCore = koin.get(),
             parserFactory = koin.get(),
+            jsonEditor = koin.get(),
         )
     }

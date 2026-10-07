@@ -1,6 +1,7 @@
 package com.android.xrayfa.shared.di
 
 import com.android.xrayfa.shared.config.ConfigLinkImporter
+import com.android.xrayfa.shared.config.JsonConfigEditor
 import com.android.xrayfa.shared.config.NodeEditor
 import com.android.xrayfa.shared.config.NodeFormEditor
 import org.koin.core.module.Module
@@ -8,6 +9,7 @@ import org.koin.dsl.module
 
 val sharedServicesDiModule: Module =
     module {
+        single { JsonConfigEditor(get()) }
         single {
             ConfigLinkImporter(
                 nodeRepository = get(),

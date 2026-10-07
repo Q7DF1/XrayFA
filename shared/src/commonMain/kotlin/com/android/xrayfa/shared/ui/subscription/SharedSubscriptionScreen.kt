@@ -53,6 +53,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.model.Node
+import com.android.xrayfa.model.isJsonConfig
 import com.android.xrayfa.model.Subscription
 import com.android.xrayfa.shared.navigation.EmptySubscription
 import com.android.xrayfa.shared.navigation.SubscriptionComponent
@@ -400,7 +401,7 @@ private fun SharedSubscriptionEditSheet(
             SharedSubscriptionNodeSelector(
                 label = labels.preNode,
                 selectedNodeId = preNodeId,
-                nodes = nodes,
+                nodes = nodes.filterNot { it.isJsonConfig },
                 noneLabel = labels.none,
                 onNodeSelected = { preNodeId = it },
             )
@@ -408,7 +409,7 @@ private fun SharedSubscriptionEditSheet(
             SharedSubscriptionNodeSelector(
                 label = labels.nextNode,
                 selectedNodeId = nextNodeId,
-                nodes = nodes,
+                nodes = nodes.filterNot { it.isJsonConfig },
                 noneLabel = labels.none,
                 onNodeSelected = { nextNodeId = it },
             )

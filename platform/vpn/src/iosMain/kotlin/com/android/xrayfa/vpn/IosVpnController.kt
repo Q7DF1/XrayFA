@@ -19,6 +19,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSError
 import platform.Foundation.NSOperationQueue
@@ -26,6 +29,7 @@ import platform.NetworkExtension.NEVPNConnection
 import platform.NetworkExtension.NEVPNStatusConnected
 import platform.NetworkExtension.NEVPNStatusConnecting
 import platform.NetworkExtension.NEVPNStatusDisconnecting
+import platform.NetworkExtension.NEVPNStatusDisconnected
 import platform.NetworkExtension.NEVPNStatusInvalid
 import platform.NetworkExtension.NEVPNStatusReasserting
 import platform.NetworkExtension.NETunnelProviderManager
@@ -52,6 +56,9 @@ class IosVpnController(
 
     private var manager: NETunnelProviderManager? = null
     private var statusObserver: NSObjectProtocol? = null
+    private val restartMutex = Mutex()
+    var prepareForRestart: (suspend () -> Boolean)? = null
+    override fun clearPendingConfig() { IosAppGroupStorage.writePendingConfig("") }
 
     init {
         scope.launch {
@@ -100,12 +107,21 @@ class IosVpnController(
         _state.value = VpnState.Disconnected
     }
 
-    override suspend fun restartIfNeeded() {
+    override suspend fun restartIfNeeded() = restartMutex.withLock {
         if (!_state.value.isConnected) {
-            return
+            return@withLock
+        }
+        if (prepareForRestart?.invoke() == false) {
+            disconnect()
+            return@withLock
         }
         disconnect()
-        connect()
+        val stopped = withTimeoutOrNull(5_000) {
+            while (manager?.connection?.status.let { it != null && it != NEVPNStatusDisconnected && it != NEVPNStatusInvalid }) delay(100)
+            true
+        } == true
+        if (stopped) connect() else _connectError.value = "VPN tunnel did not stop"
+        Unit
     }
 
     private suspend fun ensureManager(): NETunnelProviderManager {

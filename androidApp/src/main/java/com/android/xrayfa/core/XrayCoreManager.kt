@@ -58,13 +58,14 @@ class XrayCoreManager(
     }
     private var coreController: XrayCoreController? = null
     private var job: Job? = null
+    private var jsonSession = false
 
     private val _trafficFlow = MutableSharedFlow<Pair<Double, Double>>(replay = 1)
     override val trafficFlow: SharedFlow<Pair<Double, Double>> = _trafficFlow.asSharedFlow()
 
     private val controllerCallback = object : XrayCoreCallback {
         override fun onEmitStatus(code: Long, message: String?): Long {
-            Log.i(TAG, "onEmitStatus: $code $message")
+            Log.i(TAG, if (jsonSession) "JSON core status: $code" else "onEmitStatus: $code $message")
             return 0L
         }
 
@@ -109,15 +110,17 @@ class XrayCoreManager(
     }
 
     override suspend fun startXrayCore(startOptions: CoreStartOptions, tunFd: Int?): Boolean {
+        jsonSession = startOptions.jsonConfig != null
         try {
-            tunFd?.let {
-                coreController?.startLoop(parserFactory.getParser(startOptions.url).parse(startOptions), tunFd)
-            }
+            val controller = coreController ?: return false
+            controller.startLoop(startOptions.jsonConfig ?: parserFactory.getParser(startOptions.url).parse(startOptions), tunFd ?: return false)
+            if (!controller.isRunning) return false
             // Start traffic detection after core is confirmed running
-            startTrafficDetection()
+            if (!jsonSession) startTrafficDetection() else _trafficFlow.emit(Pair(0.0, 0.0))
             return true
         }catch (e: Exception) {
-            Log.e(TAG, "startXrayCore failed: ${e.message}")
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            Log.e(TAG, if (jsonSession) "JSON core start failed" else "startXrayCore failed: ${e.message}")
             withContext(Dispatchers.Main) {
                 Toast.makeText(context,R.string.core_start_failed, Toast.LENGTH_SHORT).show()
             }
@@ -133,6 +136,7 @@ class XrayCoreManager(
 
     override fun startTrafficDetection() {
         job?.cancel()
+        if (jsonSession) return
         job = coroutineScope.launch(Dispatchers.IO) {
             var last = System.currentTimeMillis()
             // send initial zero values

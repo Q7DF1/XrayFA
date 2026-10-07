@@ -35,6 +35,7 @@ interface RootComponent : BackHandlerOwner {
     fun openRouteSettings()
 
     fun openNodeEdit(nodeId: Int)
+    fun openJsonConfigEdit(nodeId: Int = 0)
 
     fun openSearch()
 
@@ -58,5 +59,6 @@ interface RootComponent : BackHandlerOwner {
         data object RouteSettings : StackChild()
         data object Search : StackChild()
         class NodeEdit(val nodeId: Int) : StackChild()
+        class JsonConfigEdit(val nodeId: Int) : StackChild()
     }
 }

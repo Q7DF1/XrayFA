@@ -254,4 +254,19 @@
     <string name="ips_prefix">IPs:</string>
     <string name="port_prefix">Port:</string>
 
+    <string name="json_config_title">Конфигурация JSON</string>
+    <string name="json_config_import">Импорт файла JSON</string>
+    <string name="json_config_name">Название конфигурации</string>
+    <string name="json_config_content">Конфигурация Xray JSON</string>
+    <string name="json_config_inbound">Тег входящего VPN (необязательно)</string>
+    <string name="json_config_hint">Сохраняет исходящие соединения, маршрутизацию и DNS. Приложение адаптирует выбранный входящий канал для VPN и добавляет канал DNS.</string>
+    <string name="json_config_mapping_hint">Если правила используют inboundTag, выберите тег ниже. Пустое поле добавляет новый входящий VPN.</string>
+    <string name="json_config_limits">Для JSON недоступны ссылки, автономные тесты задержки, цепочки приложения и статистика скорости.</string>
+    <string name="json_config_stats_unavailable">Статистика скорости для JSON недоступна</string>
+    <string name="json_config_invalid">Некорректная или неподдерживаемая конфигурация Xray JSON. Проверьте содержимое.</string>
+    <string name="json_config_read_error">Не удалось прочитать файл. Используйте JSON в UTF-8 размером до 1 МиБ.</string>
+    <string name="json_config_too_large">Размер JSON не должен превышать 1 МиБ.</string>
+    <string name="json_config_mapping_error">Выберите существующий тег входящего соединения для сохранения правил.</string>
+    <string name="json_config_conflict">Конфликт с каналом VPN: проверьте повторяющиеся теги, порты и дополнительные входящие TUN.</string>
+    <string name="json_config_external_file">Конфигурация ссылается на внешние файлы. Встройте содержимое или отключите запись журнала в файл.</string>
 </resources>

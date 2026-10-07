@@ -28,6 +28,7 @@ class DefaultXrayAgentFacade(
     private val trafficWaitMs: Long = 1_500,
     private val delayMinIntervalMs: Long = 5_000,
     private val clockMs: () -> Long = { System.currentTimeMillis() },
+    private val validateNodeForConnect: suspend (Int) -> Unit = {},
 ) : XrayAgentFacade {
 
     private val lastDelayByNodeMs = ConcurrentHashMap<Int, Long>()
@@ -70,6 +71,11 @@ class DefaultXrayAgentFacade(
     override suspend fun getAppInfo(): AgentAppInfo = appInfo
 
     override suspend fun selectNode(nodeId: Int): AgentActionResult {
+        try {
+            validateNodeForConnect(nodeId)
+        } catch (_: com.android.xrayfa.config.JsonConfigException) {
+            return AgentActionResult.Failure(AgentErrorCode.VPN_CONNECT_FAILED, "JSON_CONFIG_ERROR")
+        }
         val result = catalog.selectNode(nodeId)
         if (result is AgentActionResult.Success) {
             vpnController.restartIfNeeded()

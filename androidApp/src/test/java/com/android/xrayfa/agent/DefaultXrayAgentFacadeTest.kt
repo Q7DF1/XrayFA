@@ -18,6 +18,17 @@ import org.junit.Test
 private const val DUMMY_LOCAL_SOCKS_AUTH = "dummy-local-socks-auth"
 
 class DefaultXrayAgentFacadeTest {
+    @Test
+    fun incompatibleJsonDoesNotChangeSelectionOrRestart() = runBlocking {
+        val catalog = FakeCatalog()
+        val vpn = FakeVpnController(connected = true)
+        val result = facade(catalog = catalog, vpn = vpn, validateNode = {
+            throw com.android.xrayfa.config.JsonConfigException(com.android.xrayfa.config.JsonConfigError.CONFLICT)
+        }).selectNode(7)
+        assertTrue(result is AgentActionResult.Failure)
+        assertTrue(catalog.selectCalls.isEmpty())
+        assertTrue(vpn.state.value == VpnState.Connected)
+    }
 
     @Test
     fun getVpnStatus_reportsConnectedAndLastError() = runBlocking {
@@ -327,6 +338,7 @@ class DefaultXrayAgentFacadeTest {
         trafficWaitMs: Long = 1_500,
         delayMinIntervalMs: Long = 5_000,
         clockMs: () -> Long = { 0L },
+        validateNode: suspend (Int) -> Unit = {},
     ): DefaultXrayAgentFacade = DefaultXrayAgentFacade(
         catalog = catalog,
         vpnController = vpn,
@@ -341,6 +353,7 @@ class DefaultXrayAgentFacadeTest {
         trafficWaitMs = trafficWaitMs,
         delayMinIntervalMs = delayMinIntervalMs,
         clockMs = clockMs,
+        validateNodeForConnect = validateNode,
     )
 }
 

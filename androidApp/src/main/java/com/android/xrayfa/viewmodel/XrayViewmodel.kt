@@ -524,7 +524,7 @@ class XrayViewmodel(
             // Limit concurrency to 32 to avoid exhausting resources
             val semaphore = Semaphore(32)
             
-            val jobs = nodeList.map { node ->
+            val jobs = nodeList.filterNot { it.protocolPrefix == com.android.xrayfa.model.JSON_CONFIG_PREFIX }.map { node ->
                 launch {
                     semaphore.withPermit {
                         // Set to -1 to show testing status in UI
