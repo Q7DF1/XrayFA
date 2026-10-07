@@ -3,6 +3,7 @@ package com.android.xrayfa.shared.config
 import com.android.xrayfa.common.utils.Logger
 import com.android.xrayfa.dto.ParseLinkInput
 import com.android.xrayfa.model.protocol.protocolsPrefix
+import com.android.xrayfa.model.isJsonConfig
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.shared.navigation.ConfigFilterIds
@@ -72,9 +73,13 @@ class NodeEditor(
 
     suspend fun deleteNode(nodeId: Int) {
         val selectedId = nodeRepository.querySelectedNode().first()?.id
+        val deletingJson = nodeRepository.loadLinksById(nodeId).first()?.isJsonConfig == true
         nodeRepository.deleteLinkById(nodeId)
         if (selectedId == nodeId) {
-            vpnController.restartIfNeeded()
+            if (deletingJson) {
+                vpnController.clearPendingConfig()
+                vpnController.disconnect()
+            } else vpnController.restartIfNeeded()
         }
     }
 

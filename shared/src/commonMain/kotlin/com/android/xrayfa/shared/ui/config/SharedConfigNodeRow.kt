@@ -44,6 +44,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.xrayfa.model.Node
+import com.android.xrayfa.model.isJsonConfig
+import com.android.xrayfa.shared.resources.*
+import org.jetbrains.compose.resources.stringResource
 import com.android.xrayfa.model.protocol.protocolPrefixMap
 
 /** Flat list row — visual parity with Android `NodeCard` list mode (roundCorner = false). */
@@ -132,7 +135,7 @@ fun SharedConfigNodeRow(
                 ) {
                     Text(
                         text =
-                            protocolPrefixMap[node.protocolPrefix]?.protocolType
+                            if (node.isJsonConfig) stringResource(Res.string.json_config_title) else protocolPrefixMap[node.protocolPrefix]?.protocolType
                                 ?: labels.unknownProtocolLabel,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

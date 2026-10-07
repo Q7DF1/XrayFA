@@ -48,6 +48,7 @@ val appComponentDiModule: Module = module {
             xrayCore = get(),
             settingsRepo = get(),
             notificationHelper = get(),
+            nodeRepository = get(),
         )
     }
     factory {

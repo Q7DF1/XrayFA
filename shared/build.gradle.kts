@@ -72,6 +72,7 @@ kotlin {
             implementation(libs.koin.compose)
         }
         androidMain.dependencies {
+            implementation(libs.androidx.activity.compose)
             implementation("io.github.kyant0:backdrop:2.0.1")
             implementation("io.github.kyant0:shapes:1.2.1")
             implementation(libs.koin.core)

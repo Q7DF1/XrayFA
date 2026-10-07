@@ -258,4 +258,19 @@
     <string name="ips_prefix">IPs:</string>
     <string name="port_prefix">Port:</string>
 
+    <string name="json_config_title">JSON configuration</string>
+    <string name="json_config_import">Import JSON file</string>
+    <string name="json_config_name">Configuration name</string>
+    <string name="json_config_content">Xray JSON configuration</string>
+    <string name="json_config_inbound">VPN inbound tag (optional)</string>
+    <string name="json_config_hint">Keeps your outbounds, routing and DNS. The app adapts the selected inbound for mobile VPN and adds a private DNS channel.</string>
+    <string name="json_config_mapping_hint">Choose a tag below if routing uses inboundTag. Leave blank to add a new VPN inbound.</string>
+    <string name="json_config_limits">JSON configurations do not support link sharing, offline delay tests, app proxy chains or speed statistics.</string>
+    <string name="json_config_stats_unavailable">Speed statistics unavailable for JSON configuration</string>
+    <string name="json_config_invalid">Invalid or unsupported Xray JSON configuration. Check the configuration.</string>
+    <string name="json_config_read_error">Cannot read this file. Use a UTF-8 JSON file no larger than 1 MiB.</string>
+    <string name="json_config_too_large">The JSON file must be no larger than 1 MiB.</string>
+    <string name="json_config_mapping_error">Select an existing inbound tag to preserve your inbound routing rules.</string>
+    <string name="json_config_conflict">The configuration conflicts with the VPN channel: check duplicate tags, listening ports and additional TUN inbounds.</string>
+    <string name="json_config_external_file">This configuration references external files. Embed the content or remove file logging before importing.</string>
 </resources>

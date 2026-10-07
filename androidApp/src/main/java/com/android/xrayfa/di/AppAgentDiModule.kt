@@ -77,6 +77,12 @@ val appAgentDiModule: Module = module {
                 }
             },
             measureDelay = { nodeId, url -> delayProbe.measure(nodeId, url) },
+            validateNodeForConnect = { id ->
+                val node = get<com.android.xrayfa.repository.NodeRepository>().loadLinksById(id).first()
+                if (node != null && node.protocolPrefix == com.android.xrayfa.model.JSON_CONFIG_PREFIX) {
+                    com.android.xrayfa.shared.vpn.prepareJsonVpn(node, get<SettingsRepository>().settingsFlow.first())
+                }
+            },
             openScreenAction = { screen ->
                 context.startActivity(
                     Intent(context, MainActivity::class.java).apply {

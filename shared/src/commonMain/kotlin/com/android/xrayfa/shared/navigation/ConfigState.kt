@@ -19,4 +19,5 @@ data class ConfigState(
     val testingAll: Boolean = false,
     val searchQuery: String = "",
     val pendingDeleteAll: Boolean = false,
+    val configError: String? = null,
 )

@@ -62,6 +62,10 @@ class RoomNodeRepository(
         nodeDao.updateNode(id, url, port, remark)
     }
 
+    override suspend fun updateJsonConfig(id: Int, identifier: String, remark: String, jsonData: String) {
+        nodeDao.updateJsonConfig(id, identifier, remark, jsonData)
+    }
+
     override suspend fun updateSelectById(id: Int, selected: Boolean) {
         nodeDao.updateSelectById(id, selected)
     }

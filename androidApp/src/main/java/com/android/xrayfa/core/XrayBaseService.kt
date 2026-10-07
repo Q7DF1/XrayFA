@@ -16,6 +16,11 @@ import com.android.xrayfa.MainActivity.Companion.ACTION_START_SERVICE
 import com.android.xrayfa.MainActivity.Companion.ACTION_STOP_SERVICE
 import com.android.xrayfa.R
 import com.android.xrayfa.common.core.XrayCore
+import com.android.xrayfa.common.core.CoreStartOptions
+import com.android.xrayfa.repository.NodeRepository
+import com.android.xrayfa.model.isJsonConfig
+import com.android.xrayfa.shared.vpn.prepareJsonVpn
+import com.android.xrayfa.config.JsonVpnConfig
 import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.core.StartOptions.Companion.EXTRA_START_OPTIONS
 import com.android.xrayfa.helper.NotificationHelper
@@ -30,12 +35,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.withLock
 @SuppressLint("VpnServicePolicy")
 class XrayBaseService constructor(
     private val tun2SocksService: Tun2SocksService,
     private val xrayCore: XrayCore,
     private val settingsRepo: SettingsRepository,
-    private val notificationHelper: NotificationHelper
+    private val notificationHelper: NotificationHelper,
+    private val nodeRepository: NodeRepository,
 ): VpnService(){
 
     companion object {
@@ -59,6 +67,7 @@ class XrayBaseService constructor(
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Default + serviceJob)
+    private val connectionMutex = kotlinx.coroutines.sync.Mutex()
 
     var tunFd: ParcelFileDescriptor? = null
 
@@ -70,11 +79,13 @@ class XrayBaseService constructor(
             DISCONNECT -> {
                 Log.i(TAG, "onStartCommand: stop...")
                 serviceScope.launch {
-                    stopXrayCoreService()
-                    updateStatus(false)
-                    updateToggleShortcut(false)
-                    stopSelf()
-                    notificationHelper.hideNotification()
+                    connectionMutex.withLock {
+                        stopXrayCoreService()
+                        updateStatus(false)
+                        updateToggleShortcut(false)
+                        stopSelf()
+                        notificationHelper.hideNotification()
+                    }
                 }
 
                 START_NOT_STICKY
@@ -90,9 +101,13 @@ class XrayBaseService constructor(
 
                 serviceScope.launch {
                     notificationHelper.showNotification()
-                    val start = startXrayCoreService(startOptions = options!!)
-                    updateStatus(start)
-                    updateToggleShortcut(start)
+                    connectionMutex.lock()
+                    val start = try {
+                        val started = if (statusFlow.value) true else options?.let { startXrayCoreService(it) } ?: false
+                        updateStatus(started)
+                        updateToggleShortcut(started)
+                        started
+                    } finally { connectionMutex.unlock() }
                     // Collect traffic data for notification updates
                     if (start) {
                         xrayCore.trafficFlow.collect { data ->
@@ -111,8 +126,26 @@ class XrayBaseService constructor(
                     } else {
                         intent.getParcelableExtra<StartOptions>(EXTRA_START_OPTIONS)
                     }
-                    stopXrayCoreService()
-                    startXrayCoreService(options!!)
+                    connectionMutex.lock()
+                    try {
+                        val prepared = options?.let { resolveCoreOptions(it) }
+                        if (prepared == null) {
+                            stopXrayCoreService()
+                            updateStatus(false)
+                            updateToggleShortcut(false)
+                        } else {
+                            stopXrayCoreService()
+                            val started = startXrayCoreService(options, prepared)
+                            updateStatus(started)
+                            updateToggleShortcut(started)
+                        }
+                    } catch (e: Exception) {
+                        if (e is CancellationException) throw e
+                        // Preflight failed before stopping the existing connection.
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@XrayBaseService, R.string.core_start_failed, Toast.LENGTH_SHORT).show()
+                        }
+                    } finally { connectionMutex.unlock() }
                     restartToast()
                 }
                 START_STICKY
@@ -151,18 +184,18 @@ class XrayBaseService constructor(
 
 
 
-    private suspend fun startVpn() {
+    private suspend fun startVpn(jsonConfig: Boolean = false) {
         val prefs  = NetPreferences(this)
         val builder = Builder()
         val settings = settingsRepo.settingsFlow.first()
-        val dnsServers = settings.dnsIPv4.split(",").filter { it.isNotBlank() }
+        val dnsServers = if (jsonConfig) listOf(JsonVpnConfig.VPN_DNS) else settings.dnsIPv4.split(",").filter { it.isNotBlank() }
 
         if (dnsServers.isNotEmpty()) {
             dnsServers.forEach { builder.addDnsServer(it.trim()) }
         } else {
             builder.addDnsServer("8.8.8.8")
         }
-        if (settings.ipV6Enable) {
+        if (settings.ipV6Enable && !jsonConfig) {
             val dnsV6Servers = settings.dnsIPv6.split(",").filter { it.isNotBlank() }
             dnsV6Servers.forEach { builder.addDnsServer(it.trim()) }
         }
@@ -201,24 +234,31 @@ class XrayBaseService constructor(
             ).show()
         }
     }
-    private suspend fun startXrayCoreService(startOptions: StartOptions): Boolean {
-        val settingState = settingsRepo.settingsFlow.first()
-        startVpn()
-        var start: Boolean
-        if (settingState.hexTunEnable) {
-            start = xrayCore.startXrayCore(startOptions.toCoreStartOptions(), 0)
-            if (start) {
-                tunFd?.let {
-                    tun2SocksService.startTun2Socks(it.fd)
+    private suspend fun resolveCoreOptions(options: StartOptions): CoreStartOptions {
+        if (options.jsonNodeId <= 0) return options.toCoreStartOptions()
+        val node = nodeRepository.loadLinksById(options.jsonNodeId).first() ?: error("JSON_CONFIG_ERROR")
+        check(node.isJsonConfig)
+        return CoreStartOptions(url = node.url, jsonConfig = prepareJsonVpn(node, settingsRepo.settingsFlow.first()))
+    }
+
+    private suspend fun startXrayCoreService(startOptions: StartOptions, prepared: CoreStartOptions? = null): Boolean {
+        try {
+            val coreOptions = prepared ?: resolveCoreOptions(startOptions)
+            val settingState = settingsRepo.settingsFlow.first()
+            startVpn(coreOptions.jsonConfig != null)
+            val fd = tunFd?.fd ?: return false
+            val started = if (settingState.hexTunEnable) {
+                xrayCore.startXrayCore(coreOptions, 0).also { running ->
+                    if (running) tun2SocksService.startTun2Socks(fd)
                 }
-            }
-        }else {
-            start = xrayCore.startXrayCore(startOptions.toCoreStartOptions(), tunFd?.fd)
+            } else xrayCore.startXrayCore(coreOptions, fd)
+            if (!started) stopXrayCoreService()
+            return started
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            stopXrayCoreService()
+            return false
         }
-        if (!start) {
-            stopVPN()
-        }
-        return start
     }
 
     private suspend fun stopXrayCoreService() {

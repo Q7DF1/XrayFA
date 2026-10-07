@@ -255,4 +255,19 @@
     <string name="ips_prefix">IPs:</string>
     <string name="port_prefix">Port:</string>
 
+    <string name="json_config_title">JSON 구성</string>
+    <string name="json_config_import">JSON 파일 가져오기</string>
+    <string name="json_config_name">구성 이름</string>
+    <string name="json_config_content">Xray JSON 구성</string>
+    <string name="json_config_inbound">VPN 인바운드 태그 (선택)</string>
+    <string name="json_config_hint">아웃바운드, 라우팅 및 DNS를 유지합니다. 앱은 선택한 인바운드를 모바일 VPN에 맞추고 전용 DNS 채널을 추가합니다.</string>
+    <string name="json_config_mapping_hint">라우팅에 inboundTag가 있으면 아래 태그를 선택하세요. 비워 두면 VPN 인바운드를 추가합니다.</string>
+    <string name="json_config_limits">JSON 구성은 링크 공유, 오프라인 지연 테스트, 앱 프록시 체인 및 속도 통계를 지원하지 않습니다.</string>
+    <string name="json_config_stats_unavailable">JSON 구성의 속도 통계를 사용할 수 없습니다</string>
+    <string name="json_config_invalid">잘못되었거나 지원되지 않는 Xray JSON 구성입니다. 구성을 확인하세요.</string>
+    <string name="json_config_read_error">파일을 읽을 수 없습니다. 1 MiB 이하의 UTF-8 JSON 파일을 사용하세요.</string>
+    <string name="json_config_too_large">JSON 파일은 1 MiB 이하여야 합니다.</string>
+    <string name="json_config_mapping_error">인바운드 라우팅 규칙을 유지하려면 기존 태그를 선택하세요.</string>
+    <string name="json_config_conflict">구성이 VPN 채널과 충돌합니다. 중복 태그, 포트 및 추가 TUN 인바운드를 확인하세요.</string>
+    <string name="json_config_external_file">구성이 외부 파일을 참조합니다. 내용을 포함하거나 파일 로그를 제거하세요.</string>
 </resources>

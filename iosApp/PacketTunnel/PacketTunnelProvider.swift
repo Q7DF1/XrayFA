@@ -23,6 +23,8 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
     private var tun2SocksQueue: DispatchQueue?
     private var trafficTimer: DispatchSourceTimer?
     private var lastTrafficSampleTime: Date?
+    private var jsonSession = false
+    private var jsonSocksPort: Int?
 
     override func startTunnel(
         options: [String: NSObject]?,
@@ -46,7 +48,8 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
             do {
                 try self?.startVpnPipeline(configJson: configJson)
                 self?.setTunnelConnected(true)
-                self?.startTrafficPolling()
+                if self?.jsonSession == false { self?.startTrafficPolling() }
+                else { self?.writeTrafficSpeedsKbps(upload: 0, download: 0) }
                 completionHandler(nil)
             } catch {
                 self?.failStart(error, completionHandler: completionHandler)
@@ -77,6 +80,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         Libv2rayInitCoreEnv(container.path, "ios-device")
 
         let handler = TunnelCoreCallbackHandler()
+        handler.suppressSensitiveStatus = jsonSession
         callbackHandler = handler
         guard let controller = Libv2rayNewCoreController(handler) else {
             throw TunnelError.xrayInitFailed
@@ -84,6 +88,7 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
         coreController = controller
 
         try controller.startLoop(configJson, tunFd: 0)
+        guard controller.isRunning else { throw TunnelError.xrayStartFailed }
 
         guard let tunFd = UtunFileDescriptor.from(packetFlow: packetFlow) else {
             throw TunnelError.noUtunFd
@@ -91,7 +96,8 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
 
         let configPath = try Tun2SocksConfigBuilder.writeConfig(
             to: container,
-            xrayConfigJson: configJson
+            xrayConfigJson: configJson,
+            socksPort: jsonSocksPort
         )
 
         let queue = DispatchQueue(label: "com.android.xrayfa.tun2socks", qos: .userInitiated)
@@ -114,8 +120,21 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
     }
 
     private func loadPendingConfig() -> String? {
-        UserDefaults(suiteName: AppGroup.suiteName)?
-            .string(forKey: AppGroup.pendingConfigKey)
+        jsonSession = false
+        jsonSocksPort = nil
+        guard let value = UserDefaults(suiteName: AppGroup.suiteName)?.string(forKey: AppGroup.pendingConfigKey) else { return nil }
+        if let data = value.data(using: .utf8),
+           let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let version = root["_xrayfaEnvelopeVersion"] {
+            guard let number = version as? Int, number == 1,
+                  let config = root["config"] as? String,
+                  let port = root["socksPort"] as? Int, port == 10808,
+                  let dns = root["dns"] as? String, dns == "198.18.0.1" else { return nil }
+            jsonSession = true
+            jsonSocksPort = port
+            return config
+        }
+        return value
     }
 
     private func setTunnelConnected(_ connected: Bool) {
@@ -123,11 +142,11 @@ final class PacketTunnelProvider: NEPacketTunnelProvider {
     }
 
     private func failStart(_ error: Error, completionHandler: @escaping (Error?) -> Void) {
-        let message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        let message = jsonSession ? "JSON_CONFIG_ERROR" : ((error as? LocalizedError)?.errorDescription ?? error.localizedDescription)
         AppGroupIpc.writeLastError(message)
         AppGroupIpc.setTunnelConnected(false)
         stopVpnPipeline()
-        completionHandler(error)
+        completionHandler(jsonSession ? NSError(domain: "XrayFA", code: 1, userInfo: [NSLocalizedDescriptionKey: message]) : error)
     }
 
     private func startTrafficPolling() {

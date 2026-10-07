@@ -35,6 +35,8 @@ import com.android.xrayfa.shared.ui.config.ConfigTabChromeState
 import com.android.xrayfa.shared.ui.config.ConfigUiLabels
 import com.android.xrayfa.shared.ui.config.OverlayScrollPending
 import com.android.xrayfa.shared.ui.config.SharedEditScreen
+import com.android.xrayfa.model.isJsonConfig
+import com.android.xrayfa.shared.ui.config.JsonConfigEditScreen
 import com.android.xrayfa.shared.ui.config.SharedSearchScreen
 import com.android.xrayfa.shared.ui.config.rememberConfigTabChromeState
 import com.android.xrayfa.shared.ui.nav.FloatingNavBackdropSource
@@ -251,6 +253,9 @@ fun RootContent(
                                 )
                             }
                         }
+                        is RootComponent.StackChild.JsonConfigEdit -> {
+                            configComponent?.let { JsonConfigEditScreen(instance.nodeId, it, component::navigateBack, Modifier.fillMaxSize()) }
+                        }
                         is RootComponent.StackChild.NodeEdit -> {
                             val latestNode = configComponent?.nodeById(instance.nodeId)
                             val nodeState =
@@ -261,7 +266,9 @@ fun RootContent(
                             val node = nodeState.value
                             val nodeFormEditor =
                                 remember { KoinPlatform.getKoin().get<NodeFormEditor>() }
-                            SharedEditScreen(
+                            if (node?.isJsonConfig == true) {
+                                configComponent?.let { JsonConfigEditScreen(instance.nodeId, it, component::navigateBack, Modifier.fillMaxSize()) }
+                            } else SharedEditScreen(
                                 nodeId = instance.nodeId,
                                 protocol = node?.protocolPrefix,
                                 initialContent = node?.url,
@@ -331,6 +338,7 @@ private fun IdleContent(
                         onOpenNodeEdit = component::openNodeEdit,
                         onOpenSubscriptions = component::openSubscriptions,
                         onOpenQrScanner = component::openQrScanner,
+                            onOpenJsonConfig = component::openJsonConfigEdit,
                     )
             }
         }

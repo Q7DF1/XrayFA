@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
  * iOS actual: stub until Network Extension wiring.
  */
 interface VpnController {
+    /** Invalidates a persisted start snapshot when its source record is deleted. */
+    fun clearPendingConfig() = Unit
     val state: StateFlow<VpnState>
 
     /** Non-null after the most recent failed [connect] on platforms that surface tunnel errors. */

@@ -4,6 +4,7 @@ import com.android.xrayfa.common.core.CoreStartOptions
 import com.android.xrayfa.common.core.XrayCore
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.repository.NodeRepository
+import com.android.xrayfa.model.isJsonConfig
 import kotlinx.coroutines.flow.first
 
 class AndroidAgentDelayProbe(
@@ -18,6 +19,7 @@ class AndroidAgentDelayProbe(
                 delayMs = null,
                 error = AgentErrorCode.NODE_NOT_FOUND,
             )
+        if (node.isJsonConfig) return AgentDelayResult(nodeId, null, AgentErrorCode.UNSUPPORTED)
         return try {
             val config = parserFactory.getParser(node.url).parse(CoreStartOptions(url = node.url))
             val delayMs = xrayCore.measureOutboundDelay(config, testUrl)

@@ -15,6 +15,9 @@ interface NodeRepository {
     fun queryPreNode(): Flow<Node?>
     fun queryNextNode(): Flow<Node?>
     suspend fun updateNode(id: Int, url: String, port: Int, remark: String?)
+    suspend fun updateJsonConfig(id: Int, identifier: String, remark: String, jsonData: String) {
+        throw UnsupportedOperationException("JSON configuration update is not supported")
+    }
     suspend fun updateSelectById(id: Int, selected: Boolean)
     suspend fun updateFavoriteById(id: Int, favorite: Boolean)
     suspend fun deleteLinkById(id: Int)

@@ -6,6 +6,10 @@ import com.android.xrayfa.common.core.XrayCore
 import com.android.xrayfa.common.core.configDelayTestAllEnabled
 import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.model.Node
+import com.android.xrayfa.model.isJsonConfig
+import com.android.xrayfa.config.JsonConfigException
+import com.android.xrayfa.shared.config.JsonConfigEditor
+import com.android.xrayfa.shared.vpn.prepareJsonVpn
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.repository.SubscriptionRepository
@@ -41,10 +45,12 @@ class DefaultConfigComponent(
     private val settingsRepository: SettingsRepository,
     xrayCore: XrayCore,
     parserFactory: ParserFactory,
+    private val jsonEditor: JsonConfigEditor = JsonConfigEditor(nodeRepository),
 ) : ConfigComponent,
     ComponentContext by componentContext {
     private val scope = coroutineScope()
     private val delayProbe: DelayProbe = createDelayProbe(xrayCore, parserFactory)
+    private val configMutex = kotlinx.coroutines.sync.Mutex()
 
     private val _state = MutableValue(ConfigState())
     override val state: Value<ConfigState> = _state
@@ -86,14 +92,43 @@ class DefaultConfigComponent(
         refreshNodes()
     }
 
-    override fun onSelectNode(nodeId: Int) {
+    override fun onSelectNode(nodeId: Int, onSelected: () -> Unit) {
         scope.launch {
-            if (nodeId == nodeRepository.querySelectedNode().first()?.id) {
-                return@launch
-            }
-            nodeRepository.clearSelection()
-            nodeRepository.updateSelectById(nodeId, selected = true)
-            vpnController.restartIfNeeded()
+            configMutex.lock()
+            try {
+                val candidate = nodeRepository.loadLinksById(nodeId).first() ?: return@launch
+                if (candidate.isJsonConfig) withContext(Dispatchers.Default) {
+                    prepareJsonVpn(candidate, settingsRepository.settingsFlow.first())
+                }
+                if (nodeId != nodeRepository.querySelectedNode().first()?.id) {
+                    nodeRepository.clearSelection()
+                    nodeRepository.updateSelectById(nodeId, selected = true)
+                    vpnController.restartIfNeeded()
+                }
+                onSelected()
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                _state.update { it.copy(configError = (e as? JsonConfigException)?.reason?.name ?: "INVALID_CONFIG") }
+            } finally { configMutex.unlock() }
+        }
+    }
+
+    override fun onDismissConfigError() { _state.update { it.copy(configError = null) } }
+
+    override fun onSaveJsonConfig(id: Int, name: String, text: String, inboundTag: String?, onDone: (String?) -> Unit) {
+        scope.launch {
+            configMutex.lock()
+            try {
+                withContext(Dispatchers.Default) {
+                    com.android.xrayfa.config.JsonVpnConfig.prepare(text, com.android.xrayfa.shared.vpn.jsonVpnTransport(settingsRepository.settingsFlow.first()), inboundTag)
+                    jsonEditor.save(id, name, text, inboundTag)
+                }
+                if (id > 0 && nodeRepository.querySelectedNode().first()?.id == id) vpnController.restartIfNeeded()
+                onDone(null)
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                onDone((e as? JsonConfigException)?.reason?.name ?: "INVALID_CONFIG")
+            } finally { configMutex.unlock() }
         }
     }
 
@@ -144,7 +179,8 @@ class DefaultConfigComponent(
     override fun onConfirmDeleteNode() {
         val nodeId = _state.value.deleteTarget?.id ?: return
         scope.launch {
-            nodeEditor.deleteNode(nodeId)
+            configMutex.lock()
+            try { nodeEditor.deleteNode(nodeId) } finally { configMutex.unlock() }
             _state.update {
                 it.copy(deleteTarget = null)
             }
@@ -161,7 +197,15 @@ class DefaultConfigComponent(
 
     override fun onConfirmDeleteAll() {
         scope.launch {
-            nodeRepository.deleteAllNodes()
+            configMutex.lock()
+            try {
+                val selectedJson = nodeRepository.querySelectedNode().first()?.isJsonConfig == true
+                nodeRepository.deleteAllNodes()
+                if (selectedJson) {
+                    vpnController.clearPendingConfig()
+                    vpnController.disconnect()
+                }
+            } finally { configMutex.unlock() }
             _state.update { it.copy(pendingDeleteAll = false) }
         }
     }
@@ -178,7 +222,7 @@ class DefaultConfigComponent(
             _state.update { it.copy(testingAll = true) }
             try {
                 val testUrl = settingsRepository.settingsFlow.first().delayTestUrl
-                val nodes = _state.value.nodes
+                val nodes = _state.value.nodes.filterNot { it.isJsonConfig }
                 nestedCoroutineScope {
                     val semaphore = Semaphore(CONFIG_DELAY_CONCURRENCY)
                     nodes.forEach { node ->

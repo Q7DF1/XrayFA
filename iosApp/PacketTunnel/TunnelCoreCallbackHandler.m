@@ -25,6 +25,13 @@ static BOOL looksLikeFailure(long code, NSString *message) {
     if (text.length == 0) {
         return 0;
     }
+    if (self.suppressSensitiveStatus) {
+        [appGroupDefaults() setObject:@"JSON core status" forKey:kStatusKey];
+        if (looksLikeFailure(p0, text)) {
+            [appGroupDefaults() setObject:@"JSON_CONFIG_ERROR" forKey:kLastErrorKey];
+        }
+        return 0;
+    }
     [appGroupDefaults() setObject:text forKey:kStatusKey];
     if (looksLikeFailure(p0, text)) {
         [appGroupDefaults() setObject:text forKey:kLastErrorKey];

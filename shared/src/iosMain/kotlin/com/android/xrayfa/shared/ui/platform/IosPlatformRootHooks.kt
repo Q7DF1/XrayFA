@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.android.xrayfa.common.utils.ShareLinkCleaner
 import com.android.xrayfa.model.Node
+import com.android.xrayfa.model.isJsonConfig
 import com.android.xrayfa.shared.navigation.HomeComponent
 import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.platform.ClipboardWriter
@@ -114,6 +115,8 @@ object IosPlatformRootHooks : PlatformRootHooks {
         node: Node,
         onDismiss: () -> Unit,
     ) {
+        if (node.isJsonConfig) return
+
         val labels = rememberConfigUiLabels()
         val clipboardWriter = remember { KoinPlatform.getKoin().get<ClipboardWriter>() }
         val shareUrl = remember(node.url) { ShareLinkCleaner.cleanUrlForSharing(node.url) }

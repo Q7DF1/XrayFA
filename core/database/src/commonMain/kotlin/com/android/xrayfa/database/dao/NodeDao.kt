@@ -31,6 +31,9 @@ interface NodeDao {
     @Query("UPDATE node SET url = :url, port = :port, remark = :remark WHERE id = :id")
     suspend fun updateNode(id: Int, url: String, port: Int, remark: String?)
 
+    @Query("UPDATE node SET url = :identifier, remark = :remark, jsonData = :jsonData WHERE id = :id AND protocolPrefix = 'json-config'")
+    suspend fun updateJsonConfig(id: Int, identifier: String, remark: String, jsonData: String)
+
     @Query("SELECT * FROM node WHERE selected = 1 LIMIT 1")
     fun querySelectedNode(): Flow<NodeEntity?>
 
