@@ -1,5 +1,8 @@
 package com.android.xrayfa.database
 
+import androidx.room.migration.Migration
+import androidx.sqlite.SQLiteConnection
+import androidx.sqlite.execSQL
 import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import com.android.xrayfa.common.IosPlatformConstants
@@ -14,6 +17,14 @@ object IosXrayDatabaseFactory {
 
     private const val DATABASE_NAME = "xrayfa_database"
 
+    private val migration4To5 = object : Migration(4, 5) {
+        override fun migrate(connection: SQLiteConnection) {
+            connection.execSQL("CREATE INDEX IF NOT EXISTS index_Node_subscriptionId ON Node(subscriptionId)")
+            connection.execSQL("CREATE INDEX IF NOT EXISTS index_Node_favorite ON Node(favorite)")
+            connection.execSQL("CREATE INDEX IF NOT EXISTS index_Node_selected ON Node(selected)")
+        }
+    }
+
     private val database: XrayFADatabase by lazy { buildDatabase() }
 
     fun getDatabase(): XrayFADatabase = database
@@ -26,6 +37,7 @@ object IosXrayDatabaseFactory {
         return Room.databaseBuilder<XrayFADatabase>(
             name = databasePath(),
         )
+            .addMigrations(migration4To5)
             .setDriver(BundledSQLiteDriver())
             .build()
     }
