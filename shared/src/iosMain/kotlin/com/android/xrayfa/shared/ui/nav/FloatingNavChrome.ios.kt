@@ -2,15 +2,21 @@ package com.android.xrayfa.shared.ui.nav
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.currentCompositionLocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -27,16 +33,22 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.UIKitView
+import androidx.compose.ui.viewinterop.UIKitInteropProperties
+import androidx.compose.ui.viewinterop.UIKitViewController
+import androidx.compose.ui.window.ComposeUIViewController
+import kotlin.math.roundToInt
+import kotlinx.cinterop.useContents
 import kotlinx.coroutines.launch
 import platform.UIKit.UIBlurEffect
 import platform.UIKit.UIBlurEffectStyle
 import platform.UIKit.UIColor
 import platform.UIKit.UIDevice
 import platform.UIKit.UIGlassEffect
-import platform.UIKit.labelColor
+import platform.UIKit.UIGlassEffectStyle
+import platform.UIKit.UIViewController
 import platform.UIKit.UIVisualEffectView
-import kotlin.math.roundToInt
+import platform.UIKit.addChildViewController
+import platform.UIKit.didMoveToParentViewController
 
 private const val GLASS_MIN_IOS_MAJOR = 26
 
@@ -51,42 +63,58 @@ private fun glassOrBlurView(): UIVisualEffectView {
     val major = UIDevice.currentDevice.systemVersion.substringBefore(".").toIntOrNull() ?: 0
     val effect =
         if (major >= GLASS_MIN_IOS_MAJOR) {
-            UIGlassEffect()
+            UIGlassEffect.effectWithStyle(UIGlassEffectStyle.UIGlassEffectStyleRegular)
         } else {
             UIBlurEffect.effectWithStyle(UIBlurEffectStyle.UIBlurEffectStyleSystemMaterial)
         }
-    return UIVisualEffectView(effect).also { it.userInteractionEnabled = false }
+    return UIVisualEffectView(effect)
 }
 
 /**
- * A native visual-effect view clipped to a capsule (corner radius = height / 2).
- * For a square size this is a circle. Sits behind Compose content in the same [Box].
+ * Keeps the material and its foreground in one native hierarchy. A separate overlay would cover
+ * Compose icons; an underlay would expose a rectangular hole in the canvas.
  */
+@OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+private class GlassContentController(
+    private val foreground: UIViewController,
+) : UIViewController(nibName = null, bundle = null) {
+    private val glass = glassOrBlurView()
+
+    init {
+        glass.userInteractionEnabled = true
+        view = glass
+        addChildViewController(foreground)
+        foreground.view.backgroundColor = UIColor.clearColor
+        glass.contentView.addSubview(foreground.view)
+        foreground.didMoveToParentViewController(this)
+    }
+
+    override fun viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        foreground.view.setFrame(glass.bounds)
+        glass.layer.cornerRadius = glass.bounds.useContents { size.height / 2.0 }
+        glass.clipsToBounds = true
+    }
+}
+
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
-private fun GlassSurface(
-    modifier: Modifier = Modifier,
-    tint: Boolean = false,
+private fun GlassContainer(
+    modifier: Modifier,
+    content: @Composable () -> Unit,
 ) {
-    val density = LocalDensity.current
-    var cornerRadiusPoints by remember { mutableFloatStateOf(0f) }
-    UIKitView(
+    val locals = currentCompositionLocalContext
+    val latestContent by rememberUpdatedState(content)
+    UIKitViewController(
         factory = {
-            glassOrBlurView().also { view ->
-                if (tint) {
-                    // Separates the slider lens from the bar surface it sits on.
-                    view.contentView.backgroundColor = UIColor.Companion.labelColor.colorWithAlphaComponent(0.08)
-                }
-            }
+            GlassContentController(
+                ComposeUIViewController(configure = { opaque = false }) {
+                    CompositionLocalProvider(locals) { latestContent() }
+                },
+            )
         },
-        modifier =
-            modifier.onSizeChanged { size ->
-                // Compose px -> UIKit points.
-                cornerRadiusPoints = size.height / density.density / 2f
-            },
-        update = { view ->
-            view.layer.cornerRadius = cornerRadiusPoints.toDouble()
-            view.clipsToBounds = true
-        },
+        modifier = modifier,
+        properties = UIKitInteropProperties(isNativeAccessibilityEnabled = true, placedAsOverlay = true),
     )
 }
 
@@ -126,39 +154,41 @@ actual fun FloatingNavChrome(
         currentOnIndexSettled(target)
     }
 
-    Box(
-        modifier =
-            modifier
-                .onSizeChanged { barWidthPx = it.width.toFloat() }
-                .pointerInput(tabsCount, tabWidthPx, direction) {
-                    if (tabWidthPx <= 0f || tabsCount < 2) return@pointerInput
-                    detectHorizontalDragGestures(
-                        onDragStart = { isDragging = true },
-                        onDragEnd = { settle() },
-                        onDragCancel = { settle() },
-                        onHorizontalDrag = { change, dragAmount ->
-                            change.consume()
-                            val next =
-                                (position.value + dragAmount / tabWidthPx * direction)
-                                    .coerceIn(0f, (tabsCount - 1).toFloat())
-                            scope.launch { position.snapTo(next) }
-                        },
-                    )
-                },
-    ) {
-        GlassSurface(Modifier.matchParentSize())
-        if (tabWidthPx > 0f && tabsCount > 0) {
-            GlassSurface(
-                modifier =
-                    Modifier
-                        .offset { IntOffset((paddingPx + position.value * tabWidthPx).roundToInt(), 0) }
-                        .width(with(density) { tabWidthPx.toDp() })
-                        .fillMaxHeight()
-                        .padding(vertical = BarPadding),
-                tint = true,
-            )
+    GlassContainer(modifier) {
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .onSizeChanged { barWidthPx = it.width.toFloat() }
+                    .pointerInput(tabsCount, tabWidthPx, direction) {
+                        if (tabWidthPx <= 0f || tabsCount < 2) return@pointerInput
+                        detectHorizontalDragGestures(
+                            onDragStart = { isDragging = true },
+                            onDragEnd = { settle() },
+                            onDragCancel = { settle() },
+                            onHorizontalDrag = { change, dragAmount ->
+                                change.consume()
+                                val next =
+                                    (position.value + dragAmount / tabWidthPx * direction)
+                                        .coerceIn(0f, (tabsCount - 1).toFloat())
+                                scope.launch { position.snapTo(next) }
+                            },
+                        )
+                    },
+        ) {
+            if (tabWidthPx > 0f && tabsCount > 0) {
+                Box(
+                    modifier =
+                        Modifier
+                            .offset { IntOffset((paddingPx + position.value * tabWidthPx).roundToInt(), 0) }
+                            .width(with(density) { tabWidthPx.toDp() })
+                            .fillMaxHeight()
+                            .padding(vertical = BarPadding)
+                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f), CircleShape),
+                )
+            }
+            content()
         }
-        content()
     }
 }
 
@@ -181,11 +211,12 @@ actual fun FloatingNavSearchChrome(
     modifier: Modifier,
     content: @Composable () -> Unit,
 ) {
-    Box(
-        modifier = modifier.clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        GlassSurface(Modifier.matchParentSize())
-        content()
+    GlassContainer(modifier) {
+        Box(
+            modifier = Modifier.fillMaxSize().clickable(onClick = onClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            content()
+        }
     }
 }
