@@ -64,7 +64,7 @@ class NotificationHelper(
         .setContentText("${String.format("%.1f",0.0)} kb/s ${String.format("%.1f",0.0)} kb/s")
         .setSmallIcon(R.drawable.ic_small_notification)
         .setContentIntent(pendingIntent)
-        .setPriority(NotificationManager.IMPORTANCE_MAX)
+        .setPriority(NotificationCompat.PRIORITY_HIGH)
         .setCategory(NotificationCompat.CATEGORY_STATUS)
         .setSilent(true)
         .setRequestPromotedOngoing(true)
@@ -77,7 +77,8 @@ class NotificationHelper(
         .setStyle(NotificationCompat.DecoratedCustomViewStyle())
         .setSmallIcon(R.drawable.ic_small_notification)
         .setContentIntent(pendingIntent)
-        .setPriority(NotificationManager.IMPORTANCE_LOW)
+        .setPriority(NotificationCompat.PRIORITY_LOW)
+        .setOngoing(true)
         .setSilent(true)
 
     var liveUpdate = false
@@ -140,10 +141,10 @@ class NotificationHelper(
         val manager = context.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(serviceChannel)
     }
-    fun showNotification() {
+    fun showNotification(service: Service) {
         createNotificationChannel()
         val notification = makeNotification(Pair(0.0,0.0))
-        updateNotificationChecked(notification)
+        service.startForeground(NOTIFICATION_ID, notification)
     }
 
     fun hideNotification() {
