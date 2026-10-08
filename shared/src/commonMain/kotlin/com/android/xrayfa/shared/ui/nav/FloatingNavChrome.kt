@@ -36,3 +36,6 @@ expect fun FloatingNavSearchChrome(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 )
+
+/** Native iOS glass needs unpainted page content beneath the floating controls. */
+internal expect fun floatingNavNeedsBottomFade(): Boolean

@@ -160,3 +160,5 @@ actual fun FloatingNavSearchChrome(
         content()
     }
 }
+
+internal actual fun floatingNavNeedsBottomFade(): Boolean = true

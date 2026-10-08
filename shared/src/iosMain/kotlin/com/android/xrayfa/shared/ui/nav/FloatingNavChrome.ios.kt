@@ -2,21 +2,16 @@ package com.android.xrayfa.shared.ui.nav
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.currentCompositionLocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -30,24 +25,25 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.UIKitInteropProperties
 import androidx.compose.ui.viewinterop.UIKitViewController
 import androidx.compose.ui.window.ComposeUIViewController
-import kotlin.math.roundToInt
 import kotlinx.cinterop.useContents
 import kotlinx.coroutines.launch
+import platform.CoreGraphics.CGRectMake
 import platform.UIKit.UIBlurEffect
 import platform.UIKit.UIBlurEffectStyle
 import platform.UIKit.UIColor
+import platform.UIKit.UICornerConfiguration
 import platform.UIKit.UIDevice
 import platform.UIKit.UIGlassEffect
 import platform.UIKit.UIGlassEffectStyle
 import platform.UIKit.UIViewController
 import platform.UIKit.UIVisualEffectView
 import platform.UIKit.addChildViewController
+import platform.UIKit.cornerConfiguration
 import platform.UIKit.didMoveToParentViewController
 
 private const val GLASS_MIN_IOS_MAJOR = 26
@@ -67,7 +63,10 @@ private fun glassOrBlurView(): UIVisualEffectView {
         } else {
             UIBlurEffect.effectWithStyle(UIBlurEffectStyle.UIBlurEffectStyleSystemMaterial)
         }
-    return UIVisualEffectView(effect)
+    return UIVisualEffectView(effect).apply {
+        backgroundColor = UIColor.clearColor
+        contentView.backgroundColor = UIColor.clearColor
+    }
 }
 
 /**
@@ -79,6 +78,47 @@ private class GlassContentController(
     private val foreground: UIViewController,
 ) : UIViewController(nibName = null, bundle = null) {
     private val glass = glassOrBlurView()
+    private var lens: UIVisualEffectView? = null
+    private var lensPosition: Float? = null
+    private var lensTabsCount = 0
+    private var lensIsLtr = true
+
+    fun updateLens(position: Float?, tabsCount: Int, isLtr: Boolean) {
+        lensPosition = position
+        lensTabsCount = tabsCount
+        lensIsLtr = isLtr
+        if (position == null || tabsCount <= 0) {
+            lens?.removeFromSuperview()
+            lens = null
+            return
+        }
+        if (lens == null) {
+            lens = glassOrBlurView().also {
+                it.userInteractionEnabled = false
+                glass.contentView.insertSubview(it, atIndex = 0)
+            }
+        }
+        layoutLens()
+    }
+
+    private fun layoutLens() {
+        val selection = lens ?: return
+        val position = lensPosition ?: return
+        glass.bounds.useContents {
+            val padding = 4.0
+            val width = ((size.width - padding * 2) / lensTabsCount).coerceAtLeast(0.0)
+            val height = (size.height - padding * 2).coerceAtLeast(0.0)
+            val index = if (lensIsLtr) position else lensTabsCount - 1 - position
+            selection.setFrame(CGRectMake(padding + index * width, padding, width, height))
+            val major = UIDevice.currentDevice.systemVersion.substringBefore(".").toIntOrNull() ?: 0
+            if (major >= GLASS_MIN_IOS_MAJOR) {
+                selection.cornerConfiguration = UICornerConfiguration.capsuleConfiguration()
+            } else {
+                selection.layer.cornerRadius = height / 2
+                selection.clipsToBounds = true
+            }
+        }
+    }
 
     init {
         glass.userInteractionEnabled = true
@@ -92,8 +132,19 @@ private class GlassContentController(
     override fun viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         foreground.view.setFrame(glass.bounds)
-        glass.layer.cornerRadius = glass.bounds.useContents { size.height / 2.0 }
-        glass.clipsToBounds = true
+        layoutLens()
+        val radius = glass.bounds.useContents { size.height / 2.0 }
+        foreground.view.layer.cornerRadius = radius
+        foreground.view.clipsToBounds = true
+        val major = UIDevice.currentDevice.systemVersion.substringBefore(".").toIntOrNull() ?: 0
+        if (major < GLASS_MIN_IOS_MAJOR) {
+            glass.layer.cornerRadius = radius
+            glass.clipsToBounds = true
+        } else {
+            // UIGlassEffect supplies its own capsule geometry and outside optical effects.
+            glass.cornerConfiguration = UICornerConfiguration.capsuleConfiguration()
+            glass.clipsToBounds = false
+        }
     }
 }
 
@@ -101,19 +152,37 @@ private class GlassContentController(
 @Composable
 private fun GlassContainer(
     modifier: Modifier,
+    lensPosition: Float? = null,
+    lensTabsCount: Int = 0,
+    lensIsLtr: Boolean = true,
     content: @Composable () -> Unit,
 ) {
-    val locals = currentCompositionLocalContext
+    // Each Compose controller owns its layout/graphics/transition context. Only copy styling values.
+    val colors by rememberUpdatedState(MaterialTheme.colorScheme)
+    val typography by rememberUpdatedState(MaterialTheme.typography)
+    val shapes by rememberUpdatedState(MaterialTheme.shapes)
+    val contentColor by rememberUpdatedState(LocalContentColor.current)
+    val textStyle by rememberUpdatedState(LocalTextStyle.current)
+    val layoutDirection by rememberUpdatedState(LocalLayoutDirection.current)
     val latestContent by rememberUpdatedState(content)
     UIKitViewController(
         factory = {
             GlassContentController(
                 ComposeUIViewController(configure = { opaque = false }) {
-                    CompositionLocalProvider(locals) { latestContent() }
+                    MaterialTheme(colorScheme = colors, typography = typography, shapes = shapes) {
+                        CompositionLocalProvider(
+                            LocalContentColor provides contentColor,
+                            LocalTextStyle provides textStyle,
+                            LocalLayoutDirection provides layoutDirection,
+                        ) {
+                            latestContent()
+                        }
+                    }
                 },
             )
         },
         modifier = modifier,
+        update = { controller -> controller.updateLens(lensPosition, lensTabsCount, lensIsLtr) },
         properties = UIKitInteropProperties(isNativeAccessibilityEnabled = true, placedAsOverlay = true),
     )
 }
@@ -154,7 +223,7 @@ actual fun FloatingNavChrome(
         currentOnIndexSettled(target)
     }
 
-    GlassContainer(modifier) {
+    GlassContainer(modifier, position.value, tabsCount, isLtr) {
         Box(
             modifier =
                 Modifier
@@ -176,17 +245,6 @@ actual fun FloatingNavChrome(
                         )
                     },
         ) {
-            if (tabWidthPx > 0f && tabsCount > 0) {
-                Box(
-                    modifier =
-                        Modifier
-                            .offset { IntOffset((paddingPx + position.value * tabWidthPx).roundToInt(), 0) }
-                            .width(with(density) { tabWidthPx.toDp() })
-                            .fillMaxHeight()
-                            .padding(vertical = BarPadding)
-                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f), CircleShape),
-                )
-            }
             content()
         }
     }
@@ -220,3 +278,5 @@ actual fun FloatingNavSearchChrome(
         }
     }
 }
+
+internal actual fun floatingNavNeedsBottomFade(): Boolean = false

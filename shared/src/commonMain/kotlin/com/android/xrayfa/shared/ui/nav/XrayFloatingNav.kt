@@ -58,6 +58,7 @@ fun rememberFloatingNavClearance(extraAboveBar: Dp = FloatingNavExtraContentPadd
 
 @Composable
 fun FloatingNavBottomFade(modifier: Modifier = Modifier) {
+    if (!floatingNavNeedsBottomFade()) return
     val fadeHeight = rememberFloatingNavClearance(extraAboveBar = BottomFadeExtra)
     val background = MaterialTheme.colorScheme.background
     Box(
