@@ -47,9 +47,9 @@ class NotificationHelper(
         }
     }
     private var notificationView =
-        RemoteViews("com.android.xrayfa", R.layout.notification_traffic_layout)
+        RemoteViews(context.packageName, R.layout.notification_traffic_layout)
     private var bigNotificationView=
-        RemoteViews("com.android.xrayfa",R.layout.big_notification_traffic_layout)
+        RemoteViews(context.packageName, R.layout.big_notification_traffic_layout)
     val pendingIntent: PendingIntent? = PendingIntent.getActivity(
     context,0, Intent(
             context,
