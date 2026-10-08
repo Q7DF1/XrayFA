@@ -334,60 +334,10 @@ private fun SharedAddRuleBottomSheet(
     var ips by remember { mutableStateOf("") }
     var port by remember { mutableStateOf("") }
 
-    SharedModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .padding(bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                text = labels.createCustomRuleTitle,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-            )
-
-            OutlinedTextField(
-                value = ruleTag,
-                onValueChange = { ruleTag = it },
-                label = { Text(labels.ruleNameLabel) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                leadingIcon = { Icon(Icons.Default.Label, contentDescription = null) },
-            )
-
-            OutlinedTextField(
-                value = outboundTag,
-                onValueChange = { outboundTag = it },
-                label = { Text(labels.outboundTagLabel) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-            )
-
-            OutlinedTextField(
-                value = domains,
-                onValueChange = { domains = it },
-                label = { Text(labels.domainsLabel) },
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            OutlinedTextField(
-                value = ips,
-                onValueChange = { ips = it },
-                label = { Text(labels.ipsLabel) },
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            OutlinedTextField(
-                value = port,
-                onValueChange = { port = it },
-                label = { Text(labels.portLabel) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-            )
-
+    SharedModalBottomSheet(
+        onDismissRequest = onDismiss,
+        title = labels.createCustomRuleTitle,
+        footer = {
             Button(
                 onClick = {
                     val domainList = domains.split(",").map { it.trim() }.filter { it.isNotEmpty() }
@@ -403,12 +353,52 @@ private fun SharedAddRuleBottomSheet(
                         ),
                     )
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.weight(1f),
                 shape = MaterialTheme.shapes.medium,
             ) {
                 Text(labels.confirmAddLabel)
             }
-        }
+        },
+    ) {
+        OutlinedTextField(
+            value = ruleTag,
+            onValueChange = { ruleTag = it },
+            label = { Text(labels.ruleNameLabel) },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            leadingIcon = { Icon(Icons.Default.Label, contentDescription = null) },
+        )
+
+        OutlinedTextField(
+            value = outboundTag,
+            onValueChange = { outboundTag = it },
+            label = { Text(labels.outboundTagLabel) },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+
+        OutlinedTextField(
+            value = domains,
+            onValueChange = { domains = it },
+            label = { Text(labels.domainsLabel) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        OutlinedTextField(
+            value = ips,
+            onValueChange = { ips = it },
+            label = { Text(labels.ipsLabel) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        OutlinedTextField(
+            value = port,
+            onValueChange = { port = it },
+            label = { Text(labels.portLabel) },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+
     }
 }
 

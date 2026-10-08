@@ -24,11 +24,18 @@ import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Link
+import androidx.compose.material.icons.outlined.Title
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import com.android.xrayfa.shared.ui.nav.ProvideFloatingNavBackdrop
+import com.android.xrayfa.shared.ui.nav.FloatingNavBackdropSource
+import com.android.xrayfa.shared.ui.widgets.SharedGlassFloatingActionButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
@@ -81,124 +88,130 @@ fun SharedSubscriptionScreen(
     val clipboardWriter = remember { KoinPlatform.getKoin().get<ClipboardWriter>() }
     var copiedMessage by remember { mutableStateOf<String?>(null) }
 
-    SharedListScaffold(
-        title = labels.title,
-        modifier = modifier,
-        lockCollapsedTitle = true,
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(Res.string.cancel),
+    ProvideFloatingNavBackdrop {
+        SharedListScaffold(
+            title = labels.title,
+            modifier = modifier,
+            lockCollapsedTitle = true,
+            navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(Res.string.cancel),
+                    )
+                }
+            },
+            actions = {
+                if (onScanQr != null) {
+                    IconButton(onClick = onScanQr) {
+                        Icon(Icons.Filled.QrCode, contentDescription = labels.scanQr)
+                    }
+                }
+            },
+            floatingActionButton = {
+                SharedGlassFloatingActionButton(
+                    onClick = component::openAddSheet,
+                    icon = Icons.Default.Add,
+                    contentDescription = labels.addSubscription,
                 )
-            }
-        },
-        actions = {
-            if (onScanQr != null) {
-                IconButton(onClick = onScanQr) {
-                    Icon(Icons.Filled.QrCode, contentDescription = labels.scanQr)
-                }
-            }
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = component::openAddSheet) {
-                Icon(Icons.Default.Add, contentDescription = labels.addSubscription)
-            }
-        },
-    ) { innerPadding ->
-        Box(
-            modifier =
-                Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize(),
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                if (state.requesting) {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                }
+            },
+        ) { innerPadding ->
+            FloatingNavBackdropSource(Modifier.fillMaxSize()) {
+                Box(
+                    modifier =
+                        Modifier
+                            .padding(innerPadding)
+                            .fillMaxSize(),
+                ) {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        if (state.requesting) {
+                            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                        }
 
-                if (state.subscriptions.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                imageVector = Icons.Outlined.Link,
-                                contentDescription = null,
-                                modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.outline,
-                            )
-                            Spacer(Modifier.height(16.dp))
+                        if (state.subscriptions.isEmpty()) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Link,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(64.dp),
+                                        tint = MaterialTheme.colorScheme.outline,
+                                    )
+                                    Spacer(Modifier.height(16.dp))
+                                    Text(
+                                        text = labels.noSubscriptions,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.outline,
+                                    )
+                                }
+                            }
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                items(items = state.subscriptions, key = { it.id }) { item ->
+                                    SharedSubscriptionCard(
+                                        subscription = item,
+                                        onRefresh = {
+                                            component.refreshSubscription(item) { id ->
+                                                onSubscriptionApplied(id)
+                                            }
+                                        },
+                                        onEdit = { component.openEditSheet(item.id) },
+                                        onDelete = { component.showDeleteDialog(item) },
+                                        onShareUrl = {
+                                            clipboardWriter.writeText(item.url)
+                                            copiedMessage = labels.subscriptionUrlCopied
+                                        },
+                                        shareUrlLabel = labels.shareSubscriptionUrl,
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (state.subscribeError) {
+                        Surface(
+                            modifier =
+                                Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .padding(16.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.errorContainer,
+                        ) {
                             Text(
-                                text = labels.noSubscriptions,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.outline,
+                                text = labels.subscribeFailed,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                color = MaterialTheme.colorScheme.onErrorContainer,
                             )
                         }
                     }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        items(items = state.subscriptions, key = { it.id }) { item ->
-                            SharedSubscriptionCard(
-                                subscription = item,
-                                onRefresh = {
-                                    component.refreshSubscription(item) { id ->
-                                        onSubscriptionApplied(id)
-                                    }
-                                },
-                                onEdit = { component.openEditSheet(item.id) },
-                                onDelete = { component.showDeleteDialog(item) },
-                                onShareUrl = {
-                                    clipboardWriter.writeText(item.url)
-                                    copiedMessage = labels.subscriptionUrlCopied
-                                },
-                                shareUrlLabel = labels.shareSubscriptionUrl,
+
+                    copiedMessage?.let { message ->
+                        LaunchedEffect(message) {
+                            kotlinx.coroutines.delay(2000)
+                            copiedMessage = null
+                        }
+                        Surface(
+                            modifier =
+                                Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .padding(16.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.inverseSurface,
+                        ) {
+                            Text(
+                                text = message,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                color = MaterialTheme.colorScheme.inverseOnSurface,
                             )
                         }
                     }
-                }
-            }
-
-            if (state.subscribeError) {
-                Surface(
-                    modifier =
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(16.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.errorContainer,
-                ) {
-                    Text(
-                        text = labels.subscribeFailed,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                    )
-                }
-            }
-
-            copiedMessage?.let { message ->
-                LaunchedEffect(message) {
-                    kotlinx.coroutines.delay(2000)
-                    copiedMessage = null
-                }
-                Surface(
-                    modifier =
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(16.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.inverseSurface,
-                ) {
-                    Text(
-                        text = message,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        color = MaterialTheme.colorScheme.inverseOnSurface,
-                    )
                 }
             }
         }
@@ -335,122 +348,79 @@ private fun SharedSubscriptionEditSheet(
     var url by remember(subscription) { mutableStateOf(subscription.url) }
     var preNodeId by remember(subscription) { mutableStateOf(subscription.preNodeId) }
     var nextNodeId by remember(subscription) { mutableStateOf(subscription.nextNodeId) }
-    var nickNameIsNull by remember { mutableStateOf(false) }
-    var nickNameIsDuplicate by remember { mutableStateOf(false) }
-    var urlIsInvalid by remember { mutableStateOf(false) }
+    var nameTouched by remember(subscription) { mutableStateOf(false) }
+    var urlTouched by remember(subscription) { mutableStateOf(false) }
+    val resolvedMark = nickName.trim()
+    val nameMissing = resolvedMark.isBlank()
+    val duplicateName = resolvedMark.isNotBlank() && isMarkDuplicate(resolvedMark)
+    val validUrl = validateSubscriptionUrl(url.trim())
+    val canConfirm = !nameMissing && !duplicateName && validUrl
 
-    LaunchedEffect(subscription, nickName) {
-        val resolved = nickName.trim()
-        nickNameIsNull = resolved.isBlank()
-        nickNameIsDuplicate = isMarkDuplicate(resolved)
-    }
-
-    SharedModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .padding(bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Text(
-                text =
-                    if (subscription.id <= 0) {
-                        labels.addSubscription
-                    } else {
-                        labels.editSubscription
-                    },
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-            )
-
-            OutlinedTextField(
-                value = nickName,
-                onValueChange = {
-                    nickName = it
-                    val resolved = it.trim()
-                    nickNameIsNull = resolved.isBlank()
-                    nickNameIsDuplicate = isMarkDuplicate(resolved)
+    SharedModalBottomSheet(
+        onDismissRequest = onDismiss,
+        title = if (subscription.id <= 0) labels.addSubscription else labels.editSubscription,
+        footer = {
+            TextButton(onClick = onDismiss) { Text(labels.cancel) }
+            Button(
+                onClick = {
+                    if (canConfirm) {
+                        onConfirm(Subscription(
+                            id = subscription.id,
+                            mark = resolvedMark,
+                            url = url.trim(),
+                            preNodeId = preNodeId,
+                            nextNodeId = nextNodeId,
+                            isAutoUpdate = subscription.isAutoUpdate,
+                        ))
+                    }
                 },
-                label = { Text(labels.nickName) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                isError = nickNameIsNull || nickNameIsDuplicate,
-                supportingText =
-                    if (nickNameIsDuplicate) {
-                        { Text(labels.duplicateMarkError) }
-                    } else {
-                        null
-                    },
-                shape = RoundedCornerShape(12.dp),
-            )
-
-            OutlinedTextField(
-                value = url,
-                onValueChange = {
-                    url = it
-                    urlIsInvalid = !validateSubscriptionUrl(it)
-                },
-                label = { Text(labels.subscriptionUrl) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                isError = urlIsInvalid,
-                shape = RoundedCornerShape(12.dp),
-            )
-
-            SharedSubscriptionNodeSelector(
-                label = labels.preNode,
-                selectedNodeId = preNodeId,
-                nodes = nodes.filterNot { it.isJsonConfig },
-                noneLabel = labels.none,
-                onNodeSelected = { preNodeId = it },
-            )
-
-            SharedSubscriptionNodeSelector(
-                label = labels.nextNode,
-                selectedNodeId = nextNodeId,
-                nodes = nodes.filterNot { it.isJsonConfig },
-                noneLabel = labels.none,
-                onNodeSelected = { nextNodeId = it },
-            )
-
-            Row(
-                horizontalArrangement = Arrangement.End,
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                TextButton(onClick = onDismiss) {
-                    Text(labels.cancel)
-                }
-                Spacer(Modifier.size(8.dp))
-                Button(
-                    onClick = {
-                        val resolvedMark = nickName.trim()
-                        nickNameIsNull = resolvedMark.isBlank()
-                        nickNameIsDuplicate = isMarkDuplicate(resolvedMark)
-                        urlIsInvalid = !validateSubscriptionUrl(url)
-                        if (nickNameIsNull || nickNameIsDuplicate || urlIsInvalid) {
-                            return@Button
-                        }
-                        onConfirm(
-                            Subscription(
-                                id = subscription.id,
-                                mark = resolvedMark,
-                                url = url.trim(),
-                                preNodeId = preNodeId,
-                                nextNodeId = nextNodeId,
-                                isAutoUpdate = subscription.isAutoUpdate,
-                            ),
-                        )
-                    },
-                    enabled = !urlIsInvalid && !nickNameIsNull && !nickNameIsDuplicate,
-                    shape = RoundedCornerShape(12.dp),
-                ) {
-                    Text(labels.confirm)
-                }
-            }
-        }
+                enabled = canConfirm,
+                modifier = Modifier.weight(1f).height(52.dp),
+                shape = RoundedCornerShape(16.dp),
+            ) { Text(labels.confirm) }
+        },
+    ) {
+        OutlinedTextField(
+            value = nickName,
+            onValueChange = { nickName = it; nameTouched = true },
+            label = { Text(labels.nickName) },
+            leadingIcon = { Icon(Icons.Outlined.Title, contentDescription = null) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            isError = nameTouched && (nameMissing || duplicateName),
+            supportingText = if (nameTouched && duplicateName) {
+                { Text(labels.duplicateMarkError) }
+            } else null,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            shape = RoundedCornerShape(16.dp),
+        )
+        OutlinedTextField(
+            value = url,
+            onValueChange = { url = it; urlTouched = true },
+            label = { Text(labels.subscriptionUrl) },
+            placeholder = { Text("https://") },
+            leadingIcon = { Icon(Icons.Outlined.Link, contentDescription = null) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            isError = urlTouched && !validUrl,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
+            shape = RoundedCornerShape(16.dp),
+        )
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+        SharedSubscriptionNodeSelector(
+            label = labels.preNode,
+            selectedNodeId = preNodeId,
+            nodes = nodes.filterNot { it.isJsonConfig },
+            noneLabel = labels.none,
+            onNodeSelected = { preNodeId = it },
+        )
+        SharedSubscriptionNodeSelector(
+            label = labels.nextNode,
+            selectedNodeId = nextNodeId,
+            nodes = nodes.filterNot { it.isJsonConfig },
+            noneLabel = labels.none,
+            onNodeSelected = { nextNodeId = it },
+        )
     }
 }
 
