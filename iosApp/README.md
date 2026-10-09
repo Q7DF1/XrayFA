@@ -71,8 +71,10 @@ Both platforms use a 62-point/dp visible capsule and action button, a 12-point/d
 inter-control gap, and an 8-point/dp bottom margin outside the safe area. Each tab receives
 90 points/dp plus 4 points/dp of capsule padding on each side (188 for two tabs),
 clamped to the available width. This compact geometry matches UIKit's native
-floating tabs. The native host compensates for its horizontal optical insets without
-scaling the glass, symbols or fonts.
+floating tabs. The native host compensates for horizontal and vertical optical
+insets without scaling the glass, symbols or fonts. Keep the native host 70 points
+high even though the visible capsule is 62: a 62-point host can look correct on
+first display, then collapse captions onto icons during a later UIKit layout.
 
 The shared action button accepts an optional `nativeSystemImage` for reusable iOS
 system controls. Android retains its existing vector and glass implementation.

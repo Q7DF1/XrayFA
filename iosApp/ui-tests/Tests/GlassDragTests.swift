@@ -42,5 +42,20 @@ final class GlassDragTests: XCTestCase {
         XCTAssertFalse(bar.exists, "The native navigation must be removed on subscriptions")
         app.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0)).withOffset(CGVector(dx: 28, dy: 91)).tap()
         XCTAssertTrue(bar.waitForExistence(timeout: 5), "The native navigation must return with its owning page")
+        // A fresh process must retain full item layout, not just pass selection
+        // checks while UIKit compresses captions over the icons.
+        app.terminate()
+        app.launch()
+        XCTAssertTrue(bar.waitForExistence(timeout: 15))
+        Thread.sleep(forTimeInterval: 5)
+        XCTAssertGreaterThanOrEqual(bar.frame.height, 70, "The native host must retain full icon/caption layout height")
+        XCUIDevice.shared.press(.home)
+        app.activate()
+        XCTAssertTrue(bar.waitForExistence(timeout: 5))
+        XCTAssertGreaterThanOrEqual(bar.frame.height, 70, "Resuming must retain the full native host height")
+        let relaunched = XCTAttachment(screenshot: app.screenshot())
+        relaunched.name = "Full tab layout after cold relaunch"
+        relaunched.lifetime = .keepAlways
+        add(relaunched)
     }
 }

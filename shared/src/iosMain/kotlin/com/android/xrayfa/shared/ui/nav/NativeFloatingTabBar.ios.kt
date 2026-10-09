@@ -102,9 +102,11 @@ private class FloatingTabAnchor(private val bar: UITabBar) : UIView(frame = CGRe
         val rect = bounds.useContents {
             if (size.width <= 48.0 || size.height <= 48.0) return
             val width = size.width - 48.0
-            // The floating material is inset 22 points horizontally. Compensate
-            // those bounds without scaling fonts, symbols or the glass lens.
-            CGRectMake(2.0, 24.0, width + 44.0, size.height - 48.0)
+            // The material has optical insets; UIKit still needs a 70-point
+            // host for its full icon/caption layout. A 62-point host initially
+            // looks correct, then collapses captions onto icons on relayout.
+            // Expand the host while retaining the shared 62-point visible bounds.
+            CGRectMake(2.0, 24.0, width + 44.0, size.height - 40.0)
         }
         bar.setFrame(convertRect(rect, toView = owner))
         if (bar.superview !== owner) owner.addSubview(bar)
