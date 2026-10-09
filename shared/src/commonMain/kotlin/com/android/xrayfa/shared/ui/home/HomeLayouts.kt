@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import com.android.xrayfa.common.core.homeDelayTestEnabled
 import com.android.xrayfa.shared.navigation.HomeState
 import com.android.xrayfa.model.isJsonConfig
@@ -38,13 +39,15 @@ internal fun HomeBrandHeroLayout(
     scrollEnabled: Boolean,
     largeStatusLabel: Boolean,
     modifier: Modifier = Modifier,
+    bottomContentPadding: Dp = 0.dp,
 ) {
     Column(
         modifier =
             modifier
                 .fillMaxWidth()
                 .then(if (scrollEnabled) Modifier.verticalScroll(rememberScrollState()) else Modifier)
-                .padding(horizontal = 20.dp, vertical = 8.dp),
+                .padding(horizontal = 20.dp, vertical = 8.dp)
+                .padding(bottom = bottomContentPadding),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(Modifier.height(12.dp))

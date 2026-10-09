@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.android.xrayfa.shared.navigation.HomeComponent
 import com.android.xrayfa.shared.ui.home.HomeTopBar
 import com.android.xrayfa.shared.ui.nav.rememberFloatingNavClearance
+import com.android.xrayfa.shared.ui.nav.floatingNavNeedsBottomFade
 import com.android.xrayfa.shared.ui.platform.LocalPlatformRootHooks
 import com.android.xrayfa.shared.ui.transitions.TransitionDestinations
 import com.android.xrayfa.shared.ui.transitions.sharedContainer
@@ -47,7 +48,7 @@ internal fun HomeTabScreen(
                 Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .padding(bottom = homeNavClearance),
+                    .padding(bottom = if (floatingNavNeedsBottomFade()) homeNavClearance else 0.dp),
         )
     }
 }

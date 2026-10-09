@@ -70,7 +70,7 @@ class XrayBaseServiceManager(
             action = XrayBaseService.CONNECT
             putExtra(EXTRA_START_OPTIONS,options)
         }
-        context.startService(intent)
+        context.startForegroundService(intent)
         qsStateCallBack(true)
         return true
     }

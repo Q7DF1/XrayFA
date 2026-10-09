@@ -43,8 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.xrayfa.shared.navigation.RootTab
 
-/** Floating pill height. 56dp is the minimum touch target used by compact bottom bars. */
-val FloatingNavBarHeight = 56.dp
+/** Match the native iOS floating capsule while exceeding the 48dp touch target. */
+val FloatingNavBarHeight = 62.dp
 val FloatingNavBottomMargin = 8.dp
 /** Extra space so the last Config row can rest above the pill. */
 val FloatingNavExtraContentPadding = 24.dp
@@ -58,6 +58,7 @@ fun rememberFloatingNavClearance(extraAboveBar: Dp = FloatingNavExtraContentPadd
 
 @Composable
 fun FloatingNavBottomFade(modifier: Modifier = Modifier) {
+    if (!floatingNavNeedsBottomFade()) return
     val fadeHeight = rememberFloatingNavClearance(extraAboveBar = BottomFadeExtra)
     val background = MaterialTheme.colorScheme.background
     Box(
@@ -99,6 +100,8 @@ fun XrayFloatingNav(
     unselectedColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
     trailingContent: @Composable (() -> Unit)? = null,
     onTrailingClick: (() -> Unit)? = null,
+    trailingContentDescription: String = "",
+    trailingNativeSystemImage: String? = null,
 ) {
     val itemCount = items.size.coerceAtLeast(1)
     val selectedIndex = items.indexOfFirst { it.id == selectedId }.coerceAtLeast(0)
@@ -106,14 +109,17 @@ fun XrayFloatingNav(
     BoxWithConstraints(
         modifier = modifier.fillMaxWidth(),
     ) {
-        val barWidth =
-            if (constraints.maxWidth <= 0 ||
-                constraints.maxWidth == androidx.compose.ui.unit.Constraints.Infinity
-            ) {
-                280.dp
-            } else {
-                (maxWidth * 0.62f).coerceAtMost(280.dp).coerceAtLeast(200.dp)
-            }
+        // Share UIKit's compact item geometry across platforms: two 90dp
+        // items plus the capsule's 4dp padding on each side = 188dp.
+        val preferredBarWidth = 90.dp * itemCount + 8.dp
+        val barWidth = if (constraints.maxWidth <= 0 ||
+            constraints.maxWidth == androidx.compose.ui.unit.Constraints.Infinity
+        ) {
+            preferredBarWidth
+        } else {
+            val actionWidth = if (trailingContent != null) FloatingNavBarHeight + 12.dp else 0.dp
+            preferredBarWidth.coerceAtMost((maxWidth - actionWidth).coerceAtLeast(0.dp))
+        }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -126,6 +132,7 @@ fun XrayFloatingNav(
                     items.getOrNull(index)?.let(onItemSelected)
                 },
                 tabsCount = itemCount,
+                nativeItems = items,
                 modifier = Modifier.width(barWidth).height(FloatingNavBarHeight),
             ) {
                 Row(modifier = Modifier.fillMaxSize()) {
@@ -187,6 +194,8 @@ fun XrayFloatingNav(
             if (trailingContent != null) {
                 Box(modifier = Modifier.width(12.dp).height(FloatingNavBarHeight))
                 FloatingNavSearchChrome(
+                    nativeSystemImage = trailingNativeSystemImage,
+                    nativeContentDescription = trailingContentDescription,
                     onClick = { onTrailingClick?.invoke() },
                     modifier = Modifier.size(FloatingNavBarHeight),
                 ) {

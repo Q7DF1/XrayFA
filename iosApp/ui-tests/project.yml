@@ -1,0 +1,22 @@
+name: GlassInteraction
+options:
+  deploymentTarget:
+    iOS: '26.0'
+targets:
+  GlassUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [Tests]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.android.xrayfa.glassuitests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: '5.0'
+        CODE_SIGNING_ALLOWED: NO
+schemes:
+  GlassUITests:
+    build:
+      targets:
+        GlassUITests: all
+    test:
+      targets: [GlassUITests]

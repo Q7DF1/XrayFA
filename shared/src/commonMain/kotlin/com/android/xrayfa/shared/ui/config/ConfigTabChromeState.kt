@@ -23,6 +23,8 @@ internal class ConfigTabChromeState(
     val listState: LazyListState,
     val titleCollapseState: TitleCollapseState,
 ) {
+    var requestLocateSelected by mutableStateOf(false)
+    var selectedNodeViewport by mutableStateOf(SelectedNodeViewport.Unknown)
     var pendingOverlayScroll: OverlayScrollPending? by mutableStateOf(null)
 }
 

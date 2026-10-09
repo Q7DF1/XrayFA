@@ -18,6 +18,7 @@
             android:layout_marginEnd="4dp"/>
 
         <TextView
+            android:textAppearance="@style/TextAppearance.Compat.Notification.Title"
             android:id="@+id/stream_up"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -43,6 +44,7 @@
             android:layout_marginEnd="4dp"/>
 
         <TextView
+            android:textAppearance="@style/TextAppearance.Compat.Notification.Title"
             android:id="@+id/stream_down"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

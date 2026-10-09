@@ -99,8 +99,8 @@ class XrayBaseService constructor(
                     intent.getParcelableExtra<StartOptions>(EXTRA_START_OPTIONS)
                 }
 
+                notificationHelper.showNotification(this)
                 serviceScope.launch {
-                    notificationHelper.showNotification()
                     connectionMutex.lock()
                     val start = try {
                         val started = if (statusFlow.value) true else options?.let { startXrayCoreService(it) } ?: false
@@ -113,6 +113,9 @@ class XrayBaseService constructor(
                         xrayCore.trafficFlow.collect { data ->
                             notificationHelper.updateNotificationIfNeeded(data)
                         }
+                    } else {
+                        stopForeground(STOP_FOREGROUND_REMOVE)
+                        stopSelf()
                     }
                 }
                 START_STICKY
@@ -162,6 +165,9 @@ class XrayBaseService constructor(
         // singleton XrayCoreManager's SharedFlow) is torn down. Otherwise the suspended
         // collect keeps a slot in the SharedFlow that references this Service, leaking it.
         serviceScope.cancel()
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        notificationHelper.hideNotification()
+        updateStatus(false)
         tunFd?.close()
         tunFd = null
     }
@@ -170,8 +176,7 @@ class XrayBaseService constructor(
      * Called when the system configuration changes at runtime — most importantly
      * when the user toggles the system dark/light theme. The notification is
      * rendered by SystemUI using the system theme, so we need to re-post it so
-     * the RemoteViews text color (computed in NotificationHelper) updates to
-     * match the new background.
+     * SystemUI applies the current notification theme.
      *
      * Note: this fires only while the service is running, which is exactly when
      * the foreground notification is visible.

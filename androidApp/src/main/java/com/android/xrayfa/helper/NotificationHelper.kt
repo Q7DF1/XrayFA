@@ -10,7 +10,6 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.os.Build
 import android.util.Log
 import android.widget.RemoteViews
@@ -48,9 +47,9 @@ class NotificationHelper(
         }
     }
     private var notificationView =
-        RemoteViews("com.android.xrayfa", R.layout.notification_traffic_layout)
+        RemoteViews(context.packageName, R.layout.notification_traffic_layout)
     private var bigNotificationView=
-        RemoteViews("com.android.xrayfa",R.layout.big_notification_traffic_layout)
+        RemoteViews(context.packageName, R.layout.big_notification_traffic_layout)
     val pendingIntent: PendingIntent? = PendingIntent.getActivity(
     context,0, Intent(
             context,
@@ -65,7 +64,7 @@ class NotificationHelper(
         .setContentText("${String.format("%.1f",0.0)} kb/s ${String.format("%.1f",0.0)} kb/s")
         .setSmallIcon(R.drawable.ic_small_notification)
         .setContentIntent(pendingIntent)
-        .setPriority(NotificationManager.IMPORTANCE_MAX)
+        .setPriority(NotificationCompat.PRIORITY_HIGH)
         .setCategory(NotificationCompat.CATEGORY_STATUS)
         .setSilent(true)
         .setRequestPromotedOngoing(true)
@@ -78,7 +77,8 @@ class NotificationHelper(
         .setStyle(NotificationCompat.DecoratedCustomViewStyle())
         .setSmallIcon(R.drawable.ic_small_notification)
         .setContentIntent(pendingIntent)
-        .setPriority(NotificationManager.IMPORTANCE_LOW)
+        .setPriority(NotificationCompat.PRIORITY_LOW)
+        .setOngoing(true)
         .setSilent(true)
 
     var liveUpdate = false
@@ -120,32 +120,13 @@ class NotificationHelper(
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        bigNotificationView.setOnClickPendingIntent(R.id.close_service,stopPendingIntent)
+        normalBuilder.addAction(0, context.getString(R.string.service_close), stopPendingIntent)
     }
 
     private fun onSettingsChanged() {
         Log.d(TAG, "onSettingsChanged: liveUpdate=$liveUpdate, darkMode=$currentDarkMode")
         val notification = makeNotification(preData ?: Pair(0.0, 0.0))
         updateNotificationChecked(notification)
-    }
-
-    private fun isSystemDarkTheme(): Boolean {
-        // The notification is rendered by SystemUI and follows the *system* theme,
-        // not the per-app theme that AppCompatDelegate.setDefaultNightMode() applies.
-        // Use Resources.getSystem() so we always read the real system uiMode, even
-        // when the user has overridden the in-app theme via the dark-mode setting.
-        val uiMode = android.content.res.Resources.getSystem()
-            .configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        return uiMode == Configuration.UI_MODE_NIGHT_YES
-    }
-
-    private fun updateRemoteViewsTheme() {
-        val textColor = if (isSystemDarkTheme()) android.graphics.Color.WHITE else android.graphics.Color.BLACK
-        notificationView.setTextColor(R.id.stream_up, textColor)
-        notificationView.setTextColor(R.id.stream_down, textColor)
-        bigNotificationView.setTextColor(R.id.stream_up, textColor)
-        bigNotificationView.setTextColor(R.id.stream_down, textColor)
-        bigNotificationView.setTextColor(R.id.close_service, textColor)
     }
 
     private fun createNotificationChannel() {
@@ -160,10 +141,10 @@ class NotificationHelper(
         val manager = context.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(serviceChannel)
     }
-    fun showNotification() {
+    fun showNotification(service: Service) {
         createNotificationChannel()
         val notification = makeNotification(Pair(0.0,0.0))
-        updateNotificationChecked(notification)
+        service.startForeground(NOTIFICATION_ID, notification)
     }
 
     fun hideNotification() {
@@ -175,7 +156,7 @@ class NotificationHelper(
     /**
      * Re-render and re-post the notification using the latest traffic data.
      * Call this when system configuration (e.g. dark/light mode) changes so the
-     * RemoteViews text color matches the current SystemUI background.
+     * SystemUI can apply the current notification theme.
      */
     fun refreshNotification() {
         val notification = makeNotification(preData ?: Pair(0.0, 0.0))
@@ -183,7 +164,6 @@ class NotificationHelper(
     }
 
     fun makeNotification(data: Pair<Double,Double>): Notification {
-         updateRemoteViewsTheme()
          return if (liveUpdate && canPostPromotionsEnabled(context)) {
              liveBuilder
                  .setContentText("${String.format("%.1f",data.first)} kb/s ${String.format("%.1f",data.second)} kb/s")

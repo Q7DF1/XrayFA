@@ -8,6 +8,7 @@ expect fun FloatingNavChrome(
     selectedIndex: Int,
     onIndexSettled: (Int) -> Unit,
     tabsCount: Int,
+    nativeItems: List<FloatingNavItem> = emptyList(),
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 )
@@ -33,6 +34,11 @@ expect fun FloatingNavBackdropSource(
 @Composable
 expect fun FloatingNavSearchChrome(
     onClick: () -> Unit,
+    nativeSystemImage: String? = null,
+    nativeContentDescription: String = "",
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 )
+
+/** Native iOS glass needs unpainted page content beneath the floating controls. */
+internal expect fun floatingNavNeedsBottomFade(): Boolean

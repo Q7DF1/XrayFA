@@ -12,7 +12,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import com.android.xrayfa.shared.ui.config.SelectedNodeViewport
+import org.jetbrains.compose.resources.painterResource
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -336,7 +339,7 @@ private fun IdleContent(
                         chromeState = chromeState,
                         onNodeSelectedNavigateHome = { component.selectTab(RootTab.Home) },
                         onOpenNodeEdit = component::openNodeEdit,
-                        onOpenSubscriptions = component::openSubscriptions,
+                        onOpenSearch = component::openSearch,
                         onOpenQrScanner = component::openQrScanner,
                             onOpenJsonConfig = component::openJsonConfigEdit,
                     )
@@ -348,7 +351,11 @@ private fun IdleContent(
             listOf(
                 FloatingNavItem(
                     id = RootTab.Config.name,
-                    icon = RootTab.Config.toFloatingNavItem().icon,
+                    icon = when {
+                        selectedTab == RootTab.Config && chromeState.selectedNodeViewport == SelectedNodeViewport.Above -> Icons.Default.KeyboardArrowUp
+                        selectedTab == RootTab.Config && chromeState.selectedNodeViewport == SelectedNodeViewport.Below -> Icons.Default.KeyboardArrowDown
+                        else -> RootTab.Config.toFloatingNavItem().icon
+                    },
                     label = stringResource(Res.string.config),
                 ),
                 FloatingNavItem(
@@ -363,16 +370,19 @@ private fun IdleContent(
                 items = navItems,
                 selectedId = selectedTab.name,
                 onItemSelected = { item ->
-                    component.selectTab(
-                        if (item.id == RootTab.Config.name) RootTab.Config else RootTab.Home,
-                    )
+                    val tab = if (item.id == RootTab.Config.name) RootTab.Config else RootTab.Home
+                    if (tab == RootTab.Config && selectedTab == RootTab.Config) {
+                        chromeState.requestLocateSelected = true
+                    } else {
+                        component.selectTab(tab)
+                    }
                 },
                 trailingContent = {
                     Box(
                         modifier =
                             Modifier
                                 .sharedContainer(
-                                    destination = TransitionDestinations.SEARCH,
+                                    destination = TransitionDestinations.SUBSCRIPTIONS,
                                     shape = CircleShape,
                                     // `XrayFloatingNav` 自己的 Surface 已经画了圆形底色，
                                     // 再叠一层会变色。
@@ -382,14 +392,16 @@ private fun IdleContent(
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.Search,
-                            contentDescription = configLabels.searchLabel,
+                            painter = painterResource(Res.drawable.ic_subscription),
+                            contentDescription = stringResource(Res.string.menu_subscription),
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             modifier = Modifier.size(22.dp),
                         )
                     }
                 },
-                onTrailingClick = component::openSearch,
+                onTrailingClick = component::openSubscriptions,
+                trailingContentDescription = stringResource(Res.string.menu_subscription),
+                trailingNativeSystemImage = "paperclip",
                 modifier =
                     Modifier
                         .align(Alignment.BottomCenter)

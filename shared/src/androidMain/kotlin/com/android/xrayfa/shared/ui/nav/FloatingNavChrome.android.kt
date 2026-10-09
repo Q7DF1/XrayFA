@@ -74,6 +74,7 @@ actual fun FloatingNavChrome(
     selectedIndex: Int,
     onIndexSettled: (Int) -> Unit,
     tabsCount: Int,
+    nativeItems: List<FloatingNavItem>,
     modifier: Modifier,
     content: @Composable () -> Unit,
 ) {
@@ -127,6 +128,8 @@ actual fun FloatingNavChrome(
 @Composable
 actual fun FloatingNavSearchChrome(
     onClick: () -> Unit,
+    nativeSystemImage: String?,
+    nativeContentDescription: String,
     modifier: Modifier,
     content: @Composable () -> Unit,
 ) {
@@ -160,3 +163,5 @@ actual fun FloatingNavSearchChrome(
         content()
     }
 }
+
+internal actual fun floatingNavNeedsBottomFade(): Boolean = true
