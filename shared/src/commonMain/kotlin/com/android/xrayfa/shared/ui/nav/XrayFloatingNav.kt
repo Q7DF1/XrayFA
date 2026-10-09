@@ -43,8 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.xrayfa.shared.navigation.RootTab
 
-/** Floating pill height. 56dp is the minimum touch target used by compact bottom bars. */
-val FloatingNavBarHeight get() = platformFloatingNavBarHeight()
+/** Match the native iOS floating capsule while exceeding the 48dp touch target. */
+val FloatingNavBarHeight = 62.dp
 val FloatingNavBottomMargin = 8.dp
 /** Extra space so the last Config row can rest above the pill. */
 val FloatingNavExtraContentPadding = 24.dp
@@ -109,16 +109,17 @@ fun XrayFloatingNav(
     BoxWithConstraints(
         modifier = modifier.fillMaxWidth(),
     ) {
-        // UIKit needs room for both SF Symbols and captions in its native floating bar.
-        val minimumBarWidth = if (FloatingNavBarHeight >= 70.dp) 250.dp else 200.dp
-        val barWidth =
-            if (constraints.maxWidth <= 0 ||
-                constraints.maxWidth == androidx.compose.ui.unit.Constraints.Infinity
-            ) {
-                280.dp
-            } else {
-                (maxWidth * 0.62f).coerceAtMost(280.dp).coerceAtLeast(minimumBarWidth)
-            }
+        // Share UIKit's compact item geometry across platforms: two 90dp
+        // items plus the capsule's 4dp padding on each side = 188dp.
+        val preferredBarWidth = 90.dp * itemCount + 8.dp
+        val barWidth = if (constraints.maxWidth <= 0 ||
+            constraints.maxWidth == androidx.compose.ui.unit.Constraints.Infinity
+        ) {
+            preferredBarWidth
+        } else {
+            val actionWidth = if (trailingContent != null) FloatingNavBarHeight + 12.dp else 0.dp
+            preferredBarWidth.coerceAtMost((maxWidth - actionWidth).coerceAtLeast(0.dp))
+        }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -196,7 +197,7 @@ fun XrayFloatingNav(
                     nativeSystemImage = trailingNativeSystemImage,
                     nativeContentDescription = trailingContentDescription,
                     onClick = { onTrailingClick?.invoke() },
-                    modifier = Modifier.size(56.dp),
+                    modifier = Modifier.size(FloatingNavBarHeight),
                 ) {
                     trailingContent()
                 }

@@ -67,7 +67,12 @@ attached to that anchor's owning window to receive the full UIKit layout context
 and the live page backdrop. Removing the anchor removes the native bar, including
 when opening subscriptions. Attach it only after the anchor has nonzero layout
 bounds: an initial zero-sized layout makes UIKit cache compact item metrics.
-Allow at least 250 points of width for the two native tabs.
+Both platforms use a 62-point/dp visible capsule and action button, a 12-point/dp
+inter-control gap, and an 8-point/dp bottom margin outside the safe area. Each tab receives
+90 points/dp plus 4 points/dp of capsule padding on each side (188 for two tabs),
+clamped to the available width. This compact geometry matches UIKit's native
+floating tabs. The native host compensates for its horizontal optical insets without
+scaling the glass, symbols or fonts.
 
 The shared action button accepts an optional `nativeSystemImage` for reusable iOS
 system controls. Android retains its existing vector and glass implementation.

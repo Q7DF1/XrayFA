@@ -101,7 +101,10 @@ private class FloatingTabAnchor(private val bar: UITabBar) : UIView(frame = CGRe
         // out a zero-sized tab bar caches compact item metrics and hides captions.
         val rect = bounds.useContents {
             if (size.width <= 48.0 || size.height <= 48.0) return
-            CGRectMake(24.0, 24.0, size.width - 48.0, size.height - 48.0)
+            val width = size.width - 48.0
+            // The floating material is inset 22 points horizontally. Compensate
+            // those bounds without scaling fonts, symbols or the glass lens.
+            CGRectMake(2.0, 24.0, width + 44.0, size.height - 48.0)
         }
         bar.setFrame(convertRect(rect, toView = owner))
         if (bar.superview !== owner) owner.addSubview(bar)

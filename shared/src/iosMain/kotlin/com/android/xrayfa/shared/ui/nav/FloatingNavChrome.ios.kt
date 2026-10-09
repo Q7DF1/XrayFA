@@ -323,6 +323,3 @@ actual fun FloatingNavSearchChrome(
 }
 
 internal actual fun floatingNavNeedsBottomFade(): Boolean = false
-
-internal actual fun platformFloatingNavBarHeight(): androidx.compose.ui.unit.Dp =
-    if ((UIDevice.currentDevice.systemVersion.substringBefore(".").toIntOrNull() ?: 0) >= 26) 70.dp else 56.dp
