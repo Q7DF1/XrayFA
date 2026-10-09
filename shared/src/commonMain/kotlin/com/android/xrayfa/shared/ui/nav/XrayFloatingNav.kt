@@ -100,6 +100,8 @@ fun XrayFloatingNav(
     unselectedColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
     trailingContent: @Composable (() -> Unit)? = null,
     onTrailingClick: (() -> Unit)? = null,
+    trailingContentDescription: String = "",
+    trailingNativeSystemImage: String? = null,
 ) {
     val itemCount = items.size.coerceAtLeast(1)
     val selectedIndex = items.indexOfFirst { it.id == selectedId }.coerceAtLeast(0)
@@ -188,6 +190,8 @@ fun XrayFloatingNav(
             if (trailingContent != null) {
                 Box(modifier = Modifier.width(12.dp).height(FloatingNavBarHeight))
                 FloatingNavSearchChrome(
+                    nativeSystemImage = trailingNativeSystemImage,
+                    nativeContentDescription = trailingContentDescription,
                     onClick = { onTrailingClick?.invoke() },
                     modifier = Modifier.size(FloatingNavBarHeight),
                 ) {

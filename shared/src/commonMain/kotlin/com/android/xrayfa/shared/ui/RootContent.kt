@@ -400,6 +400,8 @@ private fun IdleContent(
                     }
                 },
                 onTrailingClick = component::openSubscriptions,
+                trailingContentDescription = stringResource(Res.string.menu_subscription),
+                trailingNativeSystemImage = "paperclip",
                 modifier =
                     Modifier
                         .align(Alignment.BottomCenter)

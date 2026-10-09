@@ -127,6 +127,8 @@ actual fun FloatingNavChrome(
 @Composable
 actual fun FloatingNavSearchChrome(
     onClick: () -> Unit,
+    nativeSystemImage: String?,
+    nativeContentDescription: String,
     modifier: Modifier,
     content: @Composable () -> Unit,
 ) {

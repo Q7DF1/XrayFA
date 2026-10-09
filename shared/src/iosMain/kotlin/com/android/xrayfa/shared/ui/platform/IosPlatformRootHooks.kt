@@ -27,6 +27,7 @@ import com.android.xrayfa.shared.platform.ClipboardWriter
 import com.android.xrayfa.shared.platform.qr.encodeQrImageBitmap
 import com.android.xrayfa.shared.resources.*
 import com.android.xrayfa.shared.ui.SharedHomeSection
+import com.android.xrayfa.shared.ui.nav.rememberFloatingNavClearance
 import com.android.xrayfa.shared.ui.home.HomeUiLabels
 import com.android.xrayfa.shared.ui.qr.SharedQrScannerScreen
 import com.android.xrayfa.shared.ui.rememberConfigUiLabels
@@ -107,6 +108,7 @@ object IosPlatformRootHooks : PlatformRootHooks {
             component = component,
             labels = labels,
             modifier = modifier,
+            bottomContentPadding = rememberFloatingNavClearance(extraAboveBar = 8.dp),
         )
     }
 

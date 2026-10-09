@@ -33,6 +33,8 @@ expect fun FloatingNavBackdropSource(
 @Composable
 expect fun FloatingNavSearchChrome(
     onClick: () -> Unit,
+    nativeSystemImage: String? = null,
+    nativeContentDescription: String = "",
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 )

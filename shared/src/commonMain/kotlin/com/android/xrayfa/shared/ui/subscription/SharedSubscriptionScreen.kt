@@ -112,6 +112,7 @@ fun SharedSubscriptionScreen(
                 SharedGlassFloatingActionButton(
                     onClick = component::openAddSheet,
                     icon = Icons.Default.Add,
+                    nativeSystemImage = "plus",
                     contentDescription = labels.addSubscription,
                 )
             },

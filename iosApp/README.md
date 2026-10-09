@@ -55,25 +55,30 @@ isolated compatibility build using an older Compose release; it is not a product
 
 ## Native glass navigation
 
-The iOS floating controls use `UIGlassEffect` on iOS 26 and system-material blur on older
-systems. The foreground is hosted in a transparent Compose controller inside the native
-material's `contentView`. Pass theme values into that controller rather than forwarding the
-parent's entire `CompositionLocalContext`: layout, graphics, and shared-transition scopes
-belong to one Compose owner. Sharing bounds across those owners throws
-`layouts are not part of the same hierarchy` when opening subscriptions.
+On iOS 26, action controls use UIKit
+`UIButtonConfiguration.glassButtonConfiguration()` and native SF Symbols.
+The custom floating navigation uses `UIVisualEffectView` with interactive
+`UIGlassEffectStyleRegular`, with its foreground hosted separately from the
+backdrop. Regular glass is appropriate for these navigation and action controls;
+clear glass is intended for controls over rich media, not these pages.
 
-Use the system capsule `cornerConfiguration` for Liquid Glass. Keep the material unclipped
-so its optical edges can draw, and clip only the foreground. Reserve a transparent
-24-point outset in the native host because Compose clips interop views to rectangular
-bounds; a host sized exactly to the capsule cuts the system shadow into square corners.
-Floating controls use interactive clear glass, with regular glass for the selected lens. The iOS bottom fade is omitted
-so page content can remain visible underneath the glass. The selected tab uses a native
-material lens, not an opaque painted highlight.
+The shared action button accepts an optional `nativeSystemImage` for reusable iOS
+system controls. Android retains its existing vector and glass implementation.
+Older iOS versions and custom icons without a system symbol retain the material
+fallback. Only styling locals are passed to its Compose foreground: sharing layout
+or transition scopes across Compose owners causes `layouts are not part of the
+same hierarchy` when opening subscriptions.
 
-For regression checks, repeatedly switch Config/Home, open subscriptions from the floating
-entry, and navigate back. Verify all icons and selected labels remain visible, the lens
-follows the selection, and navigation does not crash. Verify translucency with content
-behind the bar as well as the empty screens.
+Reserve a transparent 24-point outset around native controls because Compose clips
+interop views to rectangular bounds. Without it, the system shadow gets cut into
+square corners. On iOS, home scrolling extends beneath the navigation, with bottom
+clearance applied to scroll content rather than shortening the viewport. Do not
+add opaque backgrounds or a gradient fade behind the glass.
+
+For regression checks, switch Config/Home, open subscriptions,
+trigger the native action button, close its sheet, and navigate back. Check icons,
+labels, light/dark modes, and scrolling underneath the controls. On a uniform empty
+background the system material is subtle; verify refraction over actual content.
 
 ## Current status
 

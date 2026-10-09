@@ -65,8 +65,7 @@ private fun glassOrBlurView(isSelection: Boolean = false): UIVisualEffectView {
     val effect =
         if (major >= GLASS_MIN_IOS_MAJOR) {
             UIGlassEffect.effectWithStyle(
-                if (isSelection) UIGlassEffectStyle.UIGlassEffectStyleRegular
-                else UIGlassEffectStyle.UIGlassEffectStyleClear,
+                UIGlassEffectStyle.UIGlassEffectStyleRegular,
             ).apply { interactive = !isSelection }
         } else {
             UIBlurEffect.effectWithStyle(UIBlurEffectStyle.UIBlurEffectStyleSystemMaterial)
@@ -299,9 +298,15 @@ actual fun FloatingNavBackdropSource(
 @Composable
 actual fun FloatingNavSearchChrome(
     onClick: () -> Unit,
+    nativeSystemImage: String?,
+    nativeContentDescription: String,
     modifier: Modifier,
     content: @Composable () -> Unit,
 ) {
+    if (UIDevice.currentDevice.systemVersion.substringBefore(".").toIntOrNull()?.let { it >= 26 } == true && nativeSystemImage != null) {
+        com.android.xrayfa.shared.ui.widgets.NativeGlassSymbolButton(onClick, nativeSystemImage, nativeContentDescription, modifier)
+        return
+    }
     GlassContainer(modifier) {
         Box(
             modifier = Modifier.fillMaxSize().clickable(onClick = onClick),
