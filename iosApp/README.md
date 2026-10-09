@@ -72,9 +72,14 @@ inter-control gap, and an 8-point/dp bottom margin outside the safe area. Each t
 90 points/dp plus 4 points/dp of capsule padding on each side (188 for two tabs),
 clamped to the available width. This compact geometry matches UIKit's native
 floating tabs. The native host compensates for horizontal and vertical optical
-insets without scaling the glass, symbols or fonts. Keep the native host 70 points
-high even though the visible capsule is 62: a 62-point host can look correct on
-first display, then collapse captions onto icons during a later UIKit layout.
+insets without scaling the glass, symbols or fonts. Measure the native host with
+UIKit's `sizeThatFits` after attaching it to the owning window, and preserve that
+native height throughout subscription navigation. Forcing the shared visible
+height onto the host while its anchor slides offscreen changes UIKit's item
+metrics and leaves captions overlapping icons on return. Because the native bar
+is a window sibling, explicitly drive its alpha from the stack's enter/exit
+transition and disable interaction when exit starts; it does not inherit the
+Compose anchor's fade.
 
 The shared action button accepts an optional `nativeSystemImage` for reusable iOS
 system controls. Android retains its existing vector and glass implementation.
@@ -92,8 +97,9 @@ add opaque backgrounds or a gradient fade behind the glass.
 For regression checks, use the independent XCTest UI target in `ui-tests` after
 installing the app on an iOS 26 simulator. Generate its project with XcodeGen and
 run the `GlassUITests` scheme. It performs real press-and-drag gestures in both
-directions, checks selection, opens subscriptions, verifies removal of the native
-bar, then returns and verifies restoration. Record the simulator during the test
+directions and checks selection. A separate test repeats subscription navigation
+three times, checks native height stability, and verifies the visible gap between
+the Home icon and caption from screenshots. Record the simulator during the tests
 and inspect frames while the finger is held and moving; static screenshots and
 programmatic selection alone do not validate Liquid Glass interaction.
 

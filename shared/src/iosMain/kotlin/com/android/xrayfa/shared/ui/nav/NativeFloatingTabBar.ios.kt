@@ -1,5 +1,7 @@
 package com.android.xrayfa.shared.ui.nav
 
+import androidx.compose.animation.EnterExitState
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
@@ -9,8 +11,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.offset
 import androidx.compose.ui.viewinterop.UIKitInteropProperties
 import androidx.compose.ui.viewinterop.UIKitViewController
+import com.android.xrayfa.shared.ui.transitions.LocalStackAnimationScope
+import com.android.xrayfa.shared.ui.transitions.XrayMotion
 import kotlinx.cinterop.useContents
 import platform.CoreGraphics.CGRectMake
+import platform.CoreGraphics.CGSizeMake
 import platform.UIKit.*
 import platform.darwin.NSObject
 
@@ -24,9 +29,18 @@ internal fun NativeFloatingTabBar(
     modifier: Modifier,
 ) {
     val callback by rememberUpdatedState(onSelected)
+    val visibility = LocalStackAnimationScope.current
+    val alpha = if (visibility != null) {
+        val value by visibility.transition.animateFloat(
+            transitionSpec = { XrayMotion.EffectsFloat },
+            label = "Native floating navigation opacity",
+        ) { state -> if (state == EnterExitState.Visible) 1f else 0f }
+        value
+    } else 1f
+    val interactive = visibility == null || visibility.transition.targetState == EnterExitState.Visible
     UIKitViewController(
         factory = { FloatingTabController { callback(it) } },
-        update = { it.update(items, selectedIndex) },
+        update = { it.update(items, selectedIndex, alpha, interactive) },
         modifier = modifier.layout { measurable, constraints ->
             val outset = 24.dp.roundToPx()
             val child = measurable.measure(constraints.offset(horizontal = outset * 2, vertical = outset * 2))
@@ -51,7 +65,11 @@ private class FloatingTabController(onSelected: (Int) -> Unit) : UIViewControlle
         view = FloatingTabAnchor(bar)
     }
 
-    fun update(items: List<FloatingNavItem>, selected: Int) {
+    fun update(items: List<FloatingNavItem>, selected: Int, alpha: Float, interactive: Boolean) {
+        // This bar is a window sibling, so it does not inherit the Compose
+        // anchor's opacity. Drive both from the same visibility transition.
+        bar.alpha = alpha.toDouble()
+        bar.userInteractionEnabled = interactive
         val keys = items.map { "${it.id}:${it.label}:${it.icon.name}" }
         if (keys != itemKeys) {
             itemKeys = keys
@@ -102,13 +120,27 @@ private class FloatingTabAnchor(private val bar: UITabBar) : UIView(frame = CGRe
         val rect = bounds.useContents {
             if (size.width <= 48.0 || size.height <= 48.0) return
             val width = size.width - 48.0
-            // The material has optical insets; UIKit still needs a 70-point
-            // host for its full icon/caption layout. A 62-point host initially
-            // looks correct, then collapses captions onto icons on relayout.
-            // Expand the host while retaining the shared 62-point visible bounds.
-            CGRectMake(2.0, 24.0, width + 44.0, size.height - 40.0)
+            // UIKit needs its window context to measure the host, whose height
+            // includes native optical padding and safe-area handling.
+            val hostWidth = width + 44.0
+            val hostHeight = if (bar.superview === owner) {
+                bar.sizeThatFits(CGSizeMake(hostWidth, 0.0)).useContents { height }
+            } else {
+                size.height - 40.0
+            }
+            CGRectMake(2.0, 24.0, hostWidth, hostHeight)
         }
         bar.setFrame(convertRect(rect, toView = owner))
-        if (bar.superview !== owner) owner.addSubview(bar)
+        if (bar.superview !== owner) {
+            owner.addSubview(bar)
+            // Measure again only after attachment. Forcing the shared visible
+            // height onto the native host during entry/exit changes its item
+            // metrics and leaves captions overlapping icons on return.
+            val nativeRect = rect.useContents {
+                val height = bar.sizeThatFits(CGSizeMake(size.width, 0.0)).useContents { height }
+                CGRectMake(origin.x, origin.y, size.width, height)
+            }
+            bar.setFrame(convertRect(nativeRect, toView = owner))
+        }
     }
 }
