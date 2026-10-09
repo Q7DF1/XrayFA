@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.sp
 import com.android.xrayfa.shared.navigation.RootTab
 
 /** Floating pill height. 56dp is the minimum touch target used by compact bottom bars. */
-val FloatingNavBarHeight = 56.dp
+val FloatingNavBarHeight get() = platformFloatingNavBarHeight()
 val FloatingNavBottomMargin = 8.dp
 /** Extra space so the last Config row can rest above the pill. */
 val FloatingNavExtraContentPadding = 24.dp
@@ -109,13 +109,15 @@ fun XrayFloatingNav(
     BoxWithConstraints(
         modifier = modifier.fillMaxWidth(),
     ) {
+        // UIKit needs room for both SF Symbols and captions in its native floating bar.
+        val minimumBarWidth = if (FloatingNavBarHeight >= 70.dp) 250.dp else 200.dp
         val barWidth =
             if (constraints.maxWidth <= 0 ||
                 constraints.maxWidth == androidx.compose.ui.unit.Constraints.Infinity
             ) {
                 280.dp
             } else {
-                (maxWidth * 0.62f).coerceAtMost(280.dp).coerceAtLeast(200.dp)
+                (maxWidth * 0.62f).coerceAtMost(280.dp).coerceAtLeast(minimumBarWidth)
             }
 
         Row(
@@ -129,6 +131,7 @@ fun XrayFloatingNav(
                     items.getOrNull(index)?.let(onItemSelected)
                 },
                 tabsCount = itemCount,
+                nativeItems = items,
                 modifier = Modifier.width(barWidth).height(FloatingNavBarHeight),
             ) {
                 Row(modifier = Modifier.fillMaxSize()) {
@@ -193,7 +196,7 @@ fun XrayFloatingNav(
                     nativeSystemImage = trailingNativeSystemImage,
                     nativeContentDescription = trailingContentDescription,
                     onClick = { onTrailingClick?.invoke() },
-                    modifier = Modifier.size(FloatingNavBarHeight),
+                    modifier = Modifier.size(56.dp),
                 ) {
                     trailingContent()
                 }

@@ -224,9 +224,14 @@ actual fun FloatingNavChrome(
     selectedIndex: Int,
     onIndexSettled: (Int) -> Unit,
     tabsCount: Int,
+    nativeItems: List<FloatingNavItem>,
     modifier: Modifier,
     content: @Composable () -> Unit,
 ) {
+    if ((UIDevice.currentDevice.systemVersion.substringBefore(".").toIntOrNull() ?: 0) >= 26 && nativeItems.isNotEmpty()) {
+        NativeFloatingTabBar(nativeItems, selectedIndex, onIndexSettled, modifier)
+        return
+    }
     val density = LocalDensity.current
     val isLtr = LocalLayoutDirection.current == LayoutDirection.Ltr
     val direction = if (isLtr) 1f else -1f
@@ -318,3 +323,6 @@ actual fun FloatingNavSearchChrome(
 }
 
 internal actual fun floatingNavNeedsBottomFade(): Boolean = false
+
+internal actual fun platformFloatingNavBarHeight(): androidx.compose.ui.unit.Dp =
+    if ((UIDevice.currentDevice.systemVersion.substringBefore(".").toIntOrNull() ?: 0) >= 26) 70.dp else 56.dp

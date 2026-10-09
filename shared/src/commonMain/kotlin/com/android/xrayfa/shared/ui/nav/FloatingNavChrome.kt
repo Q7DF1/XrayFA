@@ -8,6 +8,7 @@ expect fun FloatingNavChrome(
     selectedIndex: Int,
     onIndexSettled: (Int) -> Unit,
     tabsCount: Int,
+    nativeItems: List<FloatingNavItem> = emptyList(),
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 )
@@ -41,3 +42,5 @@ expect fun FloatingNavSearchChrome(
 
 /** Native iOS glass needs unpainted page content beneath the floating controls. */
 internal expect fun floatingNavNeedsBottomFade(): Boolean
+
+internal expect fun platformFloatingNavBarHeight(): androidx.compose.ui.unit.Dp

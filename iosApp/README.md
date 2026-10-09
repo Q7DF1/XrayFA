@@ -57,10 +57,17 @@ isolated compatibility build using an older Compose release; it is not a product
 
 On iOS 26, action controls use UIKit
 `UIButtonConfiguration.glassButtonConfiguration()` and native SF Symbols.
-The custom floating navigation uses `UIVisualEffectView` with interactive
-`UIGlassEffectStyleRegular`, with its foreground hosted separately from the
-backdrop. Regular glass is appropriate for these navigation and action controls;
-clear glass is intended for controls over rich media, not these pages.
+On iOS 26, the floating navigation is a native `UITabBar`: UIKit owns the
+selection lens, press deformation, dragging, refraction, symbols and labels.
+Compose passes localized items, selection and callbacks; it does not animate a
+replacement glass capsule. Older iOS versions retain the custom material fallback.
+
+A transparent interop anchor controls placement and lifetime. The tab bar is
+attached to that anchor's owning window to receive the full UIKit layout context
+and the live page backdrop. Removing the anchor removes the native bar, including
+when opening subscriptions. Attach it only after the anchor has nonzero layout
+bounds: an initial zero-sized layout makes UIKit cache compact item metrics.
+Allow at least 250 points of width for the two native tabs.
 
 The shared action button accepts an optional `nativeSystemImage` for reusable iOS
 system controls. Android retains its existing vector and glass implementation.
@@ -75,10 +82,13 @@ square corners. On iOS, home scrolling extends beneath the navigation, with bott
 clearance applied to scroll content rather than shortening the viewport. Do not
 add opaque backgrounds or a gradient fade behind the glass.
 
-For regression checks, switch Config/Home, open subscriptions,
-trigger the native action button, close its sheet, and navigate back. Check icons,
-labels, light/dark modes, and scrolling underneath the controls. On a uniform empty
-background the system material is subtle; verify refraction over actual content.
+For regression checks, use the independent XCTest UI target in `ui-tests` after
+installing the app on an iOS 26 simulator. Generate its project with XcodeGen and
+run the `GlassUITests` scheme. It performs real press-and-drag gestures in both
+directions, checks selection, opens subscriptions, verifies removal of the native
+bar, then returns and verifies restoration. Record the simulator during the test
+and inspect frames while the finger is held and moving; static screenshots and
+programmatic selection alone do not validate Liquid Glass interaction.
 
 ## Current status
 

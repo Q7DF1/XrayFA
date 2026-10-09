@@ -74,6 +74,7 @@ actual fun FloatingNavChrome(
     selectedIndex: Int,
     onIndexSettled: (Int) -> Unit,
     tabsCount: Int,
+    nativeItems: List<FloatingNavItem>,
     modifier: Modifier,
     content: @Composable () -> Unit,
 ) {
@@ -164,3 +165,5 @@ actual fun FloatingNavSearchChrome(
 }
 
 internal actual fun floatingNavNeedsBottomFade(): Boolean = true
+
+internal actual fun platformFloatingNavBarHeight(): androidx.compose.ui.unit.Dp = 56.dp
