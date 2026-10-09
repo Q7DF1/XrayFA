@@ -63,7 +63,10 @@ belong to one Compose owner. Sharing bounds across those owners throws
 `layouts are not part of the same hierarchy` when opening subscriptions.
 
 Use the system capsule `cornerConfiguration` for Liquid Glass. Keep the material unclipped
-so its optical edges can draw, and clip only the foreground. The iOS bottom fade is omitted
+so its optical edges can draw, and clip only the foreground. Reserve a transparent
+24-point outset in the native host because Compose clips interop views to rectangular
+bounds; a host sized exactly to the capsule cuts the system shadow into square corners.
+Floating controls use interactive clear glass, with regular glass for the selected lens. The iOS bottom fade is omitted
 so page content can remain visible underneath the glass. The selected tab uses a native
 material lens, not an opaque painted highlight.
 

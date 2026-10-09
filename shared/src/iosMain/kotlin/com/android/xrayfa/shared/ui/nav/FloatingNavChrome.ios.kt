@@ -23,10 +23,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.offset
 import androidx.compose.ui.viewinterop.UIKitInteropProperties
 import androidx.compose.ui.viewinterop.UIKitViewController
 import androidx.compose.ui.window.ComposeUIViewController
@@ -40,6 +42,7 @@ import platform.UIKit.UICornerConfiguration
 import platform.UIKit.UIDevice
 import platform.UIKit.UIGlassEffect
 import platform.UIKit.UIGlassEffectStyle
+import platform.UIKit.UIView
 import platform.UIKit.UIViewController
 import platform.UIKit.UIVisualEffectView
 import platform.UIKit.addChildViewController
@@ -49,17 +52,22 @@ import platform.UIKit.didMoveToParentViewController
 private const val GLASS_MIN_IOS_MAJOR = 26
 
 private val BarPadding = 4.dp
+private const val GlassOutsetPoints = 24.0
+private val GlassOutset = 24.dp
 
 /**
  * iOS 26+ gets the system Liquid Glass ([UIGlassEffect]); earlier versions get a system-material
  * [UIBlurEffect]. There is deliberately no blur fallback on iOS 26.
  */
 @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
-private fun glassOrBlurView(): UIVisualEffectView {
+private fun glassOrBlurView(isSelection: Boolean = false): UIVisualEffectView {
     val major = UIDevice.currentDevice.systemVersion.substringBefore(".").toIntOrNull() ?: 0
     val effect =
         if (major >= GLASS_MIN_IOS_MAJOR) {
-            UIGlassEffect.effectWithStyle(UIGlassEffectStyle.UIGlassEffectStyleRegular)
+            UIGlassEffect.effectWithStyle(
+                if (isSelection) UIGlassEffectStyle.UIGlassEffectStyleRegular
+                else UIGlassEffectStyle.UIGlassEffectStyleClear,
+            ).apply { interactive = !isSelection }
         } else {
             UIBlurEffect.effectWithStyle(UIBlurEffectStyle.UIBlurEffectStyleSystemMaterial)
         }
@@ -78,6 +86,10 @@ private class GlassContentController(
     private val foreground: UIViewController,
 ) : UIViewController(nibName = null, bundle = null) {
     private val glass = glassOrBlurView()
+    private val host = UIView().apply {
+        backgroundColor = UIColor.clearColor
+        opaque = false
+    }
     private var lens: UIVisualEffectView? = null
     private var lensPosition: Float? = null
     private var lensTabsCount = 0
@@ -93,7 +105,7 @@ private class GlassContentController(
             return
         }
         if (lens == null) {
-            lens = glassOrBlurView().also {
+            lens = glassOrBlurView(isSelection = true).also {
                 it.userInteractionEnabled = false
                 glass.contentView.insertSubview(it, atIndex = 0)
             }
@@ -122,7 +134,8 @@ private class GlassContentController(
 
     init {
         glass.userInteractionEnabled = true
-        view = glass
+        view = host
+        host.addSubview(glass)
         addChildViewController(foreground)
         foreground.view.backgroundColor = UIColor.clearColor
         glass.contentView.addSubview(foreground.view)
@@ -131,6 +144,17 @@ private class GlassContentController(
 
     override fun viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        host.bounds.useContents {
+            val inset = GlassOutsetPoints
+            glass.setFrame(
+                CGRectMake(
+                    inset,
+                    inset,
+                    (size.width - inset * 2).coerceAtLeast(0.0),
+                    (size.height - inset * 2).coerceAtLeast(0.0),
+                ),
+            )
+        }
         foreground.view.setFrame(glass.bounds)
         layoutLens()
         val radius = glass.bounds.useContents { size.height / 2.0 }
@@ -181,7 +205,16 @@ private fun GlassContainer(
                 },
             )
         },
-        modifier = modifier,
+        // UIKit's glass draws optical edges and shadows outside its bounds. The interop
+        // wrapper clips to a rectangle, so reserve transparent space around the material
+        // while retaining the original Compose layout size and touch targets.
+        modifier = modifier.layout { measurable, constraints ->
+            val outset = GlassOutset.roundToPx()
+            val child = measurable.measure(constraints.offset(horizontal = outset * 2, vertical = outset * 2))
+            layout(child.width - outset * 2, child.height - outset * 2) {
+                child.place(-outset, -outset)
+            }
+        },
         update = { controller -> controller.updateLens(lensPosition, lensTabsCount, lensIsLtr) },
         properties = UIKitInteropProperties(isNativeAccessibilityEnabled = true, placedAsOverlay = true),
     )
