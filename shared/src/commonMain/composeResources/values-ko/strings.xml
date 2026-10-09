@@ -270,4 +270,5 @@
     <string name="json_config_mapping_error">인바운드 라우팅 규칙을 유지하려면 기존 태그를 선택하세요.</string>
     <string name="json_config_conflict">구성이 VPN 채널과 충돌합니다. 중복 태그, 포트 및 추가 TUN 인바운드를 확인하세요.</string>
     <string name="json_config_external_file">구성이 외부 파일을 참조합니다. 내용을 포함하거나 파일 로그를 제거하세요.</string>
+    <string name="in_development_label">개발 중</string>
 </resources>

@@ -273,4 +273,5 @@
     <string name="json_config_mapping_error">Select an existing inbound tag to preserve your inbound routing rules.</string>
     <string name="json_config_conflict">The configuration conflicts with the VPN channel: check duplicate tags, listening ports and additional TUN inbounds.</string>
     <string name="json_config_external_file">This configuration references external files. Embed the content or remove file logging before importing.</string>
+    <string name="in_development_label">In development</string>
 </resources>

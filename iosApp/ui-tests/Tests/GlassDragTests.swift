@@ -2,6 +2,30 @@ import XCTest
 import UIKit
 
 final class GlassDragTests: XCTestCase {
+    func testIosSettingsCapabilities() throws {
+        let app = XCUIApplication(bundleIdentifier: "com.android.xrayfa.ios")
+        app.launch()
+        let bar = app.tabBars.firstMatch
+        XCTAssertTrue(bar.waitForExistence(timeout: 15))
+        bar.buttons.element(boundBy: 1).tap()
+        let settings = app.buttons["Settings"].firstMatch
+        XCTAssertTrue(settings.waitForExistence(timeout: 5))
+        let frame = settings.frame
+        app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: frame.midX, dy: frame.midY)).tap()
+        let agent = app.staticTexts.matching(NSPredicate(format: "label == %@ OR label == %@", "Agent 功能", "Agent functions")).firstMatch
+        XCTAssertTrue(agent.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label == %@ OR label == %@", "开机自启", "Boot auto start")).firstMatch.exists)
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label == %@ OR label == %@", "在最近任务中隐藏", "Hide from recent tasks")).firstMatch.exists)
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@ OR label CONTAINS %@", "开发中", "In development")).firstMatch.exists)
+        let agentSwitch = app.switches.firstMatch
+        XCTAssertTrue(agentSwitch.exists)
+        XCTAssertFalse(agentSwitch.isEnabled)
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "iOS settings capabilities"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+    }
+
     func testSubscriptionsReturnLayout() throws {
         guard #available(iOS 26.0, *) else { throw XCTSkip("Native floating tabs require iOS 26") }
         let app = XCUIApplication(bundleIdentifier: "com.android.xrayfa.ios")

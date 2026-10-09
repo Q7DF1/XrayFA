@@ -43,6 +43,10 @@ import org.koin.mp.KoinPlatform
  * in-development UI; ShareNode and BugReport are real.
  */
 object IosPlatformRootHooks : PlatformRootHooks {
+    override val supportsBootAutoStart = false
+    override val supportsHideFromRecents = false
+    override val agentFunctionsAvailable = false
+
     @Composable
     override fun ColumnScope.SettingsGeneralExtras(component: SettingsComponent) = Unit
 

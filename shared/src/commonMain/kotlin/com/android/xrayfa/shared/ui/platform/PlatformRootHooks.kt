@@ -36,6 +36,10 @@ import org.jetbrains.compose.resources.stringResource
  * CompositionLocal fallback.
  */
 interface PlatformRootHooks {
+    val supportsBootAutoStart: Boolean get() = true
+    val supportsHideFromRecents: Boolean get() = true
+    val agentFunctionsAvailable: Boolean get() = true
+
     @Composable
     fun ColumnScope.SettingsGeneralExtras(component: SettingsComponent)
 
