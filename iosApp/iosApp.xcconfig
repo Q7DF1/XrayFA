@@ -14,4 +14,6 @@ FRAMEWORK_SEARCH_PATHS[sdk=iphoneos*] = $(inherited) \
 
 HEADER_SEARCH_PATHS = $(inherited) $(SRCROOT)/../core/native-bridge/src/nativeInterop/cinterop/headers
 
-OTHER_LDFLAGS = $(inherited) -framework XrayFAShared -framework LibXrayLite -lresolv
+// Kotlin/Native strongly imports new UIKit classes even inside version guards.
+// Weak-link UIKit so iOS 15–18 can load the app and use guarded fallbacks.
+OTHER_LDFLAGS = $(inherited) -framework XrayFAShared -framework LibXrayLite -lresolv -weak_framework UIKit

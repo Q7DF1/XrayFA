@@ -32,7 +32,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -50,6 +49,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import com.android.xrayfa.shared.ui.widgets.SharedGlassToggle
 
 @Composable
 fun SharedSettingsGroup(
@@ -117,7 +117,8 @@ fun SharedSettingsSwitchRow(
                 }
             },
         trailingContent = {
-            Switch(
+            SharedGlassToggle(
+                contentDescription = title,
                 checked = checked,
                 onCheckedChange = onCheckedChange,
                 enabled = enabled,

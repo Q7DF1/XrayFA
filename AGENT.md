@@ -75,6 +75,8 @@ Required before `:shared` / `:core:native-bridge` iOS compile:
 
 Output: `AndroidLibXrayLite/LibXrayLite.xcframework` (gitignored). CI caches it in `ios-shared.yml`.
 
+The iOS host weak-links UIKit in `iosApp/iosApp.xcconfig`: Kotlin/Native class imports otherwise prevent pre-iOS-26 launch before runtime availability guards execute. Keep iOS 26 API calls behind version checks.
+
 ### 3.4 Gradle
 
 ```bash
@@ -118,6 +120,8 @@ KMP `iosArm64` / `iosSimulatorArm64` / `iosX64` targets are registered **only on
 - New parser / routing / subscription logic: add a `commonTest` golden (share link → kotlinx JSON) **before** changing the encoder.
 
 `./gradlew allTests` (including iOS simulator) is the full KMP bar; CI currently runs the JVM subset on `feat/**` (see §8).
+
+iOS glass UI regression tests live in `iosApp/ui-tests` (independent XcodeGen XCTest target). With the app installed on an iOS 26 simulator, run the `GlassUITests` scheme; `GlassToggleTests` verifies native toggle tap, bidirectional drag, disabled state, and persistence across relaunch. Record interactions for visual inspection; see `docs/ui/glass-toggle.md` and `iosApp/README.md` for the Intel preview limitation.
 
 ---
 
