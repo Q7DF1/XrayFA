@@ -258,4 +258,5 @@
     <string name="json_config_mapping_error">请选择文件中已有的入口标签，以保留入口路由规则。</string>
     <string name="json_config_conflict">配置与 VPN 通道冲突，请检查重复标签、监听端口及额外 TUN 入口。</string>
     <string name="json_config_external_file">配置引用了外部文件，请内嵌内容或移除文件日志设置后导入。</string>
+    <string name="in_development_label">开发中</string>
 </resources>

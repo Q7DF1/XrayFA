@@ -188,6 +188,7 @@ fun rememberSettingsUiLabels(): SettingsUiLabels =
         bootAutoStartTitle = stringResource(Res.string.boot_auto_start),
         bootAutoStartDescription = stringResource(Res.string.boot_auto_start_desc),
         agentFunctionsTitle = stringResource(Res.string.agent_functions_title),
+        inDevelopmentLabel = stringResource(Res.string.in_development_label),
         agentFunctionsDescription = stringResource(Res.string.agent_functions_desc),
         hideFromRecentsTitle = stringResource(Res.string.hide_from_recents_title),
         hideFromRecentsDescription = stringResource(Res.string.hide_from_recents_desc),

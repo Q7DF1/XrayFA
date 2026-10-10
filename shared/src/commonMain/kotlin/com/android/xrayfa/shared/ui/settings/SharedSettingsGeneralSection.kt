@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import com.android.xrayfa.datastore.Theme
 import com.android.xrayfa.shared.navigation.DefaultSettingsComponent
 import com.android.xrayfa.shared.navigation.SettingsComponent
+import com.android.xrayfa.shared.ui.platform.LocalPlatformRootHooks
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 
 @Composable
@@ -28,6 +29,7 @@ fun SharedSettingsGeneralSection(
     additionalNetworkContent: @Composable ColumnScope.() -> Unit = {},
 ) {
     val state by component.state.subscribeAsState()
+    val platformHooks = LocalPlatformRootHooks.current
     val themeOptions =
         mapOf(
             Theme.LIGHT_MODE.code to labels.lightModeLabel,
@@ -58,7 +60,7 @@ fun SharedSettingsGeneralSection(
                 onSelected = component::onSetTheme,
                 icon = Icons.Outlined.Palette,
             )
-            SharedSettingsSwitchRow(
+            if (platformHooks.supportsBootAutoStart) SharedSettingsSwitchRow(
                 title = labels.bootAutoStartTitle,
                 description = labels.bootAutoStartDescription,
                 checked = state.bootAutoStart,
@@ -67,12 +69,14 @@ fun SharedSettingsGeneralSection(
             )
             SharedSettingsSwitchRow(
                 title = labels.agentFunctionsTitle,
-                description = labels.agentFunctionsDescription,
-                checked = state.agentFunctionsEnabled,
+                description = if (platformHooks.agentFunctionsAvailable) labels.agentFunctionsDescription
+                    else "${labels.inDevelopmentLabel} · ${labels.agentFunctionsDescription}",
+                checked = platformHooks.agentFunctionsAvailable && state.agentFunctionsEnabled,
+                enabled = platformHooks.agentFunctionsAvailable,
                 onCheckedChange = component::onSetAgentFunctionsEnabled,
                 icon = Icons.Outlined.Lock,
             )
-            SharedSettingsSwitchRow(
+            if (platformHooks.supportsHideFromRecents) SharedSettingsSwitchRow(
                 title = labels.hideFromRecentsTitle,
                 description = labels.hideFromRecentsDescription,
                 checked = state.hideFromRecents,

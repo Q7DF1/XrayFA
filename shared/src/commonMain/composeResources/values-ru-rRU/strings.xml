@@ -269,4 +269,5 @@
     <string name="json_config_mapping_error">Выберите существующий тег входящего соединения для сохранения правил.</string>
     <string name="json_config_conflict">Конфликт с каналом VPN: проверьте повторяющиеся теги, порты и дополнительные входящие TUN.</string>
     <string name="json_config_external_file">Конфигурация ссылается на внешние файлы. Встройте содержимое или отключите запись журнала в файл.</string>
+    <string name="in_development_label">В разработке</string>
 </resources>
