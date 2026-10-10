@@ -1,13 +1,14 @@
 package com.android.xrayfa
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.ActivityManager
 import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.VpnService
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -29,7 +30,6 @@ import com.android.xrayfa.viewmodel.SettingsViewmodel
 import com.android.xrayfa.viewmodel.SettingsViewmodelFactory
 import com.android.xrayfa.viewmodel.XrayViewmodelFactory
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 class MainActivity constructor(
     val xrayViewmodelFactory: XrayViewmodelFactory,
@@ -141,23 +141,36 @@ class MainActivity constructor(
         handleShortcutIntent(intent)
     }
 
+    private val vpnPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK && !xrayViewmodel.isServiceRunning()) {
+                xrayViewmodel.startXrayService(applicationContext)
+            } else if (result.resultCode != Activity.RESULT_OK) {
+                Toast.makeText(this, R.string.core_start_failed, Toast.LENGTH_SHORT).show()
+            }
+        }
+
     private fun handleShortcutIntent(intent: Intent) {
-        // Retrieve the extra defined in shortcuts.xml
         val action = intent.getStringExtra("shortcut_action")
-        when(action) {
+        // A shortcut is a one-shot request, including after Activity recreation.
+        intent.removeExtra("shortcut_action")
+        when (action) {
             ACTION_OPEN_SCAN -> {
                 rootActionCoordinator.dispatch(AndroidRootAction.OpenQrScan)
             }
             ACTION_START_SERVICE -> {
                 if (!xrayViewmodel.isServiceRunning()) {
-                    rootActionCoordinator.dispatch(AndroidRootAction.ConnectVpn)
-                    finish()
+                    val prepare = VpnService.prepare(this)
+                    if (prepare != null) {
+                        vpnPermissionLauncher.launch(prepare)
+                    } else {
+                        xrayViewmodel.startXrayService(applicationContext)
+                    }
                 }
             }
             ACTION_STOP_SERVICE -> {
                 if (xrayViewmodel.isServiceRunning()) {
-                    rootActionCoordinator.dispatch(AndroidRootAction.DisconnectVpn)
-                    finish()
+                    xrayViewmodel.stopXrayService(applicationContext)
                 }
             }
         }

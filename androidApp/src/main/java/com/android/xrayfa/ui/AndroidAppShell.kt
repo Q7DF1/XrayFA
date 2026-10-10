@@ -15,7 +15,6 @@ import com.android.xrayfa.shared.navigation.RootStackConfig
 import com.android.xrayfa.shared.navigation.createRootComponent
 import com.android.xrayfa.shared.ui.RootContent
 import com.android.xrayfa.shared.ui.platform.LocalPlatformRootHooks
-import com.android.xrayfa.shared.vpn.VpnConnectCoordinator
 import com.android.xrayfa.ui.navigation.AndroidRootAction
 import com.android.xrayfa.ui.navigation.AndroidRootActionCoordinator
 import com.android.xrayfa.viewmodel.AppsViewmodel
@@ -29,8 +28,6 @@ import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.destroy
 import com.arkivanov.essenty.lifecycle.resume
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.collectLatest
-import org.koin.compose.koinInject
 
 @Composable
 fun AndroidAppShell(
@@ -61,7 +58,6 @@ fun AndroidAppShell(
                 xrayViewmodel = xrayViewmodel,
             )
         }
-    val vpnConnectCoordinator: VpnConnectCoordinator = koinInject()
     val stack by resolvedRoot.stack.subscribeAsState()
     val stackIdle = stack.active.configuration is RootStackConfig.Idle
 
@@ -85,28 +81,17 @@ fun AndroidAppShell(
         }
     }
 
-    LaunchedEffect(rootActionCoordinator, vpnConnectCoordinator, resolvedRoot) {
-        rootActionCoordinator.pendingAction.collectLatest { action ->
+    LaunchedEffect(rootActionCoordinator, resolvedRoot) {
+        rootActionCoordinator.collectActions { action ->
             when (action) {
                 AndroidRootAction.OpenQrScan -> {
                     resolvedRoot.openQrScanner()
                     rootActionCoordinator.consume()
                 }
-                AndroidRootAction.ConnectVpn -> {
-                    rootActionCoordinator.consume()
-                    if (vpnConnectCoordinator.prepareConfigForConnect()) {
-                        vpnConnectCoordinator.connect()
-                    }
-                }
-                AndroidRootAction.DisconnectVpn -> {
-                    rootActionCoordinator.consume()
-                    vpnConnectCoordinator.disconnect()
-                }
                 is AndroidRootAction.OpenScreen -> {
                     resolvedRoot.openAgentScreen(action.screen)
                     rootActionCoordinator.consume()
                 }
-                null -> Unit
             }
         }
     }
