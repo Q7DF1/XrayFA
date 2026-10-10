@@ -67,7 +67,6 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -104,6 +103,7 @@ import com.android.xrayfa.ui.navigation.Settings
 import com.android.xrayfa.viewmodel.GEOFileType
 import com.android.xrayfa.viewmodel.GEOFileType.Companion.FILE_TYPE_IP
 import com.android.xrayfa.shared.ui.settings.SharedSettingsAboutSection
+import com.android.xrayfa.shared.ui.settings.SharedSettingsSwitchRow
 import com.android.xrayfa.shared.ui.settings.SharedSettingsGeneralSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsPlatformSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsSubscriptionSection
@@ -316,25 +316,12 @@ fun SettingsCheckBox(
     checked: Boolean = false,
     onCheckedChange: (Boolean) -> Unit = {}
 ) {
-    ListItem(
-        headlineContent = { Text(stringResource(title)) },
-        supportingContent = { Text(stringResource(description)) },
-        leadingContent = icon?.let { {
-            Icon(
-                imageVector = it,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-        } },
-        trailingContent = {
-            Switch(
-                checked = checked,
-                onCheckedChange = onCheckedChange
-            )
-        },
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-        modifier = Modifier.clickable { onCheckedChange(!checked) }
+    SharedSettingsSwitchRow(
+        title = stringResource(title),
+        description = stringResource(description),
+        icon = icon,
+        checked = checked,
+        onCheckedChange = onCheckedChange,
     )
 }
 
