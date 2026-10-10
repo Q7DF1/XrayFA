@@ -321,7 +321,14 @@ class XrayViewmodel(
 
     fun startXrayService(context: Context) {
         viewModelScope.launch {
-            vpnController.connect()
+            if (isServiceRunning()) return@launch
+            try {
+                vpnController.connect()
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                Log.e(TAG, "Shortcut service start failed", e)
+                Toast.makeText(context, R.string.core_start_failed, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

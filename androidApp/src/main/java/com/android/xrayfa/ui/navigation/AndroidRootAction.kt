@@ -6,10 +6,6 @@ import com.android.xrayfa.agent.AgentScreen
 sealed interface AndroidRootAction {
     data object OpenQrScan : AndroidRootAction
 
-    data object ConnectVpn : AndroidRootAction
-
-    data object DisconnectVpn : AndroidRootAction
-
     data class OpenScreen(val screen: AgentScreen) : AndroidRootAction
 }
 
