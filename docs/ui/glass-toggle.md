@@ -94,3 +94,14 @@ covering dynamic notifications and hex tun; route preset controls also use
 SM-S9310 and confirmed both Android-only settings show the shared capsule control;
 a held dynamic-notification frame shows transparent refraction and highlights.
 Notification was restored to off and hex tun was confirmed on, their initial values.
+
+### Older iOS preview
+
+The iPhone 16 / iOS 18.4 Intel simulator exposed a pre-launch dyld failure:
+Kotlin/Native strongly imported `UIGlassEffect`, despite runtime version guards.
+The app host now weak-links UIKit so unavailable iOS 26 class symbols can resolve
+to null while guarded code chooses the older-system implementation. Confirmed
+`UIGlassEffect` and `UICornerConfiguration` are weak external symbols in the app.
+Built against Xcode 26.0.1 and successfully opened settings on iOS 18.4, where
+native `UISwitch` renders its traditional opaque circular thumb. A temporary
+XCTest navigation preview passed. Screenshot: `/tmp/xray-ios18-settings.png`.
