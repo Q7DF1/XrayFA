@@ -29,7 +29,6 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.common.routing.DomainStrategy
+import com.android.xrayfa.shared.ui.widgets.SharedGlassToggle
 import com.android.xrayfa.common.routing.RoutingMode
 import com.android.xrayfa.common.routing.Rule
 import com.android.xrayfa.common.routing.decodeRules
@@ -457,7 +457,12 @@ private fun SharedRoutePresetCheckbox(
             )
         },
         trailingContent = {
-            Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
+            SharedGlassToggle(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+                contentDescription = label,
+                enabled = enabled,
+            )
         },
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
     )

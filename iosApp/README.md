@@ -55,6 +55,13 @@ isolated compatibility build using an older Compose release; it is not a product
 
 ## Native glass navigation
 
+The host weak-links UIKit because Kotlin/Native strongly imports Objective-C
+classes such as `UIGlassEffect` even when their use is inside an OS version check.
+Without weak linking, older systems abort at launch before reaching the fallback.
+Keep iOS 26 APIs guarded at runtime; weak linking only permits the app to load.
+Settings use native `UISwitch` on all supported iOS versions: iOS 26 supplies
+Liquid Glass interactions, and older systems retain the traditional system switch.
+
 On iOS 26, action controls use UIKit
 `UIButtonConfiguration.glassButtonConfiguration()` and native SF Symbols.
 On iOS 26, the floating navigation is a native `UITabBar`: UIKit owns the
