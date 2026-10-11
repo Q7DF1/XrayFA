@@ -4,118 +4,205 @@
 
 # XrayFA
 
-**A modern, powerful, and user-friendly Android (and preview iOS) client for [Xray-core](https://github.com/XTLS/Xray-core).**
+An open-source proxy client built on [Xray-core](https://github.com/XTLS/Xray-core), with a Kotlin Multiplatform foundation.
 
-XrayFA provides a secure, high-speed proxy experience with a focus on simplicity and performance.
+**Android downloads are available; iOS has not been officially released.**
 
-From **1.7.0** the Android UI runs on the shared Kotlin Multiplatform `RootContent` shell (Compose Multiplatform + Decompose). iOS uses the same shell with basic VPN / list / import / settings; remaining iOS slots are marked in-progress.
-
-<p align="center">
-  <b>English</b> | <a href="README_zh-CN.md">简体中文</a> | <a href="README_RU.md">Русский</a> | <a href="README_KR.md">한글</a>
-</p>
-
-[![GitHub release](https://img.shields.io/github/v/release/Q7DF1/XrayFA?style=flat-square&color=blue)](https://github.com/Q7DF1/XrayFA/releases)
-[![GitHub license](https://img.shields.io/github/license/Q7DF1/XrayFA?style=flat-square)](https://github.com/Q7DF1/XrayFA/blob/main/LICENSE)
-[![GitHub top language](https://img.shields.io/github/languages/top/Q7DF1/XrayFA?style=flat-square)](https://github.com/Q7DF1/XrayFA)
-[![GitHub stars](https://img.shields.io/github/stars/Q7DF1/XrayFA?style=flat-square)](https://github.com/Q7DF1/XrayFA/stargazers)
+English · [简体中文](docs/README_zh-CN.md) · [Русский](docs/README_RU.md) · [한국어](docs/README_KR.md)
 
 </div>
 
----
-
-## 📸 Screenshots
+## Screenshots
 
 <div align="center">
-    <h3>Phone UI</h3>
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="30%" />
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="30%" />
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="30%" />
-    <br><br>
-    <h3>Tablet / Foldable UI</h3>
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="85%" />
+
+[![XrayFA Android 16: node management, connection status, settings, and subscriptions](docs/assets/android-overview.png)](docs/assets/android-overview.png)
+
+<sub>Config · Home · Settings · Subscription · Android 16</sub>
+
 </div>
 
----
+## Platform support
 
-## ✨ Features
+<div align="center">
 
-### 📡 Protocol Support
-| VLESS | VMESS | Shadowsocks | Trojan | Hysteria2 |
-| :---: | :---: | :---: | :---: | :---: |
-| ✅ | ✅ | ✅ | ✅ | ✅ |
+| Platform | System version | Availability |
+|:---:|:---:|:---:|
+| Android | Android 9.0 (API 28) and later | Downloads available |
+| iOS | - | - |
 
-### 🛠️ Core Capabilities
-*   **Subscription Management**: Easily import, manage, and batch-update subscription links.
-*   **Intuitive Dashboard**: Clean real-time monitoring of connection status, speed, and traffic.
-*   **Rich Configuration**: Advanced routing rules and DNS settings for power users.
-*   **Smooth UX**: Modern Material Design 3 interface with fluid animations and Dark Mode support.
-*   **Stable Engine**: Built on the latest **Xray-core** for maximum compatibility and security.
-
----
-
-## 📥 Download
-
-Ready to get started? 
-
-<div style="display: flex; gap: 10px; align-items: center;">
-    <a href="https://github.com/Q7DF1/XrayFA/releases">
-        <img src="https://raw.githubusercontent.com/rubenpgrady/get-it-on-github/refs/heads/main/get-it-on-github.png" alt="Get it on GitHub" height="60">
-    </a>
-    <a href="https://f-droid.org/en/packages/com.android.xrayfa/">
-        <img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" height="60">
-    </a>
 </div>
 
----
+## Features
 
-## 🔨 Build from Source
+- **Nodes and subscriptions**: Import node links; add, manage, and update subscriptions.
+- **Multiple protocols**: VLESS, VMess, Shadowsocks, Trojan, Hysteria2, SOCKS, and HTTP proxy links.
+- **Import options**: Clipboard, QR codes, and complete Xray JSON configurations.
+- **Connection and traffic display**: VPN status and upload/download speeds.
+- **Routing and DNS**: Configure routing, DNS, and related network options.
+- **Node sharing**: Share ordinary nodes as links or QR codes.
+- **UI and themes**: Shared Compose Multiplatform UI, dark mode, and large-screen layouts.
+- **Android integration**: Per-app proxy settings, log viewing, and other platform features.
 
-### Prerequisites
-* **Android Studio**: Latest stable version.
-* **JDK**: 11 or higher.
-* **Go (Golang)**: 1.21+ (Required for Xray-core compilation).
-* **Git**: For cloning submodules.
+Supported protocols, transports, and configuration fields depend on the current parsers and the Xray-core version used by this repository.
 
-### Build Steps
+## Download and usage
 
-1.  **Clone the repository** (with submodules):
-    `
-    git clone --recursive https://github.com/Q7DF1/XrayFA.git
-    cd XrayFA
-    `
-    *If you missed submodules:* `git submodule update --init --recursive`
+### Android
 
-2.  **Open in Android Studio**:
-    Select the `XrayFA` folder and wait for Gradle sync.
+- [GitHub Releases](https://github.com/Q7DF1/XrayFA/releases)
+- [F-Droid](https://f-droid.org/packages/com.android.xrayfa/)
 
-3.  **Build and Run**:
-    Connect your device and press **Shift + F10**.
+Choose a universal APK if you are unsure of your device architecture. Packages from different channels may use different signing keys; switching channels may require reinstalling. Save your configurations first.
+
+### Quick start
+
+1. Install the app and import node links or add a subscription.
+2. Select a node from the configuration list.
+3. Start the connection on Home and allow the system VPN permission request.
+4. Check status and traffic; adjust routing and DNS as needed.
+
+Complete Xray JSON configurations have limitations for node-link sharing, latency tests, and some traffic statistics.
+
+## Architecture and build system
+
+XrayFA uses Gradle Kotlin DSL and a version catalog for dependencies, with Kotlin Multiplatform for shared logic, Compose Multiplatform for UI, and Android VPN and native integrations.
+
+<div align="center">
+
+| Layer | Technology |
+|:---:|:---:|
+| Shared language and logic | Kotlin Multiplatform |
+| Shared UI | Compose Multiplatform, Material 3 |
+| Navigation and state | Decompose, Essenty |
+| Dependency injection | Koin |
+| Storage | Room Multiplatform, DataStore |
+| Networking and serialization | Ktor, kotlinx.serialization |
+| Proxy core | Xray-core, AndroidLibXrayLite |
+| TUN forwarding | hev-socks5-tunnel |
+| Android host | Android app, VpnService, JNI |
+
+</div>
+
+<details>
+<summary>View project structure</summary>
+
+```text
+XrayFA/
+├── androidApp/          Android app and platform integration
+├── shared/              Shared UI, navigation, and components
+├── common/              Common types and utilities
+├── domain/              Protocol parsing and configuration models
+├── core/
+│   ├── data/            Repositories
+│   ├── database/        Room database
+│   ├── datastore/       Settings storage
+│   ├── network/         Networking
+│   └── native-bridge/   Xray native bridge
+├── platform/vpn/        Platform VPN interfaces and implementations
+├── AndroidLibXrayLite/  Go native library submodule
+├── tun2socks/           TUN forwarding and Android JNI
+├── scripts/             Native library and build preparation
+└── gradle/              Wrapper and dependency version catalog
+```
+
+</details>
+
+## Build from source
+
+<details>
+<summary>Expand Android build instructions</summary>
+
+### Get the source
+
+```bash
+git clone --recursive https://github.com/Q7DF1/XrayFA.git
+cd XrayFA
+```
+
+For an existing clone:
+
+```bash
+git submodule update --init --recursive
+```
+
+### Android
+
+Requirements:
+
+- JDK 17, matching Android CI; Java/JVM bytecode targets version 11.
+- Android SDK Platform 37, Platform Tools, and the corresponding Build Tools.
+- Android NDK `28.2.13676358`.
+- Go: the native submodule declares `go 1.26`; build configuration records `GO_VERSION=1.27.1`.
+- Git; repository scripts also require Bash and curl or wget.
+- Android Studio can be used for project sync, running, and debugging.
+
+Configure the Android SDK path and use the required NDK. The first build downloads Gradle, dependencies, Go tools, and routing data.
+
+Prepare routing data and the native Xray AAR:
+
+```bash
+bash scripts/fdroid.sh prebuild
+bash scripts/fdroid.sh bind
+```
+
+Build the app:
+
+```bash
+# Debug
+./gradlew :androidApp:assembleDebug
+
+# Release
+./gradlew :androidApp:assembleRelease
+```
+
+Output directories:
+
+```text
+androidApp/build/outputs/apk/debug/
+androidApp/build/outputs/apk/release/
+```
+
+Native preparation generates `androidApp/libs/libv2ray.aar`. The ordinary `preBuild` task does not compile this AAR automatically.
+
+Release builds enable code and resource shrinking. To sign a release, provide `androidApp/xrayfa.jks` and these environment variables:
+
+```text
+KEYSTORE_PASSWORD
+KEY_ALIAS
+KEY_PASSWORD
+```
+
+</details>
 
 > [!CAUTION]
-> 🚨 **IMPORTANT**: For accurate performance testing, ensure the build configuration is set to **RELEASE**. [Learn more about Compose performance](https://medium.com/androiddevelopers/why-should-you-always-test-compose-performance-in-release-4168dd0f2c71).
+> Without a keystore, the release APK is unsigned and must be signed before installation. Evaluate performance with Release; Debug includes debugging overhead and LeakCanary.
 
----
+## Testing and feedback
 
-## 📖 Quick Start
+Run Android/JVM unit tests:
 
-1.  **Import Configuration**:
-    *   Click the **+** button to import from Clipboard (`vless://`, `vmess://`, etc.).
-    *   Or scan a **QR Code**.
-2.  **Manage Subscriptions**:
-    *   Navigate to **Subscription Settings** to add provider URLs.
-3.  **Connect**:
-    *   Select a node and tap the **Floating Action Button**.
-    *   Accept the VPN permission request.
+```bash
+./gradlew :common:testDebugUnitTest :domain:testDebugUnitTest :core:datastore:testDebugUnitTest
+```
 
----
+Some modules require the native AAR before testing.
 
-## 🔗 Credits & Acknowledgements
+Include the app version, OS version, architecture, installation channel, and reproduction steps when reporting an issue. Remove subscription URLs and authentication details from logs and screenshots.
 
-Special thanks to these projects that make XrayFA possible:
-*   [Xray-core](https://github.com/XTLS/Xray-core) - The core network engine.
-*   [AndroidLibXrayLite](https://github.com/2dust/AndroidLibXrayLite)
-*   [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel)
+[Report an issue](https://github.com/Q7DF1/XrayFA/issues)
 
-## 📄 License
+## Contributing
 
-Distributed under the **Apache-2.0 License**. See [LICENSE](LICENSE) for details.
+Bug reports, fixes, translations, and documentation improvements are welcome. Read the [contribution guide](CONTRIBUTING.md) to get started.
+
+## Acknowledgements
+
+- [Xray-core](https://github.com/XTLS/Xray-core)
+- [AndroidLibXrayLite](https://github.com/2dust/AndroidLibXrayLite)
+- [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel)
+- Kotlin Multiplatform, Compose Multiplatform, Decompose, Koin, and other open-source dependencies
+
+## License
+
+XrayFA uses the [Apache-2.0 license](LICENSE). Third-party dependencies retain their respective licenses.
