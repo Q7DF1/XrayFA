@@ -4,7 +4,7 @@
 
 # XrayFA
 
-基于 [Xray-core](https://github.com/XTLS/Xray-core) 的开源代理客户端，使用 Kotlin Multiplatform 共享 Android 与 iOS 的界面和业务逻辑。
+基于 [Xray-core](https://github.com/XTLS/Xray-core) 的开源代理客户端，采用 Kotlin Multiplatform 构建。
 
 **Android 已提供下载；iOS 尚未正式发布。**
 
@@ -14,18 +14,26 @@
 
 </div>
 
+## 界面预览
+
+<div align="center">
+
+[![XrayFA Android 16 界面展示：节点管理、连接状态、设置与订阅](assets/android-overview.png)](assets/android-overview.png)
+
+<sub>节点管理 · 连接状态 · 设置 · 订阅 · Android 16</sub>
+
+</div>
+
 ## 平台支持
 
+<div align="center">
+
 | 平台 | 系统版本 | 状态 |
-|---|---|---|
+|:---:|:---:|:---:|
 | Android | Android 9.0（API 28）及以上 | 已提供发布渠道 |
-| iOS | — | 尚未正式发布 |
+| iOS | - | - |
 
-Android 当前使用 `targetSdk 36`、`compileSdk 37`。项目没有设置系统版本上限；最低安装要求与目标 SDK 不代表所有系统版本均经过完整测试。
-
-Android 构建支持 `arm64-v8a`、`armeabi-v7a`、`x86_64` 和 `x86`，并提供通用 APK 构建。
-
-Android 9 已完成模拟器功能冒烟测试并经手动运行确认。液态玻璃效果需要 Android 13（API 33）及以上；较旧系统使用兼容样式。
+</div>
 
 ## 功能
 
@@ -40,14 +48,6 @@ Android 9 已完成模拟器功能冒烟测试并经手动运行确认。液态�
 
 具体协议、传输方式和配置字段的支持情况，以当前解析器及仓库所使用的 Xray-core 为准。
 
-## 界面预览
-
-以下截图来自 Android 16，采用 20:9 手机比例，使用浅色主题与示例配置，依次展示 Config、Home、Settings、Subscription。
-
-[![XrayFA Android 16 界面展示：节点管理、连接状态、设置与订阅](assets/android-overview.png)](assets/android-overview.png)
-
-[查看完整截图](screenshots.md)
-
 ## 下载与使用
 
 ### Android
@@ -56,10 +56,6 @@ Android 9 已完成模拟器功能冒烟测试并经手动运行确认。液态�
 - [F-Droid](https://f-droid.org/packages/com.android.xrayfa/)
 
 不确定设备架构时，可选择通用 APK。不同渠道的安装包可能使用不同签名，切换渠道时可能需要卸载重装，请先保存配置。
-
-### iOS
-
-尚未正式发布，目前仅提供源码构建方式。
 
 ### 快速开始
 
@@ -72,10 +68,12 @@ Android 9 已完成模拟器功能冒烟测试并经手动运行确认。液态�
 
 ## 技术与构建体系
 
-XrayFA 使用 Gradle Kotlin DSL 和版本目录管理依赖。Android 与 iOS 共享主要界面和业务逻辑，VPN 服务及原生能力分别接入各平台。
+XrayFA 使用 Gradle Kotlin DSL 和版本目录管理依赖，通过 Kotlin Multiplatform 组织共享逻辑、Compose Multiplatform 构建界面，并接入 Android VPN 服务及原生能力。
+
+<div align="center">
 
 | 层次 | 技术 |
-|---|---|
+|:---:|:---:|
 | 共享语言与逻辑 | Kotlin Multiplatform |
 | 共享界面 | Compose Multiplatform、Material 3 |
 | 导航与状态管理 | Decompose、Essenty |
@@ -85,14 +83,15 @@ XrayFA 使用 Gradle Kotlin DSL 和版本目录管理依赖。Android 与 iOS �
 | 代理内核 | Xray-core、AndroidLibXrayLite |
 | TUN 转发 | hev-socks5-tunnel |
 | Android 宿主 | Android 应用、VpnService、JNI |
-| iOS 宿主 | SwiftUI、UIKit、Network Extension |
 
-### 目录结构
+</div>
+
+<details>
+<summary>查看项目目录</summary>
 
 ```text
 XrayFA/
 ├── androidApp/          Android 应用及平台接入
-├── iosApp/              iOS 应用与 PacketTunnel 扩展
 ├── shared/              共享界面、导航和组件
 ├── common/              公共类型与基础工具
 ├── domain/              协议解析与配置模型
@@ -109,7 +108,12 @@ XrayFA/
 └── gradle/              Wrapper 与依赖版本目录
 ```
 
+</details>
+
 ## 从源码构建
+
+<details>
+<summary>展开 Android 构建步骤</summary>
 
 ### 获取源码
 
@@ -173,54 +177,14 @@ KEY_PASSWORD
 
 未提供密钥库时会生成未签名的 Release APK，需要签名后安装。评估性能时请使用 Release 构建；Debug 包包含调试开销及 LeakCanary。
 
-Linux 和 Windows 默认跳过 iOS 编译目标，macOS 默认启用。仅构建 Android 时可显式关闭：
-
-```bash
-./gradlew :androidApp:assembleDebug -PenableIosTargets=false
-```
-
-### iOS
-
-准备以下环境：
-
-- macOS；当前共享 UI 的模拟器构建使用 Apple Silicon Mac。
-- Xcode 26 或更高版本及对应 iOS SDK。
-- JDK 17、Go、gomobile、gobind 和 XcodeGen。
-- 真机运行所需的签名，以及 Network Extension、App Group 配置。
-
-安装并初始化 Go 移动工具：
-
-```bash
-go install golang.org/x/mobile/cmd/gomobile@latest
-go install golang.org/x/mobile/cmd/gobind@latest
-export PATH="$PATH:$(go env GOPATH)/bin"
-gomobile init
-```
-
-构建原生依赖并生成 Xcode 工程：
-
-```bash
-./scripts/build_libxray_ios.sh
-./scripts/build_hev_tun_ios.sh
-./scripts/generate_ios_xcodeproj.sh
-```
-
-构建 Apple Silicon 模拟器所需的共享框架：
-
-```bash
-./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
-```
-
-随后在 Xcode 中打开 `iosApp/iosApp.xcodeproj`，选择 `iosApp` Scheme 运行。Xcode 构建阶段已接入共享 Kotlin Framework 的编译。
-
-完整说明见 [iOS 构建文档](../iosApp/README.md)。
+</details>
 
 ## 测试与反馈
 
 运行 Android／JVM 单元测试：
 
 ```bash
-./gradlew test -PenableIosTargets=false
+./gradlew :common:testDebugUnitTest :domain:testDebugUnitTest :core:datastore:testDebugUnitTest
 ```
 
 部分模块测试需要先准备原生 AAR。
@@ -229,7 +193,7 @@ gomobile init
 
 [提交问题](https://github.com/Q7DF1/XrayFA/issues)
 
-## 参与贡献
+## 贡献指南
 
 欢迎反馈问题、修复缺陷、完善翻译和文档。开始前请阅读 [贡献指南](CONTRIBUTING_zh-CN.md)（[English](../CONTRIBUTING.md)）。
 

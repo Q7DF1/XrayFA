@@ -1,4 +1,4 @@
-# 为 XrayFA 做贡献
+# 贡献指南
 
 [English](../CONTRIBUTING.md)
 

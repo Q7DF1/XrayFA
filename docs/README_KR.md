@@ -4,7 +4,7 @@
 
 # XrayFA
 
-[Xray-core](https://github.com/XTLS/Xray-core) 기반의 오픈 소스 프록시 클라이언트입니다. Kotlin Multiplatform으로 Android와 iOS의 UI 및 비즈니스 로직을 공유합니다.
+[Xray-core](https://github.com/XTLS/Xray-core) 기반의 오픈 소스 프록시 클라이언트입니다. Kotlin Multiplatform으로 개발되었습니다.
 
 **Android 버전은 다운로드할 수 있으며, iOS 버전은 아직 정식 출시되지 않았습니다.**
 
@@ -14,18 +14,26 @@
 
 </div>
 
+## 스크린샷
+
+<div align="center">
+
+[![XrayFA Android 16: 노드 관리, 연결 상태, 설정 및 구독 화면](assets/android-overview.png)](assets/android-overview.png)
+
+<sub>Config · Home · Settings · Subscription · Android 16</sub>
+
+</div>
+
 ## 플랫폼 지원
 
+<div align="center">
+
 | 플랫폼 | 시스템 버전 | 배포 상태 |
-|---|---|---|
+|:---:|:---:|:---:|
 | Android | Android 9.0(API 28) 이상 | 다운로드 가능 |
-| iOS | — | 정식 출시 전 |
+| iOS | - | - |
 
-Android는 `targetSdk 36`, `compileSdk 37`을 사용합니다. 시스템 버전 상한은 설정되어 있지 않습니다. 최소 SDK와 대상 SDK 값이 모든 시스템 버전의 완전한 테스트를 의미하지는 않습니다.
-
-Android 빌드는 `arm64-v8a`, `armeabi-v7a`, `x86_64`, `x86`을 지원하며, 범용 APK 빌드도 제공합니다.
-
-Android 9는 에뮬레이터 기본 기능 테스트와 수동 실행 확인을 완료했습니다. Liquid Glass 효과는 Android 13(API 33) 이상에서 지원하며, 이전 버전에서는 호환 스타일을 사용합니다.
+</div>
 
 ## 기능
 
@@ -40,14 +48,6 @@ Android 9는 에뮬레이터 기본 기능 테스트와 수동 실행 확인을 
 
 프로토콜, 전송 방식 및 구성 필드의 지원 범위는 현재 파서와 저장소에서 사용하는 Xray-core 버전에 따라 달라집니다.
 
-## 스크린샷
-
-Android 16에서 20:9 화면 비율, 라이트 테마, 예제 구성을 사용해 촬영했습니다. 순서는 Config, Home, Settings, Subscription입니다.
-
-[![XrayFA Android 16: 노드 관리, 연결 상태, 설정 및 구독 화면](assets/android-overview.png)](assets/android-overview.png)
-
-[전체 스크린샷 보기](screenshots.md)
-
 ## 다운로드 및 사용
 
 ### Android
@@ -56,10 +56,6 @@ Android 16에서 20:9 화면 비율, 라이트 테마, 예제 구성을 사용�
 - [F-Droid](https://f-droid.org/packages/com.android.xrayfa/)
 
 기기 아키텍처를 모르는 경우 범용 APK를 선택하세요. 배포 채널별로 서명이 다를 수 있으므로 채널 변경 시 재설치가 필요할 수 있습니다. 먼저 구성을 저장하세요.
-
-### iOS
-
-아직 정식 출시되지 않았으며, 현재는 소스 코드에서 빌드할 수 있습니다.
 
 ### 빠른 시작
 
@@ -72,10 +68,12 @@ Android 16에서 20:9 화면 비율, 라이트 테마, 예제 구성을 사용�
 
 ## 기술 및 빌드 시스템
 
-Gradle Kotlin DSL과 버전 카탈로그로 의존성을 관리합니다. Android와 iOS는 주요 UI 및 비즈니스 로직을 공유하며, VPN 서비스와 네이티브 기능은 각 플랫폼에 맞게 연결합니다.
+Gradle Kotlin DSL과 버전 카탈로그로 의존성을 관리합니다. Kotlin Multiplatform으로 공통 로직을 구성하고 Compose Multiplatform으로 UI를 구현하며 Android VPN 서비스와 네이티브 기능을 연결합니다.
+
+<div align="center">
 
 | 계층 | 기술 |
-|---|---|
+|:---:|:---:|
 | 공유 언어 및 로직 | Kotlin Multiplatform |
 | 공유 UI | Compose Multiplatform, Material 3 |
 | 탐색 및 상태 관리 | Decompose, Essenty |
@@ -85,14 +83,15 @@ Gradle Kotlin DSL과 버전 카탈로그로 의존성을 관리합니다. Androi
 | 프록시 코어 | Xray-core, AndroidLibXrayLite |
 | TUN 전달 | hev-socks5-tunnel |
 | Android 호스트 | Android 앱, VpnService, JNI |
-| iOS 호스트 | SwiftUI, UIKit, Network Extension |
 
-### 디렉터리 구조
+</div>
+
+<details>
+<summary>프로젝트 구조 보기</summary>
 
 ```text
 XrayFA/
 ├── androidApp/          Android 앱 및 플랫폼 통합
-├── iosApp/              iOS 앱 및 PacketTunnel 확장
 ├── shared/              공유 UI, 탐색 및 컴포넌트
 ├── common/              공통 타입 및 유틸리티
 ├── domain/              프로토콜 파싱 및 구성 모델
@@ -109,7 +108,12 @@ XrayFA/
 └── gradle/              Wrapper 및 의존성 버전 카탈로그
 ```
 
+</details>
+
 ## 소스 코드에서 빌드
+
+<details>
+<summary>Android 빌드 방법 펼치기</summary>
 
 ### 소스 가져오기
 
@@ -173,54 +177,14 @@ KEY_PASSWORD
 
 키 저장소가 없으면 서명되지 않은 Release APK가 생성되며, 설치 전에 서명해야 합니다. 성능은 Release 빌드로 평가하세요. Debug에는 디버깅 오버헤드와 LeakCanary가 포함됩니다.
 
-Linux와 Windows는 기본적으로 iOS 대상을 건너뛰며, macOS에서는 활성화합니다. Android만 빌드하려면 다음과 같이 지정합니다.
-
-```bash
-./gradlew :androidApp:assembleDebug -PenableIosTargets=false
-```
-
-### iOS
-
-필요한 환경:
-
-- macOS. 현재 공유 UI 시뮬레이터 빌드는 Apple Silicon Mac을 사용합니다.
-- Xcode 26 이상 및 해당 iOS SDK.
-- JDK 17, Go, gomobile, gobind, XcodeGen.
-- 실제 기기 실행을 위한 서명, Network Extension 및 App Group 설정.
-
-Go 모바일 도구를 설치하고 초기화합니다.
-
-```bash
-go install golang.org/x/mobile/cmd/gomobile@latest
-go install golang.org/x/mobile/cmd/gobind@latest
-export PATH="$PATH:$(go env GOPATH)/bin"
-gomobile init
-```
-
-네이티브 의존성을 빌드하고 Xcode 프로젝트를 생성합니다.
-
-```bash
-./scripts/build_libxray_ios.sh
-./scripts/build_hev_tun_ios.sh
-./scripts/generate_ios_xcodeproj.sh
-```
-
-Apple Silicon 시뮬레이터용 공유 프레임워크를 빌드합니다.
-
-```bash
-./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
-```
-
-Xcode에서 `iosApp/iosApp.xcodeproj`를 열고 `iosApp` Scheme을 실행합니다. Xcode 빌드 단계에는 Kotlin 프레임워크 컴파일이 통합되어 있습니다.
-
-자세한 내용은 [iOS 빌드 문서](../iosApp/README.md)를 참고하세요.
+</details>
 
 ## 테스트 및 피드백
 
 Android/JVM 단위 테스트:
 
 ```bash
-./gradlew test -PenableIosTargets=false
+./gradlew :common:testDebugUnitTest :domain:testDebugUnitTest :core:datastore:testDebugUnitTest
 ```
 
 일부 모듈은 테스트 전에 네이티브 AAR을 준비해야 합니다.

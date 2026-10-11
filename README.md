@@ -4,7 +4,7 @@
 
 # XrayFA
 
-An open-source proxy client built on [Xray-core](https://github.com/XTLS/Xray-core), sharing Android and iOS UI and business logic through Kotlin Multiplatform.
+An open-source proxy client built on [Xray-core](https://github.com/XTLS/Xray-core), with a Kotlin Multiplatform foundation.
 
 **Android downloads are available; iOS has not been officially released.**
 
@@ -14,18 +14,26 @@ English · [简体中文](docs/README_zh-CN.md) · [Русский](docs/README_
 
 </div>
 
+## Screenshots
+
+<div align="center">
+
+[![XrayFA Android 16: node management, connection status, settings, and subscriptions](docs/assets/android-overview.png)](docs/assets/android-overview.png)
+
+<sub>Config · Home · Settings · Subscription · Android 16</sub>
+
+</div>
+
 ## Platform support
 
+<div align="center">
+
 | Platform | System version | Availability |
-|---|---|---|
+|:---:|:---:|:---:|
 | Android | Android 9.0 (API 28) and later | Downloads available |
-| iOS | — | Not officially released |
+| iOS | - | - |
 
-Android uses `targetSdk 36` and `compileSdk 37`. No upper OS version limit is configured; minimum and target SDK values do not mean every OS version has been fully tested.
-
-Android builds support `arm64-v8a`, `armeabi-v7a`, `x86_64`, and `x86`, with universal APK builds also available.
-
-Android 9 has passed emulator smoke tests and manual runtime verification. Liquid Glass effects require Android 13 (API 33) or later; older versions use a compatible appearance.
+</div>
 
 ## Features
 
@@ -40,14 +48,6 @@ Android 9 has passed emulator smoke tests and manual runtime verification. Liqui
 
 Supported protocols, transports, and configuration fields depend on the current parsers and the Xray-core version used by this repository.
 
-## Screenshots
-
-Captured on Android 16 with a 20:9 phone aspect ratio, light theme, and example configurations. The pages are Config, Home, Settings, and Subscription.
-
-[![XrayFA Android 16: node management, connection status, settings, and subscriptions](docs/assets/android-overview.png)](docs/assets/android-overview.png)
-
-[View full screenshots](docs/screenshots.md)
-
 ## Download and usage
 
 ### Android
@@ -56,10 +56,6 @@ Captured on Android 16 with a 20:9 phone aspect ratio, light theme, and example 
 - [F-Droid](https://f-droid.org/packages/com.android.xrayfa/)
 
 Choose a universal APK if you are unsure of your device architecture. Packages from different channels may use different signing keys; switching channels may require reinstalling. Save your configurations first.
-
-### iOS
-
-Not officially released. Building from source is currently the available option.
 
 ### Quick start
 
@@ -72,10 +68,12 @@ Complete Xray JSON configurations have limitations for node-link sharing, latenc
 
 ## Architecture and build system
 
-XrayFA uses Gradle Kotlin DSL and a version catalog for dependencies. Android and iOS share the main UI and business logic, with platform-specific VPN services and native integrations.
+XrayFA uses Gradle Kotlin DSL and a version catalog for dependencies, with Kotlin Multiplatform for shared logic, Compose Multiplatform for UI, and Android VPN and native integrations.
+
+<div align="center">
 
 | Layer | Technology |
-|---|---|
+|:---:|:---:|
 | Shared language and logic | Kotlin Multiplatform |
 | Shared UI | Compose Multiplatform, Material 3 |
 | Navigation and state | Decompose, Essenty |
@@ -85,14 +83,15 @@ XrayFA uses Gradle Kotlin DSL and a version catalog for dependencies. Android an
 | Proxy core | Xray-core, AndroidLibXrayLite |
 | TUN forwarding | hev-socks5-tunnel |
 | Android host | Android app, VpnService, JNI |
-| iOS host | SwiftUI, UIKit, Network Extension |
 
-### Directory structure
+</div>
+
+<details>
+<summary>View project structure</summary>
 
 ```text
 XrayFA/
 ├── androidApp/          Android app and platform integration
-├── iosApp/              iOS app and PacketTunnel extension
 ├── shared/              Shared UI, navigation, and components
 ├── common/              Common types and utilities
 ├── domain/              Protocol parsing and configuration models
@@ -109,7 +108,12 @@ XrayFA/
 └── gradle/              Wrapper and dependency version catalog
 ```
 
+</details>
+
 ## Build from source
+
+<details>
+<summary>Expand Android build instructions</summary>
 
 ### Get the source
 
@@ -173,54 +177,14 @@ KEY_PASSWORD
 
 Without a keystore, the release APK is unsigned and must be signed before installation. Evaluate performance with Release; Debug includes debugging overhead and LeakCanary.
 
-Linux and Windows skip iOS targets by default; macOS enables them. To explicitly build Android only:
-
-```bash
-./gradlew :androidApp:assembleDebug -PenableIosTargets=false
-```
-
-### iOS
-
-Requirements:
-
-- macOS; the current shared UI simulator build uses an Apple Silicon Mac.
-- Xcode 26 or later and the corresponding iOS SDK.
-- JDK 17, Go, gomobile, gobind, and XcodeGen.
-- Signing, Network Extension, and App Group configuration for physical devices.
-
-Install and initialize the Go mobile tools:
-
-```bash
-go install golang.org/x/mobile/cmd/gomobile@latest
-go install golang.org/x/mobile/cmd/gobind@latest
-export PATH="$PATH:$(go env GOPATH)/bin"
-gomobile init
-```
-
-Build native dependencies and generate the Xcode project:
-
-```bash
-./scripts/build_libxray_ios.sh
-./scripts/build_hev_tun_ios.sh
-./scripts/generate_ios_xcodeproj.sh
-```
-
-Build the shared framework for an Apple Silicon simulator:
-
-```bash
-./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
-```
-
-Open `iosApp/iosApp.xcodeproj` in Xcode and run the `iosApp` scheme. Xcode build phases integrate Kotlin framework compilation.
-
-See the [iOS build documentation](iosApp/README.md).
+</details>
 
 ## Testing and feedback
 
 Run Android/JVM unit tests:
 
 ```bash
-./gradlew test -PenableIosTargets=false
+./gradlew :common:testDebugUnitTest :domain:testDebugUnitTest :core:datastore:testDebugUnitTest
 ```
 
 Some modules require the native AAR before testing.
