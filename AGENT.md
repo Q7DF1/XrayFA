@@ -245,7 +245,9 @@ Verify numbers against `gradle/libs.versions.toml`, `gradle.properties`, `go.mod
 
 ## 12. Reference Docs
 
-- `README.md` / `README_zh-CN.md` / `README_RU.md` / `README_KR.md`
+- `CONTRIBUTING.md` / `docs/CONTRIBUTING_zh-CN.md` — contributor workflow and validation expectations
+
+- `README.md` / `docs/README_zh-CN.md` / `docs/README_RU.md` / `docs/README_KR.md`
 - `docs/KMP_MIGRATION_PLAN.md` — live step table (73+)
 - `docs/KMP_MIGRATION_STATUS.md` — Phase 9 活清单（优先看这份）
 - `docs/KMP_POST_MIGRATION.md` — 移植后 backlog（iOS 112–116、页面保真、Agent C）

@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="fastlane/metadata/android/en-US/images/icon.png" alt="XrayFA" width="120" />
+<img src="../fastlane/metadata/android/en-US/images/icon.png" alt="XrayFA" width="120" />
 
 # XrayFA
 
@@ -10,7 +10,7 @@
 
 [Скачать для Android](https://github.com/Q7DF1/XrayFA/releases) · [F-Droid](https://f-droid.org/packages/com.android.xrayfa/) · [Сообщить о проблеме](https://github.com/Q7DF1/XrayFA/issues)
 
-[English](README.md) · [简体中文](README_zh-CN.md) · Русский · [한국어](README_KR.md)
+[English](../README.md) · [简体中文](README_zh-CN.md) · Русский · [한국어](README_KR.md)
 
 </div>
 
@@ -44,9 +44,9 @@ Android 9 проверена базовыми функциональными т�
 
 Android 16, экран телефона 20:9, светлая тема и демонстрационные конфигурации. Порядок: Config, Home, Settings, Subscription.
 
-[![Интерфейс XrayFA на Android 16: узлы, подключение, настройки и подписки](docs/assets/android-overview.png)](docs/assets/android-overview.png)
+[![Интерфейс XrayFA на Android 16: узлы, подключение, настройки и подписки](assets/android-overview.png)](assets/android-overview.png)
 
-[Посмотреть полные скриншоты](docs/screenshots.md)
+[Посмотреть полные скриншоты](screenshots.md)
 
 ## Загрузка и использование
 
@@ -213,7 +213,7 @@ gomobile init
 
 Откройте `iosApp/iosApp.xcodeproj` в Xcode и запустите схему `iosApp`. Этапы сборки Xcode уже включают компиляцию Kotlin framework.
 
-Подробности: [документация по сборке iOS](iosApp/README.md).
+Подробности: [документация по сборке iOS](../iosApp/README.md).
 
 ## Тестирование и обратная связь
 
@@ -229,6 +229,10 @@ gomobile init
 
 [Сообщить о проблеме](https://github.com/Q7DF1/XrayFA/issues)
 
+## Участие в проекте
+
+Приветствуются сообщения об ошибках, исправления, переводы и улучшения документации. Перед началом прочитайте [руководство для участников (English)](../CONTRIBUTING.md).
+
 ## Благодарности
 
 - [Xray-core](https://github.com/XTLS/Xray-core)
@@ -238,4 +242,4 @@ gomobile init
 
 ## Лицензия
 
-XrayFA распространяется по [лицензии Apache-2.0](LICENSE). Зависимости сохраняют собственные лицензии.
+XrayFA распространяется по [лицензии Apache-2.0](../LICENSE). Зависимости сохраняют собственные лицензии.

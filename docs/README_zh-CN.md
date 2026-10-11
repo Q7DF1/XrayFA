@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="fastlane/metadata/android/en-US/images/icon.png" alt="XrayFA" width="120" />
+<img src="../fastlane/metadata/android/en-US/images/icon.png" alt="XrayFA" width="120" />
 
 # XrayFA
 
@@ -10,7 +10,7 @@
 
 [下载 Android 版本](https://github.com/Q7DF1/XrayFA/releases) · [F-Droid](https://f-droid.org/packages/com.android.xrayfa/) · [反馈问题](https://github.com/Q7DF1/XrayFA/issues)
 
-[English](README.md) · 简体中文 · [Русский](README_RU.md) · [한국어](README_KR.md)
+[English](../README.md) · 简体中文 · [Русский](README_RU.md) · [한국어](README_KR.md)
 
 </div>
 
@@ -44,9 +44,9 @@ Android 9 已完成模拟器功能冒烟测试并经手动运行确认。液态�
 
 以下截图来自 Android 16，采用 20:9 手机比例，使用浅色主题与示例配置，依次展示 Config、Home、Settings、Subscription。
 
-[![XrayFA Android 16 界面展示：节点管理、连接状态、设置与订阅](docs/assets/android-overview.png)](docs/assets/android-overview.png)
+[![XrayFA Android 16 界面展示：节点管理、连接状态、设置与订阅](assets/android-overview.png)](assets/android-overview.png)
 
-[查看完整截图](docs/screenshots.md)
+[查看完整截图](screenshots.md)
 
 ## 下载与使用
 
@@ -213,7 +213,7 @@ gomobile init
 
 随后在 Xcode 中打开 `iosApp/iosApp.xcodeproj`，选择 `iosApp` Scheme 运行。Xcode 构建阶段已接入共享 Kotlin Framework 的编译。
 
-完整说明见 [iOS 构建文档](iosApp/README.md)。
+完整说明见 [iOS 构建文档](../iosApp/README.md)。
 
 ## 测试与反馈
 
@@ -229,6 +229,10 @@ gomobile init
 
 [提交问题](https://github.com/Q7DF1/XrayFA/issues)
 
+## 参与贡献
+
+欢迎反馈问题、修复缺陷、完善翻译和文档。开始前请阅读 [贡献指南](CONTRIBUTING_zh-CN.md)（[English](../CONTRIBUTING.md)）。
+
 ## 鸣谢
 
 - [Xray-core](https://github.com/XTLS/Xray-core)
@@ -238,4 +242,4 @@ gomobile init
 
 ## 许可证
 
-XrayFA 使用 [Apache-2.0 许可证](LICENSE)。第三方依赖遵循各自的许可证。
+XrayFA 使用 [Apache-2.0 许可证](../LICENSE)。第三方依赖遵循各自的许可证。

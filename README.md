@@ -10,7 +10,7 @@ An open-source proxy client built on [Xray-core](https://github.com/XTLS/Xray-co
 
 [Download for Android](https://github.com/Q7DF1/XrayFA/releases) · [F-Droid](https://f-droid.org/packages/com.android.xrayfa/) · [Report an issue](https://github.com/Q7DF1/XrayFA/issues)
 
-English · [简体中文](README_zh-CN.md) · [Русский](README_RU.md) · [한국어](README_KR.md)
+English · [简体中文](docs/README_zh-CN.md) · [Русский](docs/README_RU.md) · [한국어](docs/README_KR.md)
 
 </div>
 
@@ -228,6 +228,10 @@ Some modules require the native AAR before testing.
 Include the app version, OS version, architecture, installation channel, and reproduction steps when reporting an issue. Remove subscription URLs and authentication details from logs and screenshots.
 
 [Report an issue](https://github.com/Q7DF1/XrayFA/issues)
+
+## Contributing
+
+Bug reports, fixes, translations, and documentation improvements are welcome. Read the [contribution guide](CONTRIBUTING.md) ([简体中文](docs/CONTRIBUTING_zh-CN.md)) to get started.
 
 ## Acknowledgements
 

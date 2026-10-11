@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="fastlane/metadata/android/en-US/images/icon.png" alt="XrayFA" width="120" />
+<img src="../fastlane/metadata/android/en-US/images/icon.png" alt="XrayFA" width="120" />
 
 # XrayFA
 
@@ -10,7 +10,7 @@
 
 [Android 다운로드](https://github.com/Q7DF1/XrayFA/releases) · [F-Droid](https://f-droid.org/packages/com.android.xrayfa/) · [문제 보고](https://github.com/Q7DF1/XrayFA/issues)
 
-[English](README.md) · [简体中文](README_zh-CN.md) · [Русский](README_RU.md) · 한국어
+[English](../README.md) · [简体中文](README_zh-CN.md) · [Русский](README_RU.md) · 한국어
 
 </div>
 
@@ -44,9 +44,9 @@ Android 9는 에뮬레이터 기본 기능 테스트와 수동 실행 확인을 
 
 Android 16에서 20:9 화면 비율, 라이트 테마, 예제 구성을 사용해 촬영했습니다. 순서는 Config, Home, Settings, Subscription입니다.
 
-[![XrayFA Android 16: 노드 관리, 연결 상태, 설정 및 구독 화면](docs/assets/android-overview.png)](docs/assets/android-overview.png)
+[![XrayFA Android 16: 노드 관리, 연결 상태, 설정 및 구독 화면](assets/android-overview.png)](assets/android-overview.png)
 
-[전체 스크린샷 보기](docs/screenshots.md)
+[전체 스크린샷 보기](screenshots.md)
 
 ## 다운로드 및 사용
 
@@ -213,7 +213,7 @@ Apple Silicon 시뮬레이터용 공유 프레임워크를 빌드합니다.
 
 Xcode에서 `iosApp/iosApp.xcodeproj`를 열고 `iosApp` Scheme을 실행합니다. Xcode 빌드 단계에는 Kotlin 프레임워크 컴파일이 통합되어 있습니다.
 
-자세한 내용은 [iOS 빌드 문서](iosApp/README.md)를 참고하세요.
+자세한 내용은 [iOS 빌드 문서](../iosApp/README.md)를 참고하세요.
 
 ## 테스트 및 피드백
 
@@ -229,6 +229,10 @@ Android/JVM 단위 테스트:
 
 [문제 보고](https://github.com/Q7DF1/XrayFA/issues)
 
+## 기여하기
+
+버그 보고, 수정, 번역 및 문서 개선을 환영합니다. 시작하기 전에 [기여 가이드 (English)](../CONTRIBUTING.md)를 읽어 주세요.
+
 ## 감사의 말
 
 - [Xray-core](https://github.com/XTLS/Xray-core)
@@ -238,4 +242,4 @@ Android/JVM 단위 테스트:
 
 ## 라이선스
 
-XrayFA는 [Apache-2.0 라이선스](LICENSE)를 사용합니다. 타사 의존성에는 각각의 라이선스가 적용됩니다.
+XrayFA는 [Apache-2.0 라이선스](../LICENSE)를 사용합니다. 타사 의존성에는 각각의 라이선스가 적용됩니다.

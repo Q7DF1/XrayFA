@@ -12,4 +12,4 @@ Home shows an actual connection to a local test proxy. The nodes and subscriptio
 |:---:|:---:|
 | [![Settings: theme and common options](../fastlane/metadata/android/en-US/images/phoneScreenshots/3.png)](../fastlane/metadata/android/en-US/images/phoneScreenshots/3.png) | [![Subscription: four demonstration subscriptions](../fastlane/metadata/android/en-US/images/phoneScreenshots/4.png)](../fastlane/metadata/android/en-US/images/phoneScreenshots/4.png) |
 
-[English](../README.md) · [简体中文](../README_zh-CN.md) · [Русский](../README_RU.md) · [한국어](../README_KR.md)
+[English](../README.md) · [简体中文](README_zh-CN.md) · [Русский](README_RU.md) · [한국어](README_KR.md)
