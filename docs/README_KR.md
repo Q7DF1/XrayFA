@@ -173,10 +173,10 @@ KEY_ALIAS
 KEY_PASSWORD
 ```
 
+</details>
+
 > [!CAUTION]
 > 키 저장소가 없으면 서명되지 않은 Release APK가 생성되며, 설치 전에 서명해야 합니다. 성능은 Release 빌드로 평가하세요. Debug에는 디버깅 오버헤드와 LeakCanary가 포함됩니다.
-
-</details>
 
 ## 테스트 및 피드백
 

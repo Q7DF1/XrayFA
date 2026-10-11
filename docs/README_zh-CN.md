@@ -173,10 +173,10 @@ KEY_ALIAS
 KEY_PASSWORD
 ```
 
+</details>
+
 > [!CAUTION]
 > 未提供密钥库时会生成未签名的 Release APK，需要签名后安装。评估性能时请使用 Release 构建；Debug 包包含调试开销及 LeakCanary。
-
-</details>
 
 ## 测试与反馈
 

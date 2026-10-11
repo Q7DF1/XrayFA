@@ -173,10 +173,10 @@ KEY_ALIAS
 KEY_PASSWORD
 ```
 
+</details>
+
 > [!CAUTION]
 > Without a keystore, the release APK is unsigned and must be signed before installation. Evaluate performance with Release; Debug includes debugging overhead and LeakCanary.
-
-</details>
 
 ## Testing and feedback
 
