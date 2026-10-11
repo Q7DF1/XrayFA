@@ -8,8 +8,6 @@
 
 **Версия для Android доступна для загрузки; iOS пока официально не выпущена.**
 
-[Скачать для Android](https://github.com/Q7DF1/XrayFA/releases) · [F-Droid](https://f-droid.org/packages/com.android.xrayfa/) · [Сообщить о проблеме](https://github.com/Q7DF1/XrayFA/issues)
-
 [English](../README.md) · [简体中文](README_zh-CN.md) · Русский · [한국어](README_KR.md)
 
 </div>
@@ -175,7 +173,8 @@ KEY_ALIAS
 KEY_PASSWORD
 ```
 
-Без хранилища ключей Release APK остаётся неподписанным; перед установкой его необходимо подписать. Проверяйте производительность в Release: Debug содержит отладочные накладные расходы и LeakCanary.
+> [!CAUTION]
+> Без хранилища ключей Release APK остаётся неподписанным; перед установкой его необходимо подписать. Проверяйте производительность в Release: Debug содержит отладочные накладные расходы и LeakCanary.
 
 </details>
 

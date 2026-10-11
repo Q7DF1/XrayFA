@@ -8,8 +8,6 @@
 
 **Android 已提供下载；iOS 尚未正式发布。**
 
-[下载 Android 版本](https://github.com/Q7DF1/XrayFA/releases) · [F-Droid](https://f-droid.org/packages/com.android.xrayfa/) · [反馈问题](https://github.com/Q7DF1/XrayFA/issues)
-
 [English](../README.md) · 简体中文 · [Русский](README_RU.md) · [한국어](README_KR.md)
 
 </div>
@@ -175,7 +173,8 @@ KEY_ALIAS
 KEY_PASSWORD
 ```
 
-未提供密钥库时会生成未签名的 Release APK，需要签名后安装。评估性能时请使用 Release 构建；Debug 包包含调试开销及 LeakCanary。
+> [!CAUTION]
+> 未提供密钥库时会生成未签名的 Release APK，需要签名后安装。评估性能时请使用 Release 构建；Debug 包包含调试开销及 LeakCanary。
 
 </details>
 
@@ -195,7 +194,7 @@ KEY_PASSWORD
 
 ## 贡献指南
 
-欢迎反馈问题、修复缺陷、完善翻译和文档。开始前请阅读 [贡献指南](CONTRIBUTING_zh-CN.md)（[English](../CONTRIBUTING.md)）。
+欢迎反馈问题、修复缺陷、完善翻译和文档。开始前请阅读 [贡献指南（英文）](../CONTRIBUTING.md)。
 
 ## 鸣谢
 

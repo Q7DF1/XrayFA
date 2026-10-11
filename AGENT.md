@@ -245,7 +245,7 @@ Verify numbers against `gradle/libs.versions.toml`, `gradle.properties`, `go.mod
 
 ## 12. Reference Docs
 
-- `CONTRIBUTING.md` / `docs/CONTRIBUTING_zh-CN.md` — contributor workflow and validation expectations
+- `CONTRIBUTING.md` — contributor workflow and validation expectations
 
 - `README.md` / `docs/README_zh-CN.md` / `docs/README_RU.md` / `docs/README_KR.md`
 - `docs/KMP_MIGRATION_PLAN.md` — live step table (73+)

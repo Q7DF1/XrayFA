@@ -8,8 +8,6 @@
 
 **Android 버전은 다운로드할 수 있으며, iOS 버전은 아직 정식 출시되지 않았습니다.**
 
-[Android 다운로드](https://github.com/Q7DF1/XrayFA/releases) · [F-Droid](https://f-droid.org/packages/com.android.xrayfa/) · [문제 보고](https://github.com/Q7DF1/XrayFA/issues)
-
 [English](../README.md) · [简体中文](README_zh-CN.md) · [Русский](README_RU.md) · 한국어
 
 </div>
@@ -175,7 +173,8 @@ KEY_ALIAS
 KEY_PASSWORD
 ```
 
-키 저장소가 없으면 서명되지 않은 Release APK가 생성되며, 설치 전에 서명해야 합니다. 성능은 Release 빌드로 평가하세요. Debug에는 디버깅 오버헤드와 LeakCanary가 포함됩니다.
+> [!CAUTION]
+> 키 저장소가 없으면 서명되지 않은 Release APK가 생성되며, 설치 전에 서명해야 합니다. 성능은 Release 빌드로 평가하세요. Debug에는 디버깅 오버헤드와 LeakCanary가 포함됩니다.
 
 </details>
 

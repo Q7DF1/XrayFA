@@ -1,7 +1,5 @@
 # Contributing to XrayFA
 
-[简体中文](docs/CONTRIBUTING_zh-CN.md)
-
 Bug reports, fixes, translations, and documentation improvements are welcome.
 
 ## Report an issue

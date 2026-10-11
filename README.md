@@ -8,8 +8,6 @@ An open-source proxy client built on [Xray-core](https://github.com/XTLS/Xray-co
 
 **Android downloads are available; iOS has not been officially released.**
 
-[Download for Android](https://github.com/Q7DF1/XrayFA/releases) · [F-Droid](https://f-droid.org/packages/com.android.xrayfa/) · [Report an issue](https://github.com/Q7DF1/XrayFA/issues)
-
 English · [简体中文](docs/README_zh-CN.md) · [Русский](docs/README_RU.md) · [한국어](docs/README_KR.md)
 
 </div>
@@ -175,7 +173,8 @@ KEY_ALIAS
 KEY_PASSWORD
 ```
 
-Without a keystore, the release APK is unsigned and must be signed before installation. Evaluate performance with Release; Debug includes debugging overhead and LeakCanary.
+> [!CAUTION]
+> Without a keystore, the release APK is unsigned and must be signed before installation. Evaluate performance with Release; Debug includes debugging overhead and LeakCanary.
 
 </details>
 
@@ -195,7 +194,7 @@ Include the app version, OS version, architecture, installation channel, and rep
 
 ## Contributing
 
-Bug reports, fixes, translations, and documentation improvements are welcome. Read the [contribution guide](CONTRIBUTING.md) ([简体中文](docs/CONTRIBUTING_zh-CN.md)) to get started.
+Bug reports, fixes, translations, and documentation improvements are welcome. Read the [contribution guide](CONTRIBUTING.md) to get started.
 
 ## Acknowledgements
 
