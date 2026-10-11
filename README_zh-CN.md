@@ -4,119 +4,238 @@
 
 # XrayFA
 
-**一款为 [Xray-core](https://github.com/XTLS/Xray-core) 打造的现代、强大且易用的 Android（及预览版 iOS）客户端。**
+基于 [Xray-core](https://github.com/XTLS/Xray-core) 的开源代理客户端，使用 Kotlin Multiplatform 共享 Android 与 iOS 的界面和业务逻辑。
 
-XrayFA 专注于简单与性能，为您提供安全、高速的代理体验。
+**Android 已提供下载；iOS 尚未正式发布。**
 
-自 **1.7.0** 起，Android 界面运行在共享的 Kotlin Multiplatform `RootContent` 壳上（Compose Multiplatform + Decompose）。iOS 共用同一套壳，保连接 / 列表 / 导入 / 设置；其余能力见「开发中」。
+[下载 Android 版本](https://github.com/Q7DF1/XrayFA/releases) · [F-Droid](https://f-droid.org/packages/com.android.xrayfa/) · [反馈问题](https://github.com/Q7DF1/XrayFA/issues)
 
-<p align="center">
-  <a href="README.md">English</a> | <b>简体中文</b> | <a href="README_RU.md">Русский</a> | <a href="README_KR.md">한글</a>
-</p>
-
-[![GitHub release](https://img.shields.io/github/v/release/Q7DF1/XrayFA?style=flat-square&color=blue)](https://github.com/Q7DF1/XrayFA/releases)
-[![GitHub license](https://img.shields.io/github/license/Q7DF1/XrayFA?style=flat-square)](https://github.com/Q7DF1/XrayFA/blob/main/LICENSE)
-[![GitHub top language](https://img.shields.io/github/languages/top/Q7DF1/XrayFA?style=flat-square)](https://github.com/Q7DF1/XrayFA)
-[![GitHub stars](https://img.shields.io/github/stars/Q7DF1/XrayFA?style=flat-square)](https://github.com/Q7DF1/XrayFA/stargazers)
+[English](README.md) · 简体中文 · [Русский](README_RU.md) · [한국어](README_KR.md)
 
 </div>
 
----
+## 平台支持
 
-## 📸 屏幕截图
+| 平台 | 系统版本 | 状态 |
+|---|---|---|
+| Android | Android 9.0（API 28）及以上 | 已提供发布渠道 |
+| iOS | — | 尚未正式发布 |
 
-<div align="center">
-    <h3>手机端 UI</h3>
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="30%" />
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="30%" />
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="30%" />
-    <br><br>
-    <h3>平板 / 折叠屏 UI</h3>
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="85%" />
-</div>
+Android 当前使用 `targetSdk 36`、`compileSdk 37`。项目没有设置系统版本上限；最低安装要求与目标 SDK 不代表所有系统版本均经过完整测试。
 
----
+Android 构建支持 `arm64-v8a`、`armeabi-v7a`、`x86_64` 和 `x86`，并提供通用 APK 构建。
 
-## ✨ 功能特性
+Android 9 已完成模拟器功能冒烟测试并经手动运行确认。液态玻璃效果需要 Android 13（API 33）及以上；较旧系统使用兼容样式。
 
-### 📡 协议支持
-| VLESS | VMESS | Shadowsocks | Trojan | Hysteria2 |
-| :---: | :---: | :---: | :---: | :---: |
-| ✅ | ✅ | ✅ | ✅ | ✅ |
+## 功能
 
-### 🛠️ 核心能力
-* **订阅管理**：轻松导入、管理和批量更新订阅链接。
-* **直观仪表盘**：实时监控连接状态、速度和流量，界面清晰。
-* **丰富配置**：为进阶用户提供高级路由规则和 DNS 设置。
-* **流畅体验**：现代化的 Material Design 3 界面，支持流畅动画和深色模式。
-* **稳定引擎**：基于最新的 **Xray-core** 构建，确保最佳的兼容性和安全性。
+- **节点与订阅管理**：导入节点链接，添加、管理和更新订阅。
+- **多协议支持**：支持 VLESS、VMess、Shadowsocks、Trojan、Hysteria2、SOCKS 和 HTTP 代理链接。
+- **多种导入方式**：剪贴板、二维码，以及完整 Xray JSON 配置。
+- **连接状态与流量显示**：查看 VPN 连接状态、上传和下载速度。
+- **路由与 DNS 设置**：配置代理路由、DNS 和相关网络选项。
+- **节点分享**：通过链接或二维码分享普通节点。
+- **界面与主题**：共享 Compose Multiplatform 界面，支持深色模式及大屏布局。
+- **Android 平台能力**：分应用代理、日志查看等。
 
----
+具体协议、传输方式和配置字段的支持情况，以当前解析器及仓库所使用的 Xray-core 为准。
 
-## 📥 下载
+## 界面预览
 
-准备好开始了吗？ 
+以下截图来自 Android 16，采用 20:9 手机比例，使用浅色主题与示例配置，依次展示 Config、Home、Settings、Subscription。
 
-<div style="display: flex; gap: 10px; align-items: center;">
-    <a href="https://github.com/Q7DF1/XrayFA/releases">
-        <img src="https://raw.githubusercontent.com/rubenpgrady/get-it-on-github/refs/heads/main/get-it-on-github.png" alt="Get it on GitHub" height="60">
-    </a>
-    <a href="https://f-droid.org/en/packages/com.android.xrayfa/">
-        <img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" height="60">
-    </a>
-</div>
+[![XrayFA Android 16 界面展示：节点管理、连接状态、设置与订阅](docs/assets/android-overview.png)](docs/assets/android-overview.png)
 
----
+[查看完整截图](docs/screenshots.md)
 
-## 🔨 源码构建
+## 下载与使用
 
-### 前置条件
-* **Android Studio**: 最新稳定版。
-* **JDK**: 11 或更高版本。
-* **Go (Golang)**: 1.21+（编译 Xray-core 所需）。
-* **Git**: 用于克隆子模块。
+### Android
 
-### 构建步骤
+- [GitHub Releases](https://github.com/Q7DF1/XrayFA/releases)
+- [F-Droid](https://f-droid.org/packages/com.android.xrayfa/)
 
-1.  **克隆仓库**（包含子模块）：
-    ```bash
-    # Clone the repository with submodules
-    git clone --recursive [https://github.com/Q7DF1/XrayFA.git](https://github.com/Q7DF1/XrayFA.git)
-    cd XrayFA
-    ```
-    *如果漏掉了子模块：* `git submodule update --init --recursive`
+不确定设备架构时，可选择通用 APK。不同渠道的安装包可能使用不同签名，切换渠道时可能需要卸载重装，请先保存配置。
 
-2.  **在 Android Studio 中打开**：
-    选择 `XrayFA` 文件夹并等待 Gradle 同步。
+### iOS
 
-3.  **构建并运行**：
-    连接您的设备并按下 **Shift + F10**。
+尚未正式发布，目前仅提供源码构建方式。
 
-> [!CAUTION]
-> 🚨 **重要提示**：为了获得准确的性能测试结果，请确保将构建配置设置为 **RELEASE**。[了解更多关于 Compose 性能的信息](https://medium.com/androiddevelopers/why-should-you-always-test-compose-performance-in-release-4168dd0f2c71)。
+### 快速开始
 
----
+1. 安装应用，导入节点链接或添加订阅。
+2. 在节点列表中选择需要使用的节点。
+3. 在首页启动连接，并允许系统 VPN 权限。
+4. 连接后查看状态和流量；需要时调整路由及 DNS 设置。
 
-## 📖 快速开始
+使用完整 Xray JSON 时，节点链接分享、延迟测试及部分流量统计能力存在限制。
 
-1.  **导入配置**：
-    * 点击 **+** 按钮从剪贴板导入（支持 `vless://`、`vmess://` 等）。
-    * 或者扫描 **二维码**。
-2.  **管理订阅**：
-    * 前往 **订阅设置** 添加服务商 URL。
-3.  **连接**：
-    * 选择一个节点并点击 **悬浮操作按钮**。
-    * 接受 VPN 权限请求。
+## 技术与构建体系
 
----
+XrayFA 使用 Gradle Kotlin DSL 和版本目录管理依赖。Android 与 iOS 共享主要界面和业务逻辑，VPN 服务及原生能力分别接入各平台。
 
-## 🔗 鸣谢
+| 层次 | 技术 |
+|---|---|
+| 共享语言与逻辑 | Kotlin Multiplatform |
+| 共享界面 | Compose Multiplatform、Material 3 |
+| 导航与状态管理 | Decompose、Essenty |
+| 依赖注入 | Koin |
+| 数据存储 | Room Multiplatform、DataStore |
+| 网络与序列化 | Ktor、kotlinx.serialization |
+| 代理内核 | Xray-core、AndroidLibXrayLite |
+| TUN 转发 | hev-socks5-tunnel |
+| Android 宿主 | Android 应用、VpnService、JNI |
+| iOS 宿主 | SwiftUI、UIKit、Network Extension |
 
-特别感谢这些使 XrayFA 成为可能的项目：
-* [Xray-core](https://github.com/XTLS/Xray-core) - 核心网络引擎。
-* [AndroidLibXrayLite](https://github.com/2dust/AndroidLibXrayLite)
-* [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel)
+### 目录结构
 
-## 📄 许可证
+```text
+XrayFA/
+├── androidApp/          Android 应用及平台接入
+├── iosApp/              iOS 应用与 PacketTunnel 扩展
+├── shared/              共享界面、导航和组件
+├── common/              公共类型与基础工具
+├── domain/              协议解析与配置模型
+├── core/
+│   ├── data/            数据仓库
+│   ├── database/        Room 数据库
+│   ├── datastore/       设置存储
+│   ├── network/         网络请求
+│   └── native-bridge/   Xray 原生桥接
+├── platform/vpn/        平台 VPN 接口与实现
+├── AndroidLibXrayLite/  Go 原生库子模块
+├── tun2socks/           TUN 转发及 Android JNI
+├── scripts/             原生库与构建准备脚本
+└── gradle/              Wrapper 与依赖版本目录
+```
 
-本项目采用 **Apache-2.0 许可证**。详见 [LICENSE](LICENSE) 文件。
+## 从源码构建
+
+### 获取源码
+
+```bash
+git clone --recursive https://github.com/Q7DF1/XrayFA.git
+cd XrayFA
+```
+
+如果已经克隆仓库：
+
+```bash
+git submodule update --init --recursive
+```
+
+### Android
+
+准备以下环境：
+
+- JDK 17，与当前 Android CI 一致；源码的 Java／JVM 字节码目标为 11。
+- Android SDK Platform 37、Platform Tools 及相应 Build Tools。
+- Android NDK `28.2.13676358`。
+- Go：当前子模块声明 `go 1.26`，构建配置记录 `GO_VERSION=1.27.1`。
+- Git；使用仓库脚本时还需要 Bash 和 curl 或 wget。
+- Android Studio 可用于同步、运行和调试项目。
+
+配置 Android SDK 路径，并确保原生构建使用正确的 NDK。首次构建需下载 Gradle、依赖、Go 工具和规则数据。
+
+先准备规则数据及 Xray 原生 AAR：
+
+```bash
+bash scripts/fdroid.sh prebuild
+bash scripts/fdroid.sh bind
+```
+
+随后构建：
+
+```bash
+# 调试版本
+./gradlew :androidApp:assembleDebug
+
+# Release 版本
+./gradlew :androidApp:assembleRelease
+```
+
+输出目录：
+
+```text
+androidApp/build/outputs/apk/debug/
+androidApp/build/outputs/apk/release/
+```
+
+原生库准备步骤会生成 `androidApp/libs/libv2ray.aar`，普通 `preBuild` 不会自动编译该 AAR。
+
+Release 构建启用代码与资源压缩。需要签名时，提供 `androidApp/xrayfa.jks` 及以下环境变量：
+
+```text
+KEYSTORE_PASSWORD
+KEY_ALIAS
+KEY_PASSWORD
+```
+
+未提供密钥库时会生成未签名的 Release APK，需要签名后安装。评估性能时请使用 Release 构建；Debug 包包含调试开销及 LeakCanary。
+
+Linux 和 Windows 默认跳过 iOS 编译目标，macOS 默认启用。仅构建 Android 时可显式关闭：
+
+```bash
+./gradlew :androidApp:assembleDebug -PenableIosTargets=false
+```
+
+### iOS
+
+准备以下环境：
+
+- macOS；当前共享 UI 的模拟器构建使用 Apple Silicon Mac。
+- Xcode 26 或更高版本及对应 iOS SDK。
+- JDK 17、Go、gomobile、gobind 和 XcodeGen。
+- 真机运行所需的签名，以及 Network Extension、App Group 配置。
+
+安装并初始化 Go 移动工具：
+
+```bash
+go install golang.org/x/mobile/cmd/gomobile@latest
+go install golang.org/x/mobile/cmd/gobind@latest
+export PATH="$PATH:$(go env GOPATH)/bin"
+gomobile init
+```
+
+构建原生依赖并生成 Xcode 工程：
+
+```bash
+./scripts/build_libxray_ios.sh
+./scripts/build_hev_tun_ios.sh
+./scripts/generate_ios_xcodeproj.sh
+```
+
+构建 Apple Silicon 模拟器所需的共享框架：
+
+```bash
+./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
+```
+
+随后在 Xcode 中打开 `iosApp/iosApp.xcodeproj`，选择 `iosApp` Scheme 运行。Xcode 构建阶段已接入共享 Kotlin Framework 的编译。
+
+完整说明见 [iOS 构建文档](iosApp/README.md)。
+
+## 测试与反馈
+
+运行 Android／JVM 单元测试：
+
+```bash
+./gradlew test -PenableIosTargets=false
+```
+
+部分模块测试需要先准备原生 AAR。
+
+报告问题时，请附上应用版本、系统版本、设备架构、安装渠道及复现步骤。提交日志或截图前，请移除订阅地址、认证信息等敏感内容。
+
+[提交问题](https://github.com/Q7DF1/XrayFA/issues)
+
+## 鸣谢
+
+- [Xray-core](https://github.com/XTLS/Xray-core)
+- [AndroidLibXrayLite](https://github.com/2dust/AndroidLibXrayLite)
+- [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel)
+- Kotlin Multiplatform、Compose Multiplatform、Decompose、Koin 及其他开源依赖
+
+## 许可证
+
+XrayFA 使用 [Apache-2.0 许可证](LICENSE)。第三方依赖遵循各自的许可证。

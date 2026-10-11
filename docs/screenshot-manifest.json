@@ -1,0 +1,47 @@
+{
+  "android": "16",
+  "sdk": 36,
+  "system_image": "android-36.1/google_apis_playstore/x86_64",
+  "application": "1.7.1 Debug",
+  "date": "2026-10-11",
+  "theme": "Light",
+  "locale": "en-US",
+  "density": 420,
+  "screenshots": [
+    {
+      "file": "fastlane/metadata/android/en-US/images/phoneScreenshots/1.png",
+      "width": 1080,
+      "height": 2400,
+      "format": "PNG",
+      "mode": "RGB",
+      "sha256": "3883fdd40810c19980cc5273a1a6a15c5f7ce814ceb58a72883f48e225d699a5"
+    },
+    {
+      "file": "fastlane/metadata/android/en-US/images/phoneScreenshots/2.png",
+      "width": 1080,
+      "height": 2400,
+      "format": "PNG",
+      "mode": "RGB",
+      "sha256": "a2a577a391ef7f8033ee65fb3400ebfac6ef3904b5d71660e9f8ff6106a3e9d2"
+    },
+    {
+      "file": "fastlane/metadata/android/en-US/images/phoneScreenshots/3.png",
+      "width": 1080,
+      "height": 2400,
+      "format": "PNG",
+      "mode": "RGB",
+      "sha256": "c1cb0aaa43bdabc81d3aa3d2d39d4c0a32593ee3a28a3650108266f315b96a8a"
+    },
+    {
+      "file": "fastlane/metadata/android/en-US/images/phoneScreenshots/4.png",
+      "width": 1080,
+      "height": 2400,
+      "format": "PNG",
+      "mode": "RGB",
+      "sha256": "fde6251893d3c47507269a65422d78ded3629cef4b1c8f12d2af44eef0dc083a"
+    }
+  ],
+  "aspect_ratio": "9:20",
+  "purpose": "README",
+  "capture_size": "1080x2400 (emulator display override)"
+}

@@ -2,128 +2,240 @@
 
 <img src="fastlane/metadata/android/en-US/images/icon.png" alt="XrayFA" width="120" />
 
-# 엑스레이FA
+# XrayFA
 
-**Xray-core를 위한 현대적이고 강력하며 사용자 친화적인 안드로이드 클라이언트입니다**
+[Xray-core](https://github.com/XTLS/Xray-core) 기반의 오픈 소스 프록시 클라이언트입니다. Kotlin Multiplatform으로 Android와 iOS의 UI 및 비즈니스 로직을 공유합니다.
 
-XrayFA는 간편함과 성능에 중점을 두고 안전하고 빠른 프록시 환경을 제공합니다.
+**Android 버전은 다운로드할 수 있으며, iOS 버전은 아직 정식 출시되지 않았습니다.**
 
-<p align="center">
-  <a href="README_zh-CN.md">English</a> | <a href="README_zh-CN.md">简体中文</a> | <a href="README_RU.md">Русский</a> | <b>한글</b>
-</p>
+[Android 다운로드](https://github.com/Q7DF1/XrayFA/releases) · [F-Droid](https://f-droid.org/packages/com.android.xrayfa/) · [문제 보고](https://github.com/Q7DF1/XrayFA/issues)
 
-[![GitHub release](https://img.shields.io/github/v/release/Q7DF1/XrayFA?style=flat-square&color=blue)](https://github.com/Q7DF1/XrayFA/releases)
-[![GitHub license](https://img.shields.io/github/license/Q7DF1/XrayFA?style=flat-square)](https://github.com/Q7DF1/XrayFA/blob/main/LICENSE)
-[![GitHub top language](https://img.shields.io/github/languages/top/Q7DF1/XrayFA?style=flat-square)](https://github.com/Q7DF1/XrayFA)
-[![GitHub stars](https://img.shields.io/github/stars/Q7DF1/XrayFA?style=flat-square)](https://github.com/Q7DF1/XrayFA/stargazers)
+[English](README.md) · [简体中文](README_zh-CN.md) · [Русский](README_RU.md) · 한국어
 
 </div>
 
----
+## 플랫폼 지원
 
-## 📸 스샷
+| 플랫폼 | 시스템 버전 | 배포 상태 |
+|---|---|---|
+| Android | Android 9.0(API 28) 이상 | 다운로드 가능 |
+| iOS | — | 정식 출시 전 |
 
-<div align="center">
-    <h3>폰 UI</h3>
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="30%" />
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="30%" />
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="30%" />
-    <br><br>
-    <h3>태블릿 / 폴더블 UI</h3>
-    <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="85%" />
-</div>
+Android는 `targetSdk 36`, `compileSdk 37`을 사용합니다. 시스템 버전 상한은 설정되어 있지 않습니다. 최소 SDK와 대상 SDK 값이 모든 시스템 버전의 완전한 테스트를 의미하지는 않습니다.
 
----
+Android 빌드는 `arm64-v8a`, `armeabi-v7a`, `x86_64`, `x86`을 지원하며, 범용 APK 빌드도 제공합니다.
 
-## ✨ 특징
-📡 프로토콜 지원
-| VLESS | VMESS | Shadowsocks | Trojan | Hysteria2 |
-| :---: | :---: | :---: | :---: | :---: |
-| ✅ | ✅ | ✅ | ✅ | ✅ |
+Android 9는 에뮬레이터 기본 기능 테스트와 수동 실행 확인을 완료했습니다. Liquid Glass 효과는 Android 13(API 33) 이상에서 지원하며, 이전 버전에서는 호환 스타일을 사용합니다.
 
-### 🛠️ 주요 기능
-*   **구독 관리**: 구독 링크를 간편하게 가져오고 관리하며 일괄 업데이트할 수 있습니다
-*   **직관적인 대시보드**: 연결 상태, 속도 및 트래픽을 실시간으로 깔끔하게 모니터링할 수 있습니다
-*   **풍부한 설정들**: 고급 사용자를 위한 고급 라우팅 규칙 및 DNS 설정
-*   **매끄러운 UX**: 부드러운 애니메이션과 다크 모드 기능을 갖춘 최신 Material Design 3 인터페이스
-*   **안정적인 엔진**: 최신 Xray 코어를 기반으로 구축되어 최고의 호환성과 보안을 제공합니다
+## 기능
 
----
+- **노드 및 구독 관리**: 노드 링크 가져오기, 구독 추가·관리·업데이트.
+- **다양한 프로토콜**: VLESS, VMess, Shadowsocks, Trojan, Hysteria2, SOCKS, HTTP 프록시 링크.
+- **가져오기 방식**: 클립보드, QR 코드, 전체 Xray JSON 구성.
+- **연결 상태 및 트래픽**: VPN 상태와 업로드·다운로드 속도 표시.
+- **라우팅 및 DNS**: 라우팅, DNS와 관련 네트워크 옵션 설정.
+- **노드 공유**: 일반 노드를 링크나 QR 코드로 공유.
+- **UI 및 테마**: Compose Multiplatform 공유 UI, 다크 모드, 큰 화면 레이아웃.
+- **Android 기능**: 앱별 프록시 설정, 로그 보기 등.
 
-## 📥 다운로드
+프로토콜, 전송 방식 및 구성 필드의 지원 범위는 현재 파서와 저장소에서 사용하는 Xray-core 버전에 따라 달라집니다.
 
-시작할 준비 되셨나요?
+## 스크린샷
 
-<div style="display: flex; gap: 10px; align-items: center;">
-    <a href="https://github.com/Q7DF1/XrayFA/releases">
-        <img src="https://raw.githubusercontent.com/rubenpgrady/get-it-on-github/refs/heads/main/get-it-on-github.png" alt="Get it on GitHub" height="60">
-    </a>
-    <a href="https://f-droid.org/en/packages/com.android.xrayfa/">
-        <img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" height="60">
-    </a>
-</div>
+Android 16에서 20:9 화면 비율, 라이트 테마, 예제 구성을 사용해 촬영했습니다. 순서는 Config, Home, Settings, Subscription입니다.
 
----
+[![XrayFA Android 16: 노드 관리, 연결 상태, 설정 및 구독 화면](docs/assets/android-overview.png)](docs/assets/android-overview.png)
 
-## 🔨 소스 코드에서 빌드
+[전체 스크린샷 보기](docs/screenshots.md)
 
-###필수 조건
-* **Android Studio**: 최신 안정 버전
-* **JDK**: 11 이상
-* **Go (Golang)**: 1.21 이상 (Xray-core 컴파일에 필요)
-* **Git**: 서브모듈 복제용
+## 다운로드 및 사용
 
+### Android
 
-### 단계별 구성
+- [GitHub Releases](https://github.com/Q7DF1/XrayFA/releases)
+- [F-Droid](https://f-droid.org/packages/com.android.xrayfa/)
 
-1.  **저장소를 복제하세요** (하위 모듈 포함):
-    `
-    git clone --recursive https://github.com/Q7DF1/XrayFA.git
-    cd XrayFA
-    `
-    *하위 모듈이 누락된 경우:* `git submodule update --init --recursive`
+기기 아키텍처를 모르는 경우 범용 APK를 선택하세요. 배포 채널별로 서명이 다를 수 있으므로 채널 변경 시 재설치가 필요할 수 있습니다. 먼저 구성을 저장하세요.
 
-2.  **Android Studio에서 열기**:
-    `XrayFA` 폴더를 선택하고 Gradle 동기화가 완료될 때까지 기다립니다
+### iOS
 
-3.  **빌드 및 실행**:
-    기기를 연결하고 **Shift + F10** 키 를 누르세요
+아직 정식 출시되지 않았으며, 현재는 소스 코드에서 빌드할 수 있습니다.
 
-> [!주의]
-> 🚨 **중요**: 정확한 성능 테스트를 위해 빌드 구성이 **릴리스(RELEASE)** 로 설정되어 있는지 확인하십시오. [Compose 성능에 대한 링크](https://medium.com/androiddevelopers/why-should-you-always-test-compose-performance-in-release-4168dd0f2c71)
----
+### 빠른 시작
 
-## 📖 빠른 시작
+1. 앱을 설치하고 노드 링크를 가져오거나 구독을 추가합니다.
+2. 구성 목록에서 사용할 노드를 선택합니다.
+3. Home에서 연결을 시작하고 시스템 VPN 권한 요청을 허용합니다.
+4. 연결 상태와 트래픽을 확인하고 필요한 경우 라우팅 및 DNS를 조정합니다.
 
-1.  **구성 가져오기**:
-    *   클립보드에서 가져오려면 **+** 버튼을 클릭하세요 (`vless://`, `vmess://`, 그외 디원하는 다른 프로토콜)
-    *   또는 구성 링크에 관한 **QR Code** 를 스캔하세요
-2.  **구독 관리**:
-    *   **구독 설정** 으로 이동하여 제공업체 URL을 추가하세요
-3.  **연결**:
-    *   노드를 선택하고 **플로팅 액션 버튼** 을 누르세요
-    *   VPN 권한 요청을 수락하는건 필수입니다
+전체 Xray JSON 구성을 사용하면 노드 링크 공유, 지연 시간 테스트 및 일부 트래픽 통계에 제한이 있습니다.
 
----
+## 기술 및 빌드 시스템
 
-## 🔗 크레딧 및 감사 인사
+Gradle Kotlin DSL과 버전 카탈로그로 의존성을 관리합니다. Android와 iOS는 주요 UI 및 비즈니스 로직을 공유하며, VPN 서비스와 네이티브 기능은 각 플랫폼에 맞게 연결합니다.
 
-XrayFA를 가능하게 해준 다음 프로젝트들에 특별히 감사드립니다
-*   [Xray-core](https://github.com/XTLS/Xray-core) - 코어 네트워크 엔진
-*   [AndroidLibXrayLite](https://github.com/2dust/AndroidLibXrayLite)
-*   [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel)
+| 계층 | 기술 |
+|---|---|
+| 공유 언어 및 로직 | Kotlin Multiplatform |
+| 공유 UI | Compose Multiplatform, Material 3 |
+| 탐색 및 상태 관리 | Decompose, Essenty |
+| 의존성 주입 | Koin |
+| 데이터 저장 | Room Multiplatform, DataStore |
+| 네트워크 및 직렬화 | Ktor, kotlinx.serialization |
+| 프록시 코어 | Xray-core, AndroidLibXrayLite |
+| TUN 전달 | hev-socks5-tunnel |
+| Android 호스트 | Android 앱, VpnService, JNI |
+| iOS 호스트 | SwiftUI, UIKit, Network Extension |
 
-🔗 크레딧 및 감사 인사
-XrayFA를 가능하게 해준 다음 프로젝트들에 특별히 감사드립니다:
+### 디렉터리 구조
 
-## 📄 라이센스
+```text
+XrayFA/
+├── androidApp/          Android 앱 및 플랫폼 통합
+├── iosApp/              iOS 앱 및 PacketTunnel 확장
+├── shared/              공유 UI, 탐색 및 컴포넌트
+├── common/              공통 타입 및 유틸리티
+├── domain/              프로토콜 파싱 및 구성 모델
+├── core/
+│   ├── data/            데이터 저장소
+│   ├── database/        Room 데이터베이스
+│   ├── datastore/       설정 저장
+│   ├── network/         네트워크 요청
+│   └── native-bridge/   Xray 네이티브 브리지
+├── platform/vpn/        플랫폼 VPN 인터페이스 및 구현
+├── AndroidLibXrayLite/  Go 네이티브 라이브러리 서브모듈
+├── tun2socks/           TUN 전달 및 Android JNI
+├── scripts/             네이티브 라이브러리 및 빌드 준비
+└── gradle/              Wrapper 및 의존성 버전 카탈로그
+```
 
-**Apache-2.0 라이센스** 에 따라 배포됩니다. 자세한 내용은 [라이센스](LICENSE) 파일을 참조하십시오
+## 소스 코드에서 빌드
 
-<div align="center">
+### 소스 가져오기
 
-### 🌟 스타 히스토리
+```bash
+git clone --recursive https://github.com/Q7DF1/XrayFA.git
+cd XrayFA
+```
 
-[![Star History Chart](https://api.star-history.com/svg?repos=q7df1/xrayFA&type=Date)](https://star-history.com/q7df1/xrayFA)
+이미 복제한 저장소라면 다음을 실행합니다.
 
-</div>
+```bash
+git submodule update --init --recursive
+```
+
+### Android
+
+필요한 환경:
+
+- Android CI와 동일한 JDK 17. Java/JVM 바이트코드 대상은 버전 11입니다.
+- Android SDK Platform 37, Platform Tools 및 해당 Build Tools.
+- Android NDK `28.2.13676358`.
+- Go: 네이티브 서브모듈은 `go 1.26`, 빌드 설정은 `GO_VERSION=1.27.1`을 기록합니다.
+- Git. 저장소 스크립트 실행에는 Bash와 curl 또는 wget도 필요합니다.
+- Android Studio로 프로젝트 동기화, 실행 및 디버깅을 할 수 있습니다.
+
+Android SDK 경로와 올바른 NDK를 설정하세요. 첫 빌드에서는 Gradle, 의존성, Go 도구 및 라우팅 데이터를 다운로드합니다.
+
+라우팅 데이터와 Xray 네이티브 AAR을 준비합니다.
+
+```bash
+bash scripts/fdroid.sh prebuild
+bash scripts/fdroid.sh bind
+```
+
+앱을 빌드합니다.
+
+```bash
+# Debug
+./gradlew :androidApp:assembleDebug
+
+# Release
+./gradlew :androidApp:assembleRelease
+```
+
+결과 디렉터리:
+
+```text
+androidApp/build/outputs/apk/debug/
+androidApp/build/outputs/apk/release/
+```
+
+네이티브 준비 과정에서 `androidApp/libs/libv2ray.aar`이 생성됩니다. 일반 `preBuild` 작업은 이 AAR을 자동으로 컴파일하지 않습니다.
+
+Release 빌드는 코드 및 리소스 축소를 사용합니다. 서명하려면 `androidApp/xrayfa.jks`와 다음 환경 변수가 필요합니다.
+
+```text
+KEYSTORE_PASSWORD
+KEY_ALIAS
+KEY_PASSWORD
+```
+
+키 저장소가 없으면 서명되지 않은 Release APK가 생성되며, 설치 전에 서명해야 합니다. 성능은 Release 빌드로 평가하세요. Debug에는 디버깅 오버헤드와 LeakCanary가 포함됩니다.
+
+Linux와 Windows는 기본적으로 iOS 대상을 건너뛰며, macOS에서는 활성화합니다. Android만 빌드하려면 다음과 같이 지정합니다.
+
+```bash
+./gradlew :androidApp:assembleDebug -PenableIosTargets=false
+```
+
+### iOS
+
+필요한 환경:
+
+- macOS. 현재 공유 UI 시뮬레이터 빌드는 Apple Silicon Mac을 사용합니다.
+- Xcode 26 이상 및 해당 iOS SDK.
+- JDK 17, Go, gomobile, gobind, XcodeGen.
+- 실제 기기 실행을 위한 서명, Network Extension 및 App Group 설정.
+
+Go 모바일 도구를 설치하고 초기화합니다.
+
+```bash
+go install golang.org/x/mobile/cmd/gomobile@latest
+go install golang.org/x/mobile/cmd/gobind@latest
+export PATH="$PATH:$(go env GOPATH)/bin"
+gomobile init
+```
+
+네이티브 의존성을 빌드하고 Xcode 프로젝트를 생성합니다.
+
+```bash
+./scripts/build_libxray_ios.sh
+./scripts/build_hev_tun_ios.sh
+./scripts/generate_ios_xcodeproj.sh
+```
+
+Apple Silicon 시뮬레이터용 공유 프레임워크를 빌드합니다.
+
+```bash
+./gradlew :shared:linkDebugFrameworkIosSimulatorArm64
+```
+
+Xcode에서 `iosApp/iosApp.xcodeproj`를 열고 `iosApp` Scheme을 실행합니다. Xcode 빌드 단계에는 Kotlin 프레임워크 컴파일이 통합되어 있습니다.
+
+자세한 내용은 [iOS 빌드 문서](iosApp/README.md)를 참고하세요.
+
+## 테스트 및 피드백
+
+Android/JVM 단위 테스트:
+
+```bash
+./gradlew test -PenableIosTargets=false
+```
+
+일부 모듈은 테스트 전에 네이티브 AAR을 준비해야 합니다.
+
+문제 보고 시 앱 버전, 시스템 버전, 기기 아키텍처, 설치 채널 및 재현 단계를 포함하세요. 로그와 스크린샷에서 구독 주소와 인증 정보를 제거하세요.
+
+[문제 보고](https://github.com/Q7DF1/XrayFA/issues)
+
+## 감사의 말
+
+- [Xray-core](https://github.com/XTLS/Xray-core)
+- [AndroidLibXrayLite](https://github.com/2dust/AndroidLibXrayLite)
+- [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel)
+- Kotlin Multiplatform, Compose Multiplatform, Decompose, Koin 및 기타 오픈 소스 의존성
+
+## 라이선스
+
+XrayFA는 [Apache-2.0 라이선스](LICENSE)를 사용합니다. 타사 의존성에는 각각의 라이선스가 적용됩니다.
