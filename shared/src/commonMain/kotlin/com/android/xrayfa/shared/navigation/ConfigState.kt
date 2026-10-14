@@ -20,4 +20,5 @@ data class ConfigState(
     val searchQuery: String = "",
     val pendingDeleteAll: Boolean = false,
     val configError: String? = null,
+    val linkImportError: String? = null,
 )

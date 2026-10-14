@@ -37,6 +37,8 @@ render.experimental.xml
 # Keystore files
 *.jks
 *.keystore
+.release-signing.env
+.release-signing.properties
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json

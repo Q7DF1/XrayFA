@@ -113,7 +113,7 @@ class DefaultConfigComponent(
         }
     }
 
-    override fun onDismissConfigError() { _state.update { it.copy(configError = null) } }
+    override fun onDismissConfigError() { _state.update { it.copy(configError = null, linkImportError = null) } }
 
     override fun onSaveJsonConfig(id: Int, name: String, text: String, inboundTag: String?, onDone: (String?) -> Unit) {
         scope.launch {
@@ -143,13 +143,25 @@ class DefaultConfigComponent(
 
     override fun onImportFromClipboard() {
         scope.launch {
-            configLinkImporter.importFromClipboard()
+            importShareLinks { configLinkImporter.importFromClipboard() }
         }
     }
 
     override fun onImportFromLink(link: String) {
         scope.launch {
-            configLinkImporter.addLink(link)
+            importShareLinks { configLinkImporter.addLink(link) }
+        }
+    }
+
+    private suspend fun importShareLinks(import: suspend () -> Unit) {
+        _state.update { it.copy(linkImportError = null) }
+        try {
+            import()
+        } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            // Some URI errors include the full link, including its credential.
+            val message = e.message?.takeUnless { it.contains("://") } ?: "Invalid share link"
+            _state.update { it.copy(linkImportError = message) }
         }
     }
 

@@ -19,7 +19,8 @@ object ShareLinkCleaner {
                 url.startsWith("vmess://") -> cleanVmess(url)
                 url.startsWith("vless://") ||
                     url.startsWith("trojan://") ||
-                    url.startsWith("hysteria2://") -> cleanUriBased(url)
+                    url.startsWith("hysteria2://") ||
+                    url.startsWith("hy2://") -> cleanUriBased(url)
                 else -> url
             }
         } catch (_: Exception) {

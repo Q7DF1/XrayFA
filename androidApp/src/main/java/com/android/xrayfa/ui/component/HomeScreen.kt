@@ -52,6 +52,8 @@ fun CompactHomeContent(
         ) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 homeComponent.onConnectToggle()
+            } else {
+                homeComponent.onVpnPermissionDenied()
             }
         }
 
@@ -61,7 +63,7 @@ fun CompactHomeContent(
         modifier = Modifier.fillMaxSize(),
         onConnectToggle = {
             val state = homeComponent.state.value
-            if (state.isConnected) {
+            if (state.isConnected || state.selectedNode == null) {
                 homeComponent.onConnectToggle()
                 return@SharedHomeSection
             }
@@ -91,6 +93,8 @@ fun ExpandedHomeContent(
         ) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 homeComponent.onConnectToggle()
+            } else {
+                homeComponent.onVpnPermissionDenied()
             }
         }
 
@@ -121,7 +125,7 @@ fun ExpandedHomeContent(
                     .padding(32.dp),
                 onConnectToggle = {
                     val state = homeComponent.state.value
-                    if (state.isConnected) {
+                    if (state.isConnected || state.selectedNode == null) {
                         homeComponent.onConnectToggle()
                         return@SharedHomeSection
                     }

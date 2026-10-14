@@ -134,7 +134,7 @@ data class ProxySettingsObject(
 
 @Serializable
 data class MuxObject(
-    val enable: Boolean = true,
+    val enabled: Boolean = true,
     val concurrency: Int = 8,
     val xudpConcurrency: Int = 16,
     val xudpProxyUDP443: String = "reject",

@@ -9,11 +9,6 @@ import com.android.xrayfa.dto.TrojanConfig
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.TrojanOutboundConfigurationObject
 import com.android.xrayfa.model.TrojanServerObject
-import com.android.xrayfa.model.stream.GrpcSettings
-import com.android.xrayfa.model.stream.StreamSettingsObject
-import com.android.xrayfa.model.stream.TlsSettings
-import com.android.xrayfa.model.stream.WsSettings
-import com.android.xrayfa.common.utils.UrlCodec
 
 class TrojanConfigParser(
     override val settingsProvider: ConfigParserSettingsProvider,
@@ -21,70 +16,18 @@ class TrojanConfigParser(
     override val configEncoder: XrayConfigEncoder,
 ) : AbstractConfigParser<TrojanOutboundConfigurationObject, TrojanConfig>() {
     override fun decodeProtocol(url: String): TrojanConfig {
-        val uri = UrlCodec.parseUri(url)
-        val scheme = uri.scheme ?: "trojan"
-        val password = percentDecode(uri.userInfo ?: "")
-        val host = uri.host
-        val port = if (uri.port == -1) null else uri.port
-        val remark = if (uri.fragment.isNullOrEmpty()) null else percentDecode(uri.fragment)
-
-        val params = mutableMapOf<String, String>()
-        uri.query?.split("&")?.forEach { pair ->
-            val kv = pair.split("=", limit = 2)
-            if (kv.size == 2) {
-                params[percentDecode(kv[0])] = percentDecode(kv[1])
-            } else if (kv.size == 1) {
-                params[percentDecode(kv[0])] = ""
-            }
-        }
-
-        return TrojanConfig(
-            scheme = scheme,
-            password = password,
-            host = host,
-            port = port,
-            params = params,
-            remark = remark,
-            original = url,
-        )
+        val uri = ShareLinkUri.parse(url, setOf("trojan"), defaultPort = 443)
+        return TrojanConfig(scheme = "trojan", password = uri.credential, host = uri.address,
+            port = uri.port, params = uri.params, remark = uri.remark, original = url)
     }
 
-    override fun encodeProtocol(protocol: TrojanConfig): String {
-        val userInfo = UrlCodec.encode(protocol.password)
-        val query = protocol.params.entries.joinToString("&") {
-            "${UrlCodec.encode(it.key)}=${UrlCodec.encode(it.value)}"
-        }
-        val fragment = protocol.remark?.let { "#${UrlCodec.encode(it)}" } ?: ""
-
-        return buildString {
-            append("trojan://")
-            append(userInfo)
-            append("@")
-            append(protocol.host)
-            append(":")
-            append(protocol.port)
-            if (query.isNotEmpty()) {
-                append("?")
-                append(query)
-            }
-            append(fragment)
-        }
-    }
-
-    companion object {
-        private fun percentDecode(s: String?): String {
-            if (s == null) return ""
-            return try {
-                UrlCodec.decode(s)
-            } catch (e: Exception) {
-                s
-            }
-        }
-    }
+    override fun encodeProtocol(protocol: TrojanConfig): String = encodeShareLink(
+        "trojan", protocol.password, requireNotNull(protocol.host), protocol.port ?: 443,
+        protocol.params, protocol.remark,
+    )
 
     override fun parseOutbound(url: String): OutboundObject<TrojanOutboundConfigurationObject> {
         val trojanConfig = decodeProtocol(url)
-        val network = trojanConfig.params["type"] ?: "tcp"
         return OutboundObject(
             tag = "proxy",
             protocol = "trojan",
@@ -97,28 +40,12 @@ class TrojanConfigParser(
                     ),
                 ),
             ),
-            streamSettings = StreamSettingsObject(
-                network = network,
-                security = trojanConfig.params["security"] ?: "tls",
-                tlsSettings = TlsSettings(
-                    serverName = trojanConfig.host,
-                ),
-                wsSettings = if (network == "ws") {
-                    WsSettings(
-                        path = trojanConfig.params["path"] ?: "",
-                        headers = mapOf(Pair("Host", trojanConfig.host ?: "")),
-                    )
-                } else null,
-                grpcSettings = if (network == "grpc") {
-                    GrpcSettings(
-                        serviceName = trojanConfig.params["serviceName"] ?: "",
-                    )
-                } else null,
-            ),
+            streamSettings = shareLinkStreamSettings(trojanConfig.params, requireNotNull(trojanConfig.host), "tls"),
         )
     }
 
     override suspend fun preParse(link: ParseLinkInput): ParsedNode {
+        parseOutbound(link.content)
         val trojanConfig = decodeProtocol(link.content)
         return ParsedNode(
             id = link.id,

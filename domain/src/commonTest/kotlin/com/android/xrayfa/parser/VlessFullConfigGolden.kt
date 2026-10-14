@@ -153,10 +153,10 @@ internal const val VLESS_FULL_CONFIG_GOLDEN = """
                     "show": false,
                     "fingerprint": "chrome",
                     "serverName": "example.com",
-                    "publicKey": "public-key",
                     "allowInsecure": false,
                     "shortId": "abcd",
-                    "spiderX": ""
+                    "spiderX": "/",
+                    "password": "public-key"
                 },
                 "rawSettings": {
                     "header": {
@@ -165,7 +165,7 @@ internal const val VLESS_FULL_CONFIG_GOLDEN = """
                 }
             },
             "mux": {
-                "enable": false,
+                "enabled": false,
                 "concurrency": -1,
                 "xudpConcurrency": 8,
                 "xudpProxyUDP443": ""

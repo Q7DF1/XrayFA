@@ -10,6 +10,7 @@ data class CoreStartOptions(
     val nextUrl: String? = null,
     val jsonConfig: String? = null,
     val jsonInboundTag: String? = null,
+    val startupAttemptId: Long? = null,
 ) {
     override fun toString(): String = "CoreStartOptions(json=${jsonConfig != null}, chained=${preUrl != null || nextUrl != null})"
 }

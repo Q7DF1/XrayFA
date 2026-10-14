@@ -3,9 +3,11 @@ package com.android.xrayfa.di
 import com.android.xrayfa.common.core.TrafficDetector
 import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.core.XrayCore
+import com.android.xrayfa.common.core.VpnStartupStateStore
 import com.android.xrayfa.core.AppVpnController
 import com.android.xrayfa.core.XrayBaseServiceManager
 import com.android.xrayfa.core.XrayCoreManager
+import com.android.xrayfa.core.XrayAssetInstaller
 import com.android.xrayfa.helper.NotificationHelper
 import com.android.xrayfa.nativebridge.NativeBridgeFactory
 import com.android.xrayfa.nativebridge.TunBridge
@@ -19,6 +21,12 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val appCoreDiModule: Module = module {
+    single { VpnStartupStateStore() }
+    single {
+        val context = androidContext()
+        XrayAssetInstaller(get<XrayAssetPaths>(), { context.assets.open(it) },
+            { android.util.Log.i("XrayAssetInstaller", it) })
+    }
     single<XrayBridge> { NativeBridgeFactory.createXrayBridge() }
     single<TunBridge> { NativeBridgeFactory.createTunBridge() }
     single {
@@ -29,6 +37,8 @@ val appCoreDiModule: Module = module {
             settingsRepository = get(),
             assetPaths = get(),
             xrayBridge = get(),
+            assetInstaller = get(),
+            startupStateStore = get(),
         )
     }
     single<XrayCore> { get<XrayCoreManager>() }
@@ -48,12 +58,15 @@ val appCoreDiModule: Module = module {
             trafficDetector = get<TrafficDetector>(),
             context = androidContext(),
             settingsRepository = get(),
+            startupStateStore = get(),
         )
     }
     single<VpnController> {
         AppVpnController(
             manager = get(),
             scope = get(named(KoinQualifiers.BACKGROUND_SCOPE)),
+            startupStateStore = get(),
+            assetInstaller = get(),
         )
     }
 }

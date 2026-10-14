@@ -1,7 +1,6 @@
 package com.android.xrayfa.shared.ui.home
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,21 +12,23 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.android.xrayfa.common.core.homeDelayTestEnabled
 import com.android.xrayfa.shared.navigation.HomeState
 import com.android.xrayfa.model.isJsonConfig
-import androidx.compose.material3.Text
 import com.android.xrayfa.shared.resources.*
 import org.jetbrains.compose.resources.stringResource
 
 internal data class HomeLayoutCallbacks(
     val onConnectToggle: () -> Unit,
     val onTestDelay: () -> Unit,
+    val onRestoreGeodata: () -> Unit,
+    val onRetryStartup: () -> Unit,
 )
 
 @Composable
@@ -45,7 +46,7 @@ internal fun HomeBrandHeroLayout(
         modifier =
             modifier
                 .fillMaxWidth()
-                .then(if (scrollEnabled) Modifier.verticalScroll(rememberScrollState()) else Modifier)
+                .then(if (scrollEnabled || state.startupFailure != null) Modifier.verticalScroll(rememberScrollState()) else Modifier)
                 .padding(horizontal = 20.dp, vertical = 8.dp)
                 .padding(bottom = bottomContentPadding),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -53,7 +54,7 @@ internal fun HomeBrandHeroLayout(
         Spacer(Modifier.height(12.dp))
         HomeConnectButton(
             isConnected = state.isConnected,
-            enabled = !state.busy,
+            enabled = !state.busy && !state.startupPending,
             onToggle = callbacks.onConnectToggle,
         )
         Spacer(Modifier.height(8.dp))
@@ -65,6 +66,11 @@ internal fun HomeBrandHeroLayout(
             disconnectedHint = labels.disconnectedHint,
             large = largeStatusLabel,
         )
+        state.startupFailure?.let { failure ->
+            Spacer(Modifier.height(12.dp))
+            StartupFailureCard(failure, state.busy || state.startupPending, state.canRestoreGeodata,
+                callbacks.onRetryStartup, callbacks.onRestoreGeodata)
+        }
         Spacer(Modifier.height(28.dp))
         HomeSessionBundleCard(
             state = state,
@@ -72,7 +78,6 @@ internal fun HomeBrandHeroLayout(
             showNodeCard = showNodeCard,
             onTestDelay = callbacks.onTestDelay,
         )
-        HomeLayoutErrors(state = state, labels = labels)
     }
 }
 
@@ -136,26 +141,5 @@ private fun HomeNodeBlock(
         )
     } else {
         HomeEmptyNodeCard(message = labels.emptyNodeMessage, framed = framed)
-    }
-}
-
-@Composable
-private fun ColumnScope.HomeLayoutErrors(
-    state: HomeState,
-    labels: HomeUiLabels,
-) {
-    if (state.showConfigError) {
-        Spacer(Modifier.height(12.dp))
-        HomeSectionHeader(
-            text = labels.configNotReadyMessage,
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-    state.connectionErrorMessage?.let { message ->
-        Spacer(Modifier.height(8.dp))
-        HomeSectionHeader(
-            text = if (message == "JSON_CONFIG_ERROR") stringResource(Res.string.json_config_invalid) else message,
-            modifier = Modifier.fillMaxWidth(),
-        )
     }
 }

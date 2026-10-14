@@ -31,6 +31,8 @@ fun SharedHomeSection(
             HomeLayoutCallbacks(
                 onConnectToggle = onConnectToggle ?: component::onConnectToggle,
                 onTestDelay = component::onTestDelay,
+                onRestoreGeodata = component::onRestoreGeodata,
+                onRetryStartup = if (state.isConnected) component::onRetryStartup else onConnectToggle ?: component::onRetryStartup,
             ),
         scrollEnabled = scrollEnabled,
         largeStatusLabel = largeStatusLabel,

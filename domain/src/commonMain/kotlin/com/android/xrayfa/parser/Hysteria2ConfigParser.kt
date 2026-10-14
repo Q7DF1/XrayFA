@@ -9,11 +9,12 @@ import com.android.xrayfa.dto.ParsedNode
 import com.android.xrayfa.model.Hysteria2OutboundConfigurationObject
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.Sockopt
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import com.android.xrayfa.model.stream.MaskObject
 import com.android.xrayfa.model.stream.FinalMask
 import com.android.xrayfa.model.stream.HysteriaSettings
 import com.android.xrayfa.model.stream.StreamSettingsObject
-import com.android.xrayfa.model.stream.TlsSettings
-import com.android.xrayfa.common.utils.UrlCodec
 
 class Hysteria2ConfigParser(
     override val settingsProvider: ConfigParserSettingsProvider,
@@ -22,51 +23,25 @@ class Hysteria2ConfigParser(
 ) : AbstractConfigParser<Hysteria2OutboundConfigurationObject, Hysteria2Config>() {
 
     override fun decodeProtocol(url: String): Hysteria2Config {
-        val decode = UrlCodec.decode(url)
-        val withoutProtocol = decode.removePrefix("hysteria2://")
-        val (mainPart, remark) = withoutProtocol.split("#").let {
-            it[0] to if (it.size > 1) it[1] else ""
-        }
-        val (userAndServer, query) = mainPart.split("?").let {
-            it[0] to if (it.size > 1) it[1] else ""
-        }
-        val (uuid, serverAndPort) = userAndServer.split("@")
-        val (server, portStr) = serverAndPort.split(":")
-        val port = portStr.toIntOrNull() ?: 0
-        val queryParams = query.split("&").mapNotNull {
-            val kv = it.split("=")
-            if (kv.size == 2) kv[0] to kv[1] else null
-        }.toMap()
-        return Hysteria2Config(
-            remark = remark,
-            address = server,
-            port = port,
-            auth = uuid,
-            param = queryParams,
-        )
+        val uri = ShareLinkUri.parse(url, setOf("hysteria2", "hy2"), defaultPort = 443)
+        return Hysteria2Config(remark = uri.remark, address = uri.address, port = uri.port,
+            auth = uri.credential, param = uri.params)
     }
 
-    override fun encodeProtocol(protocol: Hysteria2Config): String {
-        val mainPart = "${protocol.auth}@${protocol.address}:${protocol.port}"
-        val query = protocol.param.entries.joinToString("&") { "${it.key}=${it.value}" }
-        val remarkEncoded = protocol.remark?.let { UrlCodec.encode(it) } ?: ""
-        return buildString {
-            append("hysteria2://")
-            append(mainPart)
-            if (query.isNotEmpty()) {
-                append("?")
-                append(query)
-            }
-            if (remarkEncoded.isNotEmpty()) {
-                append("#")
-                append(remarkEncoded)
-            }
-        }
-    }
+    override fun encodeProtocol(protocol: Hysteria2Config): String = encodeShareLink(
+        "hysteria2", protocol.auth, protocol.address, protocol.port, protocol.param, protocol.remark,
+    )
 
     override fun parseOutbound(url: String): OutboundObject<Hysteria2OutboundConfigurationObject> {
         val hysteria2Config = decodeProtocol(url)
-        val alpn = hysteria2Config.param["alpn"]
+        val params = hysteria2Config.param
+        val obfs = params.nonBlank("obfs")
+        require(obfs == null || obfs == "salamander") { "Unsupported Hysteria2 obfs: $obfs" }
+        val mask = if (obfs == "salamander") {
+            val password = params.nonBlank("obfs-password")
+            require(password != null) { "Hysteria2 obfs-password is required" }
+            FinalMask(udp = listOf(MaskObject(type = "salamander", settings = buildJsonObject { put("password", password) })))
+        } else null
         return OutboundObject(
             protocol = "hysteria",
             settings = Hysteria2OutboundConfigurationObject(
@@ -78,26 +53,24 @@ class Hysteria2ConfigParser(
                 network = "hysteria",
                 security = "tls",
                 sockopt = Sockopt(),
-                tlsSettings = TlsSettings(
-                    alpn = if (alpn != null) listOf(alpn) else null,
-                    serverName = hysteria2Config.address,
-                ),
+                tlsSettings = shareLinkTls(params, hysteria2Config.address),
                 hysteriaSettings = HysteriaSettings(
                     auth = hysteria2Config.auth,
                     version = hysteria2Config.version,
                 ),
-                finalMask = FinalMask(),
+                finalMask = mask,
             ),
             tag = "proxy",
         )
     }
 
     override suspend fun preParse(link: ParseLinkInput): ParsedNode {
+        parseOutbound(link.content)
         val h2Config = decodeProtocol(link.content)
         return ParsedNode(
             id = link.id,
             url = link.content,
-            protocolPrefix = link.protocolPrefix,
+            protocolPrefix = "hysteria2",
             subscriptionId = link.subscriptionId,
             address = h2Config.address,
             port = h2Config.port,
