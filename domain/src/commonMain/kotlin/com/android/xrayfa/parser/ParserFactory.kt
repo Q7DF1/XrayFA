@@ -22,7 +22,7 @@ class ParserFactory(
             Protocol.VMESS.protocolType -> vmessConfigParser
             Protocol.TROJAN.protocolType -> trojanConfigParser
             Protocol.SHADOWSOCKS.protocolType -> shadowSocksConfigParser
-            Protocol.HYSTERIA2.protocolType -> hysteria2ConfigParser
+            Protocol.HYSTERIA2.protocolType, "hy2" -> hysteria2ConfigParser
             Protocol.SOCKS.protocolType -> socksConfigParser
             "socks5" -> socksConfigParser
             Protocol.HTTP.protocolType -> httpConfigParser

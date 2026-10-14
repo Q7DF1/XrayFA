@@ -2,10 +2,16 @@ package com.android.xrayfa.core
 
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.annotation.StringDef
-import com.android.xrayfa.R
 import com.android.xrayfa.common.core.CoreStartOptions
+import com.android.xrayfa.common.core.VpnStartupStateStore
+import com.android.xrayfa.common.core.StartupStage
+import com.android.xrayfa.common.core.StartupFailureKind
+import com.android.xrayfa.common.core.VpnStartupFailure
+import com.android.xrayfa.common.core.GeodataStatus
+import com.android.xrayfa.common.core.classifyStartupFailure
+import com.android.xrayfa.common.core.startupExceptionDetails
+import java.io.File
 import com.android.xrayfa.common.core.TrafficDetector
 import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.core.XrayCore
@@ -51,6 +57,8 @@ class XrayCoreManager(
     private val settingsRepository: SettingsRepository,
     private val assetPaths: XrayAssetPaths,
     private val xrayBridge: XrayBridge,
+    private val assetInstaller: XrayAssetInstaller,
+    private val startupStateStore: VpnStartupStateStore,
 ): XrayCore {
 
     companion object {
@@ -82,16 +90,22 @@ class XrayCoreManager(
 
     init {
         Log.i(TAG, assetPaths.basePath)
-        xrayBridge.initCoreEnv(
-            assetPaths.basePath, Device.getDeviceIdForXUDPBaseKey()
-        )
-        coroutineScope.launch {
-            val xrayCoreVersion = xrayBridge.checkVersion()
-            if (settingsRepository.settingsFlow.first().xrayCoreVersion != xrayCoreVersion) {
-                settingsRepository.setXrayCoreVersion(xrayCoreVersion)
+        try {
+            xrayBridge.initCoreEnv(assetPaths.basePath, Device.getDeviceIdForXUDPBaseKey())
+            coreController = xrayBridge.newCoreController(controllerCallback)
+            coroutineScope.launch {
+                try {
+                    val xrayCoreVersion = xrayBridge.checkVersion()
+                    if (settingsRepository.settingsFlow.first().xrayCoreVersion != xrayCoreVersion) {
+                        settingsRepository.setXrayCoreVersion(xrayCoreVersion)
+                    }
+                } catch (e: LinkageError) {
+                    startupStateStore.fail(classifyStartupFailure(e, StartupStage.APPLICATION))
+                }
             }
+        } catch (e: LinkageError) {
+            startupStateStore.fail(classifyStartupFailure(e, StartupStage.APPLICATION))
         }
-        coreController = xrayBridge.newCoreController(controllerCallback)
     }
 
 
@@ -106,27 +120,59 @@ class XrayCoreManager(
     }
 
     override fun measureOutboundDelay(config: String, url: String): Long {
+        assetInstaller.ensureInstalled()
         return xrayBridge.measureOutboundDelay(config, url)
     }
 
     override suspend fun startXrayCore(startOptions: CoreStartOptions, tunFd: Int?): Boolean {
         jsonSession = startOptions.jsonConfig != null
+        val attemptId = startOptions.startupAttemptId ?: startupStateStore.state.value.attemptId
+        var stage = StartupStage.GEODATA
         try {
-            val controller = coreController ?: return false
-            controller.startLoop(startOptions.jsonConfig ?: parserFactory.getParser(startOptions.url).parse(startOptions), tunFd ?: return false)
-            if (!controller.isRunning) return false
+            withContext(Dispatchers.IO) { assetInstaller.ensureInstalled() }
+            val controller = coreController ?: run {
+                val existing = startupStateStore.state.value.failure
+                startupStateStore.fail(existing ?: VpnStartupFailure(StartupFailureKind.CORE_INITIALIZATION,
+                    StartupStage.CORE, "Core controller is unavailable"), attemptId)
+                return false
+            }
+            stage = StartupStage.CONFIGURATION
+            val config = startOptions.jsonConfig ?: parserFactory.getParser(startOptions.url).parse(startOptions)
+            stage = StartupStage.CORE
+            check(tunFd != null) { "VPN_INTERFACE: TUN descriptor is unavailable" }
+            controller.startLoop(config, tunFd)
+            check(controller.isRunning) { "Core did not enter the running state" }
             // Start traffic detection after core is confirmed running
             if (!jsonSession) startTrafficDetection() else _trafficFlow.emit(Pair(0.0, 0.0))
             return true
         }catch (e: Exception) {
             if (e is kotlinx.coroutines.CancellationException) throw e
-            Log.e(TAG, if (jsonSession) "JSON core start failed" else "startXrayCore failed: ${e.message}")
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context,R.string.core_start_failed, Toast.LENGTH_SHORT).show()
-            }
-
+            reportStartFailure(e, stage, attemptId)
+            return false
+        } catch (e: LinkageError) {
+            reportStartFailure(e, StartupStage.APPLICATION, attemptId)
             return false
         }
+    }
+
+    private fun reportStartFailure(error: Throwable, stage: StartupStage, attemptId: Long) {
+        val message = startupExceptionDetails(error)
+        val match = Regex("(?i)failed to (?:check|load) code\\s+([a-z0-9_.@-]+)\\s+from\\s+(geo(?:site|ip)\\.dat)").find(message)
+        val name = match?.groupValues?.get(2)?.lowercase()
+            ?: listOf("geosite.dat", "geoip.dat").firstOrNull { message.contains(it, ignoreCase = true) }
+        val geoStatus = name?.let {
+            val file = File(if (it == "geosite.dat") assetPaths.geoSitePath else assetPaths.geoIpPath)
+            val codes = XrayAssetInstaller.readCodes(file)
+            when {
+                !file.exists() -> GeodataStatus.MISSING
+                codes == null -> GeodataStatus.INVALID
+                match != null && match.groupValues[1].uppercase() !in codes -> GeodataStatus.CATEGORY_MISSING
+                else -> GeodataStatus.VALID
+            }
+        }
+        val failure = classifyStartupFailure(error, stage, geoStatus)
+        startupStateStore.fail(failure, attemptId)
+        Log.e(TAG, "${failure.kind.code}: ${failure.technicalDetails}")
     }
 
     override fun stopXrayCore() {

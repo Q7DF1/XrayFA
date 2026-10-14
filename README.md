@@ -165,12 +165,14 @@ androidApp/build/outputs/apk/release/
 
 Native preparation generates `androidApp/libs/libv2ray.aar`. The ordinary `preBuild` task does not compile this AAR automatically.
 
-Release builds enable code and resource shrinking. To sign a release, provide `androidApp/xrayfa.jks` and these environment variables:
+Before packaging, `preBuild` verifies that the Xray AAR contains `libgojni.so` for all requested ABIs. A regular build requires all four Android architectures; an intentional single-ABI build must use `-PfdroidAbi=<abi>`. A partial AAR must be rebuilt with `gomobile bind -target=android` before producing the universal APK.
+
+To sign a release, provide `androidApp/xrayfa.jks` and set the following values in environment variables or the root `.release-signing.properties` file. Non-empty environment variables take priority; the local properties file is ignored by Git.
 
 ```text
-KEYSTORE_PASSWORD
-KEY_ALIAS
-KEY_PASSWORD
+KEYSTORE_PASSWORD=your-store-password
+KEY_ALIAS=your-key-alias
+KEY_PASSWORD=your-key-password
 ```
 
 </details>

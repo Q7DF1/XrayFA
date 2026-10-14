@@ -165,12 +165,14 @@ androidApp/build/outputs/apk/release/
 
 原生库准备步骤会生成 `androidApp/libs/libv2ray.aar`，普通 `preBuild` 不会自动编译该 AAR。
 
-Release 构建启用代码与资源压缩。需要签名时，提供 `androidApp/xrayfa.jks` 及以下环境变量：
+打包前，`preBuild` 会检查 Xray AAR 是否包含所需架构的 `libgojni.so`。普通构建要求四个 Android 架构完整；有意只构建单一架构时需使用 `-PfdroidAbi=<abi>`。生成通用 APK 前，应通过 `gomobile bind -target=android` 重建完整架构的 AAR。
+
+需要签名时，提供 `androidApp/xrayfa.jks`，并通过环境变量或项目根目录的 `.release-signing.properties` 文件设置以下值。非空环境变量优先；本地配置文件已排除 Git 跟踪，无须每次构建前导入环境变量。
 
 ```text
-KEYSTORE_PASSWORD
-KEY_ALIAS
-KEY_PASSWORD
+KEYSTORE_PASSWORD=密钥库密码
+KEY_ALIAS=密钥别名
+KEY_PASSWORD=私钥密码
 ```
 
 </details>

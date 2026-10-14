@@ -1,10 +1,15 @@
 package com.android.xrayfa.shared.config
 
 import com.android.xrayfa.model.protocol.Protocol
+import kotlinx.serialization.json.JsonObject
 
 /** Form field snapshot for shared [SharedEditScreen]. */
 data class NodeEditForm(
     val selectedProtocol: Protocol = Protocol.VLESS,
+    // Preserve imported fields that this form does not expose (e.g. XHTTP extra/pcs/pqv).
+    val importedProtocol: Protocol? = null,
+    val importedParams: Map<String, String> = emptyMap(),
+    val importedVmess: JsonObject? = null,
     val remarks: String = "",
     val address: String = "",
     val port: String = "",

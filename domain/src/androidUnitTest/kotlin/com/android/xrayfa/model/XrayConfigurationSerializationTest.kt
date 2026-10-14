@@ -94,7 +94,7 @@ class XrayConfigurationSerializationTest {
                 ),
                 mux = MuxObject(
                     concurrency = -1,
-                    enable = false,
+                    enabled = false,
                     xudpConcurrency = 8,
                     xudpProxyUDP443 = "",
                 ),

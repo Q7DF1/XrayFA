@@ -2,19 +2,19 @@ package com.android.xrayfa.core
 
 import android.content.Context
 import android.content.Intent
+import android.net.VpnService
 import android.util.Log
-import android.widget.Toast
-import com.android.xrayfa.R
 import com.android.xrayfa.common.core.TrafficDetector
+import com.android.xrayfa.common.core.StartupStage
+import com.android.xrayfa.common.core.VpnStartupStateStore
+import com.android.xrayfa.common.core.classifyStartupFailure
 import com.android.xrayfa.core.StartOptions.Companion.EXTRA_START_OPTIONS
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.model.isJsonConfig
 import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.shared.vpn.prepareJsonVpn
 import com.android.xrayfa.repository.SubscriptionRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withContext
 
 class XrayBaseServiceManager(
     val repository: NodeRepository,
@@ -22,6 +22,7 @@ class XrayBaseServiceManager(
     val trafficDetector: TrafficDetector,
     val context: Context,
     val settingsRepository: SettingsRepository,
+    val startupStateStore: VpnStartupStateStore,
 ) {
 
     companion object {
@@ -49,30 +50,29 @@ class XrayBaseServiceManager(
             val node = repository.loadLinksById(it).first()
             startOption.nextUrl = node?.takeUnless { it.isJsonConfig }?.url
         }
-        Log.d(TAG, "getConfigInformation: $startOption")
+        Log.d(TAG, "getConfigInformation: node selected, chained=${startOption.preUrl != null || startOption.nextUrl != null}")
         return startOption
     }
     suspend fun startXrayBaseService(): Boolean {
-        val options = try { getConfigInformation() } catch (e: com.android.xrayfa.config.JsonConfigException) {
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, R.string.core_start_failed, Toast.LENGTH_SHORT).show()
+        val attemptId = startupStateStore.begin()
+        var stage = StartupStage.CONFIGURATION
+        try {
+            val options = getConfigInformation() ?: error("NO_NODE: no selected configuration")
+            stage = StartupStage.VPN
+            check(VpnService.prepare(context) == null) { "VPN_PERMISSION: VPN permission has not been granted" }
+            val intent = Intent(context, XrayBaseService::class.java).apply {
+                action = XrayBaseService.CONNECT
+                putExtra(EXTRA_START_OPTIONS, options)
+                putExtra(XrayBaseService.EXTRA_START_ATTEMPT, attemptId)
             }
+            context.startForegroundService(intent)
+            qsStateCallBack(true)
+            return true
+        } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            startupStateStore.fail(classifyStartupFailure(e, stage), attemptId)
             return false
         }
-        if (options == null) {
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, R.string.config_not_ready, Toast.LENGTH_SHORT).show()
-            }
-            return false
-        }
-
-        val intent = Intent(context, XrayBaseService::class.java).apply {
-            action = XrayBaseService.CONNECT
-            putExtra(EXTRA_START_OPTIONS,options)
-        }
-        context.startForegroundService(intent)
-        qsStateCallBack(true)
-        return true
     }
 
     fun stopXrayBaseService() {
@@ -87,18 +87,19 @@ class XrayBaseServiceManager(
 
     suspend fun restartXrayBaseServiceIfNeed() {
         if (XrayBaseService.statusFlow.value) {
-            val options = getConfigInformation()
-            if (options == null) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, R.string.config_not_ready, Toast.LENGTH_SHORT).show()
+            val attemptId = startupStateStore.begin()
+            try {
+                val options = getConfigInformation() ?: error("NO_NODE: no selected configuration")
+                val intent = Intent(context, XrayBaseService::class.java).apply {
+                    action = XrayBaseService.RESTART
+                    putExtra(EXTRA_START_OPTIONS, options)
+                    putExtra(XrayBaseService.EXTRA_START_ATTEMPT, attemptId)
                 }
-                return
+                context.startService(intent)
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                startupStateStore.fail(classifyStartupFailure(e, StartupStage.CONFIGURATION), attemptId)
             }
-            val intent = Intent(context, XrayBaseService::class.java).apply {
-                action = XrayBaseService.RESTART
-                putExtra(EXTRA_START_OPTIONS,options)
-            }
-            context.startService(intent)
         }
     }
 }

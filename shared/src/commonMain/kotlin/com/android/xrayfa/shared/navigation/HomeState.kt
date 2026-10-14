@@ -1,14 +1,16 @@
 package com.android.xrayfa.shared.navigation
 
 import com.android.xrayfa.model.Node
+import com.android.xrayfa.common.core.VpnStartupFailure
 
 /** Home tab presentation state owned by [HomeComponent]. */
 data class HomeState(
     val isConnected: Boolean = false,
     val selectedNode: Node? = null,
     val busy: Boolean = false,
-    val showConfigError: Boolean = false,
-    val connectionErrorMessage: String? = null,
+    val startupPending: Boolean = false,
+    val startupFailure: VpnStartupFailure? = null,
+    val canRestoreGeodata: Boolean = false,
     val uploadSpeedKbps: Double = 0.0,
     val downloadSpeedKbps: Double = 0.0,
     val delayMs: Long = 0L,

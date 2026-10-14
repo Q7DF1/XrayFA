@@ -36,6 +36,7 @@ val protocolsPrefix = listOf(
     SHADOWSOCKS.protocolType,
     TROJAN.protocolType,
     HYSTERIA2.protocolType,
+    "hy2",
     SOCKS.protocolType,
     "socks5",
     HTTP.protocolType
@@ -46,6 +47,7 @@ val protocolPrefixMap = mapOf(
     VMESS.protocolType to VMESS,
     TROJAN.protocolType to TROJAN,
     HYSTERIA2.protocolType to HYSTERIA2,
+    "hy2" to HYSTERIA2,
     SOCKS.protocolType to SOCKS,
     "socks5" to SOCKS,
     HTTP.protocolType to HTTP

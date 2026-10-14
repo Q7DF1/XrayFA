@@ -20,7 +20,7 @@ class ConfigLinkImporter(
             return
         }
         clipboardText
-            .split(Regex("[,\\s]+"))
+            .split(Regex("\\s+|,(?=[a-zA-Z][a-zA-Z0-9+.-]*://)"))
             .filter { it.isNotBlank() }
             .forEach { link ->
                 addLink(link)

@@ -3,6 +3,7 @@ package com.android.xrayfa.model.stream
 import com.android.xrayfa.model.serialization.StreamSettingsObjectSerializer
 import com.android.xrayfa.model.Sockopt
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
 
 @Serializable(with = StreamSettingsObjectSerializer::class)
 data class StreamSettingsObject(
@@ -27,14 +28,15 @@ data class StreamSettingsObject(
 
 @Serializable
 data class XHttpSettings(
-    val mode: String? = "splitHttp",
+    val mode: String? = "auto",
     val host: String? = null,
     val path: String? = null,
-    val extra: Map<String, String>? = null,
+    val extra: JsonObject? = null,
     val scMaxEachPostBytes: String? = null,
-    val scMaxConcurrentPosts: String? = null,
+    val scMaxBufferedPosts: Long? = null,
     val scMinPostsIntervalMs: String? = null,
-    val xmux: Map<String, String>? = null,
+    val xmux: JsonObject? = null,
+    val downloadSettings: StreamSettingsObject? = null,
 )
 
 @Serializable
@@ -61,13 +63,19 @@ data class MasqueradeConfig(
     val rewriteHost: Boolean = false,
     val insecure: Boolean = false,
     val content: String = "",
-    val headers: Map<String, String> = mapOf("key" to "value"),
+    val headers: Map<String, String> = emptyMap(),
     val statusCode: Int = 0,
 )
 
 @Serializable
 data class FinalMask(
-    val tcp: List<String>? = null,
-    val udp: List<String>? = null,
-    val quicParams: String? = null,
+    val tcp: List<MaskObject>? = null,
+    val udp: List<MaskObject>? = null,
+    val quicParams: JsonObject? = null,
+)
+
+@Serializable
+data class MaskObject(
+    val type: String,
+    val settings: JsonObject? = null,
 )

@@ -17,6 +17,7 @@ import com.android.xrayfa.shared.navigation.ConfigFilterIds
 import com.android.xrayfa.vpn.VpnController
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.put
 
 class NodeFormEditor(
@@ -45,6 +46,8 @@ class NodeFormEditor(
                     val config = parserFactory.vlessConfigParser.decodeProtocol(content)
                     form.copy(
                         selectedProtocol = Protocol.VLESS,
+                        importedProtocol = Protocol.VLESS,
+                        importedParams = config.param,
                         address = config.server,
                         port = config.port.toString(),
                         uuidOrPassword = config.uuid,
@@ -57,7 +60,7 @@ class NodeFormEditor(
                         grpcServiceName = config.param["serviceName"] ?: "",
                         sni = config.param["sni"] ?: "",
                         fingerprint = config.param["fp"] ?: "chrome",
-                        publicKey = config.param["pbk"] ?: "",
+                        publicKey = config.param["pbk"] ?: config.param["password"] ?: config.param["publicKey"] ?: "",
                         shortId = config.param["sid"] ?: "",
                     )
                 }
@@ -66,6 +69,8 @@ class NodeFormEditor(
                     val others = config.others
                     form.copy(
                         selectedProtocol = Protocol.VMESS,
+                        importedProtocol = Protocol.VMESS,
+                        importedVmess = others,
                         address = config.address,
                         port = others.optionalString("port") ?: "",
                         uuidOrPassword = config.uuid,
@@ -82,15 +87,20 @@ class NodeFormEditor(
                     val config = parserFactory.trojanConfigParser.decodeProtocol(content)
                     form.copy(
                         selectedProtocol = Protocol.TROJAN,
+                        importedProtocol = Protocol.TROJAN,
+                        importedParams = config.params,
                         address = config.host ?: "",
                         port = config.port?.toString() ?: "",
                         uuidOrPassword = config.password,
                         network = config.params["type"] ?: "tcp",
-                        transportSecurity = config.params["security"] ?: "none",
+                        transportSecurity = config.params["security"] ?: "tls",
                         wsPath = config.params["path"] ?: "/",
                         wsHost = config.params["host"] ?: "",
                         grpcServiceName = config.params["serviceName"] ?: "",
                         sni = config.params["sni"] ?: "",
+                        fingerprint = config.params["fp"] ?: "chrome",
+                        publicKey = config.params["pbk"] ?: config.params["password"] ?: config.params["publicKey"] ?: "",
+                        shortId = config.params["sid"] ?: "",
                     )
                 }
                 Protocol.SHADOWSOCKS.protocolType -> {
@@ -103,10 +113,12 @@ class NodeFormEditor(
                         ssMethod = config.method,
                     )
                 }
-                Protocol.HYSTERIA2.protocolType -> {
+                Protocol.HYSTERIA2.protocolType, "hy2" -> {
                     val config = parserFactory.hysteria2ConfigParser.decodeProtocol(content)
                     form.copy(
                         selectedProtocol = Protocol.HYSTERIA2,
+                        importedProtocol = Protocol.HYSTERIA2,
+                        importedParams = config.param,
                         address = config.address,
                         port = config.port.toString(),
                         uuidOrPassword = config.auth,
@@ -150,6 +162,7 @@ class NodeFormEditor(
     ): Boolean {
         return try {
             val url = encodeUrl(form)
+            parserFactory.getParser(url).parseOutbound(url)
             val port = form.port.toIntOrNull() ?: 0
             val remarks = form.remarks
 
@@ -179,18 +192,37 @@ class NodeFormEditor(
         }
     }
 
-    private fun encodeUrl(form: NodeEditForm): String {
+    internal fun encodeUrl(form: NodeEditForm): String {
         val protocol = form.selectedProtocol
+        fun preservedParams(): MutableMap<String, String> {
+            val params = if (form.importedProtocol == protocol) form.importedParams.toMutableMap()
+                else mutableMapOf()
+            val editedKeys = if (protocol == Protocol.HYSTERIA2) {
+                listOf("sni", "obfs", "obfs-password", "alpn")
+            } else {
+                listOf("type", "security", "sni", "fp", "pbk", "publicKey", "password", "sid",
+                    "encryption", "flow", "path", "host", "serviceName")
+            }
+            editedKeys.forEach(params::remove)
+            if (form.importedProtocol == protocol && form.network in setOf("tcp", "raw", "kcp", "mkcp")) {
+                for (key in listOf("path", "host")) form.importedParams[key]?.let { params[key] = it }
+            }
+            return params
+        }
         return when (protocol) {
             Protocol.VLESS -> {
                 val params =
-                    mutableMapOf(
-                        "type" to form.network,
-                        "security" to form.transportSecurity,
-                        "encryption" to form.vlessEncryption,
-                        "flow" to form.flow,
-                    )
-                if (form.network == "ws") {
+                    preservedParams().apply {
+                        putAll(
+                            mapOf(
+                                "type" to form.network,
+                                "security" to form.transportSecurity,
+                                "encryption" to form.vlessEncryption,
+                                "flow" to form.flow,
+                            ),
+                        )
+                    }
+                if (form.network in setOf("ws", "websocket", "xhttp", "splithttp", "httpupgrade")) {
                     params["path"] = form.wsPath
                     params["host"] = form.wsHost
                 } else if (form.network == "grpc") {
@@ -217,6 +249,7 @@ class NodeFormEditor(
             Protocol.VMESS -> {
                 val others =
                     buildJsonObject {
+                        if (form.importedProtocol == protocol) form.importedVmess?.forEach { (key, value) -> put(key, value) }
                         put("v", "2")
                         put("ps", form.remarks)
                         put("add", form.address)
@@ -225,11 +258,13 @@ class NodeFormEditor(
                         put("aid", "0")
                         put("scy", form.vmessSecurity)
                         put("net", form.network)
-                        put("type", "none")
+                        put("type", if (form.importedProtocol == protocol) {
+                            form.importedVmess?.get("type") ?: JsonPrimitive("none")
+                        } else JsonPrimitive("none"))
                         put("host", form.wsHost)
                         put(
                             "path",
-                            if (form.network == "ws") {
+                            if (form.network in setOf("ws", "websocket", "xhttp", "splithttp", "httpupgrade", "tcp", "raw", "kcp", "mkcp")) {
                                 form.wsPath
                             } else if (form.network == "grpc") {
                                 form.grpcServiceName
@@ -264,11 +299,15 @@ class NodeFormEditor(
                 )
             Protocol.TROJAN -> {
                 val params =
-                    mutableMapOf(
-                        "type" to form.network,
-                        "security" to form.transportSecurity,
-                    )
-                if (form.network == "ws") {
+                    preservedParams().apply {
+                        putAll(
+                            mapOf(
+                                "type" to form.network,
+                                "security" to form.transportSecurity,
+                            ),
+                        )
+                    }
+                if (form.network in setOf("ws", "websocket", "xhttp", "splithttp", "httpupgrade")) {
                     params["path"] = form.wsPath
                     params["host"] = form.wsHost
                 } else if (form.network == "grpc") {
@@ -276,6 +315,11 @@ class NodeFormEditor(
                 }
                 if (form.transportSecurity == "tls" || form.transportSecurity == "reality") {
                     params["sni"] = form.sni
+                    params["fp"] = form.fingerprint
+                }
+                if (form.transportSecurity == "reality") {
+                    params["pbk"] = form.publicKey
+                    params["sid"] = form.shortId
                 }
                 parserFactory.trojanConfigParser.encodeProtocol(
                     TrojanConfig(
@@ -290,7 +334,7 @@ class NodeFormEditor(
                 )
             }
             Protocol.HYSTERIA2 -> {
-                val params = mutableMapOf<String, String>()
+                val params = preservedParams()
                 if (form.sni.isNotBlank()) {
                     params["sni"] = form.sni
                 }

@@ -1,6 +1,11 @@
 package com.android.xrayfa.vpn
 
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import com.android.xrayfa.common.core.VpnStartupState
+
+private val emptyStartupState = MutableStateFlow(VpnStartupState()).asStateFlow()
 
 /**
  * Cross-platform VPN control surface.
@@ -15,6 +20,9 @@ interface VpnController {
 
     /** Non-null after the most recent failed [connect] on platforms that surface tunnel errors. */
     val connectError: StateFlow<String?>
+    val startupState: StateFlow<VpnStartupState> get() = emptyStartupState
+    val canRestoreGeodata: Boolean get() = false
+    suspend fun restoreGeodata(): Boolean = false
 
     /** Start VPN with the currently selected node configuration. */
     suspend fun connect(): Boolean

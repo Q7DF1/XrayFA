@@ -36,6 +36,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import com.android.xrayfa.network.FileDownloader
 import java.io.File
+import com.android.xrayfa.core.XrayAssetInstaller
 
 const val LOCAL_PROXY_LISTEN_ADDRESS = "127.0.0.1"
 const val LAN_PROXY_LISTEN_ADDRESS = "0.0.0.0"
@@ -323,12 +324,18 @@ class SettingsViewmodel(
 
 
         Log.i(TAG, "$url: downloading")
+        var temporary: File? = null
         try {
-            fileDownloader.downloadToFile(url, targetPath) { progress ->
+            val target = File(targetPath)
+            val downloaded = File.createTempFile(target.name, ".download", target.parentFile)
+            temporary = downloaded
+            fileDownloader.downloadToFile(url, downloaded.absolutePath) { progress ->
                 progressFlow.value = progress
             }
+            XrayAssetInstaller.publish(downloaded, target)
             return@withContext true
         } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
             statusFlow.value = false
             launch {
                 _downloadException.value = true
@@ -338,6 +345,7 @@ class SettingsViewmodel(
             Log.e(TAG, "download: exception $e")
             return@withContext false
         } finally {
+            temporary?.delete()
             progressFlow.value = 0f
         }
     }
@@ -383,17 +391,23 @@ class SettingsViewmodel(
                 assetPaths.geoSitePath
             }
             val file = File(filePath)
-            val calculateFileHash = calculateFileHash(file)
-            Log.i(TAG, "onSelectFile: $calculateFileHash")
-            val input = context.contentResolver.openInputStream(uri)
-            input?.use { input ->
-                file.outputStream().use { output->
-                    input.copyTo(output)
+            val temporary = File.createTempFile(file.name, ".import", file.parentFile)
+            try {
+                val input = context.contentResolver.openInputStream(uri) ?: error("Cannot open selected geodata")
+                input.use { source ->
+                    temporary.outputStream().use { output -> source.copyTo(output) }
                 }
+                XrayAssetInstaller.publish(temporary, file)
+                Log.i(TAG, "onSelectFile: import successful, hash=${calculateFileHash(file)}")
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                Log.e(TAG, "onSelectFile: invalid or incomplete geodata", e)
+                _importException.value = true
+                delay(2000L)
+                _importException.value = false
+            } finally {
+                temporary.delete()
             }
-            val calculateFileHash1 = calculateFileHash(file)
-            Log.i(TAG, "onSelectFile: $calculateFileHash1")
-            Log.i(TAG, "onSelectFile: import successful")
         }
     }
 

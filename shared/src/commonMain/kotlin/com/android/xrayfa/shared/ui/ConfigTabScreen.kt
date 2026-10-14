@@ -223,6 +223,15 @@ internal fun ConfigTabScreen(
     configState.configError?.let { reason ->
         AlertDialog(onDismissRequest = component::onDismissConfigError, text = { Text(jsonConfigErrorText(reason)) }, confirmButton = { TextButton(onClick = component::onDismissConfigError) { Text(configLabels.cancelLabel) } })
     }
+    configState.linkImportError?.let { message ->
+        AlertDialog(
+            onDismissRequest = component::onDismissConfigError,
+            text = { Text(message) },
+            confirmButton = {
+                TextButton(onClick = component::onDismissConfigError) { Text(configLabels.cancelLabel) }
+            },
+        )
+    }
     configState.deleteTarget?.let { node ->
         AlertDialog(
             onDismissRequest = component::onDismissDeleteNode,
