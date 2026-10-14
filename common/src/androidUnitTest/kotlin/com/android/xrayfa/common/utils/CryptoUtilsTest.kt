@@ -9,7 +9,7 @@ import java.security.SecureRandom
 
 /**
  * Locks JVM crypto abstractions to JDK behavior for future KMP expect/actual migration.
- * See docs/KMP_MIGRATION_STEP4_HANDOVER.md.
+ * Historical migration notes are available in Git history.
  */
 class CryptoUtilsTest {
 

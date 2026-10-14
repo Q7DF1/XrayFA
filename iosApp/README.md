@@ -1,4 +1,4 @@
-# XrayFA iOS App Shell (Phase E.5)
+# XrayFA iOS App Shell
 
 Native iOS application and Network Extension. Android lives in `:androidApp`;
 shared logic is exported via `:shared` → `XrayFAShared.framework`.
@@ -23,7 +23,7 @@ shared logic is exported via `:shared` → `XrayFAShared.framework`.
 ```
 iosApp/                     # iOS project root (this directory)
 ├── iosApp/                 # SwiftUI app target sources
-├── PacketTunnel/           # NEPacketTunnelProvider stub
+├── PacketTunnel/           # NEPacketTunnelProvider (Xray + hev-socks5)
 ├── Config.xcconfig         # Base Xcode settings
 ├── iosApp.xcconfig         # App target framework search paths
 ├── project.yml             # xcodegen spec → iosApp.xcodeproj

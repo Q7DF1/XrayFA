@@ -1,50 +1,41 @@
-# iOS stubs / 平台缺口（R-3）
+# iOS Status: Stubs and Platform Gaps
 
-> `AGENT.md` 要求：actual 不得以抛异常 / 恒 false / 空串结案而不登记。  
-> 更新：2026-09-04（Step 119）。实现后把条目移到「已不再是桩」或删掉。
+Document intentional stubs and unresolved platform gaps as required by `AGENT.md` (R-3). Move resolved entries to the implemented section or remove them. This English translation preserves the status recorded on 2026-09-04; it does not represent a new implementation audit.
 
----
+## Intentional Stubs
 
-## 故意桩（设计如此，不要在宿主「做真」）
+These behaviors are deliberate. Do not move tunnel or core execution into the host app.
 
-| 位置 | 行为 | 用户可见？ | 说明 |
-|------|------|------------|------|
-| `core/native-bridge/.../NativeBridgeFactory.ios.kt` `IosStubTunBridge` | `startTun2Socks` / `stop` / `isRunning` → false | 否 | TUN 在 PacketTunnel 的 HevSocks5Tunnel，不走 KMP `TunBridge` |
-| `shared/.../IosXrayCore.kt` `startXrayCore` | 恒 `false` | 否 | Xray 只在 Network Extension 进程跑 |
-| `IosXrayCore.measureDelaySync` | 恒 `-1L` | 部分 | 宿主没有 live core；Home 测速回落到 `measureOutboundDelay`（需已连 VPN） |
-| `common/.../GeoLiteDownloadSupport.ios.kt` `geoLiteDownloadSupported` | `false` | 是（下载钮禁用） | 宿主连不到 NE 内 `127.0.0.1` SOCKS。Step 105 |
+| Location | Behavior | User-visible? | Reason |
+|----------|----------|---------------|--------|
+| `core/native-bridge/.../NativeBridgeFactory.ios.kt`: `IosStubTunBridge` | `startTun2Socks` / `stop` / `isRunning` return false | No | TUN runs through HevSocks5Tunnel in PacketTunnel, not the KMP `TunBridge` |
+| `shared/.../IosXrayCore.kt`: `startXrayCore` | Returns `false` | No | Xray runs only in the Network Extension process |
+| `IosXrayCore.measureDelaySync` | Returns `-1L` | Partly | The host has no live core; Home falls back to `measureOutboundDelay`, which requires an active VPN |
+| `common/.../GeoLiteDownloadSupport.ios.kt`: `geoLiteDownloadSupported` | Returns `false` | Yes: download button disabled | The host cannot reach the Network Extension's local SOCKS endpoint |
 
----
+## Unresolved User-Visible Features
 
-## 用户可见未实现（`IosPlatformRootHooks`）
+| Hook / Feature | Current UI or Behavior | Impact / Constraint |
+|----------------|------------------------|---------------------|
+| `AppsScreen`: per-app proxy | `SharedInDevelopmentScreen` | Unavailable; system API limitations require a product decision |
+| Settings: geoip.dat / geosite.dat import | Shows an in-development notice | Unavailable for users who need routing data import |
+| Settings: HexTun | Shows an in-development notice | Network Extension uses hev-socks5; explain this limitation in the UI |
+| QR scanner: photo library / flashlight | AVFoundation live camera only | Photo import and flashlight controls unavailable |
+| `SystemBackHandler` | Empty implementation | Relies on system gestures |
+| Logs | `SharedInProcessAppLogScreen` backed by `AppLogStore` | Host-process logs only; Network Extension log bridge remains unresolved |
 
-| Hook / 功能 | UI | 阻塞？ | 计划步骤 |
-|-------------|-----|--------|----------|
-| `AppsScreen` 分应用代理 | `SharedInDevelopmentScreen` | 是 | 115（系统 API 受限，先拍板） |
-| Settings geoip.dat / geosite.dat 导入 | 行显示「开发中」 | 是（路由用户） | 112 |
-| Settings HexTun | 行显示「开发中」 | 部分 | NE 固定 hev-socks5；保持诚实或注明 |
-| 扫码相册 / 闪光灯 | 仅 AVFoundation 实时相机 | 否 | 113 |
-| `SystemBackHandler` | 空实现 | 否 | 116；靠系统手势 |
-| 日志 | `SharedInProcessAppLogScreen`（进程内 `AppLogStore`） | 部分 | 116 NE 日志桥 |
+## Implemented
 
-`ShareNode`：**Step 111 已实现**（二维码 Dialog + 剪贴板），不再算桩。  
-`BugReport`：**Step 119 已实现**（共享表单 + GitHub issue URL），不再算桩。
-
----
-
-## 已不再是桩（文档若仍写 stub 以本表为准）
-
-| 项 | 现状 |
-|----|------|
-| `IosXrayConfigEncoder` | 委托 `KotlinxXrayConfigEncoder` |
-| `IosGeoIpProvider` | App Group 读 GeoLite2 MMDB + 国旗 emoji |
+| Feature | Implementation |
+|---------|----------------|
+| `IosXrayConfigEncoder` | Delegates to `KotlinxXrayConfigEncoder` |
+| `IosGeoIpProvider` | Reads GeoLite2 MMDB from the App Group and provides country flag emoji |
 | Digest / `calculateBytesHash` | CommonCrypto SHA-256 / MD5 |
-| `XrayBridge.measureOutboundDelay` | ObjC shim `XrayFAMeasureOutboundDelay` |
-| 主题 `darkMode` | `AppShell` + `XrayTheme` 读 DataStore |
-| `BugReport` | 共享 `SharedBugReport` + `BugReportIssueComposer` 打开 GitHub |
+| `XrayBridge.measureOutboundDelay` | Objective-C shim `XrayFAMeasureOutboundDelay` |
+| Theme: `darkMode` | `AppShell` and `XrayTheme` read DataStore |
+| `ShareNode` | QR code dialog and clipboard export |
+| `BugReport` | Shared form and GitHub issue URL through `SharedBugReport` and `BugReportIssueComposer` |
 
----
+## Update Rule
 
-## 登记规则
-
-新加 iOS `actual` 若返回常量、抛 `UnsupportedOperationException`、或 UI 走「开发中」，同一 PR 必须改本文件，且对应 Stage **不得**标 ✅。
+Any new iOS `actual` that returns a placeholder constant, throws `UnsupportedOperationException`, or displays an in-development screen must be recorded here in the same PR. Do not mark the corresponding gap as resolved while the placeholder remains.

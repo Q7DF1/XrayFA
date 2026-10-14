@@ -10,7 +10,7 @@ import java.net.URLEncoder
  * Parity test: UrlCodec / parseUri must match the JDK reference implementation
  * (java.net.URLDecoder / URLEncoder / URI) on every edge case the protocol
  * parsers depend on. The case list was captured empirically from OpenJDK 21;
- * see docs/KMP_MIGRATION_STEP3_HANDOVER.md.
+ * Historical migration notes are available in Git history.
  */
 class UrlCodecTest {
 
