@@ -28,12 +28,6 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
-    - name: Decode keystore
-      run: |
-        echo "$KEYSTORE_BASE64" | base64 --decode > androidApp/xrayfa.jks
-      env:
-        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-
     - name: Setup Golang
       uses: actions/setup-go@v5.4.0
       with:
@@ -66,6 +60,16 @@ jobs:
     - name: Run unit tests
       working-directory: /home/vagrant/build/com.android.xrayfa
       run: ./gradlew test --max-workers=1 --no-daemon
+
+    # Gradle reads release signing settings during configuration, even for tests.
+    # Create the keystore only after tests, in the checkout used for packaging.
+    - name: Decode keystore
+      working-directory: /home/vagrant/build/com.android.xrayfa
+      run: |
+        echo "$KEYSTORE_BASE64" | base64 --decode > androidApp/xrayfa.jks
+      env:
+        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+
     - name: Build with Gradle
       working-directory: /home/vagrant/build/com.android.xrayfa
       env:
