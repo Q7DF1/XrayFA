@@ -187,9 +187,9 @@
     <string name="edit_basic_settings">Основные настройки</string>
     <string name="edit_remarks">Заметка</string>
     <string name="edit_address">Адрес</string>
-    <string name="edit_port">Порт (0-65535)</string>
+    <string name="edit_port">Порт (1-65535)</string>
     <string name="edit_protocol_settings">%1$s — настройки</string>
-    <string name="edit_uuid">UUID</string>
+    <string name="edit_uuid">ID пользователя (UUID или строка)</string>
     <string name="edit_encryption">Шифрование (по умолчанию: none)</string>
     <string name="edit_flow">Flow</string>
     <string name="edit_security">Безопасность</string>
@@ -205,12 +205,12 @@
     <string name="edit_allow_insecure">Разрешить небезопасное</string>
     <string name="edit_transport_settings">Настройки транспорта</string>
     <string name="edit_network">Сеть</string>
-    <string name="edit_ws_path">WS путь</string>
-    <string name="edit_ws_host">WS хост</string>
+    <string name="edit_ws_path">Путь (Path)</string>
+    <string name="edit_ws_host">Хост (Host)</string>
     <string name="edit_grpc_service_name">Имя gRPC-сервиса</string>
     <string name="edit_sni_server_name">SNI (Server Name Indication)</string>
     <string name="edit_fingerprint">Fingerprint</string>
-    <string name="edit_public_key">Публичный ключ</string>
+    <string name="edit_public_key">Пароль / открытый ключ REALITY</string>
     <string name="edit_short_id">Short ID</string>
     <string name="edit_back_cd">Назад</string>
     <string name="edit_save_cd">Сохранить</string>
@@ -270,4 +270,15 @@
     <string name="json_config_conflict">Конфликт с каналом VPN: проверьте повторяющиеся теги, порты и дополнительные входящие TUN.</string>
     <string name="json_config_external_file">Конфигурация ссылается на внешние файлы. Встройте содержимое или отключите запись журнала в файл.</string>
     <string name="in_development_label">В разработке</string>
+    <string name="edit_advanced">Дополнительные настройки</string>
+    <string name="edit_hide_advanced">Скрыть дополнительные настройки</string>
+    <string name="edit_preview_outbound">Предпросмотр outbound JSON</string>
+    <string name="edit_close">Закрыть</string>
+    <string name="edit_required_error">Обязательное поле</string>
+    <string name="edit_invalid_error">Недопустимое значение или конфигурация</string>
+    <string name="edit_incompatible_error">Несовместимые настройки</string>
+    <string name="edit_show_password">Показать пароль</string>
+    <string name="edit_hide_password">Скрыть пароль</string>
+    <string name="edit_security_required_error">Публичным серверам VLESS и Trojan требуется защита транспорта</string>
+    <string name="edit_legacy_kcp_error">Старые header/seed mKCP требуют FinalMask в JSON-конфигурации</string>
 </resources>

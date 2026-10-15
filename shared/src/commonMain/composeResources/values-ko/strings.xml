@@ -188,9 +188,9 @@
     <string name="edit_basic_settings">기본 설정</string>
     <string name="edit_remarks">비고</string>
     <string name="edit_address">주소</string>
-    <string name="edit_port">포트 (0-65535)</string>
+    <string name="edit_port">포트 (1-65535)</string>
     <string name="edit_protocol_settings">%1$s 설정</string>
-    <string name="edit_uuid">UUID</string>
+    <string name="edit_uuid">사용자 ID (UUID 또는 사용자 지정 문자열)</string>
     <string name="edit_encryption">암호화 (기본값: none)</string>
     <string name="edit_flow">Flow</string>
     <string name="edit_security">보안</string>
@@ -206,12 +206,12 @@
     <string name="edit_allow_insecure">비보안 허용</string>
     <string name="edit_transport_settings">전송 설정</string>
     <string name="edit_network">네트워크</string>
-    <string name="edit_ws_path">WS 경로</string>
-    <string name="edit_ws_host">WS 호스트</string>
+    <string name="edit_ws_path">경로 (Path)</string>
+    <string name="edit_ws_host">호스트 (Host)</string>
     <string name="edit_grpc_service_name">gRPC 서비스 이름</string>
     <string name="edit_sni_server_name">SNI (서버 이름 표시)</string>
     <string name="edit_fingerprint">Fingerprint</string>
-    <string name="edit_public_key">공개 키</string>
+    <string name="edit_public_key">REALITY 비밀번호 / 공개 키</string>
     <string name="edit_short_id">Short ID</string>
     <string name="edit_back_cd">뒤로</string>
     <string name="edit_save_cd">저장</string>
@@ -271,4 +271,15 @@
     <string name="json_config_conflict">구성이 VPN 채널과 충돌합니다. 중복 태그, 포트 및 추가 TUN 인바운드를 확인하세요.</string>
     <string name="json_config_external_file">구성이 외부 파일을 참조합니다. 내용을 포함하거나 파일 로그를 제거하세요.</string>
     <string name="in_development_label">개발 중</string>
+    <string name="edit_advanced">고급 설정 표시</string>
+    <string name="edit_hide_advanced">고급 설정 숨기기</string>
+    <string name="edit_preview_outbound">outbound JSON 미리보기</string>
+    <string name="edit_close">닫기</string>
+    <string name="edit_required_error">필수 항목</string>
+    <string name="edit_invalid_error">잘못된 값 또는 구성</string>
+    <string name="edit_incompatible_error">호환되지 않는 설정</string>
+    <string name="edit_show_password">비밀번호 표시</string>
+    <string name="edit_hide_password">비밀번호 숨기기</string>
+    <string name="edit_security_required_error">공개 VLESS 및 Trojan 서버에는 전송 보안이 필요합니다</string>
+    <string name="edit_legacy_kcp_error">기존 mKCP header/seed는 JSON 구성에서 FinalMask로 설정해야 합니다</string>
 </resources>

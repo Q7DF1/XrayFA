@@ -1,8 +1,10 @@
 package com.android.xrayfa.shared.config
 
 import com.android.xrayfa.common.utils.Logger
-import com.android.xrayfa.dto.Hysteria2Config
+import com.android.xrayfa.config.XrayJson
 import com.android.xrayfa.dto.HttpConfig
+import com.android.xrayfa.dto.Hysteria2Config
+import com.android.xrayfa.dto.ParseLinkInput
 import com.android.xrayfa.dto.ShadowSocksConfig
 import com.android.xrayfa.dto.SocksConfig
 import com.android.xrayfa.dto.TrojanConfig
@@ -10,14 +12,17 @@ import com.android.xrayfa.dto.VLESSConfig
 import com.android.xrayfa.dto.VMESSConfig
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.protocol.Protocol
+import com.android.xrayfa.model.protocol.protocolPrefixMap
+import com.android.xrayfa.model.serialization.OutboundObjectSerializer
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.parser.optionalString
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.shared.navigation.ConfigFilterIds
 import com.android.xrayfa.vpn.VpnController
 import kotlinx.coroutines.flow.first
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.put
 
 class NodeFormEditor(
@@ -31,8 +36,10 @@ class NodeFormEditor(
         content: String?,
         remark: String? = null,
     ): NodeEditForm {
-        var form =
+        val form =
             NodeEditForm(
+                selectedProtocol = protocolPrefixMap[protocol] ?: Protocol.VLESS,
+                transportSecurity = if (protocol == null || protocol in setOf("vless", "trojan", "hysteria2", "hy2")) "tls" else "none",
                 remarks = remark.orEmpty(),
             )
 
@@ -53,7 +60,7 @@ class NodeFormEditor(
                         uuidOrPassword = config.uuid,
                         flow = config.param["flow"] ?: "",
                         vlessEncryption = config.param["encryption"] ?: "none",
-                        network = config.param["type"] ?: "tcp",
+                        network = NodeFormOptions.canonicalNetwork(config.param["type"] ?: "raw"),
                         transportSecurity = config.param["security"] ?: "none",
                         wsPath = config.param["path"] ?: "/",
                         wsHost = config.param["host"] ?: "",
@@ -75,12 +82,15 @@ class NodeFormEditor(
                         port = others.optionalString("port") ?: "",
                         uuidOrPassword = config.uuid,
                         vmessSecurity = others.optionalString("scy") ?: "auto",
-                        network = config.network,
-                        transportSecurity = config.tls,
+                        network = NodeFormOptions.canonicalNetwork(config.network),
+                        transportSecurity = config.tls.ifBlank { "none" },
                         wsHost = config.host,
                         wsPath = others.optionalString("path") ?: "/",
+                        grpcServiceName = others.optionalString("path") ?: "",
                         sni = others.optionalString("sni") ?: "",
                         fingerprint = others.optionalString("fp") ?: "chrome",
+                        publicKey = others.optionalString("pbk") ?: others.optionalString("password") ?: others.optionalString("publicKey") ?: "",
+                        shortId = others.optionalString("sid") ?: "",
                     )
                 }
                 Protocol.TROJAN.protocolType -> {
@@ -92,7 +102,7 @@ class NodeFormEditor(
                         address = config.host ?: "",
                         port = config.port?.toString() ?: "",
                         uuidOrPassword = config.password,
-                        network = config.params["type"] ?: "tcp",
+                        network = NodeFormOptions.canonicalNetwork(config.params["type"] ?: "raw"),
                         transportSecurity = config.params["security"] ?: "tls",
                         wsPath = config.params["path"] ?: "/",
                         wsHost = config.params["host"] ?: "",
@@ -110,7 +120,7 @@ class NodeFormEditor(
                         address = config.server,
                         port = config.port.toString(),
                         uuidOrPassword = config.password,
-                        ssMethod = config.method,
+                        ssMethod = NodeFormOptions.canonicalMethod(config.method),
                     )
                 }
                 Protocol.HYSTERIA2.protocolType, "hy2" -> {
@@ -128,7 +138,7 @@ class NodeFormEditor(
                         hysteria2ObfsPassword = config.param["obfs-password"] ?: "",
                     )
                 }
-                Protocol.SOCKS.protocolType -> {
+                Protocol.SOCKS.protocolType, "socks5" -> {
                     val config = parserFactory.socksConfigParser.decodeProtocol(content)
                     form.copy(
                         selectedProtocol = Protocol.SOCKS,
@@ -151,7 +161,7 @@ class NodeFormEditor(
                 else -> form
             }
         } catch (e: Exception) {
-            logger.i(TAG, "Failed to parse node form: ${e.message}")
+            logger.i(TAG, "Failed to parse node form")
             form
         }
     }
@@ -161,13 +171,19 @@ class NodeFormEditor(
         form: NodeEditForm,
     ): Boolean {
         return try {
+            require(validationIssue(form) == null) { "Invalid node form" }
             val url = encodeUrl(form)
             parserFactory.getParser(url).parseOutbound(url)
-            val port = form.port.toIntOrNull() ?: 0
+            val parsed = parserFactory.getParser(url).preParse(ParseLinkInput(
+                protocolPrefix = form.selectedProtocol.protocolType,
+                content = url,
+                subscriptionId = ConfigFilterIds.SUB_MANUAL,
+            ))
+            val port = parsed.port
             val remarks = form.remarks
 
             if (nodeId > 0) {
-                nodeRepository.updateNode(nodeId, url, port, remarks)
+                nodeRepository.updateNode(nodeId, url, port, remarks, parsed.address, parsed.countryISO)
                 val selectedId = nodeRepository.querySelectedNode().first()?.id
                 if (selectedId == nodeId) {
                     vpnController.restartIfNeeded()
@@ -177,7 +193,8 @@ class NodeFormEditor(
                     Node(
                         id = 0,
                         protocolPrefix = form.selectedProtocol.protocolType,
-                        address = form.address,
+                        address = parsed.address,
+                        countryISO = parsed.countryISO,
                         port = port,
                         remark = remarks,
                         subscriptionId = ConfigFilterIds.SUB_MANUAL,
@@ -187,9 +204,19 @@ class NodeFormEditor(
             }
             true
         } catch (e: Exception) {
-            logger.i(TAG, "Failed to save node form: ${e.message}")
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            logger.i(TAG, "Failed to save node form")
             false
         }
+    }
+
+    /** The same serializer used for the runtime configuration, without saving a node. */
+    fun previewOutbound(form: NodeEditForm): String {
+        require(validationIssue(form) == null) { "Invalid node form" }
+        val url = encodeUrl(form)
+        val outbound = parserFactory.getParser(url).parseOutbound(url)
+        val json = XrayJson.encodeToString(OutboundObjectSerializer, outbound)
+        return previewJson.encodeToString(JsonElement.serializer(), Json.parseToJsonElement(json))
     }
 
     internal fun encodeUrl(form: NodeEditForm): String {
@@ -204,8 +231,19 @@ class NodeFormEditor(
                     "encryption", "flow", "path", "host", "serviceName")
             }
             editedKeys.forEach(params::remove)
-            if (form.importedProtocol == protocol && form.network in setOf("tcp", "raw", "kcp", "mkcp")) {
-                for (key in listOf("path", "host")) form.importedParams[key]?.let { params[key] = it }
+            NodeFormOptions.advancedKeys.forEach(params::remove)
+            params.remove("mldsa65Verify")
+            if (form.network in setOf("kcp", "mkcp") && form.importedProtocol == protocol) {
+                // Keep legacy inputs until validation can explain that FinalMask migration is needed.
+                form.importedParams["headerType"]?.let { params["headerType"] = it }
+                form.importedParams["path"]?.let { params["path"] = it }
+            }
+            NodeFormOptions.advancedKeys(form).forEach { key ->
+                form.advancedValue(key).takeIf(String::isNotBlank)?.let { params[key] = it }
+            }
+            if (form.network in setOf("tcp", "raw") && form.advancedValue("headerType") == "http") {
+                params["path"] = form.wsPath
+                params["host"] = form.wsHost
             }
             return params
         }
@@ -258,14 +296,21 @@ class NodeFormEditor(
                         put("aid", "0")
                         put("scy", form.vmessSecurity)
                         put("net", form.network)
-                        put("type", if (form.importedProtocol == protocol) {
-                            form.importedVmess?.get("type") ?: JsonPrimitive("none")
-                        } else JsonPrimitive("none"))
+                        NodeFormOptions.advancedKeys.forEach { key ->
+                            // Clear inactive fields inherited from the imported JSON.
+                            if (key != "headerType") put(key, "")
+                        }
+                        NodeFormOptions.advancedKeys(form).forEach { key ->
+                            if (key != "headerType") put(key, form.advancedValue(key))
+                        }
+                        put("type", if (form.network in setOf("tcp", "raw", "kcp", "mkcp")) form.advancedValue("headerType") else "none")
                         put("host", form.wsHost)
                         put(
                             "path",
-                            if (form.network in setOf("ws", "websocket", "xhttp", "splithttp", "httpupgrade", "tcp", "raw", "kcp", "mkcp")) {
+                            if (form.network in setOf("ws", "websocket", "xhttp", "splithttp", "httpupgrade", "tcp", "raw")) {
                                 form.wsPath
+                            } else if (form.network in setOf("kcp", "mkcp") && form.importedProtocol == protocol) {
+                                form.importedVmess?.optionalString("path") ?: ""
                             } else if (form.network == "grpc") {
                                 form.grpcServiceName
                             } else {
@@ -275,6 +320,10 @@ class NodeFormEditor(
                         put("tls", if (form.transportSecurity == "none") "" else form.transportSecurity)
                         put("sni", form.sni)
                         put("fp", form.fingerprint)
+                        put("pbk", if (form.transportSecurity == "reality") form.publicKey else "")
+                        put("sid", if (form.transportSecurity == "reality") form.shortId else "")
+                        put("password", "")
+                        put("publicKey", "")
                     }
                 parserFactory.vmessConfigParser.encodeProtocol(
                     VMESSConfig(
@@ -382,5 +431,6 @@ class NodeFormEditor(
 
     private companion object {
         const val TAG = "NodeFormEditor"
+        val previewJson = Json { prettyPrint = true }
     }
 }

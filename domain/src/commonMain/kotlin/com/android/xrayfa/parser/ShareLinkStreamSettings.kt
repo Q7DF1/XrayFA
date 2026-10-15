@@ -35,6 +35,9 @@ internal fun shareLinkStreamSettings(
     }
     val security = params.nonBlank("security")?.lowercase() ?: defaultSecurity
     require(security in setOf("none", "tls", "reality")) { "Unsupported security: $security" }
+    require(security != "reality" || network in setOf("raw", "xhttp", "grpc")) {
+        "REALITY only supports RAW, XHTTP and gRPC"
+    }
     val tls = if (security == "tls") shareLinkTls(params, address) else null
     val reality = if (security == "reality") {
         val key = params.nonBlank("pbk") ?: params.nonBlank("password") ?: params.nonBlank("publicKey")
@@ -60,6 +63,20 @@ internal fun shareLinkStreamSettings(
         XHttpSettings(mode = mode, path = path, host = host, extra = extra)
     } else null
     val headerType = params.nonBlank("headerType") ?: "none"
+    val kcp = if (network == "kcp") {
+        require(headerType == "none" && params.nonBlank("seed") == null && params.nonBlank("path") == null) {
+            "Legacy mKCP header/seed are no longer consumed by Xray; configure finalmask in a JSON configuration"
+        }
+        fun uint(key: String, minimum: Long = 0, maximum: Long = 4294967295): Long? = params.nonBlank(key)?.let {
+            it.toLongOrNull()?.takeIf { value -> value in minimum..maximum }
+                ?: throw IllegalArgumentException("Invalid mKCP $key")
+        }
+        val mtu = uint("mtu", 21)
+        val window = uint("maxSendingWindow", mtu ?: 1350)
+        KcpSettings(mtu = mtu, tti = uint("tti", 10, 1000),
+            uplinkCapacity = uint("uplinkCapacity"), downlinkCapacity = uint("downlinkCapacity"),
+            cwndMultiplier = uint("cwndMultiplier", 1), maxSendingWindow = window)
+    } else null
     return StreamSettingsObject(
         network = network,
         security = security,
@@ -82,9 +99,6 @@ internal fun shareLinkStreamSettings(
         ) else null,
         xhttpSettings = xhttp,
         httpUpgradeSettings = if (network == "httpupgrade") HttpUpgradeSettings(path = path, host = host) else null,
-        kcpSettings = if (network == "kcp") KcpSettings(
-            header = KcpHeaderObject(type = headerType),
-            seed = params.nonBlank("seed") ?: params.nonBlank("path"),
-        ) else null,
+        kcpSettings = kcp,
     )
 }

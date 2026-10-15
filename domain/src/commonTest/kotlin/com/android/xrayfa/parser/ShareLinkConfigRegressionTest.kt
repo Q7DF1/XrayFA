@@ -133,5 +133,8 @@ class ShareLinkConfigRegressionTest {
             assertFailsWith<IllegalArgumentException> { stream("vless://$id@example.com:443?type=$transport") }
         }
         assertFailsWith<IllegalArgumentException> { stream("vless://$id@example.com:443?security=xtls") }
+        for (transport in listOf("ws", "httpupgrade", "kcp")) {
+            assertFailsWith<IllegalArgumentException> { stream("vless://$id@example.com:443?type=$transport&security=reality&pbk=key") }
+        }
     }
 }

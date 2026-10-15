@@ -77,7 +77,7 @@ private class MemoryNodes(initial: List<Node>) : NodeRepository {
     override fun querySelectedNode() = nodes.map { it.find(Node::selected) }
     override fun queryPreNode() = flowOf<Node?>(null)
     override fun queryNextNode() = flowOf<Node?>(null)
-    override suspend fun updateNode(id: Int, url: String, port: Int, remark: String?) { error("Unexpected link mutation") }
+    override suspend fun updateNode(id: Int, url: String, port: Int, remark: String?, address: String?, countryISO: String?) { error("Unexpected link mutation") }
     override suspend fun updateJsonConfig(id: Int, identifier: String, remark: String, jsonData: String) {
         nodes.value = nodes.value.map { if (it.id == id) it.copy(url = identifier, remark = remark, jsonData = jsonData) else it }
     }

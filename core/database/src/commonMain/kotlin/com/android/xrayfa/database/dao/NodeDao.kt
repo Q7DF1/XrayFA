@@ -28,8 +28,8 @@ interface NodeDao {
     @Query("DELETE FROM node WHERE id = :id")
     suspend fun deleteNodeById(id: Int)
 
-    @Query("UPDATE node SET url = :url, port = :port, remark = :remark WHERE id = :id")
-    suspend fun updateNode(id: Int, url: String, port: Int, remark: String?)
+    @Query("UPDATE node SET url = :url, port = :port, remark = :remark, address = COALESCE(:address, address), countryISO = COALESCE(:countryISO, countryISO) WHERE id = :id")
+    suspend fun updateNode(id: Int, url: String, port: Int, remark: String?, address: String?, countryISO: String?)
 
     @Query("UPDATE node SET url = :identifier, remark = :remark, jsonData = :jsonData WHERE id = :id AND protocolPrefix = 'json-config'")
     suspend fun updateJsonConfig(id: Int, identifier: String, remark: String, jsonData: String)
