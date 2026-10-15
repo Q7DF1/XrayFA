@@ -1,6 +1,9 @@
 package com.android.xrayfa.parser
 
 import com.android.xrayfa.common.core.CoreStartOptions
+import com.android.xrayfa.common.routing.Rule
+import com.android.xrayfa.common.routing.RoutingMode
+import com.android.xrayfa.common.routing.encodeRules
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
@@ -14,6 +17,46 @@ class AbstractConfigParserGoldenTest {
 
     private val factory = ParserTestFixtures.factory()
     private val json = Json
+
+    @Test
+    fun routeMode_migratesSavedChinaPresetToIndependentRuntimeRules() {
+        val legacy = Rule(
+            domain = listOf("geosite:cn", "geosite:geolocation-cn"),
+            ip = listOf("geoip:cn"),
+            outboundTag = "direct",
+            ruleTag = "Bypass Mainland China",
+        )
+        val custom = legacy.copy(ruleTag = "Custom AND rule", port = "443")
+        val parser = factory.getParser(ShareLinks.VLESS)
+        val routing = parser.getBaseRoutingObject(ParserTestFixtures.settings.copy(
+            routingMode = RoutingMode.ROUTE.code,
+            routingRules = encodeRules(listOf(custom, legacy)),
+        ))
+        val rules = routing.rules!!
+        assertEquals(3, rules.size)
+        assertEquals(custom.toRuleObject(), rules[0])
+        assertEquals(legacy.copy(ip = null).toRuleObject(), rules[1])
+        assertEquals(legacy.copy(domain = null, ruleTag = "Bypass Mainland China IP").toRuleObject(), rules[2])
+    }
+
+    @Test
+    fun routeMode_repairsSavedSplitRulesWithDuplicateTags() {
+        val domain = Rule(
+            domain = listOf("geosite:cn", "geosite:geolocation-cn"),
+            outboundTag = "direct",
+            ruleTag = "Bypass Mainland China",
+        )
+        val ip = domain.copy(domain = null, ip = listOf("geoip:cn"))
+        val rules = factory.getParser(ShareLinks.VLESS).getBaseRoutingObject(
+            ParserTestFixtures.settings.copy(
+                routingMode = RoutingMode.ROUTE.code,
+                routingRules = encodeRules(listOf(domain, ip)),
+            ),
+        ).rules!!
+        assertEquals(listOf(domain.toRuleObject(), ip.copy(ruleTag = "Bypass Mainland China IP").toRuleObject()), rules)
+        val tags = rules.mapNotNull { it.ruleTag }
+        assertEquals(tags.size, tags.toSet().size)
+    }
 
     @Test
     fun vless_parse_matchesFullConfigGolden() = runBlocking {

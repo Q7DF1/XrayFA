@@ -44,6 +44,7 @@ import com.android.xrayfa.common.routing.DomainStrategy
 import com.android.xrayfa.shared.ui.widgets.SharedGlassToggle
 import com.android.xrayfa.common.routing.RoutingMode
 import com.android.xrayfa.common.routing.Rule
+import com.android.xrayfa.common.routing.chinaDirectRules
 import com.android.xrayfa.common.routing.decodeRules
 import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.ui.chrome.SharedListScaffold
@@ -84,16 +85,7 @@ fun SharedRouteSettingsScreen(
                 ruleTag = RoutePresetTags.TELEGRAM,
             )
         }
-    val chinaRule =
-        remember {
-            Rule(
-                type = "field",
-                outboundTag = "direct",
-                domain = listOf("geosite:cn", "geosite:geolocation-cn"),
-                ip = listOf("geoip:cn"),
-                ruleTag = RoutePresetTags.CHINA,
-            )
-        }
+    val chinaRuleTags = chinaDirectRules.map { it.ruleTag }.toSet()
     val adBlockRule =
         remember {
             Rule(
@@ -113,7 +105,7 @@ fun SharedRouteSettingsScreen(
             val isSystem = rule.inboundTag?.any { it == "api" || it == "tun" } == true
             val isPreset =
                 rule.ruleTag == telegramRule.ruleTag ||
-                    rule.ruleTag == chinaRule.ruleTag ||
+                    rule.ruleTag in chinaRuleTags ||
                     rule.ruleTag == adBlockRule.ruleTag ||
                     rule.domain?.contains("geosite:cn") == true ||
                     rule.domain?.contains("geosite:telegram") == true ||
@@ -132,7 +124,7 @@ fun SharedRouteSettingsScreen(
         val presets =
             rules.filter {
                 it.ruleTag == telegramRule.ruleTag ||
-                    it.ruleTag == chinaRule.ruleTag ||
+                    it.ruleTag in chinaRuleTags ||
                     it.ruleTag == adBlockRule.ruleTag
             }
         val custom = rules.filter { it !in system && it !in presets }
@@ -207,14 +199,14 @@ fun SharedRouteSettingsScreen(
                         SharedRoutePresetCheckbox(
                             label = labels.bypassChinaLabel,
                             description = labels.bypassChinaDescription,
-                            checked = allRules.any { it.ruleTag == chinaRule.ruleTag },
+                            checked = allRules.any { it.ruleTag in chinaRuleTags },
                             enabled = isRouteMode,
                             onCheckedChange = { checked ->
                                 val newList = allRules.toMutableList()
                                 if (checked) {
-                                    newList.add(chinaRule)
+                                    newList.addAll(chinaDirectRules)
                                 } else {
-                                    newList.removeAll { it.ruleTag == chinaRule.ruleTag }
+                                    newList.removeAll { it.ruleTag in chinaRuleTags }
                                 }
                                 allRules = newList
                                 saveRules(newList)

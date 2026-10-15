@@ -17,6 +17,27 @@ class RuleSerializationTest {
     private val ruleListType = object : TypeToken<List<Rule>>() {}.type
 
     @Test
+    fun defaultRoutes_haveUniqueRuleTags() {
+        val tags = decodeRules(defaultRoutes).mapNotNull { it.ruleTag }
+        assertEquals(tags.size, tags.toSet().size)
+    }
+
+    @Test
+    fun legacyChinaPreset_migrationIsStableAndPreservesOrder() {
+        val legacy = Rule(
+            domain = listOf("geosite:cn", "geosite:geolocation-cn"),
+            ip = listOf("geoip:cn"),
+            outboundTag = "direct",
+            ruleTag = "Bypass Mainland China",
+        )
+        val before = Rule(domain = listOf("example.com"), outboundTag = "proxy")
+        val after = legacy.copy(ruleTag = "Custom", port = "443")
+        val migrated = decodeRules(gson.toJson(listOf(before, legacy, after)))
+        assertEquals(listOf(before) + chinaDirectRules + after, migrated)
+        assertEquals(migrated, decodeRules(encodeRules(migrated)))
+    }
+
+    @Test
     fun defaultRoutes_gsonCanParseKotlinxOutput() {
         val rules: List<Rule> = gson.fromJson(defaultRoutes, ruleListType)
         assertEquals(defaultRouteList, rules)
