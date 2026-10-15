@@ -58,8 +58,8 @@ class RoomNodeRepository(
             .distinctUntilChanged()
     }
 
-    override suspend fun updateNode(id: Int, url: String, port: Int, remark: String?) {
-        nodeDao.updateNode(id, url, port, remark)
+    override suspend fun updateNode(id: Int, url: String, port: Int, remark: String?, address: String?, countryISO: String?) {
+        nodeDao.updateNode(id, url, port, remark, address, countryISO)
     }
 
     override suspend fun updateJsonConfig(id: Int, identifier: String, remark: String, jsonData: String) {

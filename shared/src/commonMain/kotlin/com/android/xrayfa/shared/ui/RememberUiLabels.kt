@@ -98,7 +98,6 @@ fun rememberEditUiLabels(): EditUiLabels =
         alpnLabel = stringResource(Res.string.edit_alpn),
         obfuscationLabel = stringResource(Res.string.edit_obfuscation),
         obfuscationPasswordLabel = stringResource(Res.string.edit_obfuscation_password),
-        allowInsecureLabel = stringResource(Res.string.edit_allow_insecure),
         transportSettingsTitle = stringResource(Res.string.edit_transport_settings),
         networkLabel = stringResource(Res.string.edit_network),
         wsPathLabel = stringResource(Res.string.edit_ws_path),
@@ -108,6 +107,15 @@ fun rememberEditUiLabels(): EditUiLabels =
         fingerprintLabel = stringResource(Res.string.edit_fingerprint),
         publicKeyLabel = stringResource(Res.string.edit_public_key),
         shortIdLabel = stringResource(Res.string.edit_short_id),
+        securityRequiredError = stringResource(Res.string.edit_security_required_error),
+        legacyKcpError = stringResource(Res.string.edit_legacy_kcp_error),
+        advancedLabel = stringResource(Res.string.edit_advanced),
+        hideAdvancedLabel = stringResource(Res.string.edit_hide_advanced),
+        previewLabel = stringResource(Res.string.edit_preview_outbound),
+        closeLabel = stringResource(Res.string.edit_close),
+        requiredError = stringResource(Res.string.edit_required_error),
+        invalidError = stringResource(Res.string.edit_invalid_error),
+        incompatibleError = stringResource(Res.string.edit_incompatible_error),
         noneOptionLabel = stringResource(Res.string.none).lowercase(),
     )
 

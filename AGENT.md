@@ -121,6 +121,8 @@ KMP `iosArm64` / `iosSimulatorArm64` / `iosX64` targets are registered **only on
 
 `./gradlew allTests` (including iOS simulator) is the full KMP bar; CI currently runs the JVM subset on `feat/**` (see §8).
 
+Android node editor interaction tests live in `androidApp/src/androidTest/java/com/android/xrayfa/NodeEditorInteractionTest.kt`. Build the app and test APK with `-PAPPLICATION_ID=com.android.xrayfa.nodetest` and run that class with AndroidJUnitRunner on a device or emulator. The tests require the isolated application ID, verify dropdown interaction, protocol draft retention, validation, outbound preview, and database round-trip, and clean up their own saved node.
+
 iOS glass UI regression tests live in `iosApp/ui-tests` (independent XcodeGen XCTest target). With the app installed on an iOS 26 simulator, run the `GlassUITests` scheme; `GlassToggleTests` verifies native toggle tap, bidirectional drag, disabled state, and persistence across relaunch. Record interactions for visual inspection; see `iosApp/README.md` for the Intel preview limitation.
 
 ---
@@ -177,6 +179,8 @@ UI: Android `MainActivity` → `AndroidAppShell` → shared `RootContent` (Decom
 Android launcher Start/Stop shortcuts invoke `XrayViewmodel` service operations directly, without waiting for `AndroidAppShell`. Start requests VPN consent through the Activity Result API when needed and connects only after approval; shortcut extras are consumed once. Config resolution and missing-config feedback belong to `XrayBaseServiceManager`. For other external actions, `AndroidRootActionCoordinator.collectActions` processes requests sequentially: clearing a consumed request must not cancel suspended action handling (do not use `collectLatest` here).
 
 ---
+
+The shared manual node editor exposes only fields implemented by its share-link encoding path. Protocol defaults, transport/security choices, advanced parameter keys, and structural validation live in `shared/config/NodeFormOptions.kt` and `NodeFormValidation.kt`. Outbound previews use `OutboundObjectSerializer`, the runtime serializer. Keep the editor toolbar pinned while scrolling so Back and Save remain accessible, and clear input focus before opening pickers or previews. Keep endpoint summaries (address and country) synchronized when updating node URLs. Verify new editor fields in `NodeFormTransportTest` against serialized outbound JSON, and check core compatibility against the version in `AndroidLibXrayLite/go.mod`.
 
 ## 7. Code Style & Conventions
 

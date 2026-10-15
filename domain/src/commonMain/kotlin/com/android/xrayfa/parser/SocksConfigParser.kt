@@ -93,7 +93,7 @@ internal object ProxyLinkUtils {
         factory: (remark: String?, server: String, port: Int, user: String?, pass: String?) -> T,
     ): T {
         val uri = UrlCodec.parseUri(url)
-        val host = uri.host ?: throw IllegalArgumentException("Invalid proxy URL: missing host")
+        val host = uri.host?.removeSurrounding("[", "]") ?: throw IllegalArgumentException("Invalid proxy URL: missing host")
         val port = uri.port
         val remark = if (uri.fragment.isNullOrEmpty()) null else percentDecode(uri.fragment)
 
@@ -134,7 +134,8 @@ internal object ProxyLinkUtils {
             }
             append("@")
         }
-        append(server).append(":").append(port)
+        val host = server.removeSurrounding("[", "]").let { if (':' in it) "[$it]" else it }
+        append(host).append(":").append(port)
         if (!remark.isNullOrEmpty()) {
             append("#").append(urlEncode(remark))
         }

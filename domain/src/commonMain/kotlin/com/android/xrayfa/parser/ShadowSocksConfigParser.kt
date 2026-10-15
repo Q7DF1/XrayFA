@@ -50,9 +50,18 @@ class ShadowSocksConfigParser(
         val method = userParts[0]
         val password = if (userParts.size > 1) userParts[1] else ""
 
-        val serverParts = serverPart.split(":", limit = 2)
-        val server = serverParts[0]
-        val portStr = if (serverParts.size > 1) serverParts[1] else "8388"
+        val server: String
+        val portStr: String
+        if (serverPart.startsWith("[")) {
+            require(serverPart.contains("]:")) { "Invalid Shadowsocks IPv6 endpoint" }
+            server = serverPart.substringAfter('[').substringBefore(']')
+            portStr = serverPart.substringAfter("]:")
+        } else {
+            server = serverPart.substringBeforeLast(':', serverPart)
+            portStr = serverPart.substringAfterLast(':', "8388")
+        }
+        require(server.isNotBlank()) { "Shadowsocks server is required" }
+        require(portStr.toIntOrNull() in 1..65535) { "Shadowsocks port must be between 1 and 65535" }
 
         return ShadowSocksConfig(
             method = method,
@@ -66,7 +75,8 @@ class ShadowSocksConfigParser(
     override fun encodeProtocol(protocol: ShadowSocksConfig): String {
         val userInfo = "${protocol.method}:${protocol.password}"
         val base64UserInfo = Base64Compat.encode(userInfo.encodeToByteArray())
-        val mainPart = "$base64UserInfo@${protocol.server}:${protocol.port}"
+        val host = protocol.server.removeSurrounding("[", "]").let { if (':' in it) "[$it]" else it }
+        val mainPart = "$base64UserInfo@$host:${protocol.port}"
         val tagPart = if (!protocol.tag.isNullOrEmpty()) "#${UrlCodec.encode(protocol.tag)}" else ""
         return "ss://$mainPart$tagPart"
     }

@@ -23,7 +23,7 @@ object MmdbCountryLookup {
         GeoIpCountryDisplay.fromIsoCode(isoCode(database, ip))
 }
 
-internal fun parseIpLiteral(ip: String): ByteArray? {
+fun parseIpLiteral(ip: String): ByteArray? {
     val trimmed = ip.trim()
     if (trimmed.isEmpty()) return null
     return if (':' in trimmed) parseIpv6(trimmed) else parseIpv4(trimmed)

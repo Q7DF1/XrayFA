@@ -29,12 +29,18 @@ class CoreConfigFixturesTest {
             "vless-cert-pin" to "vless://$id@example.com:443?security=tls&pcs=${"a".repeat(64)}&vcn=cert.example",
             "trojan-xhttp" to "trojan://password@example.com?type=xhttp&security=reality&pbk=$key",
             "hysteria-obfs" to "hy2://auth@example.com?obfs=salamander&obfs-password=password&sni=cert.example&alpn=h3",
+            "vless-kcp-current" to "vless://$id@example.com:443?type=kcp&security=tls&mtu=1350&tti=50&cwndMultiplier=2&maxSendingWindow=2097152",
+            "socks-ipv6" to "socks://user:$id@[2001:db8::1]:1080",
+            "http-ipv6" to "http://user:$id@[2001:db8::1]:8080",
+            "ss-ipv6" to "ss://${Base64Compat.encode("aes-256-gcm:$id".encodeToByteArray())}@[2001:db8::1]:8388",
             "vless-ipv6" to "vless://$id@[2001:db8::1]:443?security=tls&sni=cert.example",
         )
         for (header in listOf("none", "http")) {
             val json = """{"add":"example.com","port":443,"id":"$id","net":"tcp","type":"$header","host":"cdn.example","path":"/one,/two"}"""
             links["vmess-$header"] = "vmess://" + Base64Compat.encode(json.encodeToByteArray())
         }
+        val vmessReality = """{"add":"example.com","port":443,"id":"$id","net":"raw","tls":"reality","pbk":"$key","sid":"abcd","fp":"chrome"}"""
+        links["vmess-reality"] = "vmess://" + Base64Compat.encode(vmessReality.encodeToByteArray())
         val directory = File("build/generated/xray-config-fixtures").apply { mkdirs() }
         val factory = ParserTestFixtures.factory()
         for ((name, link) in links) {

@@ -176,9 +176,9 @@
     <string name="edit_basic_settings">基本设置</string>
     <string name="edit_remarks">备注</string>
     <string name="edit_address">地址</string>
-    <string name="edit_port">端口 (0-65535)</string>
+    <string name="edit_port">端口 (1-65535)</string>
     <string name="edit_protocol_settings">%1$s 设置</string>
-    <string name="edit_uuid">UUID</string>
+    <string name="edit_uuid">用户 ID（UUID 或自定义字符串）</string>
     <string name="edit_encryption">加密 (默认: none)</string>
     <string name="edit_flow">流控</string>
     <string name="edit_security">安全</string>
@@ -194,12 +194,12 @@
     <string name="edit_allow_insecure">允许不安全连接</string>
     <string name="edit_transport_settings">传输设置</string>
     <string name="edit_network">网络</string>
-    <string name="edit_ws_path">WS 路径</string>
-    <string name="edit_ws_host">WS 主机</string>
+    <string name="edit_ws_path">路径 (Path)</string>
+    <string name="edit_ws_host">主机 (Host)</string>
     <string name="edit_grpc_service_name">gRPC 服务名</string>
     <string name="edit_sni_server_name">SNI (服务器名称指示)</string>
     <string name="edit_fingerprint">指纹</string>
-    <string name="edit_public_key">公钥</string>
+    <string name="edit_public_key">REALITY 密码 / 公钥</string>
     <string name="edit_short_id">Short ID</string>
     <string name="edit_back_cd">返回</string>
     <string name="edit_save_cd">保存</string>
@@ -259,4 +259,15 @@
     <string name="json_config_conflict">配置与 VPN 通道冲突，请检查重复标签、监听端口及额外 TUN 入口。</string>
     <string name="json_config_external_file">配置引用了外部文件，请内嵌内容或移除文件日志设置后导入。</string>
     <string name="in_development_label">开发中</string>
+    <string name="edit_advanced">展开高级设置</string>
+    <string name="edit_hide_advanced">收起高级设置</string>
+    <string name="edit_preview_outbound">预览 outbound JSON</string>
+    <string name="edit_close">关闭</string>
+    <string name="edit_required_error">此项必填</string>
+    <string name="edit_invalid_error">数值或配置无效</string>
+    <string name="edit_incompatible_error">参数组合不兼容</string>
+    <string name="edit_show_password">显示密码</string>
+    <string name="edit_hide_password">隐藏密码</string>
+    <string name="edit_security_required_error">公网 VLESS / Trojan 服务器需要传输安全；VLESS 也可使用有效的协议加密</string>
+    <string name="edit_legacy_kcp_error">旧版 mKCP header / seed 已失效，请通过 JSON 配置中的 FinalMask 配置混淆</string>
 </resources>

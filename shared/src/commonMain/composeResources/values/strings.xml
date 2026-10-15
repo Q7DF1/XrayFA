@@ -191,9 +191,9 @@
     <string name="edit_basic_settings">Basic Settings</string>
     <string name="edit_remarks">Remarks</string>
     <string name="edit_address">Address</string>
-    <string name="edit_port">Port (0-65535)</string>
+    <string name="edit_port">Port (1-65535)</string>
     <string name="edit_protocol_settings">%1$s Settings</string>
-    <string name="edit_uuid">UUID</string>
+    <string name="edit_uuid">User ID (UUID or custom string)</string>
     <string name="edit_encryption">Encryption (default: none)</string>
     <string name="edit_flow">Flow</string>
     <string name="edit_security">Security</string>
@@ -209,12 +209,12 @@
     <string name="edit_allow_insecure">Allow Insecure</string>
     <string name="edit_transport_settings">Transport Settings</string>
     <string name="edit_network">Network</string>
-    <string name="edit_ws_path">WS Path</string>
-    <string name="edit_ws_host">WS Host</string>
+    <string name="edit_ws_path">Path</string>
+    <string name="edit_ws_host">Host</string>
     <string name="edit_grpc_service_name">gRPC Service Name</string>
     <string name="edit_sni_server_name">SNI (Server Name Indication)</string>
     <string name="edit_fingerprint">Fingerprint</string>
-    <string name="edit_public_key">Public Key</string>
+    <string name="edit_public_key">REALITY Password / Public Key</string>
     <string name="edit_short_id">Short ID</string>
     <string name="edit_back_cd">Back</string>
     <string name="edit_save_cd">Save</string>
@@ -274,4 +274,15 @@
     <string name="json_config_conflict">The configuration conflicts with the VPN channel: check duplicate tags, listening ports and additional TUN inbounds.</string>
     <string name="json_config_external_file">This configuration references external files. Embed the content or remove file logging before importing.</string>
     <string name="in_development_label">In development</string>
+    <string name="edit_advanced">Show advanced settings</string>
+    <string name="edit_hide_advanced">Hide advanced settings</string>
+    <string name="edit_preview_outbound">Preview outbound JSON</string>
+    <string name="edit_close">Close</string>
+    <string name="edit_required_error">Required</string>
+    <string name="edit_invalid_error">Invalid value or configuration</string>
+    <string name="edit_incompatible_error">Incompatible settings</string>
+    <string name="edit_show_password">Show password</string>
+    <string name="edit_hide_password">Hide password</string>
+    <string name="edit_security_required_error">Public VLESS and Trojan servers require transport security</string>
+    <string name="edit_legacy_kcp_error">Legacy mKCP header/seed require FinalMask in a JSON configuration</string>
 </resources>

@@ -19,8 +19,8 @@ data class NodeEditForm(
     val vlessEncryption: String = "none",
     val vmessSecurity: String = "auto",
     val ssMethod: String = "aes-256-gcm",
-    val network: String = "tcp",
-    val transportSecurity: String = "none",
+    val network: String = "raw",
+    val transportSecurity: String = "tls",
     val wsPath: String = "/",
     val wsHost: String = "",
     val grpcServiceName: String = "",
@@ -31,5 +31,5 @@ data class NodeEditForm(
     val hysteria2Obfs: String = "",
     val hysteria2ObfsPassword: String = "",
     val hysteria2Alpn: String = "",
-    val allowInsecure: Boolean = false,
+    val advancedParams: Map<String, String> = emptyMap(),
 )

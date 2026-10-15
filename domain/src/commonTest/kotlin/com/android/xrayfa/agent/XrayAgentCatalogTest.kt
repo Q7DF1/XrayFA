@@ -289,7 +289,7 @@ private class FakeNodeRepository(
     override fun queryNextNode(): Flow<Node?> =
         nodes.map { list -> list.find { it.isNextNode } }
 
-    override suspend fun updateNode(id: Int, url: String, port: Int, remark: String?) {
+    override suspend fun updateNode(id: Int, url: String, port: Int, remark: String?, address: String?, countryISO: String?) {
         nodes.value = nodes.value.map { node ->
             if (node.id == id) node.copy(url = url, port = port, remark = remark) else node
         }
