@@ -37,7 +37,28 @@ private val ruleListSerializer = ListSerializer(Rule.serializer())
 fun encodeRules(rules: List<Rule>): String = AppJson.encodeToString(ruleListSerializer, rules)
 
 fun decodeRules(json: String): List<Rule> =
-    AppJson.decodeFromString(ruleListSerializer, json)
+    AppJson.decodeFromString(ruleListSerializer, json).flatMap { rule ->
+        // Only migrate the app preset; custom rules retain their AND semantics.
+        when (rule) {
+            legacyChinaDirectRule -> chinaDirectRules
+            // Repair the IP rule saved by the initial split, which reused the domain tag.
+            legacyChinaDirectRule.copy(domain = null) -> listOf(chinaDirectRules[1])
+            else -> listOf(rule)
+        }
+    }
+
+private val legacyChinaDirectRule = Rule(
+    outboundTag = "direct",
+    domain = listOf("geosite:cn", "geosite:geolocation-cn"),
+    ip = listOf("geoip:cn"),
+    ruleTag = "Bypass Mainland China",
+)
+
+// Separate rules express domain OR IP matching in Xray.
+val chinaDirectRules: List<Rule> = listOf(
+    legacyChinaDirectRule.copy(ip = null),
+    legacyChinaDirectRule.copy(domain = null, ruleTag = "Bypass Mainland China IP"),
+)
 
 val defaultRouteList = listOf(
     Rule(
@@ -59,13 +80,7 @@ val defaultRouteList = listOf(
         domain = listOf("geosite:telegram", "geosite:google"),
         ruleTag = "Proxy Telegram & Google",
     ),
-    Rule(
-        type = "field",
-        outboundTag = "direct",
-        domain = listOf("geosite:cn", "geosite:geolocation-cn"),
-        ip = listOf("geoip:cn"),
-        ruleTag = "Bypass Mainland China",
-    ),
+    *chinaDirectRules.toTypedArray(),
     Rule(
         type = "field",
         outboundTag = "block",
