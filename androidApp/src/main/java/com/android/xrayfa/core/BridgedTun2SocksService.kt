@@ -1,7 +1,6 @@
 package com.android.xrayfa.core
 
 import android.content.Context
-import android.util.Log
 import com.android.xrayfa.nativebridge.TunBridge
 import xrayfa.tun2socks.Tun2SocksService
 import xrayfa.tun2socks.utils.Tun2SocksConfigUtil
@@ -23,11 +22,12 @@ class BridgedTun2SocksService(
         try {
             val started = tunBridge.startTun2Socks(path, fd)
             if (!started) {
-                Log.e(TAG, "startTun2Socks: native start failed or already running")
+                error("TUN_START: native traffic forwarding could not start")
             }
             running = true
         } catch (e: Exception) {
-            Log.e(TAG, "startTun2Socks: ${e.message}")
+            running = false
+            throw e
         }
     }
 
@@ -40,7 +40,4 @@ class BridgedTun2SocksService(
 
     override fun isRunning(): Boolean = running
 
-    private companion object {
-        const val TAG = "TProxyService"
-    }
 }

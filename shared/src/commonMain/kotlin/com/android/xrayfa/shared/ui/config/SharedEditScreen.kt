@@ -234,11 +234,11 @@ fun SharedEditScreen(
                     form.network,
                     { form = form.copy(network = it) },
                     labels.networkLabel,
-                    listOf("tcp", "ws", "grpc", "h2", "quic"),
+                    listOf("raw", "tcp", "ws", "grpc", "httpupgrade", "xhttp", "kcp"),
                     noneOptionLabel = labels.noneOptionLabel,
                 )
 
-                if (form.network == "ws") {
+                if (form.network in setOf("ws", "websocket", "xhttp", "splithttp", "httpupgrade")) {
                     SharedEditTextField(form.wsPath, { form = form.copy(wsPath = it) }, labels.wsPathLabel)
                     SharedEditTextField(form.wsHost, { form = form.copy(wsHost = it) }, labels.wsHostLabel)
                 } else if (form.network == "grpc") {

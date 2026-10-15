@@ -17,6 +17,11 @@ import com.android.xrayfa.MainActivity.Companion.ACTION_STOP_SERVICE
 import com.android.xrayfa.R
 import com.android.xrayfa.common.core.XrayCore
 import com.android.xrayfa.common.core.CoreStartOptions
+import com.android.xrayfa.common.core.StartupFailureKind
+import com.android.xrayfa.common.core.StartupStage
+import com.android.xrayfa.common.core.VpnStartupFailure
+import com.android.xrayfa.common.core.VpnStartupStateStore
+import com.android.xrayfa.common.core.classifyStartupFailure
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.model.isJsonConfig
 import com.android.xrayfa.shared.vpn.prepareJsonVpn
@@ -44,6 +49,7 @@ class XrayBaseService constructor(
     private val settingsRepo: SettingsRepository,
     private val notificationHelper: NotificationHelper,
     private val nodeRepository: NodeRepository,
+    private val startupStateStore: VpnStartupStateStore,
 ): VpnService(){
 
     companion object {
@@ -55,6 +61,7 @@ class XrayBaseService constructor(
         const val DISCONNECT = "disconnect"
 
         const val RESTART = "restart"
+        const val EXTRA_START_ATTEMPT = "xrayfa.startup.attempt"
 
         private val _statusFlow = MutableStateFlow(false)
         val statusFlow = _statusFlow.asStateFlow()
@@ -99,12 +106,24 @@ class XrayBaseService constructor(
                     intent.getParcelableExtra<StartOptions>(EXTRA_START_OPTIONS)
                 }
 
-                notificationHelper.showNotification(this)
+                val attemptId = intent.getLongExtra(EXTRA_START_ATTEMPT, 0L).takeIf { it > 0 } ?: startupStateStore.begin()
+                try {
+                    notificationHelper.showNotification(this)
+                } catch (e: Exception) {
+                    startupStateStore.fail(classifyStartupFailure(e, StartupStage.VPN), attemptId)
+                    stopSelf()
+                    return START_NOT_STICKY
+                }
                 serviceScope.launch {
                     connectionMutex.lock()
                     val start = try {
-                        val started = if (statusFlow.value) true else options?.let { startXrayCoreService(it) } ?: false
+                        val started = if (statusFlow.value) true else options?.let { startXrayCoreService(it, attemptId = attemptId) } ?: run {
+                            startupStateStore.fail(VpnStartupFailure(StartupFailureKind.NO_NODE, StartupStage.PREPARATION,
+                                "Startup request has no configuration"), attemptId)
+                            false
+                        }
                         updateStatus(started)
+                        if (started) startupStateStore.succeed(attemptId)
                         updateToggleShortcut(started)
                         started
                     } finally { connectionMutex.unlock() }
@@ -123,6 +142,7 @@ class XrayBaseService constructor(
             RESTART -> {
                 Log.i(TAG, "onStartCommand: restart...")
                 serviceScope.launch {
+                    val attemptId = intent.getLongExtra(EXTRA_START_ATTEMPT, 0L).takeIf { it > 0 } ?: startupStateStore.begin()
                     val options = if (Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU) {
                         intent.getParcelableExtra(EXTRA_START_OPTIONS,
                             StartOptions::class.java)
@@ -133,23 +153,24 @@ class XrayBaseService constructor(
                     try {
                         val prepared = options?.let { resolveCoreOptions(it) }
                         if (prepared == null) {
+                            startupStateStore.fail(VpnStartupFailure(StartupFailureKind.NO_NODE, StartupStage.PREPARATION,
+                                "Restart request has no configuration"), attemptId)
                             stopXrayCoreService()
                             updateStatus(false)
                             updateToggleShortcut(false)
                         } else {
                             stopXrayCoreService()
-                            val started = startXrayCoreService(options, prepared)
+                            val started = startXrayCoreService(options, prepared, attemptId)
                             updateStatus(started)
+                            if (started) startupStateStore.succeed(attemptId)
                             updateToggleShortcut(started)
                         }
                     } catch (e: Exception) {
                         if (e is CancellationException) throw e
                         // Preflight failed before stopping the existing connection.
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(this@XrayBaseService, R.string.core_start_failed, Toast.LENGTH_SHORT).show()
-                        }
+                        startupStateStore.fail(classifyStartupFailure(e, StartupStage.CONFIGURATION), attemptId)
                     } finally { connectionMutex.unlock() }
-                    restartToast()
+                    if (startupStateStore.state.value.failure == null) restartToast()
                 }
                 START_STICKY
             }
@@ -246,21 +267,38 @@ class XrayBaseService constructor(
         return CoreStartOptions(url = node.url, jsonConfig = prepareJsonVpn(node, settingsRepo.settingsFlow.first()))
     }
 
-    private suspend fun startXrayCoreService(startOptions: StartOptions, prepared: CoreStartOptions? = null): Boolean {
+    private suspend fun startXrayCoreService(startOptions: StartOptions, prepared: CoreStartOptions? = null,
+        attemptId: Long): Boolean {
+        var stage = StartupStage.CONFIGURATION
         try {
-            val coreOptions = prepared ?: resolveCoreOptions(startOptions)
+            val coreOptions = (prepared ?: resolveCoreOptions(startOptions)).copy(startupAttemptId = attemptId)
             val settingState = settingsRepo.settingsFlow.first()
+            stage = StartupStage.VPN
             startVpn(coreOptions.jsonConfig != null)
-            val fd = tunFd?.fd ?: return false
+            val fd = tunFd?.fd ?: error("VPN_INTERFACE: Android did not create a VPN interface")
+            stage = StartupStage.CORE
             val started = if (settingState.hexTunEnable) {
                 xrayCore.startXrayCore(coreOptions, 0).also { running ->
-                    if (running) tun2SocksService.startTun2Socks(fd)
+                    if (running) {
+                        stage = StartupStage.TUN
+                        tun2SocksService.startTun2Socks(fd)
+                        check(tun2SocksService.isRunning()) { "TUN_START: traffic forwarding did not start" }
+                    }
                 }
             } else xrayCore.startXrayCore(coreOptions, fd)
+            if (!started && startupStateStore.state.value.failure == null) {
+                startupStateStore.fail(VpnStartupFailure(StartupFailureKind.CORE_INITIALIZATION,
+                    StartupStage.CORE, "Core did not start"), attemptId)
+            }
             if (!started) stopXrayCoreService()
             return started
         } catch (e: Exception) {
             if (e is CancellationException) throw e
+            startupStateStore.fail(classifyStartupFailure(e, stage), attemptId)
+            stopXrayCoreService()
+            return false
+        } catch (e: LinkageError) {
+            startupStateStore.fail(classifyStartupFailure(e, StartupStage.APPLICATION), attemptId)
             stopXrayCoreService()
             return false
         }

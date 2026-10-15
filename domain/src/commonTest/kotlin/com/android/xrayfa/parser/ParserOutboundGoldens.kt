@@ -34,10 +34,10 @@ internal object ParserOutboundGoldens {
             "show": false,
             "fingerprint": "chrome",
             "serverName": "example.com",
-            "publicKey": "public-key",
             "allowInsecure": false,
             "shortId": "abcd",
-            "spiderX": ""
+            "spiderX": "/",
+            "password": "public-key"
         },
         "rawSettings": {
             "header": {
@@ -46,7 +46,7 @@ internal object ParserOutboundGoldens {
         }
     },
     "mux": {
-        "enable": false,
+        "enabled": false,
         "concurrency": -1,
         "xudpConcurrency": 8,
         "xudpProxyUDP443": ""
@@ -84,10 +84,7 @@ internal object ParserOutboundGoldens {
         },
         "wsSettings": {
             "path": "/ws",
-            "host": "",
-            "headers": {
-                "host": "example.com"
-            },
+            "host": "example.com",
             "heartbeatPeriod": 0
         }
     }
@@ -109,11 +106,16 @@ internal object ParserOutboundGoldens {
     },
     "tag": "proxy",
     "streamSettings": {
-        "network": "tcp",
+        "network": "raw",
         "security": "tls",
         "tlsSettings": {
             "serverName": "example.com",
             "allowInsecure": false
+        },
+        "rawSettings": {
+            "header": {
+                "type": "none"
+            }
         }
     }
 }
@@ -173,13 +175,10 @@ internal object ParserOutboundGoldens {
                 "rewriteHost": false,
                 "insecure": false,
                 "content": "",
-                "headers": {
-                    "key": "value"
-                },
+                "headers": {},
                 "statusCode": 0
             }
         },
-        "finalMask": {},
         "sockopt": {}
     }
 }

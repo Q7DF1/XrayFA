@@ -1,5 +1,7 @@
 import com.android.build.VariantOutput
 import com.android.build.gradle.api.ApkVariantOutput
+import java.util.Properties
+import java.util.zip.ZipFile
 
 plugins {
     alias(libs.plugins.android.application)
@@ -8,6 +10,16 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.ksp)
 }
+
+val localSigningProperties = Properties().apply {
+    val settingsFile = rootProject.file(".release-signing.properties")
+    if (settingsFile.isFile) settingsFile.inputStream().use { load(it) }
+}
+
+fun releaseSigningValue(name: String): String =
+    System.getenv(name)?.takeIf { it.isNotBlank() }
+        ?: localSigningProperties.getProperty(name)?.takeIf { it.isNotBlank() }
+        ?: error("Missing release signing setting $name. Set the environment variable or .release-signing.properties.")
 
 android {
     namespace = "com.android.xrayfa"
@@ -34,9 +46,9 @@ android {
             val keystoreFile = project.file("xrayfa.jks")
             if(keystoreFile.exists()) {
                 storeFile = keystoreFile
-                storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
-                keyAlias = System.getenv("KEY_ALIAS") ?: ""
-                keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+                storePassword = releaseSigningValue("KEYSTORE_PASSWORD")
+                keyAlias = releaseSigningValue("KEY_ALIAS")
+                keyPassword = releaseSigningValue("KEY_PASSWORD")
             }else {
                 println("keystore file not found , building unsigned release apk")
             }
@@ -177,6 +189,7 @@ tasks.register<Exec>("bindXrayLib") {
     commandLine(
         "gomobile",
         "bind",
+        "-target=android",
         "-v",
         "-trimpath",
         "-androidapi", "21",
@@ -192,7 +205,30 @@ tasks.register<Copy>("copyXrayLib") {
     into(libsDir)
 }
 
+val verifyXrayNativeLibraries = tasks.register("verifyXrayNativeLibraries") {
+    val xrayAar = libsDir.resolve("libv2ray.aar")
+    val selectedAbi = providers.gradleProperty("fdroidAbi").orNull?.trim().orEmpty()
+    val requiredAbis = if (selectedAbi.isNotEmpty()) listOf(selectedAbi)
+        else listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+    inputs.file(xrayAar).optional()
+    inputs.property("requiredAbis", requiredAbis)
+    mustRunAfter("copyXrayLib")
+    doLast {
+        check(xrayAar.isFile) {
+            "Missing androidApp/libs/libv2ray.aar. Build the Xray native library before assembling the app."
+        }
+        val missing = ZipFile(xrayAar).use { archive ->
+            requiredAbis.filter { abi -> archive.getEntry("jni/$abi/libgojni.so") == null }
+        }
+        check(missing.isEmpty()) {
+            "Xray AAR is missing libgojni.so for ${missing.joinToString()}. " +
+                "Rebuild it with gomobile bind -target=android, or select its ABI with -PfdroidAbi=<abi>."
+        }
+    }
+}
+
 tasks.named("preBuild") {
+    dependsOn(verifyXrayNativeLibraries)
     // personal compile can use it,but at server use script
     //dependsOn("copyXrayLib")
 }

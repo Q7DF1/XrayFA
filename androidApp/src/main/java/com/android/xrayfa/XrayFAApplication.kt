@@ -9,16 +9,13 @@ import androidx.datastore.preferences.core.edit
 import com.android.xrayfa.XrayAppCompatFactory.Companion.TAG
 import com.android.xrayfa.agent.appfunctions.AgentAppFunctionEnableSync
 import com.android.xrayfa.agent.appfunctions.XrayFAAppFunctions
-import com.android.xrayfa.common.GEO_IP
-import com.android.xrayfa.common.GEO_SITE
-import com.android.xrayfa.common.core.XrayAssetPaths
+import com.android.xrayfa.core.XrayAssetInstaller
 import com.android.xrayfa.common.utils.SocksConfigGenerator
 import com.android.xrayfa.data.settingsDataStore
 import com.android.xrayfa.datastore.SettingsKeys
 import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.datastore.Theme
 import com.android.xrayfa.di.androidKoinModules
-import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
@@ -29,8 +26,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileOutputStream
 
 class XrayFAApplication : Application(), AppFunctionConfiguration.Provider {
 
@@ -46,8 +41,6 @@ class XrayFAApplication : Application(), AppFunctionConfiguration.Provider {
     val isDarkTheme: StateFlow<Int> get() = _isDarkTheme
 
     private val appCoroutineScope = CoroutineScope(Dispatchers.IO)
-
-    private val xrayAssetPaths: XrayAssetPaths by inject()
 
     private fun observeDarkMode() {
         appCoroutineScope.launch {
@@ -93,23 +86,11 @@ class XrayFAApplication : Application(), AppFunctionConfiguration.Provider {
 
     private fun initXrayFile() {
         appCoroutineScope.launch {
-            val geoipFile = File(xrayAssetPaths.geoIpPath)
-            val geositeFile = File(xrayAssetPaths.geoSitePath)
-            if (!geoipFile.exists()) {
-                Log.i(TAG, "copy geoip.dat")
-                assets.open(GEO_IP).use { input ->
-                    FileOutputStream(geoipFile).use { output ->
-                        input.copyTo(output)
-                    }
-                }
-            }
-
-            if (!geositeFile.exists()) {
-                assets.open(GEO_SITE).use { input ->
-                    FileOutputStream(geositeFile).use { output ->
-                        input.copyTo(output)
-                    }
-                }
+            try {
+                GlobalContext.get().get<XrayAssetInstaller>().ensureInstalled()
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                Log.e(TAG, "Failed to prepare Xray geodata", e)
             }
         }
     }

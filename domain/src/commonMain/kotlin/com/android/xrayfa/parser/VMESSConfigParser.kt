@@ -10,15 +10,6 @@ import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.ServerObject
 import com.android.xrayfa.model.UserObject
 import com.android.xrayfa.model.VMESSOutboundConfigurationObject
-import com.android.xrayfa.model.stream.GrpcSettings
-import com.android.xrayfa.model.stream.HttpHeaderObject
-import com.android.xrayfa.model.stream.HttpRequestObject
-import com.android.xrayfa.model.stream.KcpHeaderObject
-import com.android.xrayfa.model.stream.KcpSettings
-import com.android.xrayfa.model.stream.RawSettings
-import com.android.xrayfa.model.stream.StreamSettingsObject
-import com.android.xrayfa.model.stream.TlsSettings
-import com.android.xrayfa.model.stream.WsSettings
 import com.android.xrayfa.common.utils.Base64Compat
 import kotlinx.serialization.json.JsonPrimitive
 
@@ -36,6 +27,9 @@ class VMESSConfigParser(
         val host = json.optionalString("host") ?: ""
         val network = json.optionalString("net") ?: "tcp"
         val address = json.stringOrEmpty("add")
+        require(uuid.isNotBlank()) { "VMess ID is required" }
+        require(address.isNotBlank()) { "VMess server is required" }
+        require(json.intValue("port") in 1..65535) { "VMess port must be between 1 and 65535" }
         return VMESSConfig(
             uuid = uuid,
             tls = tls,
@@ -67,75 +61,45 @@ class VMESSConfigParser(
     }
 
     override fun parseOutbound(url: String): OutboundObject<VMESSOutboundConfigurationObject> {
-        try {
-            val vmess = decodeProtocol(url)
-            val uuid = vmess.uuid
-            val tls = vmess.tls
-            val host = vmess.host
-            val network = vmess.network
-            val address = vmess.address
-            val json = vmess.others
-            return OutboundObject(
-                protocol = "vmess",
-                settings = VMESSOutboundConfigurationObject(
-                    vnext = listOf(
-                        ServerObject(
-                            address = address,
-                            port = json.intValue("port"),
-                            users = listOf(
-                                UserObject(
-                                    id = uuid,
-                                    level = 8,
-                                    security = json.optionalString("scy") ?: "auto",
-                                ),
+        val vmess = decodeProtocol(url)
+        val uuid = vmess.uuid
+        val tls = vmess.tls
+        val address = vmess.address
+        val json = vmess.others
+        return OutboundObject(
+            protocol = "vmess",
+            settings = VMESSOutboundConfigurationObject(
+                vnext = listOf(
+                    ServerObject(
+                        address = address,
+                        port = json.intValue("port"),
+                        users = listOf(
+                            UserObject(
+                                id = uuid,
+                                level = 8,
+                                security = json.optionalString("scy") ?: "auto",
                             ),
                         ),
                     ),
                 ),
-                streamSettings = StreamSettingsObject(
-                    network = network,
-                    security = if (tls == "tls") "tls" else "",
-                    rawSettings = if (network == "tcp") {
-                        RawSettings(
-                            header = HttpHeaderObject(
-                                request = HttpRequestObject(),
-                                type = "http",
-                            ),
-                        )
-                    } else null,
-                    kcpSettings = if (network == "kcp") {
-                        KcpSettings(
-                            header = KcpHeaderObject(
-                                type = json.optionalString("type") ?: "none",
-                            ),
-                            seed = json.optionalString("path") ?: "",
-                        )
-                    } else null,
-                    tlsSettings = if (tls == "tls") {
-                        TlsSettings(
-                            serverName = if (host.isNotEmpty()) host else address,
-                        )
-                    } else null,
-                    grpcSettings = if (network == "grpc") {
-                        GrpcSettings(
-                            serviceName = json.optionalString("path") ?: "",
-                        )
-                    } else null,
-                    wsSettings = if (network == "ws") {
-                        WsSettings(
-                            path = json.optionalString("path") ?: "/$uuid",
-                            headers = mapOf(Pair("host", if (host.isNotEmpty()) host else address)),
-                        )
-                    } else null,
+            ),
+            streamSettings = shareLinkStreamSettings(
+                json.entries.mapNotNull { (key, value) ->
+                    (value as? JsonPrimitive)?.content?.let { key to it }
+                }.toMap() + mapOf(
+                    "type" to vmess.network,
+                    "security" to (tls.ifBlank { "none" }),
+                    "headerType" to (json.optionalString("type") ?: "none"),
+                    "serviceName" to (json.optionalString("path") ?: ""),
                 ),
-                tag = "proxy",
-            )
-        } catch (e: Exception) {
-            throw RuntimeException(e)
-        }
+                address,
+            ),
+            tag = "proxy",
+        )
     }
 
     override suspend fun preParse(link: ParseLinkInput): ParsedNode {
+        parseOutbound(link.content)
         val vmess = decodeProtocol(link.content)
         val json = vmess.others
         return ParsedNode(

@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class TlsSettings(
     val serverName: String? = null,
-    val verifyPeerCertInNames: List<String>? = null,
+    val verifyPeerCertByName: String? = null,
     val rejectUnknownSni: Boolean? = null,
     /**
      * Must stay false. Xray-core rejects `allowInsecure: true` after 2026-06-01
@@ -20,7 +20,7 @@ data class TlsSettings(
     val disableSystemRoot: Boolean? = null,
     val enableSessionResumption: Boolean? = null,
     val fingerprint: String? = null,
-    val pinnedPeerCertificateChainSha256: List<String>? = null,
+    val pinnedPeerCertSha256: String? = null,
     val curvePreferences: List<String>? = null,
     val masterKeyLog: String? = null,
     val echServerKeys: String? = null,
