@@ -285,4 +285,6 @@
     <string name="edit_hide_password">Hide password</string>
     <string name="edit_security_required_error">Public VLESS and Trojan servers require transport security</string>
     <string name="edit_legacy_kcp_error">Legacy mKCP header/seed require FinalMask in a JSON configuration</string>
+    <string name="home_screen_widgets_title">Home screen widget</string>
+    <string name="home_screen_widgets_desc">Show XrayFA in the system widget picker. Turning this off removes existing widgets; add them again after enabling.</string>
 </resources>

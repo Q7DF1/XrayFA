@@ -1,0 +1,24 @@
+<resources>
+    <string name="widget_name">连接微件</string>
+    <string name="widget_description">在桌面连接或断开，查看当前节点和本次流量。</string>
+    <string name="widget_needs_setup">待配置</string>
+    <string name="widget_connecting">连接中</string>
+    <string name="widget_failed">连接失败</string>
+    <string name="widget_setup_hint">选择节点，开始连接</string>
+    <string name="widget_connecting_hint">正在建立连接…</string>
+    <string name="widget_connected_hint">连接已建立</string>
+    <string name="widget_retry">点击重试</string>
+    <string name="widget_tap_connect">点击连接</string>
+    <string name="widget_add_node">添加节点</string>
+    <string name="widget_unnamed_node">已选节点</string>
+    <string name="widget_duration_format">已连接 %s</string>
+    <string name="widget_download_label">↓ 本次下载</string>
+    <string name="widget_upload_label">↑ 本次上传</string>
+    <string name="widget_switch_node">切换 ›</string>
+    <string name="widget_permission_required">请打开 XrayFA 授予 VPN 权限后重试。</string>
+    <string name="widget_compact_connected">已连接</string>
+    <string name="widget_compact_disconnected">未连接</string>
+    <string name="widget_compact_connecting">连接中</string>
+    <string name="widget_compact_failed">重试</string>
+    <string name="widget_compact_empty">待配置</string>
+</resources>

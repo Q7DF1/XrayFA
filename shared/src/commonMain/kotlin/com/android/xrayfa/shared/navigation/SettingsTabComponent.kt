@@ -23,6 +23,8 @@ interface SettingsComponent {
 
     fun onSetAgentFunctionsEnabled(enable: Boolean)
 
+    fun onSetHomeScreenWidgetsEnabled(enable: Boolean)
+
     fun onSetHideFromRecents(enable: Boolean)
 
     fun onSetLanSocksProxyEnable(enable: Boolean)

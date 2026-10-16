@@ -50,6 +50,7 @@ class FakeSettingsComponent : SettingsComponent {
     override fun onSetTheme(themeCode: Int) = Unit
     override fun onSetBootAutoStart(enable: Boolean) = Unit
     override fun onSetAgentFunctionsEnabled(enable: Boolean) = Unit
+    override fun onSetHomeScreenWidgetsEnabled(enable: Boolean) = Unit
     override fun onSetHideFromRecents(enable: Boolean) = Unit
     override fun onSetLanSocksProxyEnable(enable: Boolean) = Unit
     override fun onSetLanHttpProxyEnable(enable: Boolean) = Unit

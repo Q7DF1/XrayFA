@@ -14,6 +14,7 @@ import com.android.xrayfa.nativebridge.TunBridge
 import com.android.xrayfa.nativebridge.XrayBridge
 import com.android.xrayfa.repository.AppInfoRepository
 import com.android.xrayfa.vpn.VpnController
+import com.android.xrayfa.widget.ConnectionWidgetUpdater
 import com.android.xrayfa.shared.di.KoinQualifiers
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
@@ -21,6 +22,16 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val appCoreDiModule: Module = module {
+    single {
+        ConnectionWidgetUpdater(
+            context = androidContext(),
+            scope = get(named(KoinQualifiers.BACKGROUND_SCOPE)),
+            repository = get(),
+            startup = get(),
+            core = get(),
+            manager = get(),
+        )
+    }
     single { VpnStartupStateStore() }
     single {
         val context = androidContext()

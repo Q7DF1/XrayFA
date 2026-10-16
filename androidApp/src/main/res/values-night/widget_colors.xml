@@ -1,0 +1,13 @@
+<!-- Static preview bridge to ui/theme/Color.kt. Live colors use resolveAndroidColorScheme. -->
+<resources>
+    <color name="widget_surface_container_low">#1A1B20</color>
+    <color name="widget_on_surface">#E2E2E9</color>
+    <color name="widget_on_surface_variant">#C3C7CF</color>
+    <color name="widget_primary">#9ECAFF</color>
+    <color name="widget_secondary">#BBC7DB</color>
+    <color name="widget_error">#FFB4AB</color>
+    <color name="widget_secondary_container">#3B4858</color>
+    <color name="widget_on_secondary_container">#D7E3F7</color>
+    <color name="widget_on_primary">#003258</color>
+    <color name="widget_outline_variant">#43474E</color>
+</resources>

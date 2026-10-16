@@ -2,6 +2,7 @@ package com.android.xrayfa
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.content.res.Configuration
 import android.provider.Settings
 import android.util.Log
 import androidx.appfunctions.service.AppFunctionConfiguration
@@ -16,6 +17,7 @@ import com.android.xrayfa.datastore.SettingsKeys
 import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.datastore.Theme
 import com.android.xrayfa.di.androidKoinModules
+import com.android.xrayfa.widget.ConnectionWidgetUpdater
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
@@ -57,11 +59,17 @@ class XrayFAApplication : Application(), AppFunctionConfiguration.Provider {
     override fun onCreate() {
         super.onCreate()
         initKoin()
+        GlobalContext.get().get<ConnectionWidgetUpdater>().start()
         observeDarkMode()
         observeAgentFunctionEnabled()
         initXrayFile()
         initSocksConfig()
         initHwid()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        GlobalContext.get().get<ConnectionWidgetUpdater>().refresh {}
     }
 
     private fun observeAgentFunctionEnabled() {

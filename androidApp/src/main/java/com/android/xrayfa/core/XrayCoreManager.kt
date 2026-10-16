@@ -1,5 +1,6 @@
 package com.android.xrayfa.core
 
+import android.os.SystemClock
 import android.content.Context
 import android.util.Log
 import androidx.annotation.StringDef
@@ -26,6 +27,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -67,6 +71,8 @@ class XrayCoreManager(
     private var coreController: XrayCoreController? = null
     private var job: Job? = null
     private var jsonSession = false
+    private val _sessionTraffic = MutableStateFlow(VpnSessionTraffic())
+    val sessionTraffic = _sessionTraffic.asStateFlow()
 
     private val _trafficFlow = MutableSharedFlow<Pair<Double, Double>>(replay = 1)
     override val trafficFlow: SharedFlow<Pair<Double, Double>> = _trafficFlow.asSharedFlow()
@@ -142,6 +148,10 @@ class XrayCoreManager(
             check(tunFd != null) { "VPN_INTERFACE: TUN descriptor is unavailable" }
             controller.startLoop(config, tunFd)
             check(controller.isRunning) { "Core did not enter the running state" }
+            _sessionTraffic.value = VpnSessionTraffic(
+                startedAtElapsed = SystemClock.elapsedRealtime(),
+                available = !jsonSession,
+            )
             // Start traffic detection after core is confirmed running
             if (!jsonSession) startTrafficDetection() else _trafficFlow.emit(Pair(0.0, 0.0))
             return true
@@ -178,6 +188,7 @@ class XrayCoreManager(
     override fun stopXrayCore() {
         stopTrafficDetection()
         coreController?.stopLoop()
+        _sessionTraffic.value = VpnSessionTraffic()
     }
 
     override fun startTrafficDetection() {
@@ -193,6 +204,7 @@ class XrayCoreManager(
                 val snapshot = coreController?.queryAllOutboundTrafficStats().orEmpty()
                 val up = outboundTrafficValue(snapshot, TAG_PROXY, UP_STEAM)
                 val down = outboundTrafficValue(snapshot, TAG_PROXY, DOWN_STEAM)
+                _sessionTraffic.update { it.add(up, down) }
                 val deltaTimeSec = (cur - last) / 1000.0
                 val upSpeed = if (deltaTimeSec > 0) (up / deltaTimeSec) / 1024 else 0.0
                 val downSpeed = if (deltaTimeSec > 0) (down / deltaTimeSec) / 1024 else 0.0

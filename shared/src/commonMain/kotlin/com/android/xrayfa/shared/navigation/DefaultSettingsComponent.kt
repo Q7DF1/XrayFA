@@ -81,6 +81,10 @@ class DefaultSettingsComponent(
         }
     }
 
+    override fun onSetHomeScreenWidgetsEnabled(enable: Boolean) {
+        scope.launch { settingsRepository.setHomeScreenWidgetsEnabled(enable) }
+    }
+
     override fun onSetAgentFunctionsEnabled(enable: Boolean) {
         scope.launch {
             settingsRepository.setAgentFunctionsEnabled(enable)

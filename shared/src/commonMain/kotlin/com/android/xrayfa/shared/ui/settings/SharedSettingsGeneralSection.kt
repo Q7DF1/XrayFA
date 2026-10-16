@@ -10,6 +10,7 @@ import androidx.compose.material.icons.outlined.PowerSettingsNew
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.Router
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -66,6 +67,13 @@ fun SharedSettingsGeneralSection(
                 checked = state.bootAutoStart,
                 onCheckedChange = component::onSetBootAutoStart,
                 icon = Icons.Outlined.PowerSettingsNew,
+            )
+            if (platformHooks.supportsHomeScreenWidgets) SharedSettingsSwitchRow(
+                title = labels.homeScreenWidgetsTitle,
+                description = labels.homeScreenWidgetsDescription,
+                checked = state.homeScreenWidgetsEnabled,
+                onCheckedChange = component::onSetHomeScreenWidgetsEnabled,
+                icon = Icons.Outlined.Widgets,
             )
             SharedSettingsSwitchRow(
                 title = labels.agentFunctionsTitle,

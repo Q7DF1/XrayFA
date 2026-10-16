@@ -51,6 +51,7 @@ internal class AndroidPlatformRootHooks(
     private val xrayViewmodel: XrayViewmodel,
 ) : PlatformRootHooks {
     override val usesDecomposePredictiveBack: Boolean = true
+    override val supportsHomeScreenWidgets: Boolean = true
     @Composable
     override fun ColumnScope.SettingsGeneralExtras(component: SettingsComponent) {
         AndroidSettingsGeneralViewModelExtras(settingsViewmodel)

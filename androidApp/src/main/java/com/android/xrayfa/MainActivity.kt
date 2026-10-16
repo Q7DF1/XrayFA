@@ -21,6 +21,7 @@ import com.android.xrayfa.ui.AndroidAppShell
 import com.android.xrayfa.ui.navigation.AndroidRootAction
 import com.android.xrayfa.ui.navigation.AndroidRootActionCoordinator
 import com.android.xrayfa.ui.rememberAndroidRootLifecycle
+import com.android.xrayfa.agent.AgentScreen
 import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.viewmodel.XrayViewmodel
 import com.android.xrayfa.ui.XrayBaseActivity
@@ -64,6 +65,8 @@ class MainActivity constructor(
         const val ACTION_OPEN_SCAN = "open_scan"
         const val ACTION_START_SERVICE = "start_service"
         const val ACTION_STOP_SERVICE = "stop_service"
+        const val ACTION_WIDGET_HOME = "widget_home"
+        const val ACTION_WIDGET_NODES = "widget_nodes"
     }
 
 
@@ -155,6 +158,12 @@ class MainActivity constructor(
         // A shortcut is a one-shot request, including after Activity recreation.
         intent.removeExtra("shortcut_action")
         when (action) {
+            ACTION_WIDGET_HOME -> rootActionCoordinator.dispatch(
+                AndroidRootAction.OpenScreen(AgentScreen.Home),
+            )
+            ACTION_WIDGET_NODES -> rootActionCoordinator.dispatch(
+                AndroidRootAction.OpenScreen(AgentScreen.Config),
+            )
             ACTION_OPEN_SCAN -> {
                 rootActionCoordinator.dispatch(AndroidRootAction.OpenQrScan)
             }

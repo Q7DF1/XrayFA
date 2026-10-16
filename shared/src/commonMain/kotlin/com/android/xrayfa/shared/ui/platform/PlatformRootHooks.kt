@@ -38,6 +38,7 @@ import org.jetbrains.compose.resources.stringResource
 interface PlatformRootHooks {
     val supportsBootAutoStart: Boolean get() = true
     val supportsHideFromRecents: Boolean get() = true
+    val supportsHomeScreenWidgets: Boolean get() = false
     val agentFunctionsAvailable: Boolean get() = true
 
     @Composable
