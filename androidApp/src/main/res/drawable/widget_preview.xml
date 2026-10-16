@@ -1,0 +1,30 @@
+<vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="300dp"
+    android:height="170dp"
+    android:viewportWidth="300"
+    android:viewportHeight="170">
+    <path android:fillColor="@color/widget_surface_container_low" android:pathData="M28,0 H272 Q300,0 300,28 V142 Q300,170 272,170 H28 Q0,170 0,142 V28 Q0,0 28,0" />
+    <path
+        android:strokeColor="@color/widget_on_surface"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:pathData="M22,24 H67 M22,66 H158" />
+    <path
+        android:strokeColor="@color/widget_on_surface_variant"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M22,88 H101 M22,137 H63 M93,137 H134 M233,137 H271" />
+    <path
+        android:strokeColor="@color/widget_outline_variant"
+        android:strokeWidth="1"
+        android:pathData="M22,112 H278" />
+    <path android:fillColor="@color/widget_primary" android:pathData="M241,44 H259 Q277,44 277,62 V78 Q277,96 259,96 H241 Q223,96 223,78 V62 Q223,44 241,44" />
+    <path
+        android:strokeColor="@color/widget_on_primary"
+        android:fillColor="#00000000"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M250,58 V70 M243,61 A11,11 0,1 0,257 61" />
+    <path android:fillColor="@color/widget_primary" android:pathData="M269,23 m-3,0 a3,3 0,1 0,6 0 a3,3 0,1 0,-6 0" />
+</vector>

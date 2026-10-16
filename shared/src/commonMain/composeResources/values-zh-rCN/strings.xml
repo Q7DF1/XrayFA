@@ -270,4 +270,6 @@
     <string name="edit_hide_password">隐藏密码</string>
     <string name="edit_security_required_error">公网 VLESS / Trojan 服务器需要传输安全；VLESS 也可使用有效的协议加密</string>
     <string name="edit_legacy_kcp_error">旧版 mKCP header / seed 已失效，请通过 JSON 配置中的 FinalMask 配置混淆</string>
+    <string name="home_screen_widgets_title">桌面微件</string>
+    <string name="home_screen_widgets_desc">在系统微件列表中显示 XrayFA。关闭会移除已添加的微件，重新开启后需再次添加。</string>
 </resources>

@@ -1,0 +1,24 @@
+<resources>
+    <string name="widget_name">Подключение</string>
+    <string name="widget_description">Подключение, текущий узел и трафик сеанса на главном экране.</string>
+    <string name="widget_needs_setup">Нужна настройка</string>
+    <string name="widget_connecting">Подключение</string>
+    <string name="widget_failed">Ошибка</string>
+    <string name="widget_setup_hint">Выберите узел</string>
+    <string name="widget_connecting_hint">Установка соединения…</string>
+    <string name="widget_connected_hint">Соединение установлено</string>
+    <string name="widget_retry">Повторить</string>
+    <string name="widget_tap_connect">Подключиться</string>
+    <string name="widget_add_node">Добавить узел</string>
+    <string name="widget_unnamed_node">Выбранный узел</string>
+    <string name="widget_duration_format">Подключено %s</string>
+    <string name="widget_download_label">↓ Загружено</string>
+    <string name="widget_upload_label">↑ Отправлено</string>
+    <string name="widget_switch_node">Сменить ›</string>
+    <string name="widget_permission_required">Откройте XrayFA и предоставьте разрешение VPN.</string>
+    <string name="widget_compact_connected">Вкл.</string>
+    <string name="widget_compact_disconnected">Выкл.</string>
+    <string name="widget_compact_connecting">Запуск</string>
+    <string name="widget_compact_failed">Повтор</string>
+    <string name="widget_compact_empty">Настроить</string>
+</resources>

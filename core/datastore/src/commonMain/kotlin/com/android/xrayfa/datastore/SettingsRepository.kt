@@ -50,6 +50,7 @@ data class SettingsState(
     val sendHwid: Boolean = true,
     val allowedPackages: List<String> = emptyList(),
     val agentFunctionsEnabled: Boolean = false,
+    val homeScreenWidgetsEnabled: Boolean = false,
 )
 
 object SettingsKeys {
@@ -79,6 +80,8 @@ object SettingsKeys {
     val SEND_HWID = booleanPreferencesKey("send_hwid")
     /** Disk key locked; default missing → false (Agent master switch). */
     val AGENT_FUNCTIONS_ENABLED = booleanPreferencesKey("agent_functions_enabled")
+    /** Widgets are opt-in when no preference has been saved. */
+    val HOME_SCREEN_WIDGETS_ENABLED = booleanPreferencesKey("home_screen_widgets_enabled")
 }
 
 const val DEFAULT_DELAY_TEST_URL = "https://www.google.com"
@@ -118,6 +121,7 @@ class SettingsRepository(
             hwid = prefs[SettingsKeys.HWID] ?: "",
             sendHwid = prefs[SettingsKeys.SEND_HWID] ?: true,
             agentFunctionsEnabled = prefs[SettingsKeys.AGENT_FUNCTIONS_ENABLED] == true,
+            homeScreenWidgetsEnabled = prefs[SettingsKeys.HOME_SCREEN_WIDGETS_ENABLED] ?: false,
         )
     }
 
@@ -257,6 +261,10 @@ class SettingsRepository(
         dataStore.edit {
             it[SettingsKeys.SEND_HWID] = enable
         }
+    }
+
+    suspend fun setHomeScreenWidgetsEnabled(enable: Boolean) {
+        dataStore.edit { it[SettingsKeys.HOME_SCREEN_WIDGETS_ENABLED] = enable }
     }
 
     suspend fun setAgentFunctionsEnabled(enable: Boolean) {

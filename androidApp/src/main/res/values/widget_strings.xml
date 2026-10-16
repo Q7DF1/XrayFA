@@ -1,0 +1,24 @@
+<resources>
+    <string name="widget_name">Connection</string>
+    <string name="widget_description">Connect or disconnect and view your current node and session traffic.</string>
+    <string name="widget_needs_setup">Needs setup</string>
+    <string name="widget_connecting">Connecting</string>
+    <string name="widget_failed">Connection failed</string>
+    <string name="widget_setup_hint">Choose a node to get started</string>
+    <string name="widget_connecting_hint">Establishing connection…</string>
+    <string name="widget_connected_hint">Connection established</string>
+    <string name="widget_retry">Tap to retry</string>
+    <string name="widget_tap_connect">Tap to connect</string>
+    <string name="widget_add_node">Add node</string>
+    <string name="widget_unnamed_node">Selected node</string>
+    <string name="widget_duration_format">Connected %s</string>
+    <string name="widget_download_label">↓ Download</string>
+    <string name="widget_upload_label">↑ Upload</string>
+    <string name="widget_switch_node">Switch ›</string>
+    <string name="widget_permission_required">Open XrayFA to grant VPN permission, then try again.</string>
+    <string name="widget_compact_connected">On</string>
+    <string name="widget_compact_disconnected">Off</string>
+    <string name="widget_compact_connecting">Starting</string>
+    <string name="widget_compact_failed">Retry</string>
+    <string name="widget_compact_empty">Set up</string>
+</resources>

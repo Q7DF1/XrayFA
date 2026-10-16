@@ -74,6 +74,18 @@
         </service>
 
         <receiver
+            android:name=".widget.ConnectionWidgetProvider"
+            android:enabled="false"
+            android:exported="false"
+            android:label="@string/widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/connection_widget_info" />
+        </receiver>
+        <receiver android:name=".widget.ConnectionWidgetActionReceiver" android:exported="false" />
+
+        <receiver
             android:name=".BootBroadcastReceiver"
             android:enabled="true"
             android:exported="true">

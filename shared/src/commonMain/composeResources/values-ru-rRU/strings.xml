@@ -281,4 +281,6 @@
     <string name="edit_hide_password">Скрыть пароль</string>
     <string name="edit_security_required_error">Публичным серверам VLESS и Trojan требуется защита транспорта</string>
     <string name="edit_legacy_kcp_error">Старые header/seed mKCP требуют FinalMask в JSON-конфигурации</string>
+    <string name="home_screen_widgets_title">Виджет на главном экране</string>
+    <string name="home_screen_widgets_desc">Показывать XrayFA в списке виджетов. Отключение удаляет добавленные виджеты; после включения добавьте их заново.</string>
 </resources>

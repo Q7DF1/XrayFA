@@ -1,0 +1,25 @@
+<!-- Native XML bridge to AppRadius and the Android Typography roles; verified on device.
+     Live text sizes are read from Typography by WidgetTokenBridge. -->
+<resources>
+    <dimen name="widget_radius_field">28dp</dimen>
+    <dimen name="widget_radius_medium">16dp</dimen>
+
+    <style name="Widget.XrayFA.Text" parent="@android:style/TextAppearance.Material.Body1">
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:fontFamily">sans-serif</item>
+    </style>
+    <style name="Widget.XrayFA.Text.TitleLarge">
+        <item name="android:textSize">22sp</item>
+    </style>
+    <style name="Widget.XrayFA.Text.TitleMedium">
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+    <style name="Widget.XrayFA.Text.BodyMedium">
+        <item name="android:textSize">14sp</item>
+    </style>
+    <style name="Widget.XrayFA.Text.LabelLarge">
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+</resources>

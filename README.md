@@ -42,7 +42,7 @@ English · [简体中文](docs/README_zh-CN.md) · [Русский](docs/README_
 - **Routing and DNS**: Configure routing, DNS, and related network options.
 - **Node sharing**: Share ordinary nodes as links or QR codes.
 - **UI and themes**: Shared Compose Multiplatform UI, dark mode, and large-screen layouts.
-- **Android integration**: Per-app proxy settings, log viewing, and other platform features.
+- **Android integration**: Per-app proxy settings, log viewing, and a resizable home-screen connection widget with current node, connection duration, and session traffic.
 
 Supported protocols, transports, and configuration fields depend on the current parsers and the Xray-core version used by this repository.
 
@@ -61,6 +61,10 @@ Choose a universal APK if you are unsure of your device architecture. Packages f
 2. Select a node from the configuration list.
 3. Start the connection on Home and allow the system VPN permission request.
 4. Check status and traffic; adjust routing and DNS as needed.
+
+The **Home screen widget** switch in Settings → General controls whether XrayFA appears in the system widget picker. It is disabled by default; enable it before adding a widget. Disabling removes existing instances, which must be added again after re-enabling.
+
+To add the Android widget, long-press the home screen, open Widgets, and select XrayFA. Resize it for a compact switch or an expanded connection card; the switch controls the VPN and “Switch” opens the node list. The first connection requests VPN permission when needed.
 
 Complete Xray JSON configurations have limitations for node-link sharing, latency tests, and some traffic statistics.
 

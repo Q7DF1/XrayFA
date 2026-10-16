@@ -11,6 +11,9 @@ data class SettingsUiLabels(
     val autoModeLabel: String = "Auto",
     val bootAutoStartTitle: String = "Start on boot",
     val bootAutoStartDescription: String = "Automatically start VPN when device boots",
+    val homeScreenWidgetsTitle: String = "Home screen widget",
+    val homeScreenWidgetsDescription: String =
+        "Show XrayFA in the system widget picker. Turning this off removes existing widgets; add them again after enabling.",
     val agentFunctionsTitle: String = "Agent functions",
     val inDevelopmentLabel: String = "In development",
     val agentFunctionsDescription: String =
