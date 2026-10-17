@@ -1,6 +1,6 @@
 <resources>
     <string name="widget_name">连接微件</string>
-    <string name="widget_description">在桌面连接或断开，查看当前节点和本次流量。</string>
+    <string name="widget_description">在桌面连接或断开，查看节点、出口 IP、路由模式和本次流量。</string>
     <string name="widget_needs_setup">待配置</string>
     <string name="widget_connecting">连接中</string>
     <string name="widget_failed">连接失败</string>
@@ -14,6 +14,22 @@
     <string name="widget_duration_format">已连接 %s</string>
     <string name="widget_download_label">↓ 本次下载</string>
     <string name="widget_upload_label">↑ 本次上传</string>
+    <string name="widget_download_stats_format">↓ %1$s/秒\n本次 %2$s</string>
+    <string name="widget_upload_stats_format">↑ %1$s/秒\n本次 %2$s</string>
+    <string name="widget_download_accessibility">下载速度每秒 %1$s，本次下载 %2$s</string>
+    <string name="widget_upload_accessibility">上传速度每秒 %1$s，本次上传 %2$s</string>
+    <string name="widget_endpoint_unavailable">自定义配置</string>
+    <string name="widget_mode_global">全局模式</string>
+    <string name="widget_mode_route">规则模式</string>
+    <string name="widget_mode_custom">自定义配置</string>
+    <string name="widget_status_mode_format">%1$s · %2$s</string>
+    <string name="widget_public_ip_loading">公网 IP：查询中…</string>
+    <string name="widget_public_ip_format">公网 IP：%1$s</string>
+    <string name="widget_public_ip_failed">公网 IP 查询失败，点按重试</string>
+    <string name="widget_public_ip_unavailable">公网 IP：—，点按刷新</string>
+    <string name="widget_public_ip_unsupported">当前 VPN 模式不支持查询公网 IP</string>
+    <string name="widget_public_ip_refresh_description">点按查询当前路由规则下的公网 IP</string>
+    <string name="widget_public_ip_accessibility_format">%1$s。%2$s</string>
     <string name="widget_switch_node">切换 ›</string>
     <string name="widget_permission_required">请打开 XrayFA 授予 VPN 权限后重试。</string>
     <string name="widget_compact_connected">已连接</string>

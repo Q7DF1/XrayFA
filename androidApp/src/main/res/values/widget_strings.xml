@@ -1,6 +1,6 @@
 <resources>
     <string name="widget_name">Connection</string>
-    <string name="widget_description">Connect or disconnect and view your current node and session traffic.</string>
+    <string name="widget_description">Connect or disconnect and view node, exit IP, routing mode and session traffic.</string>
     <string name="widget_needs_setup">Needs setup</string>
     <string name="widget_connecting">Connecting</string>
     <string name="widget_failed">Connection failed</string>
@@ -14,6 +14,22 @@
     <string name="widget_duration_format">Connected %s</string>
     <string name="widget_download_label">↓ Download</string>
     <string name="widget_upload_label">↑ Upload</string>
+    <string name="widget_download_stats_format">↓ %1$s/s\nSession %2$s</string>
+    <string name="widget_upload_stats_format">↑ %1$s/s\nSession %2$s</string>
+    <string name="widget_download_accessibility">Download %1$s per second, %2$s this session</string>
+    <string name="widget_upload_accessibility">Upload %1$s per second, %2$s this session</string>
+    <string name="widget_endpoint_unavailable">Custom configuration</string>
+    <string name="widget_mode_global">Global</string>
+    <string name="widget_mode_route">Rule mode</string>
+    <string name="widget_mode_custom">Custom</string>
+    <string name="widget_status_mode_format">%1$s · %2$s</string>
+    <string name="widget_public_ip_loading">Public IP: checking…</string>
+    <string name="widget_public_ip_format">Public IP: %1$s</string>
+    <string name="widget_public_ip_failed">Public IP unavailable · tap to retry</string>
+    <string name="widget_public_ip_unavailable">Public IP: — · tap to refresh</string>
+    <string name="widget_public_ip_unsupported">Public IP lookup is unavailable in this VPN mode</string>
+    <string name="widget_public_ip_refresh_description">Tap to refresh the public IP for the current routing rules</string>
+    <string name="widget_public_ip_accessibility_format">%1$s. %2$s</string>
     <string name="widget_switch_node">Switch ›</string>
     <string name="widget_permission_required">Open XrayFA to grant VPN permission, then try again.</string>
     <string name="widget_compact_connected">On</string>

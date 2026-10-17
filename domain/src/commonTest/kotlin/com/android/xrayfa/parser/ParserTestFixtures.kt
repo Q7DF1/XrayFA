@@ -24,18 +24,13 @@ internal object ParserTestFixtures {
         socksPassword = TEST_LOCAL_SOCKS_AUTH,
         lanHttpProxyEnable = false,
         httpPort = 10809,
-        dnsIPv4 = "1.1.1.1,8.8.8.8",
-        dnsIPv6 = "",
         ipV6Enable = false,
         domainStrategy = DomainStrategy.IP_IF_NON_MATCH.code,
         routingRules = "",
         routingMode = RoutingMode.GLOBAL.code,
         geoLiteInstall = false,
+        dnsOverHttpsServers = "https://dns.google/dns-query,https://cloudflare-dns.com/dns-query",
     )
-
-    val settingsProvider = object : ConfigParserSettingsProvider {
-        override suspend fun getConfigParserSettings(): ConfigParserSettings = settings
-    }
 
     val geoIpProvider = object : GeoIpProvider {
         override fun countryIsoFromIp(ip: String): String = ""
@@ -43,15 +38,20 @@ internal object ParserTestFixtures {
 
     val encoder = KotlinxXrayConfigEncoder()
 
-    fun factory(): ParserFactory = ParserFactory(
-        vlessConfigParser = VLESSConfigParser(settingsProvider, geoIpProvider, encoder),
-        vmessConfigParser = VMESSConfigParser(settingsProvider, geoIpProvider, encoder),
-        trojanConfigParser = TrojanConfigParser(settingsProvider, geoIpProvider, encoder),
-        shadowSocksConfigParser = ShadowSocksConfigParser(settingsProvider, geoIpProvider, encoder),
-        hysteria2ConfigParser = Hysteria2ConfigParser(settingsProvider, geoIpProvider, encoder),
-        socksConfigParser = SocksConfigParser(settingsProvider, geoIpProvider, encoder),
-        httpConfigParser = HttpConfigParser(settingsProvider, geoIpProvider, encoder),
-    )
+    fun factory(settings: ConfigParserSettings = this.settings): ParserFactory {
+        val settingsProvider = object : ConfigParserSettingsProvider {
+            override suspend fun getConfigParserSettings(): ConfigParserSettings = settings
+        }
+        return ParserFactory(
+            vlessConfigParser = VLESSConfigParser(settingsProvider, geoIpProvider, encoder),
+            vmessConfigParser = VMESSConfigParser(settingsProvider, geoIpProvider, encoder),
+            trojanConfigParser = TrojanConfigParser(settingsProvider, geoIpProvider, encoder),
+            shadowSocksConfigParser = ShadowSocksConfigParser(settingsProvider, geoIpProvider, encoder),
+            hysteria2ConfigParser = Hysteria2ConfigParser(settingsProvider, geoIpProvider, encoder),
+            socksConfigParser = SocksConfigParser(settingsProvider, geoIpProvider, encoder),
+            httpConfigParser = HttpConfigParser(settingsProvider, geoIpProvider, encoder),
+        )
+    }
 
     fun encodeOutbound(outbound: OutboundObject<*>): String =
         XrayJson.encodeToString(OutboundObjectSerializer, outbound)

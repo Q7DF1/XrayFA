@@ -34,8 +34,6 @@
     <string name="light_mode">Light</string>
     <string name="auto_mode">Auto</string>
     <string name="dark_mode_description">Select to turn on dark mode</string>
-    <string name="dns_ipv4" translatable="false">DNS IPv4</string>
-    <string name="dns_ipv6" translatable="false">DNS IPv6</string>
     <string name="socks_port" translatable="false">socks port</string>
     <string name="http_proxy_port" translatable="false">HTTP proxy port</string>
     <string name="allow_app_settings">open app proxy settings</string>
@@ -66,9 +64,9 @@
     <string name="err_ipv4_duplicate">The %1$d-th entry "%2$s" is duplicated</string>
 
     <string name="err_ipv6_empty">Please enter at least one IPv6 address</string>
-    <string name="err_ipv6_item_empty">IPv6 address #%d is empty, please check</string>
-    <string name="err_ipv6_invalid">IPv6 address #%d is invalid: %s</string>
-    <string name="err_ipv6_duplicate">IPv6 address #%d is duplicated: %s</string>
+    <string name="err_ipv6_item_empty">IPv6 address #%1$d is empty, please check</string>
+    <string name="err_ipv6_invalid">IPv6 address #%1$d is invalid: %2$s</string>
+    <string name="err_ipv6_duplicate">IPv6 address #%1$d is duplicated: %2$s</string>
     <string name="err_port_invalid">Port must be between 1 and 65535</string>
 
     <string name="xrayfa_version">Version</string>

@@ -9,12 +9,20 @@ data class StartOptions(
     var preUrl: String? = null,
     var nextUrl: String? = null,
     val jsonNodeId: Int = 0,
+    val selectedNodeId: Int = 0,
+    val nodeName: String? = null,
+    val serverAddress: String? = null,
+    val serverPort: Int = 0,
 ): Parcelable {
 
     constructor(parcel: Parcel) : this(
         parcel.readString() ?: "",
         parcel.readString(),
         parcel.readString(),
+        if (parcel.dataAvail() > 0) parcel.readInt() else 0,
+        if (parcel.dataAvail() > 0) parcel.readInt() else 0,
+        if (parcel.dataAvail() > 0) parcel.readString() else null,
+        if (parcel.dataAvail() > 0) parcel.readString() else null,
         if (parcel.dataAvail() > 0) parcel.readInt() else 0,
     )
 
@@ -23,6 +31,10 @@ data class StartOptions(
         parcel.writeString(preUrl)
         parcel.writeString(nextUrl)
         parcel.writeInt(jsonNodeId)
+        parcel.writeInt(selectedNodeId)
+        parcel.writeString(nodeName)
+        parcel.writeString(serverAddress)
+        parcel.writeInt(serverPort)
     }
 
     override fun describeContents(): Int {

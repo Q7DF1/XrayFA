@@ -23,7 +23,7 @@ class NodeFormTransportTest {
     private val settings = object : ConfigParserSettingsProvider {
         override suspend fun getConfigParserSettings() = ConfigParserSettings(
             socksListen = "127.0.0.1", socksPort = 10808, socksUserName = "test", socksPassword = "test",
-            lanHttpProxyEnable = false, httpPort = 10809, dnsIPv4 = "1.1.1.1", dnsIPv6 = "",
+            lanHttpProxyEnable = false, httpPort = 10809,
             ipV6Enable = false, domainStrategy = 0, routingRules = "", routingMode = 0, geoLiteInstall = false,
         )
     }

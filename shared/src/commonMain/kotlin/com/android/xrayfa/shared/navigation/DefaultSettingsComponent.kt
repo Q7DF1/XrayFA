@@ -145,16 +145,9 @@ class DefaultSettingsComponent(
         }
     }
 
-    override fun onSetDnsIPv4(dns: String) {
+    override fun onSetDnsOverHttpsServers(servers: String) {
         scope.launch {
-            settingsRepository.setDnsIPv4(dns)
-            vpnController.restartIfNeeded()
-        }
-    }
-
-    override fun onSetDnsIPv6(dns: String) {
-        scope.launch {
-            settingsRepository.setDnsIPv6(dns)
+            settingsRepository.setDnsOverHttpsServers(servers)
             vpnController.restartIfNeeded()
         }
     }

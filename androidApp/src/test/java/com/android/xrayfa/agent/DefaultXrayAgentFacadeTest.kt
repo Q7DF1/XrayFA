@@ -56,7 +56,7 @@ class DefaultXrayAgentFacadeTest {
             darkMode = 2,
             routingMode = RoutingMode.GLOBAL.code,
             socksPort = 1080,
-            dnsIPv4 = "1.1.1.1",
+            dnsOverHttpsServers = "https://dns.example/dns-query",
             ipV6Enable = true,
             socksPassword = DUMMY_LOCAL_SOCKS_AUTH,
         )
@@ -66,7 +66,7 @@ class DefaultXrayAgentFacadeTest {
         assertEquals(2, summary.darkMode)
         assertEquals("GLOBAL", summary.routingMode)
         assertEquals(1080, summary.socksPort)
-        assertEquals("1.1.1.1", summary.dnsIpv4)
+        assertEquals("https://dns.example/dns-query", summary.dnsOverHttpsServers)
         assertTrue(summary.ipv6Enabled)
         assertFalse(summary.agentFunctionsEnabled)
         assertFalse(summary.toString().contains(DUMMY_LOCAL_SOCKS_AUTH))

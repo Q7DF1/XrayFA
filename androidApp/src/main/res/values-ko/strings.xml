@@ -32,8 +32,6 @@
     <string name="light_mode">화이트 모드</string>
     <string name="auto_mode">자동</string>
     <string name="dark_mode_description">다크 모드를 활성화 하려면 선택하세요</string>
-    <string name="dns_ipv4" translatable="false">DNS IPv4</string>
-    <string name="dns_ipv6" translatable="false">DNS IPv6</string>
     <string name="socks_port">SOCKS 포트</string>
     <string name="http_proxy_port" translatable="false">HTTP 프록시 포트</string>
     <string name="allow_app_settings">앱 프록시 설정 열기</string>
@@ -64,9 +62,9 @@
     <string name="err_ipv4_duplicate">%1$d번째 항목 %2$s가 중복되었습니다</string>
 
     <string name="err_ipv6_empty">IPv6 주소를 하나 이상 입력해 주세요</string>
-    <string name="err_ipv6_item_empty">IPv6 주소 #%d가 비어 있습니다. 확인해 주세요</string>
-    <string name="err_ipv6_invalid">IPv6 주소 #%d가 유효하지 않습니다 - %s</string>
-    <string name="err_ipv6_duplicate">IPv6 주소 #%d가 중복되었습니다 - %s</string>
+    <string name="err_ipv6_item_empty">IPv6 주소 #%1$d가 비어 있습니다. 확인해 주세요</string>
+    <string name="err_ipv6_invalid">IPv6 주소 #%1$d가 유효하지 않습니다 - %2$s</string>
+    <string name="err_ipv6_duplicate">IPv6 주소 #%1$d가 중복되었습니다 - %2$s</string>
     <string name="err_port_invalid">포트는 1에서 65535 사이여야 합니다</string>
 
     <string name="xrayfa_version">버전</string>

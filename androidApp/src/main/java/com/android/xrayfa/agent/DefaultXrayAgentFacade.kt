@@ -54,7 +54,7 @@ class DefaultXrayAgentFacade(
             darkMode = settings.darkMode,
             routingMode = RoutingMode.fromCode(settings.routingMode).name,
             socksPort = settings.socksPort,
-            dnsIpv4 = settings.dnsIPv4,
+            dnsOverHttpsServers = settings.dnsOverHttpsServers,
             ipv6Enabled = settings.ipV6Enable,
             agentFunctionsEnabled = settings.agentFunctionsEnabled,
         )

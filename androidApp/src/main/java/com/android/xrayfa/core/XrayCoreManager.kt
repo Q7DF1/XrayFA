@@ -195,19 +195,21 @@ class XrayCoreManager(
         job?.cancel()
         if (jsonSession) return
         job = coroutineScope.launch(Dispatchers.IO) {
-            var last = System.currentTimeMillis()
+            var last = SystemClock.elapsedRealtime()
             // send initial zero values
             _trafficFlow.emit(Pair(0.0, 0.0))
             delay(3000L)
             while (true) {
-                val cur = System.currentTimeMillis()
+                val cur = SystemClock.elapsedRealtime()
                 val snapshot = coreController?.queryAllOutboundTrafficStats().orEmpty()
                 val up = outboundTrafficValue(snapshot, TAG_PROXY, UP_STEAM)
                 val down = outboundTrafficValue(snapshot, TAG_PROXY, DOWN_STEAM)
-                _sessionTraffic.update { it.add(up, down) }
-                val deltaTimeSec = (cur - last) / 1000.0
-                val upSpeed = if (deltaTimeSec > 0) (up / deltaTimeSec) / 1024 else 0.0
-                val downSpeed = if (deltaTimeSec > 0) (down / deltaTimeSec) / 1024 else 0.0
+                val deltaTimeSec = ((cur - last).coerceAtLeast(1L)) / 1000.0
+                val upBytesPerSecond = up / deltaTimeSec
+                val downBytesPerSecond = down / deltaTimeSec
+                _sessionTraffic.update { it.add(up, down, upBytesPerSecond, downBytesPerSecond) }
+                val upSpeed = upBytesPerSecond / 1024
+                val downSpeed = downBytesPerSecond / 1024
                 _trafficFlow.emit(Pair(upSpeed, downSpeed))
                 last = cur
                 delay(3000L)

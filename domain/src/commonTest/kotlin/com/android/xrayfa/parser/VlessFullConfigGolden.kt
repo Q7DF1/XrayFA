@@ -14,11 +14,19 @@ internal const val VLESS_FULL_CONFIG_GOLDEN = """
     },
     "dns": {
         "hosts": {
-            "domain:googleapis.cn": "googleapis.com"
+            "domain:googleapis.cn": "googleapis.com",
+            "full:dns.google": [
+                "8.8.8.8",
+                "8.8.4.4"
+            ],
+            "full:cloudflare-dns.com": [
+                "1.1.1.1",
+                "1.0.0.1"
+            ]
         },
         "servers": [
-            "1.1.1.1",
-            "8.8.8.8"
+            "https://dns.google/dns-query",
+            "https://cloudflare-dns.com/dns-query"
         ],
         "queryStrategy": "UseIPv4",
         "tag": "dns_inbound"
@@ -26,6 +34,15 @@ internal const val VLESS_FULL_CONFIG_GOLDEN = """
     "routing": {
         "domainStrategy": "IPIfNonMatch",
         "rules": [
+            {
+                "inboundTag": [
+                    "tun"
+                ],
+                "port": "53",
+                "outboundTag": "dns-out",
+                "ruleTag": "DNS Traffic",
+                "type": "field"
+            },
             {
                 "inboundTag": [
                     "api"

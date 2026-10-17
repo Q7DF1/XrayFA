@@ -59,8 +59,8 @@ data class AppFnSettingsSummary(
     val routingMode: String,
     /** Local SOCKS port. */
     val socksPort: Int,
-    /** IPv4 DNS list. */
-    val dnsIpv4: String,
+    /** HTTPS DoH upstream URLs; plaintext DNS is not used. */
+    val dnsOverHttpsServers: String,
     /** Whether IPv6 is enabled. */
     val ipv6Enabled: Boolean,
     /** Whether the user enabled Agent functions in Settings. */
@@ -110,7 +110,7 @@ internal fun AgentSettingsSummary.toAppFn() = AppFnSettingsSummary(
     darkMode = darkMode,
     routingMode = routingMode,
     socksPort = socksPort,
-    dnsIpv4 = dnsIpv4,
+    dnsOverHttpsServers = dnsOverHttpsServers,
     ipv6Enabled = ipv6Enabled,
     agentFunctionsEnabled = agentFunctionsEnabled,
 )

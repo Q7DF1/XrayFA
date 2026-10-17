@@ -31,8 +31,6 @@
     <string name="light_mode">Светлая</string>
     <string name="auto_mode">Авто</string>
     <string name="dark_mode_description">Выберите, чтобы включить тёмную тему</string>
-    <string name="dns_ipv4" translatable="false">DNS IPv4</string>
-    <string name="dns_ipv6" translatable="false">DNS IPv6</string>
     <string name="socks_port" translatable="false">SOCKS порт</string>
     <string name="http_proxy_port" translatable="false">HTTP порт прокси</string>
     <string name="allow_app_settings">Открыть настройки прокси приложения</string>
@@ -63,9 +61,9 @@
     <string name="err_ipv4_duplicate">Запись №%1$d «%2$s» дублируется</string>
 
     <string name="err_ipv6_empty">Введите хотя бы один IPv6‑адрес</string>
-    <string name="err_ipv6_item_empty">IPv6‑адрес №%d пуст, проверьте</string>
-    <string name="err_ipv6_invalid">IPv6‑адрес №%d недопустим: %s</string>
-    <string name="err_ipv6_duplicate">IPv6‑адрес №%d повторяется: %s</string>
+    <string name="err_ipv6_item_empty">IPv6‑адрес №%1$d пуст, проверьте</string>
+    <string name="err_ipv6_invalid">IPv6‑адрес №%1$d недопустим: %2$s</string>
+    <string name="err_ipv6_duplicate">IPv6‑адрес №%1$d повторяется: %2$s</string>
     <string name="err_port_invalid">Порт должен быть от 1 до 65535</string>
 
     <string name="xrayfa_version">Версия</string>

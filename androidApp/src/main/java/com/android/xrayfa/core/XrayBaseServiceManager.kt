@@ -37,9 +37,20 @@ class XrayBaseServiceManager(
         val node = repository.querySelectedNode().first() ?: return null
         if (node.isJsonConfig) {
             prepareJsonVpn(node, settingsRepository.settingsFlow.first())
-            return StartOptions(node.url, jsonNodeId = node.id)
+            return StartOptions(
+                url = node.url,
+                jsonNodeId = node.id,
+                selectedNodeId = node.id,
+                nodeName = node.remark,
+            )
         }
-        val startOption = StartOptions(node.url)
+        val startOption = StartOptions(
+            url = node.url,
+            selectedNodeId = node.id,
+            nodeName = node.remark,
+            serverAddress = node.address,
+            serverPort = node.port,
+        )
         val subId = node.subscriptionId
         val subscription = subscriptionRepository.getSubscriptionById(subId).first()
         subscription?.preNodeId?.let {

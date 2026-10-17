@@ -13,7 +13,6 @@ import com.android.xrayfa.datastore.Theme
 import com.android.xrayfa.ui.theme.resolveAndroidColorScheme
 import android.net.VpnService
 import android.os.Build
-import android.os.SystemClock
 import android.text.format.Formatter
 import android.util.Log
 import android.util.SizeF
@@ -24,22 +23,28 @@ import com.android.xrayfa.MainActivity
 import com.android.xrayfa.R
 import com.android.xrayfa.common.core.VpnStartupState
 import com.android.xrayfa.common.core.VpnStartupStateStore
+import com.android.xrayfa.common.routing.RoutingMode
+import com.android.xrayfa.core.ActiveVpnSession
 import com.android.xrayfa.core.VpnSessionTraffic
 import com.android.xrayfa.core.XrayBaseService
 import com.android.xrayfa.core.XrayBaseServiceManager
 import com.android.xrayfa.core.XrayCoreManager
 import com.android.xrayfa.model.Node
+import com.android.xrayfa.model.isJsonConfig
 import com.android.xrayfa.repository.NodeRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 
@@ -50,19 +55,60 @@ class ConnectionWidgetUpdater(
     private val startup: VpnStartupStateStore,
     private val core: XrayCoreManager,
     private val manager: XrayBaseServiceManager,
+    private val exitIpLookup: WidgetExitIpLookup,
 ) {
-    private data class Snapshot(
-        val node: Node?,
+    private data class CoreSnapshot(
+        val selectedNode: Node?,
         val running: Boolean,
         val startup: VpnStartupState,
+        val activeSession: ActiveVpnSession?,
         val traffic: VpnSessionTraffic,
-        val darkMode: Int,
     )
 
-    private val snapshots = combine(
-        repository.querySelectedNode(), XrayBaseService.statusFlow, startup.state, core.sessionTraffic,
-        manager.settingsRepository.settingsFlow.map { it.darkMode }.distinctUntilChanged(),
-    ) { node, running, startup, traffic, darkMode -> Snapshot(node, running, startup, traffic, darkMode) }
+    private data class WidgetSettings(val darkMode: Int, val routingMode: Int)
+
+    private data class ExitIpSnapshot(
+        val sessionId: Long,
+        val address: String? = null,
+        val loading: Boolean = false,
+        val failed: Boolean = false,
+        val unsupported: Boolean = false,
+    )
+
+    private data class Snapshot(
+        val selectedNode: Node?,
+        val running: Boolean,
+        val startup: VpnStartupState,
+        val activeSession: ActiveVpnSession?,
+        val traffic: VpnSessionTraffic,
+        val darkMode: Int,
+        val routingMode: Int,
+        val exitIp: ExitIpSnapshot?,
+    )
+
+    private val exitIp = MutableStateFlow<ExitIpSnapshot?>(null)
+    private var exitIpJob: Job? = null
+    private val coreSnapshots = combine(
+        repository.querySelectedNode(), XrayBaseService.statusFlow, startup.state,
+        XrayBaseService.activeSession, core.sessionTraffic,
+    ) { selectedNode, running, startupState, activeSession, traffic ->
+        CoreSnapshot(selectedNode, running, startupState, activeSession, traffic)
+    }
+    private val widgetSettings = manager.settingsRepository.settingsFlow
+        .map { WidgetSettings(it.darkMode, it.routingMode) }
+        .distinctUntilChanged()
+    private val snapshots = combine(coreSnapshots, widgetSettings, exitIp) { state, settings, ip ->
+        Snapshot(
+            selectedNode = state.selectedNode,
+            running = state.running,
+            startup = state.startup,
+            activeSession = state.activeSession,
+            traffic = state.traffic,
+            darkMode = settings.darkMode,
+            routingMode = settings.routingMode,
+            exitIp = ip,
+        )
+    }
     private val actionMutex = Mutex()
     private var observing = false
 
@@ -75,20 +121,33 @@ class ConnectionWidgetUpdater(
                 .distinctUntilChanged()
                 .collectLatest { enabled ->
                     syncProviderEnabled(enabled)
-                    if (!enabled) return@collectLatest
+                    if (!enabled) {
+                        exitIpJob?.cancel()
+                        exitIp.value = null
+                        return@collectLatest
+                    }
                     var previous: Snapshot? = null
-                    var lastUpdate = 0L
                     snapshots.collect { snapshot ->
-                        val now = SystemClock.elapsedRealtime()
-                        // Connection and node changes are immediate; byte totals update at most every 15 seconds.
+                        val previousSession = previous?.activeSession?.sessionId
+                        val currentSession = snapshot.activeSession?.sessionId.takeIf {
+                            snapshot.running && !snapshot.startup.pending
+                        }
+                        if (previous == null || previousSession != currentSession) {
+                            startExitIpLookup(snapshot.activeSession.takeIf {
+                                snapshot.running && !snapshot.startup.pending
+                            })
+                        }
                         val important = previous?.let {
-                            it.node != snapshot.node || it.running != snapshot.running || it.startup != snapshot.startup ||
-                                it.traffic.startedAtElapsed != snapshot.traffic.startedAtElapsed || it.darkMode != snapshot.darkMode
+                            it.selectedNode != snapshot.selectedNode || it.running != snapshot.running ||
+                                it.startup != snapshot.startup || it.activeSession != snapshot.activeSession ||
+                                it.traffic.startedAtElapsed != snapshot.traffic.startedAtElapsed ||
+                                it.darkMode != snapshot.darkMode || it.routingMode != snapshot.routingMode ||
+                                it.exitIp != snapshot.exitIp
                         } ?: true
-                        if (important || now - lastUpdate >= 15_000) {
+                        // XrayCoreManager publishes one read-and-reset traffic snapshot every three seconds.
+                        if (important || previous?.traffic != snapshot.traffic) {
                             update(snapshot)
                             previous = snapshot
-                            lastUpdate = now
                         }
                     }
                 }
@@ -113,7 +172,14 @@ class ConnectionWidgetUpdater(
         scope.launch {
             try {
                 withTimeout(8_000) {
-                    if (manager.settingsRepository.settingsFlow.first().homeScreenWidgetsEnabled) update(snapshots.first())
+                    if (manager.settingsRepository.settingsFlow.first().homeScreenWidgetsEnabled) {
+                        val snapshot = snapshots.first()
+                        val session = snapshot.activeSession.takeIf { snapshot.running && !snapshot.startup.pending }
+                        if (session != null && exitIp.value?.sessionId != session.sessionId) {
+                            startExitIpLookup(session)
+                        }
+                        update(snapshot)
+                    }
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
@@ -159,13 +225,64 @@ class ConnectionWidgetUpdater(
         }
     }
 
+    fun refreshExitIp(finished: () -> Unit = {}) {
+        scope.launch {
+            try {
+                if (!manager.settingsRepository.settingsFlow.first().homeScreenWidgetsEnabled) return@launch
+                val session = XrayBaseService.activeSession.value ?: return@launch
+                if (startup.state.value.pending || !XrayBaseService.statusFlow.value || widgetIds().isEmpty()) {
+                    return@launch
+                }
+                if (exitIp.value?.let { it.sessionId == session.sessionId && it.loading } == true) return@launch
+                startExitIpLookup(session)
+            } finally {
+                finished()
+            }
+        }
+    }
+
+    private fun startExitIpLookup(session: ActiveVpnSession?) {
+        exitIpJob?.cancel()
+        if (session == null || widgetIds().isEmpty()) {
+            exitIp.value = null
+            return
+        }
+        if (!session.socksInboundAvailable) {
+            exitIp.value = ExitIpSnapshot(sessionId = session.sessionId, unsupported = true)
+            return
+        }
+        exitIp.value = ExitIpSnapshot(sessionId = session.sessionId, loading = true)
+        exitIpJob = scope.launch {
+            val result = try {
+                withTimeout(EXIT_IP_TIMEOUT_MILLIS) { exitIpLookup.lookup() }
+            } catch (e: TimeoutCancellationException) {
+                Log.w(TAG, "Timed out loading proxy exit IP", e)
+                null
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                Log.w(TAG, "Unable to load proxy exit IP", e)
+                null
+            }
+            if (XrayBaseService.activeSession.value?.sessionId != session.sessionId) return@launch
+            exitIp.value = if (result != null) {
+                ExitIpSnapshot(sessionId = session.sessionId, address = result)
+            } else {
+                ExitIpSnapshot(sessionId = session.sessionId, failed = true)
+            }
+        }
+    }
+
+    private fun widgetIds(): IntArray = AppWidgetManager.getInstance(context)
+        .getAppWidgetIds(ComponentName(context, ConnectionWidgetProvider::class.java))
+
     private fun update(snapshot: Snapshot) {
         val widgets = AppWidgetManager.getInstance(context)
-        val ids = widgets.getAppWidgetIds(ComponentName(context, ConnectionWidgetProvider::class.java))
+        val ids = widgetIds()
+        if (ids.isEmpty()) return
         val fontScaleExtra = (context.resources.configuration.fontScale - 1f).coerceAtLeast(0f)
         // Larger system text needs more space before the detailed card can fit comfortably.
         val expandedWidth = 250f + 72f * fontScaleExtra
-        val expandedHeight = 156f + 84f * fontScaleExtra
+        val expandedHeight = 176f + 84f * fontScaleExtra
         val systemDark = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
         val colors = resolveAndroidColorScheme(context, Theme.fromCode(snapshot.darkMode).resolvesToDark(systemDark))
         for (id in ids) {
@@ -185,7 +302,10 @@ class ConnectionWidgetUpdater(
     }
 
     private fun render(snapshot: Snapshot, compact: Boolean, colors: ColorScheme): RemoteViews {
-        val state = connectionWidgetState(snapshot.node != null, snapshot.running, snapshot.startup)
+        val connectedSession = snapshot.activeSession.takeIf { snapshot.running && !snapshot.startup.pending }
+        val selectedNode = snapshot.selectedNode
+        val hasNode = connectedSession?.nodeId?.let { it > 0 } ?: (selectedNode != null)
+        val state = connectionWidgetState(hasNode, snapshot.running, snapshot.startup)
         val connected = state == ConnectionWidgetState.CONNECTED
         val pending = state == ConnectionWidgetState.CONNECTING
         val empty = state == ConnectionWidgetState.EMPTY
@@ -210,8 +330,32 @@ class ConnectionWidgetUpdater(
             connected -> colors.primary
             else -> colors.onSurfaceVariant
         }.toArgb()
-        val nodeName = snapshot.node?.remark?.takeIf { it.isNotBlank() }
-            ?: if (snapshot.node != null) context.getString(R.string.widget_unnamed_node) else context.getString(R.string.widget_add_node)
+        val nodeName = if (connectedSession != null) {
+            connectedSession.nodeName?.takeIf { it.isNotBlank() } ?: context.getString(R.string.widget_unnamed_node)
+        } else {
+            selectedNode?.remark?.takeIf { it.isNotBlank() }
+                ?: if (hasNode) context.getString(R.string.widget_unnamed_node) else context.getString(R.string.widget_add_node)
+        }
+        val endpointAddress = if (connectedSession != null) connectedSession.serverAddress else selectedNode?.address
+        val endpointPort = if (connectedSession != null) connectedSession.serverPort else selectedNode?.port
+        val customConfiguration = connectedSession?.customConfiguration ?: (selectedNode?.isJsonConfig == true)
+        val mode = if (!hasNode || customConfiguration) null
+            else connectedSession?.routingMode ?: RoutingMode.fromCode(snapshot.routingMode)
+        val statusLabel = if (compact) when (state) {
+            ConnectionWidgetState.EMPTY -> R.string.widget_compact_empty
+            ConnectionWidgetState.CONNECTING -> R.string.widget_compact_connecting
+            ConnectionWidgetState.CONNECTED -> R.string.widget_compact_connected
+            ConnectionWidgetState.FAILED -> R.string.widget_compact_failed
+            ConnectionWidgetState.DISCONNECTED -> R.string.widget_compact_disconnected
+        } else label
+        val statusText = when {
+            compact -> context.getString(statusLabel)
+            customConfiguration -> context.getString(R.string.widget_status_mode_format,
+                context.getString(statusLabel), context.getString(R.string.widget_mode_custom))
+            mode != null -> context.getString(R.string.widget_status_mode_format,
+                context.getString(statusLabel), context.getString(if (mode == RoutingMode.GLOBAL) R.string.widget_mode_global else R.string.widget_mode_route))
+            else -> context.getString(statusLabel)
+        }
         val openHome = activityIntent(MainActivity.ACTION_WIDGET_HOME)
         val openNodes = activityIntent(MainActivity.ACTION_WIDGET_NODES)
         val action = when {
@@ -222,15 +366,8 @@ class ConnectionWidgetUpdater(
         }
         return RemoteViews(context.packageName, if (compact) R.layout.widget_connection_compact else R.layout.widget_connection).apply {
             setTextViewText(R.id.widget_node, nodeName)
-            val statusLabel = if (compact) when (state) {
-                ConnectionWidgetState.EMPTY -> R.string.widget_compact_empty
-                ConnectionWidgetState.CONNECTING -> R.string.widget_compact_connecting
-                ConnectionWidgetState.CONNECTED -> R.string.widget_compact_connected
-                ConnectionWidgetState.FAILED -> R.string.widget_compact_failed
-                ConnectionWidgetState.DISCONNECTED -> R.string.widget_compact_disconnected
-            } else label
-            setTextViewText(R.id.widget_status, context.getString(statusLabel))
-            setContentDescription(R.id.widget_status, context.getString(label))
+            setTextViewText(R.id.widget_status, statusText)
+            setContentDescription(R.id.widget_status, statusText)
             setTextColor(R.id.widget_status, color)
             setInt(R.id.widget_dot, "setColorFilter", color)
             applyWidgetTypography(compact)
@@ -253,25 +390,58 @@ class ConnectionWidgetUpdater(
                 setTextColor(R.id.widget_brand, colors.onSurfaceVariant.toArgb())
                 setTextColor(R.id.widget_hint, colors.onSurfaceVariant.toArgb())
                 setTextColor(R.id.widget_duration, colors.onSurfaceVariant.toArgb())
+                setTextColor(R.id.widget_endpoint, colors.onSurfaceVariant.toArgb())
                 setTextColor(R.id.widget_download, colors.onSurface.toArgb())
                 setTextColor(R.id.widget_upload, colors.onSurface.toArgb())
                 setTextColor(R.id.widget_switch, colors.primary.toArgb())
                 setInt(R.id.widget_divider, "setColorFilter", colors.outlineVariant.toArgb())
-                setTextViewText(R.id.widget_hint, context.getString(hint))
+                val ip = snapshot.exitIp?.takeIf { it.sessionId == connectedSession?.sessionId }
+                val hintText = if (connected) {
+                    when {
+                        ip?.loading == true -> context.getString(R.string.widget_public_ip_loading)
+                        ip?.address != null -> context.getString(R.string.widget_public_ip_format, ip.address)
+                        ip?.unsupported == true -> context.getString(R.string.widget_public_ip_unsupported)
+                        ip?.failed == true -> context.getString(R.string.widget_public_ip_failed)
+                        else -> context.getString(R.string.widget_public_ip_unavailable)
+                    }
+                } else context.getString(hint)
+                setTextViewText(R.id.widget_hint, hintText)
+                setContentDescription(R.id.widget_hint, if (connected && ip?.unsupported != true) {
+                    context.getString(
+                        R.string.widget_public_ip_accessibility_format,
+                        hintText,
+                        context.getString(R.string.widget_public_ip_refresh_description),
+                    )
+                } else hintText)
+                val endpoint = endpointAddress?.takeIf { it.isNotBlank() }?.let { address ->
+                    val host = if (address.contains(':') && !address.startsWith('[')) "[$address]" else address
+                    if (endpointPort != null && endpointPort > 0) "$host:$endpointPort" else host
+                }
+                setTextViewText(R.id.widget_endpoint, endpoint ?: context.getString(R.string.widget_endpoint_unavailable))
+                setViewVisibility(R.id.widget_endpoint, if (endpoint == null) View.GONE else View.VISIBLE)
                 val chrono = connected && snapshot.traffic.startedAtElapsed > 0
-                setViewVisibility(R.id.widget_hint, if (chrono) View.GONE else View.VISIBLE)
+                setViewVisibility(R.id.widget_hint, View.VISIBLE)
                 setViewVisibility(R.id.widget_duration, if (chrono) View.VISIBLE else View.GONE)
                 setChronometer(R.id.widget_duration, snapshot.traffic.startedAtElapsed,
                     context.getString(R.string.widget_duration_format), chrono)
                 val stats = connected && snapshot.traffic.available
                 val download = if (stats) Formatter.formatShortFileSize(context, snapshot.traffic.downloadedBytes) else "—"
                 val upload = if (stats) Formatter.formatShortFileSize(context, snapshot.traffic.uploadedBytes) else "—"
-                setTextViewText(R.id.widget_download, "↓ $download")
-                setTextViewText(R.id.widget_upload, "↑ $upload")
-                setContentDescription(R.id.widget_download, "${context.getString(R.string.widget_download_label)} $download")
-                setContentDescription(R.id.widget_upload, "${context.getString(R.string.widget_upload_label)} $upload")
+                val downloadRate = if (stats) Formatter.formatShortFileSize(context, snapshot.traffic.downloadBytesPerSecond.toLong()) else "—"
+                val uploadRate = if (stats) Formatter.formatShortFileSize(context, snapshot.traffic.uploadBytesPerSecond.toLong()) else "—"
+                setTextViewText(R.id.widget_download, context.getString(R.string.widget_download_stats_format, downloadRate, download))
+                setTextViewText(R.id.widget_upload, context.getString(R.string.widget_upload_stats_format, uploadRate, upload))
+                setContentDescription(R.id.widget_download,
+                    context.getString(R.string.widget_download_accessibility, downloadRate, download))
+                setContentDescription(R.id.widget_upload,
+                    context.getString(R.string.widget_upload_accessibility, uploadRate, upload))
                 setTextViewText(R.id.widget_switch, context.getString(if (empty) R.string.widget_add_node else R.string.widget_switch_node))
                 setOnClickPendingIntent(R.id.widget_switch, openNodes)
+                setOnClickPendingIntent(R.id.widget_hint, when {
+                    connected && ip?.unsupported != true -> exitIpRefreshIntent()
+                    connected -> null
+                    else -> openHome
+                })
             }
         }
     }
@@ -295,7 +465,18 @@ class ConnectionWidgetUpdater(
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
 
+    private fun exitIpRefreshIntent(): PendingIntent = PendingIntent.getBroadcast(
+        context,
+        1,
+        Intent(context, ConnectionWidgetActionReceiver::class.java).apply {
+            action = ConnectionWidgetActionReceiver.ACTION_REFRESH_EXIT_IP
+            addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
+        },
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+    )
+
     companion object {
         private const val TAG = "ConnectionWidget"
+        private const val EXIT_IP_TIMEOUT_MILLIS = 12_000L
     }
 }

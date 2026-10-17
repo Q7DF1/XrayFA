@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.android.xrayfa.common.config.DnsDefaults
 import com.android.xrayfa.common.json.decodeStringList
 import com.android.xrayfa.common.json.encodeStringList
 import com.android.xrayfa.common.repository.ConfigParserSettings
@@ -33,8 +34,7 @@ data class SettingsState(
     val socksUserName: String = "",
     val socksPassword: String = "",
     val socksListen: String = "",
-    val dnsIPv4: String = "",
-    val dnsIPv6: String = "",
+    val dnsOverHttpsServers: String = DnsDefaults.DEFAULT_DOH_SERVERS,
     val delayTestUrl: String = DEFAULT_DELAY_TEST_URL,
     val xrayCoreVersion: String = "unknown",
     val version: String = "1.0.0",
@@ -62,8 +62,7 @@ object SettingsKeys {
     val SOCKS_USERNAME = stringPreferencesKey("socks_username")
     val SOCKS_PASSWORD = stringPreferencesKey("socks_password")
     val SOCKS_LISTEN = stringPreferencesKey("socks_listen")
-    val DNS_IPV4 = stringPreferencesKey("dns_ipv4")
-    val DNS_IPV6 = stringPreferencesKey("dns_ipv6")
+    val DNS_OVER_HTTPS_SERVERS = stringPreferencesKey("dns_over_https_servers")
     val VERSION = stringPreferencesKey("version")
     val DELAY_TEST_URL = stringPreferencesKey("delay_test_site")
     val ALLOW_PACKAGES = stringPreferencesKey("allow_packages")
@@ -105,8 +104,9 @@ class SettingsRepository(
             socksUserName = prefs[SettingsKeys.SOCKS_USERNAME] ?: "",
             socksPassword = prefs[SettingsKeys.SOCKS_PASSWORD] ?: "",
             socksListen = prefs[SettingsKeys.SOCKS_LISTEN] ?: "127.0.0.1",
-            dnsIPv4 = prefs[SettingsKeys.DNS_IPV4] ?: "8.8.8.8,1.1.1.1",
-            dnsIPv6 = prefs[SettingsKeys.DNS_IPV6] ?: "2001:4860:4860::8888",
+            dnsOverHttpsServers = DnsDefaults.parseDohServers(
+                prefs[SettingsKeys.DNS_OVER_HTTPS_SERVERS] ?: DnsDefaults.DEFAULT_DOH_SERVERS,
+            ).joinToString(","),
             delayTestUrl = prefs[SettingsKeys.DELAY_TEST_URL] ?: DEFAULT_DELAY_TEST_URL,
             version = prefs[SettingsKeys.VERSION] ?: "1.0.0",
             xrayCoreVersion = prefs[SettingsKeys.XRAY_CORE_VERSION] ?: "unknown",
@@ -178,15 +178,9 @@ class SettingsRepository(
         }
     }
 
-    suspend fun setDnsIPv4(dns: String) {
+    suspend fun setDnsOverHttpsServers(servers: String) {
         dataStore.edit {
-            it[SettingsKeys.DNS_IPV4] = dns
-        }
-    }
-
-    suspend fun setDnsIPv6(dns: String) {
-        dataStore.edit {
-            it[SettingsKeys.DNS_IPV6] = dns
+            it[SettingsKeys.DNS_OVER_HTTPS_SERVERS] = DnsDefaults.parseDohServers(servers).joinToString(",")
         }
     }
 
@@ -310,13 +304,12 @@ class SettingsRepository(
             socksPassword = settings.socksPassword,
             lanHttpProxyEnable = settings.lanHttpProxyEnable,
             httpPort = settings.httpPort,
-            dnsIPv4 = settings.dnsIPv4,
-            dnsIPv6 = settings.dnsIPv6,
             ipV6Enable = settings.ipV6Enable,
             domainStrategy = settings.domainStrategy,
             routingRules = settings.routingRules,
             routingMode = settings.routingMode,
             geoLiteInstall = settings.geoLiteInstall,
+            dnsOverHttpsServers = settings.dnsOverHttpsServers,
         )
     }
 }

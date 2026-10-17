@@ -59,9 +59,9 @@
     <string name="err_ipv4_duplicate">第 %1$d 个地址 “%2$s” 与前面的重复</string>
 
     <string name="err_ipv6_empty">请输入至少一个IPv6地址</string>
-    <string name="err_ipv6_item_empty">第%d项IPv6地址为空，请检查</string>
-    <string name="err_ipv6_invalid">第%d项IPv6地址格式无效：%s</string>
-    <string name="err_ipv6_duplicate">第%d项IPv6地址重复：%s</string>
+    <string name="err_ipv6_item_empty">第%1$d项IPv6地址为空，请检查</string>
+    <string name="err_ipv6_invalid">第%1$d项IPv6地址格式无效：%2$s</string>
+    <string name="err_ipv6_duplicate">第%1$d项IPv6地址重复：%2$s</string>
     <string name="err_port_invalid">端口必须在 1 到 65535 之间</string>
     <string name="xrayfa_version">版本</string>
     <string name="xray_core_version">Xray core 版本</string>

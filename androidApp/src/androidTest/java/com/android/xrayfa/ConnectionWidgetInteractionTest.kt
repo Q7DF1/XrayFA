@@ -318,6 +318,16 @@ class ConnectionWidgetInteractionTest {
         val manager = AppWidgetManager.getInstance(context)
         val settings = GlobalContext.get().get<SettingsRepository>()
         val originalMode = settings.settingsFlow.first().darkMode
+        val routingModeString = if (settings.settingsFlow.first().routingMode == 0) {
+            R.string.widget_mode_global
+        } else {
+            R.string.widget_mode_route
+        }
+        fun statusWithRoutingMode(status: Int) = context.getString(
+            R.string.widget_status_mode_format,
+            context.getString(status),
+            context.getString(routingModeString),
+        )
         val originalWidgetsEnabled = settings.settingsFlow.first().homeScreenWidgetsEnabled
         settings.setHomeScreenWidgetsEnabled(true)
         waitUntil("Provider must be enabled before binding") {
@@ -354,19 +364,23 @@ class ConnectionWidgetInteractionTest {
             screenshot("widget-disconnected.png")
             val attempt = startup.begin()
             waitUntil("Connecting must disable repeated taps") {
-                text(R.id.widget_status) == context.getString(R.string.widget_connecting) &&
+                text(R.id.widget_status) == statusWithRoutingMode(R.string.widget_connecting) &&
                     hostView.findViewById<View>(R.id.widget_power)?.isEnabled == false
             }
             startup.fail(VpnStartupFailure(StartupFailureKind.CORE_INITIALIZATION, StartupStage.CORE, "Test failure"), attempt)
-            waitUntil("Failure must offer retry") { text(R.id.widget_status) == context.getString(R.string.widget_failed) }
+            waitUntil("Failure must offer retry") { text(R.id.widget_status) == statusWithRoutingMode(R.string.widget_failed) }
             screenshot("widget-failed.png")
             instrumentation.runOnMainSync { hostView.findViewById<View>(R.id.widget_power).performClick() }
             waitUntil("Widget power must start the real VPN") { XrayBaseService.statusFlow.value }
-            waitUntil("Running service must update the widget") { text(R.id.widget_status) == context.getString(R.string.connected) }
+            waitUntil("Running service must update the widget") {
+                text(R.id.widget_status) == statusWithRoutingMode(R.string.connected)
+            }
             assertNotNull(hostView.findViewById<View>(R.id.widget_duration))
+            assertEquals("127.0.0.1:9", text(R.id.widget_endpoint))
             assertNotClipped(R.id.widget_power)
             assertNotClipped(R.id.widget_duration)
             assertNotClipped(R.id.widget_node)
+            assertNotClipped(R.id.widget_endpoint)
             assertNotClipped(R.id.widget_status)
             assertNotClipped(R.id.widget_download)
             assertNotClipped(R.id.widget_switch)

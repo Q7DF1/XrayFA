@@ -1,5 +1,7 @@
 package com.android.xrayfa.common.repository
 
+import com.android.xrayfa.common.config.DnsDefaults
+
 /**
  * Settings snapshot consumed by Xray config parsers.
  *
@@ -13,13 +15,12 @@ data class ConfigParserSettings(
     val socksPassword: String,
     val lanHttpProxyEnable: Boolean,
     val httpPort: Int,
-    val dnsIPv4: String,
-    val dnsIPv6: String,
     val ipV6Enable: Boolean,
     val domainStrategy: Int,
     val routingRules: String,
     val routingMode: Int,
     val geoLiteInstall: Boolean,
+    val dnsOverHttpsServers: String = DnsDefaults.DEFAULT_DOH_SERVERS,
 )
 
 interface ConfigParserSettingsProvider {

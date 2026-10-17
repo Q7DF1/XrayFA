@@ -25,14 +25,15 @@
     <string name="delete_notify">Эта операция необратима. Вы уверены, что хотите удалить?</string>
     <string name="save">Сохранить</string>
     <string name="enable_ipv6">Включить IPv6</string>
-    <string name="enable_ipv6_description">Нажмите, чтобы включить прокси IPv6</string>
+    <string name="enable_ipv6_description">Направлять IPv6-трафик через VPN. DNS всегда использует DoH.</string>
+    <string name="doh_servers_title">Серверы DNS over HTTPS (DoH)</string>
+    <string name="doh_servers_description">Введите HTTPS DoH URL через запятую. DNS всегда использует DoH.</string>
+    <string name="err_doh_server_invalid">Введите корректные HTTPS DoH URL через запятую</string>
     <string name="theme_select">Тема</string>
     <string name="dark_mode">Тёмная</string>
     <string name="light_mode">Светлая</string>
     <string name="auto_mode">Авто</string>
     <string name="dark_mode_description">Выберите, чтобы включить тёмную тему</string>
-    <string name="dns_ipv4" translatable="false">DNS IPv4</string>
-    <string name="dns_ipv6" translatable="false">DNS IPv6</string>
     <string name="socks_port" translatable="false">SOCKS порт</string>
     <string name="http_proxy_port" translatable="false">HTTP порт прокси</string>
     <string name="allow_app_settings">Открыть настройки прокси приложения</string>

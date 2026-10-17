@@ -22,6 +22,7 @@ import com.android.xrayfa.common.core.StartupStage
 import com.android.xrayfa.common.core.VpnStartupFailure
 import com.android.xrayfa.common.core.VpnStartupStateStore
 import com.android.xrayfa.common.core.classifyStartupFailure
+import com.android.xrayfa.common.routing.RoutingMode
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.model.isJsonConfig
 import com.android.xrayfa.shared.vpn.prepareJsonVpn
@@ -65,10 +66,13 @@ class XrayBaseService constructor(
 
         private val _statusFlow = MutableStateFlow(false)
         val statusFlow = _statusFlow.asStateFlow()
+        private val _activeSession = MutableStateFlow<ActiveVpnSession?>(null)
+        val activeSession = _activeSession.asStateFlow()
 
 
         fun updateStatus(isRunning: Boolean) {
             _statusFlow.tryEmit(isRunning)
+            if (!isRunning) _activeSession.tryEmit(null)
         }
     }
 
@@ -210,21 +214,13 @@ class XrayBaseService constructor(
 
 
 
-    private suspend fun startVpn(jsonConfig: Boolean = false) {
+    private suspend fun startVpn() {
         val prefs  = NetPreferences(this)
         val builder = Builder()
         val settings = settingsRepo.settingsFlow.first()
-        val dnsServers = if (jsonConfig) listOf(JsonVpnConfig.VPN_DNS) else settings.dnsIPv4.split(",").filter { it.isNotBlank() }
-
-        if (dnsServers.isNotEmpty()) {
-            dnsServers.forEach { builder.addDnsServer(it.trim()) }
-        } else {
-            builder.addDnsServer("8.8.8.8")
-        }
-        if (settings.ipV6Enable && !jsonConfig) {
-            val dnsV6Servers = settings.dnsIPv6.split(",").filter { it.isNotBlank() }
-            dnsV6Servers.forEach { builder.addDnsServer(it.trim()) }
-        }
+        // The VPN interface advertises only its synthetic DNS address. Xray
+        // intercepts port 53 and forwards queries to the configured DoH servers.
+        builder.addDnsServer(JsonVpnConfig.VPN_DNS)
         val allowedPackages = settingsRepo.getAllowedPackages()
         if (!allowedPackages.isEmpty()) {
             allowedPackages.forEach {
@@ -274,7 +270,7 @@ class XrayBaseService constructor(
             val coreOptions = (prepared ?: resolveCoreOptions(startOptions)).copy(startupAttemptId = attemptId)
             val settingState = settingsRepo.settingsFlow.first()
             stage = StartupStage.VPN
-            startVpn(coreOptions.jsonConfig != null)
+            startVpn()
             val fd = tunFd?.fd ?: error("VPN_INTERFACE: Android did not create a VPN interface")
             stage = StartupStage.CORE
             val started = if (settingState.hexTunEnable) {
@@ -291,6 +287,18 @@ class XrayBaseService constructor(
                     StartupStage.CORE, "Core did not start"), attemptId)
             }
             if (!started) stopXrayCoreService()
+            if (started) {
+                _activeSession.value = ActiveVpnSession(
+                    sessionId = attemptId,
+                    nodeId = startOptions.selectedNodeId,
+                    nodeName = startOptions.nodeName,
+                    serverAddress = startOptions.serverAddress,
+                    serverPort = startOptions.serverPort.takeIf { it > 0 },
+                    routingMode = if (coreOptions.jsonConfig == null) RoutingMode.fromCode(settingState.routingMode) else null,
+                    customConfiguration = coreOptions.jsonConfig != null,
+                    socksInboundAvailable = coreOptions.jsonConfig == null || settingState.hexTunEnable,
+                )
+            }
             return started
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -308,6 +316,7 @@ class XrayBaseService constructor(
         if (tun2SocksService.isRunning()) tun2SocksService.stopTun2Socks()
         stopVPN()
         xrayCore.stopXrayCore()
+        _activeSession.value = null
     }
 
     // Call this method whenever VPN state changes
