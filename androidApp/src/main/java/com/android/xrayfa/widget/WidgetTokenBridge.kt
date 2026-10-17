@@ -13,6 +13,7 @@ internal fun RemoteViews.applyWidgetTypography(compact: Boolean) {
         listOf(
             R.id.widget_brand to Typography.labelLarge,
             R.id.widget_node to Typography.titleLarge,
+            R.id.widget_endpoint to Typography.bodySmall,
             R.id.widget_status to Typography.labelLarge,
             R.id.widget_hint to Typography.bodyMedium,
             R.id.widget_duration to Typography.bodyMedium,

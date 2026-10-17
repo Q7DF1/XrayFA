@@ -22,6 +22,7 @@ import com.android.xrayfa.common.core.StartupStage
 import com.android.xrayfa.common.core.VpnStartupFailure
 import com.android.xrayfa.common.core.VpnStartupStateStore
 import com.android.xrayfa.common.core.classifyStartupFailure
+import com.android.xrayfa.common.routing.RoutingMode
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.model.isJsonConfig
 import com.android.xrayfa.shared.vpn.prepareJsonVpn
@@ -65,10 +66,13 @@ class XrayBaseService constructor(
 
         private val _statusFlow = MutableStateFlow(false)
         val statusFlow = _statusFlow.asStateFlow()
+        private val _activeSession = MutableStateFlow<ActiveVpnSession?>(null)
+        val activeSession = _activeSession.asStateFlow()
 
 
         fun updateStatus(isRunning: Boolean) {
             _statusFlow.tryEmit(isRunning)
+            if (!isRunning) _activeSession.tryEmit(null)
         }
     }
 
@@ -291,6 +295,18 @@ class XrayBaseService constructor(
                     StartupStage.CORE, "Core did not start"), attemptId)
             }
             if (!started) stopXrayCoreService()
+            if (started) {
+                _activeSession.value = ActiveVpnSession(
+                    sessionId = attemptId,
+                    nodeId = startOptions.selectedNodeId,
+                    nodeName = startOptions.nodeName,
+                    serverAddress = startOptions.serverAddress,
+                    serverPort = startOptions.serverPort.takeIf { it > 0 },
+                    routingMode = if (coreOptions.jsonConfig == null) RoutingMode.fromCode(settingState.routingMode) else null,
+                    customConfiguration = coreOptions.jsonConfig != null,
+                    socksInboundAvailable = coreOptions.jsonConfig == null || settingState.hexTunEnable,
+                )
+            }
             return started
         } catch (e: Exception) {
             if (e is CancellationException) throw e
@@ -308,6 +324,7 @@ class XrayBaseService constructor(
         if (tun2SocksService.isRunning()) tun2SocksService.stopTun2Socks()
         stopVPN()
         xrayCore.stopXrayCore()
+        _activeSession.value = null
     }
 
     // Call this method whenever VPN state changes

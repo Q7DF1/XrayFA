@@ -256,6 +256,7 @@ dependencies {
     implementation(project(":core:network"))
     implementation(project(":core:datastore"))
     implementation(project(":core:native-bridge"))
+    implementation(libs.ktor.client.core)
     implementation(project(":platform:vpn"))
     implementation(project(":shared"))
     implementation(libs.decompose)

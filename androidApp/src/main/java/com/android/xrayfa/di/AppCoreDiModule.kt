@@ -30,6 +30,7 @@ val appCoreDiModule: Module = module {
             startup = get(),
             core = get(),
             manager = get(),
+            exitIpLookup = get(),
         )
     }
     single { VpnStartupStateStore() }
