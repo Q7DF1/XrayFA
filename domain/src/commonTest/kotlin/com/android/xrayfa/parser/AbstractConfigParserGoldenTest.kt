@@ -84,10 +84,10 @@ class AbstractConfigParserGoldenTest {
 
         listOf(globalRules, routeRules, tcpOnlyRules).forEach { rules ->
             assertEquals("dns-out", rules.first().outboundTag)
-            assertEquals(listOf("tun"), rules.first().inboundTag)
+            assertEquals(listOf("tun", "socks"), rules.first().inboundTag)
             assertEquals("53", rules.first().port)
             assertEquals(1, rules.count {
-                it.inboundTag == listOf("tun") && it.port == "53" && it.outboundTag == "dns-out"
+                it.inboundTag == listOf("tun", "socks") && it.port == "53" && it.outboundTag == "dns-out"
             })
         }
     }

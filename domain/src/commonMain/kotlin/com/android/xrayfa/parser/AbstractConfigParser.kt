@@ -180,15 +180,17 @@ abstract class AbstractConfigParser<T : AbsOutboundConfigurationObject, P> {
         // Always intercept device DNS before custom/global catch-all rules. The
         // dns-out outbound forwards these classic port-53 packets to Xray's DNS
         // module, whose upstreams are selected by the DNS setting above.
+        val dnsInboundTags = listOf("tun", "socks")
         val dnsRule = RuleObject(
             type = "field",
-            inboundTag = listOf("tun"),
+            inboundTag = dnsInboundTags,
             port = "53",
             outboundTag = "dns-out",
             ruleTag = "DNS Traffic",
         )
         rules = listOf(dnsRule) + (rules ?: emptyList()).filterNot {
-            it.type == "field" && it.inboundTag == listOf("tun") &&
+            it.type == "field" &&
+                (it.inboundTag == listOf("tun") || it.inboundTag == dnsInboundTags) &&
                 it.port == "53" && it.outboundTag == "dns-out"
         }
 
