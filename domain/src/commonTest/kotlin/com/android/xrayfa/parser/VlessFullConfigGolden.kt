@@ -36,7 +36,8 @@ internal const val VLESS_FULL_CONFIG_GOLDEN = """
         "rules": [
             {
                 "inboundTag": [
-                    "tun"
+                    "tun",
+                    "socks"
                 ],
                 "port": "53",
                 "outboundTag": "dns-out",
