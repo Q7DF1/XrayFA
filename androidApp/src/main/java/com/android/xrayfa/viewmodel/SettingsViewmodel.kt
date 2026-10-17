@@ -179,20 +179,6 @@ class SettingsViewmodel(
         setSocksListen(resolveSocksListenAddressForLan(enable))
     }
 
-    fun setDnsIpV4(dns: String) {
-        viewModelScope.launch {
-            repository.setDnsIPv4(dns)
-            onConfigSettingsChanged()
-        }
-    }
-
-    fun setDnsIpV6(dns: String) {
-        viewModelScope.launch {
-            repository.setDnsIPv6(dns)
-            onConfigSettingsChanged()
-        }
-    }
-
     fun setDelayTestUrl(url: String) {
         viewModelScope.launch {
             repository.setDelayTestUrl(url)

@@ -23,8 +23,7 @@ private enum class NetworkEditField {
     SOCKS_PORT,
     SOCKS_USERNAME,
     SOCKS_PASSWORD,
-    DNS_IPV4,
-    DNS_IPV6,
+    DOH_SERVERS,
     DELAY_TEST_URL,
 }
 
@@ -79,10 +78,11 @@ fun SharedSettingsNetworkDetailsSection(
         onClick = { openEdit(NetworkEditField.SOCKS_PASSWORD, state.socksPassword) },
     )
     SharedSettingsFieldRow(
-        title = labels.dnsIpv4Title,
-        content = state.dnsIPv4,
+        title = labels.dohServersTitle,
+        content = state.dnsOverHttpsServers,
+        description = labels.dohServersDescription,
         icon = Icons.Outlined.Dns,
-        onClick = { openEdit(NetworkEditField.DNS_IPV4, state.dnsIPv4) },
+        onClick = { openEdit(NetworkEditField.DOH_SERVERS, state.dnsOverHttpsServers) },
     )
     SharedSettingsSwitchRow(
         title = labels.enableIpv6Title,
@@ -91,18 +91,6 @@ fun SharedSettingsNetworkDetailsSection(
         onCheckedChange = component::onSetIpV6Enable,
         icon = Icons.Outlined.NetworkCheck,
     )
-    SharedSettingsFieldRow(
-        title = labels.dnsIpv6Title,
-        content = state.dnsIPv6,
-        icon = Icons.Outlined.Dns,
-        enabled = state.ipV6Enable,
-        onClick = {
-            if (state.ipV6Enable) {
-                openEdit(NetworkEditField.DNS_IPV6, state.dnsIPv6)
-            }
-        },
-    )
-
     SharedSettingsDownloadRow(
         title = labels.geoLiteTitle,
         description = labels.geoLiteDescription,
@@ -152,14 +140,9 @@ fun SharedSettingsNetworkDetailsSection(
                         SettingsValidators.validateSocksCredential(input, labels, isPassword = true)
                     }
                 }
-                NetworkEditField.DNS_IPV4 -> {
+                NetworkEditField.DOH_SERVERS -> {
                     { input ->
-                        SettingsValidators.validateIpv4List(input, labels)
-                    }
-                }
-                NetworkEditField.DNS_IPV6 -> {
-                    { input ->
-                        SettingsValidators.validateIpv6List(input, labels)
+                        SettingsValidators.validateDohServerList(input, labels)
                     }
                 }
                 NetworkEditField.DELAY_TEST_URL -> {
@@ -184,8 +167,7 @@ fun SharedSettingsNetworkDetailsSection(
                         component.onSetSocksPort(value.toIntOrNull() ?: 10808)
                     NetworkEditField.SOCKS_USERNAME -> component.onSetSocksUsername(value)
                     NetworkEditField.SOCKS_PASSWORD -> component.onSetSocksPassword(value)
-                    NetworkEditField.DNS_IPV4 -> component.onSetDnsIPv4(value)
-                    NetworkEditField.DNS_IPV6 -> component.onSetDnsIPv6(value)
+                    NetworkEditField.DOH_SERVERS -> component.onSetDnsOverHttpsServers(value)
                     NetworkEditField.DELAY_TEST_URL -> component.onSetDelayTestUrl(value)
                 }
                 editField = null

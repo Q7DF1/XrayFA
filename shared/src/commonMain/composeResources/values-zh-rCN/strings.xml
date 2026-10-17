@@ -27,7 +27,10 @@
     <string name="delete_notify">此操作无法撤销，确定要删除吗？</string>
     <string name="save">保存</string>
     <string name="enable_ipv6">启用IPv6</string>
-    <string name="enable_ipv6_description">勾选后开启IPv6代理</string>
+    <string name="enable_ipv6_description">通过 VPN 路由 IPv6 流量，DNS 仍始终使用 DoH。</string>
+    <string name="doh_servers_title">DNS over HTTPS (DoH) 服务器</string>
+    <string name="doh_servers_description">填入一个或多个 HTTPS DoH 地址，以英文逗号分隔。DNS 始终使用 DoH。</string>
+    <string name="err_doh_server_invalid">请输入一个或多个有效的 HTTPS DoH 地址，并用英文逗号分隔</string>
     <string name="theme_select">主题</string>
     <string name="dark_mode">暗黑模式</string>
     <string name="light_mode">正常模式</string>

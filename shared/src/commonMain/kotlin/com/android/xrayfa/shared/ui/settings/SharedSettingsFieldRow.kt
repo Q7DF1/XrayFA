@@ -1,6 +1,7 @@
 package com.android.xrayfa.shared.ui.settings
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -22,6 +23,7 @@ fun SharedSettingsFieldRow(
     enabled: Boolean = true,
     icon: ImageVector? = null,
     trailingIcon: ImageVector? = null,
+    description: String? = null,
 ) {
     ListItem(
         headlineContent = {
@@ -36,15 +38,29 @@ fun SharedSettingsFieldRow(
             )
         },
         supportingContent = {
-            Text(
-                text = content,
-                color =
-                    if (enabled) {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-                    },
-            )
+            Column {
+                Text(
+                    text = content,
+                    color =
+                        if (enabled) {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                        },
+                )
+                description?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color =
+                            if (enabled) {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                            },
+                    )
+                }
+            }
         },
         leadingContent =
             icon?.let {

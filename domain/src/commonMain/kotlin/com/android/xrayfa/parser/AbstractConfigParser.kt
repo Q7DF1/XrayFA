@@ -2,6 +2,7 @@ package com.android.xrayfa.parser
 
 import com.android.xrayfa.common.core.CoreStartOptions
 import com.android.xrayfa.common.core.GeoIpProvider
+import com.android.xrayfa.common.config.DnsDefaults
 import com.android.xrayfa.common.repository.ConfigParserSettings
 import com.android.xrayfa.common.repository.ConfigParserSettingsProvider
 import com.android.xrayfa.common.routing.DomainStrategy
@@ -149,22 +150,14 @@ abstract class AbstractConfigParser<T : AbsOutboundConfigurationObject, P> {
 
     suspend fun getBaseDnsConfig(): DnsObject {
         val settings = settingsProvider.getConfigParserSettings()
-        val dnsV4 = settings.dnsIPv4.split(",")
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-        val dns = if (settings.ipV6Enable) {
-            val dnsV6 = settings.dnsIPv6.split(",")
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
-            dnsV4 + dnsV6
-        } else {
-            dnsV4
+        val dohServers = DnsDefaults.parseDohServers(settings.dnsOverHttpsServers)
+        val hosts = buildMap<String, Any> {
+            put("domain:googleapis.cn", "googleapis.com")
+            putAll(DnsDefaults.bootstrapHostsFor(dohServers))
         }
         return DnsObject(
-            hosts = mapOf(
-                "domain:googleapis.cn" to "googleapis.com",
-            ),
-            servers = dns,
+            hosts = hosts,
+            servers = dohServers,
             queryStrategy = if (settings.ipV6Enable) "UseIP" else "UseIPv4",
         )
     }
@@ -184,6 +177,21 @@ abstract class AbstractConfigParser<T : AbsOutboundConfigurationObject, P> {
             rules = getTcpOnlyProxyRules() + (rules ?: emptyList())
         }
 
+        // Always intercept device DNS before custom/global catch-all rules. The
+        // dns-out outbound forwards these classic port-53 packets to Xray's DNS
+        // module, whose upstreams are selected by the DNS setting above.
+        val dnsRule = RuleObject(
+            type = "field",
+            inboundTag = listOf("tun"),
+            port = "53",
+            outboundTag = "dns-out",
+            ruleTag = "DNS Traffic",
+        )
+        rules = listOf(dnsRule) + (rules ?: emptyList()).filterNot {
+            it.type == "field" && it.inboundTag == listOf("tun") &&
+                it.port == "53" && it.outboundTag == "dns-out"
+        }
+
         return RoutingObject(
             domainStrategy = when (settings.domainStrategy) {
                 DomainStrategy.ASIS.code -> "AsIs"
@@ -197,12 +205,6 @@ abstract class AbstractConfigParser<T : AbsOutboundConfigurationObject, P> {
 
     fun getTcpOnlyProxyRules(): List<RuleObject> {
         return listOf(
-            RuleObject(
-                type = "field",
-                port = "53",
-                outboundTag = "direct",
-                ruleTag = "DNS Direct (TCP-only proxy)",
-            ),
             RuleObject(
                 type = "field",
                 network = "udp",

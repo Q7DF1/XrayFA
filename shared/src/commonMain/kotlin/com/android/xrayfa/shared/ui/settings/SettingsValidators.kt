@@ -1,5 +1,7 @@
 package com.android.xrayfa.shared.ui.settings
 
+import com.android.xrayfa.common.config.DnsDefaults
+
 /**
  * KMP settings field validators aligned with Android [validateIpv4List] / [validatePort] etc.
  * Error strings come from [SettingsUiLabels] so platforms can localize via labels.
@@ -28,6 +30,16 @@ object SettingsValidators {
         input: String,
         labels: SettingsUiLabels,
     ): String? = if (input.isBlank()) labels.cannotBeEmpty else null
+
+    fun validateDohServerList(
+        input: String,
+        labels: SettingsUiLabels,
+    ): String? {
+        if (input.isBlank()) return labels.cannotBeEmpty
+        val servers = input.split(',').map(String::trim)
+        if (servers.any { !DnsDefaults.isValidDohServer(it) }) return labels.dohServerInvalid
+        return if (servers.distinctBy(String::lowercase).size == servers.size) null else labels.dohServerInvalid
+    }
 
     fun validateIpv4List(
         input: String,

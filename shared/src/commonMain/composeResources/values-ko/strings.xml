@@ -26,14 +26,15 @@
     <string name="delete_notify">이 작업은 되돌릴 수 없습니다. 정말 삭제하시겠습니까?</string>
     <string name="save">저장</string>
     <string name="enable_ipv6">IPv6 활성화</string>
-    <string name="enable_ipv6_description">IPv6 프록시를 활성화하려면 클릭하세요</string>
+    <string name="enable_ipv6_description">IPv6 트래픽을 VPN으로 라우팅합니다. DNS는 항상 DoH를 사용합니다.</string>
+    <string name="doh_servers_title">DNS over HTTPS (DoH) 서버</string>
+    <string name="doh_servers_description">HTTPS DoH URL을 쉼표로 구분해 입력하세요. DNS는 항상 DoH를 사용합니다.</string>
+    <string name="err_doh_server_invalid">쉼표로 구분된 유효한 HTTPS DoH URL을 입력하세요</string>
     <string name="theme_select">테마</string>
     <string name="dark_mode">다크 모드</string>
     <string name="light_mode">화이트 모드</string>
     <string name="auto_mode">자동</string>
     <string name="dark_mode_description">다크 모드를 활성화 하려면 선택하세요</string>
-    <string name="dns_ipv4" translatable="false">DNS IPv4</string>
-    <string name="dns_ipv6" translatable="false">DNS IPv6</string>
     <string name="socks_port">SOCKS 포트</string>
     <string name="http_proxy_port" translatable="false">HTTP 프록시 포트</string>
     <string name="allow_app_settings">앱 프록시 설정 열기</string>

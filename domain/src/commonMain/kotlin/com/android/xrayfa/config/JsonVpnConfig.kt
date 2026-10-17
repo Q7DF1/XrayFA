@@ -1,5 +1,6 @@
 package com.android.xrayfa.config
 
+import com.android.xrayfa.common.config.DnsDefaults
 import kotlinx.serialization.json.*
 
 enum class JsonConfigError { INVALID_JSON, TOO_LARGE, INVALID_CONFIG, DUPLICATE_KEY, TOO_DEEP, INBOUND_REQUIRED, CONFLICT, EXTERNAL_FILE }
@@ -11,6 +12,8 @@ data class JsonVpnTransport(
     val socksUser: String = "",
     val socksCredential: String = "",
     val mtu: Int = 1500,
+    val dohServers: List<String> = DnsDefaults.dohServers,
+    val ipV6Enabled: Boolean = false,
 )
 
 object JsonVpnConfig {
@@ -146,8 +149,23 @@ object JsonVpnConfig {
         runtime["outbounds"] = JsonArray((source["outbounds"] as JsonArray) + dnsOutbound)
         runtime["routing"] = JsonObject(routing + ("rules" to JsonArray(listOf(dnsRule) + rules)))
         if (!runtime.containsKey("stats")) runtime["stats"] = JsonObject(emptyMap())
-        // This is a bootstrap only when the user supplied no DNS configuration.
-        if (!runtime.containsKey("dns")) runtime["dns"] = buildJsonObject { putJsonArray("servers") { add("1.1.1.1"); add("8.8.8.8") } }
+        // Always force DNS upstreams to HTTPS DoH, even if the imported JSON
+        // supplied UDP/TCP DNS servers. Preserve its other DNS settings.
+        val sourceDns = source["dns"] as? JsonObject ?: JsonObject(emptyMap())
+        val dohServers = DnsDefaults.parseDohServers(transport.dohServers.joinToString(","))
+        val dnsHosts = buildJsonObject {
+            (sourceDns["hosts"] as? JsonObject)?.forEach { (host, value) -> put(host, value) }
+            DnsDefaults.bootstrapHostsFor(dohServers).forEach { (host, addresses) ->
+                putJsonArray(host) { addresses.forEach { add(it) } }
+            }
+        }
+        val runtimeDns = sourceDns.toMutableMap()
+        runtimeDns["hosts"] = dnsHosts
+        runtimeDns["servers"] = JsonArray(dohServers.map { JsonPrimitive(it) })
+        if (runtimeDns["queryStrategy"] == null) {
+            runtimeDns["queryStrategy"] = JsonPrimitive(if (transport.ipV6Enabled) "UseIP" else "UseIPv4")
+        }
+        runtime["dns"] = JsonObject(runtimeDns)
         return JsonObject(runtime).toString()
     }
 

@@ -31,8 +31,6 @@
     <string name="light_mode">Светлая</string>
     <string name="auto_mode">Авто</string>
     <string name="dark_mode_description">Выберите, чтобы включить тёмную тему</string>
-    <string name="dns_ipv4" translatable="false">DNS IPv4</string>
-    <string name="dns_ipv6" translatable="false">DNS IPv6</string>
     <string name="socks_port" translatable="false">SOCKS порт</string>
     <string name="http_proxy_port" translatable="false">HTTP порт прокси</string>
     <string name="allow_app_settings">Открыть настройки прокси приложения</string>
