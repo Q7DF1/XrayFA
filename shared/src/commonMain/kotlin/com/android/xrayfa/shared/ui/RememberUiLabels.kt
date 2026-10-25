@@ -24,6 +24,8 @@ fun rememberHomeUiLabels(): HomeUiLabels =
         unknownProtocolLabel = stringResource(Res.string.unknown),
         emptyNodeMessage = stringResource(Res.string.select_configuration_notify),
         configNotReadyMessage = stringResource(Res.string.config_not_ready),
+        mapFromLabel = stringResource(Res.string.home_map_from),
+        mapToLabel = stringResource(Res.string.home_map_to),
     )
 
 @Composable
