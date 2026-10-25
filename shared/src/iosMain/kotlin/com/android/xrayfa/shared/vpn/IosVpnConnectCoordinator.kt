@@ -2,6 +2,7 @@ package com.android.xrayfa.shared.vpn
 
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.config.*
+import com.android.xrayfa.datastore.SettingsRepository
 import kotlinx.serialization.json.*
 import com.android.xrayfa.vpn.IosVpnController
 import com.android.xrayfa.vpn.setPendingConfig
@@ -11,6 +12,7 @@ class IosVpnConnectCoordinator(
     private val vpnController: IosVpnController,
     private val parserFactory: ParserFactory,
     private val startOptionsResolver: VpnStartOptionsResolver,
+    private val settingsRepository: SettingsRepository,
 ) : VpnConnectCoordinator {
     init { vpnController.prepareForRestart = { prepareConfigForConnect() } }
 
@@ -21,7 +23,8 @@ class IosVpnConnectCoordinator(
         }
         val jsonConfig = startOptions.jsonConfig
         if (jsonConfig != null) {
-            val runtime = JsonVpnConfig.prepare(jsonConfig, JsonVpnTransport(), startOptions.jsonInboundTag)
+            val settings = settingsRepository.settingsFlow.first()
+            val runtime = JsonVpnConfig.prepare(jsonConfig, jsonVpnTransport(settings), startOptions.jsonInboundTag)
             // Single value: the extension cannot observe JSON and channel metadata from different saves.
             vpnController.setPendingConfig(buildJsonObject {
                 put("_xrayfaEnvelopeVersion", 1)

@@ -18,6 +18,7 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class DefaultSettingsComponent(
@@ -145,9 +146,38 @@ class DefaultSettingsComponent(
         }
     }
 
+    override fun onEnableDeveloperMode() {
+        scope.launch { settingsRepository.setDeveloperModeEnabled(true) }
+    }
+
+    override fun onExitDeveloperMode() {
+        scope.launch {
+            val wasUsingUdpDns =
+                settingsRepository.settingsFlow.first().let { it.developerModeEnabled && !it.dnsOverHttpsEnabled }
+            settingsRepository.setDeveloperModeEnabled(false)
+            if (wasUsingUdpDns) vpnController.restartIfNeeded()
+        }
+    }
+
+    override fun onSetDnsOverHttpsEnabled(enable: Boolean) {
+        scope.launch {
+            if (!settingsRepository.settingsFlow.first().developerModeEnabled) return@launch
+            settingsRepository.setDnsOverHttpsEnabled(enable)
+            vpnController.restartIfNeeded()
+        }
+    }
+
     override fun onSetDnsOverHttpsServers(servers: String) {
         scope.launch {
             settingsRepository.setDnsOverHttpsServers(servers)
+            vpnController.restartIfNeeded()
+        }
+    }
+
+    override fun onSetUdpDnsServers(servers: String) {
+        scope.launch {
+            if (!settingsRepository.settingsFlow.first().developerModeEnabled) return@launch
+            settingsRepository.setUdpDnsServers(servers)
             vpnController.restartIfNeeded()
         }
     }

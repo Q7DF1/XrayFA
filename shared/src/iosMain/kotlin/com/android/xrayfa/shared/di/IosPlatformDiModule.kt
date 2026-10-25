@@ -53,6 +53,7 @@ val iosPlatformDiModule: Module = module {
             vpnController = get(),
             parserFactory = get(),
             startOptionsResolver = get(),
+            settingsRepository = get(),
         )
     }
     single<TrafficStatsSource> {

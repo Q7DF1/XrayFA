@@ -150,14 +150,21 @@ abstract class AbstractConfigParser<T : AbsOutboundConfigurationObject, P> {
 
     suspend fun getBaseDnsConfig(): DnsObject {
         val settings = settingsProvider.getConfigParserSettings()
-        val dohServers = DnsDefaults.parseDohServers(settings.dnsOverHttpsServers)
+        val dnsServers =
+            if (settings.dnsOverHttpsEnabled) {
+                DnsDefaults.parseDohServers(settings.dnsOverHttpsServers)
+            } else {
+                DnsDefaults.parseUdpDnsServers(settings.udpDnsServers)
+            }
         val hosts = buildMap<String, Any> {
             put("domain:googleapis.cn", "googleapis.com")
-            putAll(DnsDefaults.bootstrapHostsFor(dohServers))
+            if (settings.dnsOverHttpsEnabled) {
+                putAll(DnsDefaults.bootstrapHostsFor(dnsServers))
+            }
         }
         return DnsObject(
             hosts = hosts,
-            servers = dohServers,
+            servers = dnsServers,
             queryStrategy = if (settings.ipV6Enable) "UseIP" else "UseIPv4",
         )
     }

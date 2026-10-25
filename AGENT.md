@@ -50,7 +50,7 @@ cd XrayFA
 git submodule update --init --recursive   # if already cloned
 ```
 
-Submodules: `AndroidLibXrayLite/` (Xray-core gomobile), `tun2socks/src/main/jni/hev-socks5-tunnel/`.
+Submodules at the current pinned revision: `AndroidLibXrayLite/` (Xray-core gomobile, `v26.10.21`) and `tun2socks/src/main/jni/hev-socks5-tunnel/` (`2.19.3`). Their recursive dependencies remain pinned by the submodule gitlinks.
 
 ### 3.2 Android native core (`libv2ray.aar`)
 

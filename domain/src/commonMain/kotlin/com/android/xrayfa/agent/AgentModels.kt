@@ -33,7 +33,9 @@ data class AgentSettingsSummary(
     val darkMode: Int,
     val routingMode: String,
     val socksPort: Int,
+    val dnsOverHttpsEnabled: Boolean,
     val dnsOverHttpsServers: String,
+    val udpDnsServers: String,
     val ipv6Enabled: Boolean,
     val agentFunctionsEnabled: Boolean,
 )
