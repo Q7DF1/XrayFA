@@ -11,4 +11,6 @@ data class HomeUiLabels(
     val unknownProtocolLabel: String = "Unknown",
     val emptyNodeMessage: String = "select configuration first",
     val configNotReadyMessage: String = "Configuration not ready",
+    val mapFromLabel: String = "Your location",
+    val mapToLabel: String = "Destination",
 )

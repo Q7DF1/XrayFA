@@ -1,6 +1,7 @@
 package com.android.xrayfa.shared.ui.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
@@ -41,6 +46,9 @@ fun HomeTrafficStatusCard(
     modifier: Modifier = Modifier,
     framed: Boolean = true,
 ) {
+    val darkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val uploadAccent = if (darkTheme) Color(0xFF54DCCB) else Color(0xFF087F79)
+    val downloadAccent = if (darkTheme) Color(0xFF76A9FF) else Color(0xFF426EBD)
     val body: @Composable () -> Unit = {
         Row(
             modifier =
@@ -55,7 +63,7 @@ fun HomeTrafficStatusCard(
                 label = uploadLabel,
                 speedKbps = if (isConnected) uploadSpeedKbps else 0.0,
                 icon = Icons.Default.KeyboardArrowUp,
-                color = MaterialTheme.colorScheme.primary,
+                color = uploadAccent,
             )
             VerticalDivider(modifier = Modifier.height(36.dp).width(1.dp))
             HomeTrafficSpeedItem(
@@ -63,7 +71,8 @@ fun HomeTrafficStatusCard(
                 label = downloadLabel,
                 speedKbps = if (isConnected) downloadSpeedKbps else 0.0,
                 icon = Icons.Default.KeyboardArrowDown,
-                color = MaterialTheme.colorScheme.secondary,
+                color = downloadAccent,
+                showSparkline = true,
             )
         }
     }
@@ -90,6 +99,7 @@ private fun HomeTrafficSpeedItem(
     icon: ImageVector,
     color: Color,
     modifier: Modifier = Modifier,
+    showSparkline: Boolean = false,
 ) {
     Row(
         modifier = modifier,
@@ -108,11 +118,17 @@ private fun HomeTrafficSpeedItem(
         }
         androidx.compose.foundation.layout.Spacer(Modifier.width(10.dp))
         Column {
-            Text(
-                text = label.replaceFirstChar { it.uppercaseChar() },
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = label.replaceFirstChar { it.uppercaseChar() },
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (showSparkline) {
+                    androidx.compose.foundation.layout.Spacer(Modifier.width(6.dp))
+                    TrafficSparkline(color = color)
+                }
+            }
             Text(
                 text = "${formatSpeedKbps(speedKbps)} KB/s",
                 style = MaterialTheme.typography.titleMedium,
@@ -120,6 +136,26 @@ private fun HomeTrafficSpeedItem(
                 color = MaterialTheme.colorScheme.onSurface,
             )
         }
+    }
+}
+
+@Composable
+private fun TrafficSparkline(color: Color) {
+    Canvas(modifier = Modifier.size(width = 26.dp, height = 12.dp)) {
+        val points = listOf(
+            Offset(0f, size.height * 0.66f),
+            Offset(size.width * 0.20f, size.height * 0.66f),
+            Offset(size.width * 0.34f, size.height * 0.25f),
+            Offset(size.width * 0.49f, size.height * 0.86f),
+            Offset(size.width * 0.64f, size.height * 0.42f),
+            Offset(size.width * 0.78f, size.height * 0.58f),
+            Offset(size.width, size.height * 0.58f),
+        )
+        val path = Path().apply {
+            moveTo(points.first().x, points.first().y)
+            points.drop(1).forEach { lineTo(it.x, it.y) }
+        }
+        drawPath(path, color.copy(alpha = 0.9f), style = Stroke(width = 1.2.dp.toPx()))
     }
 }
 

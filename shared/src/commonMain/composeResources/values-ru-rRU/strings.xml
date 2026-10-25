@@ -16,6 +16,8 @@
     <string name="select_configuration_notify">Сначала выберите конфигурацию</string>
     <string name="upload_data">Отправить</string>
     <string name="download_data">Загрузить</string>
+    <string name="home_map_from">Ваше место</string>
+    <string name="home_map_to">Место подключения</string>
     <string name="config_not_ready">Конфиг не готов</string>
     <string name="qrcode_import">Импорт QR‑кода</string>
     <string name="close_window">Закрыть</string>

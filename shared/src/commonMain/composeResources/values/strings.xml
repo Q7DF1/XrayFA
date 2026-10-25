@@ -19,6 +19,8 @@
     <string name="select_configuration_notify">select configuration first</string>
     <string name="upload_data">upload</string>
     <string name="download_data">download</string>
+    <string name="home_map_from">Your location</string>
+    <string name="home_map_to">Destination</string>
     <string name="config_not_ready">config not ready</string>
     <string name="qrcode_import">QR code import</string>
     <string name="close_window">close</string>

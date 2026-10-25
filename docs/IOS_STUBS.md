@@ -1,6 +1,6 @@
 # iOS Status: Stubs and Platform Gaps
 
-Document intentional stubs and unresolved platform gaps as required by `AGENT.md` (R-3). Move resolved entries to the implemented section or remove them. This English translation preserves the status recorded on 2026-09-04; it does not represent a new implementation audit.
+Document intentional stubs and unresolved platform gaps as required by `AGENT.md` (R-3). Move resolved entries to the implemented section or remove them. Updated on 2026-10-25 for the shared home-map location behavior; this is not a full implementation audit.
 
 ## Intentional Stubs
 
@@ -23,6 +23,7 @@ These behaviors are deliberate. Do not move tunnel or core execution into the ho
 | QR scanner: photo library / flashlight | AVFoundation live camera only | Photo import and flashlight controls unavailable |
 | `SystemBackHandler` | Empty implementation | Relies on system gestures |
 | Logs | `SharedInProcessAppLogScreen` backed by `AppLogStore` | Host-process logs only; Network Extension log bridge remains unresolved |
+| Home map IP geolocation | Shared map shows unavailable location markers | Android uses a direct-network IP lookup; iOS still needs a platform lookup that distinguishes the device network from the Network Extension route |
 
 ## Implemented
 

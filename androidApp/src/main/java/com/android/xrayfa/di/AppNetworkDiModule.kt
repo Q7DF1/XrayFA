@@ -7,6 +7,7 @@ import com.android.xrayfa.network.createSocksProxyHttpClient
 import com.android.xrayfa.network.createProxyFileDownloader
 import com.android.xrayfa.network.createSubscriptionFetcher
 import com.android.xrayfa.widget.WidgetExitIpLookup
+import com.android.xrayfa.ui.home.AndroidHomeIpLocationLookup
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -18,6 +19,8 @@ import org.koin.dsl.module
 private const val WIDGET_EXIT_IP_HTTP_CLIENT = "widgetExitIpHttpClient"
 
 val appNetworkDiModule: Module = module {
+    single { AndroidHomeIpLocationLookup(androidContext()) }
+
     single {
         val context = androidContext()
         val versionName = context.packageManager.getPackageInfo(context.packageName, 0).versionName

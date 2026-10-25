@@ -10,6 +10,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -43,17 +44,18 @@ fun HomeConnectButton(
 ) {
     val buttonBrush =
         if (isConnected) {
-            Brush.linearGradient(colors = listOf(XrayBrand.BlueLight, XrayBrand.BlueDeep))
+            Brush.linearGradient(colors = listOf(Color(0xFF16B7B4), Color(0xFF1976D2), XrayBrand.BlueDeep))
         } else {
             Brush.linearGradient(
                 colors =
                     listOf(
-                        XrayBrand.Blue.copy(alpha = 0.22f),
-                        XrayBrand.BlueDeep.copy(alpha = 0.12f),
+                        Color(0xFF204F78),
+                        Color(0xFF173557),
+                        Color(0xFF111C2E),
                     ),
             )
         }
-    val shadowColor = if (isConnected) XrayBrand.Blue.copy(alpha = 0.45f) else Color.Transparent
+    val shadowColor = if (isConnected) Color(0xFF31D7D0).copy(alpha = 0.44f) else Color(0xFF36BFC7).copy(alpha = 0.20f)
     val scale = remember { Animatable(1.0f) }
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -83,9 +85,21 @@ fun HomeConnectButton(
         contentAlignment = Alignment.Center,
         modifier = modifier.size(diameter),
     ) {
-        if (isConnected) {
-            HomeConnectPulseRings(color = XrayBrand.Blue)
-        }
+        Box(
+            modifier =
+                Modifier
+                    .size(innerDiameter * 1.52f)
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(shadowColor.copy(alpha = if (isConnected) 0.34f else 0.18f), Color.Transparent),
+                        ),
+                        CircleShape,
+                    ),
+        )
+        HomeConnectPulseRings(
+            color = if (isConnected) Color(0xFF48E5D5) else Color(0xFF55CAD2),
+            active = isConnected,
+        )
 
         Box(
             contentAlignment = Alignment.Center,
@@ -95,7 +109,7 @@ fun HomeConnectButton(
                     .scale(scale.value)
                     .connectButtonSurface(
                         brush = buttonBrush,
-                        shadowElevation = if (isConnected) 24.dp else 4.dp,
+                        shadowElevation = if (isConnected) 24.dp else 10.dp,
                         shadowColor = shadowColor,
                     )
                     .clickable(
@@ -116,7 +130,7 @@ fun HomeConnectButton(
 }
 
 @Composable
-private fun BoxScope.HomeConnectPulseRings(color: Color) {
+private fun BoxScope.HomeConnectPulseRings(color: Color, active: Boolean) {
     val transition = rememberInfiniteTransition(label = "pulse")
     repeat(2) { index ->
         val progress by
@@ -138,7 +152,7 @@ private fun BoxScope.HomeConnectPulseRings(color: Color) {
                     .clip(CircleShape)
                     .border(
                         width = 2.dp,
-                        color = color.copy(alpha = (1f - progress) * 0.5f),
+                        color = color.copy(alpha = (1f - progress) * if (active) 0.5f else 0.20f),
                         shape = CircleShape,
                     ),
         )

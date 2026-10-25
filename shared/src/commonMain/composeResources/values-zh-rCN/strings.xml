@@ -17,6 +17,8 @@
     <string name="select_configuration_notify">先选择配置信息</string>
     <string name="upload_data">上传</string>
     <string name="download_data">下载</string>
+    <string name="home_map_from">你的位置</string>
+    <string name="home_map_to">连接地点</string>
     <string name="config_not_ready">还没有配置</string>
     <string name="qrcode_import">二维码导入</string>
     <string name="close_window">关闭</string>
