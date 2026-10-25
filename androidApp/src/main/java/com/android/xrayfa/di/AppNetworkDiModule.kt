@@ -19,7 +19,12 @@ import org.koin.dsl.module
 private const val WIDGET_EXIT_IP_HTTP_CLIENT = "widgetExitIpHttpClient"
 
 val appNetworkDiModule: Module = module {
-    single { AndroidHomeIpLocationLookup(androidContext()) }
+    single {
+        AndroidHomeIpLocationLookup(
+            androidContext(),
+            get(named(WIDGET_EXIT_IP_HTTP_CLIENT)),
+        )
+    }
 
     single {
         val context = androidContext()

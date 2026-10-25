@@ -7,6 +7,10 @@ import android.net.NetworkCapabilities
 import android.os.SystemClock
 import com.android.xrayfa.shared.ui.home.HomeMapLocation
 import com.android.xrayfa.shared.ui.home.HomeMapLocations
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -16,28 +20,34 @@ import java.net.URL
 import java.net.URLEncoder
 
 /**
- * Looks up the device's real public IP on a non-VPN network and the selected node's IP separately.
- * Both requests are bound to an explicit Android Network so the VPN tunnel cannot turn the device
- * location into the proxy exit location.
+ * Looks up the device's public IP on a direct non-VPN network and the selected node separately.
+ * The node lookup uses the app's local SOCKS proxy because the VPN app itself is excluded from the
+ * VPN interface.
  */
-class AndroidHomeIpLocationLookup(context: Context) {
+class AndroidHomeIpLocationLookup(
+    context: Context,
+    private val proxyHttpClient: HttpClient,
+) {
     private val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
 
     suspend fun lookup(nodeAddress: String?): HomeMapLocations = withContext(Dispatchers.IO) {
         val deviceNetwork = findDirectInternetNetwork()
-        val serverNetwork = deviceNetwork ?: connectivityManager.activeNetwork
 
-        val userLocation = deviceNetwork?.let { network ->
-            cached("device:${network.networkHandle}") { requestLocation(network, query = null) }
+        val userLocation = if (deviceNetwork != null) {
+            cached("device:${deviceNetwork.networkHandle}") {
+                requestDirectLocation(deviceNetwork)
+            }
+        } else {
+            null
         }
-        val serverLocation = nodeAddress
+        val serverAddress = nodeAddress
             ?.trim()
             ?.takeIf(String::isNotEmpty)
-            ?.let { address ->
-                serverNetwork?.let { network ->
-                    cached("server:${address.lowercase()}") { requestLocation(network, query = address) }
-                }
+        val serverLocation = serverAddress?.let { address ->
+            cached("server:${address.lowercase()}") {
+                requestProxyLocation(address)
             }
+        }
 
         HomeMapLocations(user = userLocation, server = serverLocation)
     }
@@ -62,10 +72,9 @@ class AndroidHomeIpLocationLookup(context: Context) {
             ?: candidates.minByOrNull { it.third }?.first
     }
 
-    private fun requestLocation(network: Network, query: String?): HomeMapLocation? {
+    private fun requestDirectLocation(network: Network): HomeMapLocation? {
         if (IpApiRateLimit.isBlocked()) return null
-        val encodedQuery = query?.let { URLEncoder.encode(it, Charsets.UTF_8.name()) }.orEmpty()
-        val url = URL("$API_URL$encodedQuery?$FIELDS&lang=zh-CN")
+        val url = URL("$API_URL?$FIELDS&lang=zh-CN")
         val connection = network.openConnection(url) as HttpURLConnection
         return try {
             connection.requestMethod = "GET"
@@ -83,24 +92,7 @@ class AndroidHomeIpLocationLookup(context: Context) {
             }
             if (responseCode !in 200..299) return null
             val body = connection.inputStream.bufferedReader().use { reader -> reader.readText() }
-            if (body.length > MAX_RESPONSE_CHARS) return null
-            val json = JSONObject(body)
-            if (json.optString("status") != "success") return null
-
-            val latitude = json.optDouble("lat", Double.NaN)
-            val longitude = json.optDouble("lon", Double.NaN)
-            if (!latitude.isFinite() || !longitude.isFinite() || latitude !in -90.0..90.0 || longitude !in -180.0..180.0) {
-                return null
-            }
-
-            HomeMapLocation(
-                ipAddress = json.optString("query").takeIf(String::isNotBlank) ?: query.orEmpty(),
-                city = json.optString("city").takeIf(String::isNotBlank),
-                region = json.optString("regionName").takeIf(String::isNotBlank),
-                country = json.optString("country").takeIf(String::isNotBlank),
-                latitude = latitude,
-                longitude = longitude,
-            )
+            parseLocation(body)
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (_: Exception) {
@@ -110,7 +102,48 @@ class AndroidHomeIpLocationLookup(context: Context) {
         }
     }
 
-    private fun cached(key: String, load: () -> HomeMapLocation?): HomeMapLocation? {
+    private suspend fun requestProxyLocation(address: String): HomeMapLocation? {
+        if (IpApiRateLimit.isBlocked()) return null
+        val encodedAddress = URLEncoder.encode(address, Charsets.UTF_8.name())
+        return try {
+            val response = proxyHttpClient.get("$API_URL$encodedAddress?$FIELDS&lang=zh-CN") {
+                headers.append("Accept", "application/json")
+            }
+            val remainingRequests = response.headers["X-Rl"]?.toIntOrNull()
+            val retryAfterSeconds = response.headers["X-Ttl"]?.toLongOrNull()
+            if (remainingRequests == 0 && retryAfterSeconds != null) {
+                IpApiRateLimit.blockFor(retryAfterSeconds)
+            }
+            if (!response.status.isSuccess()) return null
+            parseLocation(response.bodyAsText(), fallbackQuery = address)
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun parseLocation(body: String, fallbackQuery: String? = null): HomeMapLocation? {
+        if (body.length > MAX_RESPONSE_CHARS) return null
+        val json = JSONObject(body)
+        if (json.optString("status") != "success") return null
+        val latitude = json.optDouble("lat", Double.NaN)
+        val longitude = json.optDouble("lon", Double.NaN)
+        if (!latitude.isFinite() || !longitude.isFinite() || latitude !in -90.0..90.0 || longitude !in -180.0..180.0) {
+            return null
+        }
+
+        return HomeMapLocation(
+            ipAddress = json.optString("query").takeIf(String::isNotBlank) ?: fallbackQuery.orEmpty(),
+            city = json.optString("city").takeIf(String::isNotBlank),
+            region = json.optString("regionName").takeIf(String::isNotBlank),
+            country = json.optString("country").takeIf(String::isNotBlank),
+            latitude = latitude,
+            longitude = longitude,
+        )
+    }
+
+    private suspend fun cached(key: String, load: suspend () -> HomeMapLocation?): HomeMapLocation? {
         val now = SystemClock.elapsedRealtime()
         val cached = LocationCache.get(key, now)
         if (cached != null) return cached.value
