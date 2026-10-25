@@ -20,7 +20,9 @@ data class ConfigParserSettings(
     val routingRules: String,
     val routingMode: Int,
     val geoLiteInstall: Boolean,
+    val dnsOverHttpsEnabled: Boolean = true,
     val dnsOverHttpsServers: String = DnsDefaults.DEFAULT_DOH_SERVERS,
+    val udpDnsServers: String = DnsDefaults.DEFAULT_UDP_DNS_SERVERS,
 )
 
 interface ConfigParserSettingsProvider {

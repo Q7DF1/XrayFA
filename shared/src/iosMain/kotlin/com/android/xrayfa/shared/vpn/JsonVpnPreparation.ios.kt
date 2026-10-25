@@ -4,6 +4,8 @@ import com.android.xrayfa.config.JsonVpnTransport
 import com.android.xrayfa.datastore.SettingsState
 // The extension uses a private loopback SOCKS channel, independent of Android settings.
 actual fun jsonVpnTransport(settings: SettingsState) = JsonVpnTransport(
+    dnsOverHttpsEnabled = settings.dnsOverHttpsEnabled,
     dohServers = DnsDefaults.parseDohServers(settings.dnsOverHttpsServers),
+    udpDnsServers = DnsDefaults.parseUdpDnsServers(settings.udpDnsServers),
     ipV6Enabled = settings.ipV6Enable,
 )

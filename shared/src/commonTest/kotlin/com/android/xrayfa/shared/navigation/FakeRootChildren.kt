@@ -59,7 +59,11 @@ class FakeSettingsComponent : SettingsComponent {
     override fun onSetHttpPort(port: Int) = Unit
     override fun onSetSocksUsername(username: String) = Unit
     override fun onSetSocksPassword(password: String) = Unit
+    override fun onEnableDeveloperMode() = Unit
+    override fun onExitDeveloperMode() = Unit
+    override fun onSetDnsOverHttpsEnabled(enable: Boolean) = Unit
     override fun onSetDnsOverHttpsServers(servers: String) = Unit
+    override fun onSetUdpDnsServers(servers: String) = Unit
     override fun onSetIpV6Enable(enable: Boolean) = Unit
     override fun onSetDelayTestUrl(url: String) = Unit
     override fun onSetRoutingMode(mode: RoutingMode) = Unit

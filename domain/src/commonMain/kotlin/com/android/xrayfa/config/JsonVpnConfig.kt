@@ -12,7 +12,9 @@ data class JsonVpnTransport(
     val socksUser: String = "",
     val socksCredential: String = "",
     val mtu: Int = 1500,
+    val dnsOverHttpsEnabled: Boolean = true,
     val dohServers: List<String> = DnsDefaults.dohServers,
+    val udpDnsServers: List<String> = DnsDefaults.udpDnsServers,
     val ipV6Enabled: Boolean = false,
 )
 
@@ -149,19 +151,26 @@ object JsonVpnConfig {
         runtime["outbounds"] = JsonArray((source["outbounds"] as JsonArray) + dnsOutbound)
         runtime["routing"] = JsonObject(routing + ("rules" to JsonArray(listOf(dnsRule) + rules)))
         if (!runtime.containsKey("stats")) runtime["stats"] = JsonObject(emptyMap())
-        // Always force DNS upstreams to HTTPS DoH, even if the imported JSON
-        // supplied UDP/TCP DNS servers. Preserve its other DNS settings.
+        // Keep imported configs aligned with the user's selected DNS mode while
+        // preserving their other DNS settings.
         val sourceDns = source["dns"] as? JsonObject ?: JsonObject(emptyMap())
-        val dohServers = DnsDefaults.parseDohServers(transport.dohServers.joinToString(","))
+        val dnsServers =
+            if (transport.dnsOverHttpsEnabled) {
+                DnsDefaults.parseDohServers(transport.dohServers.joinToString(","))
+            } else {
+                DnsDefaults.parseUdpDnsServers(transport.udpDnsServers.joinToString(","))
+            }
         val dnsHosts = buildJsonObject {
             (sourceDns["hosts"] as? JsonObject)?.forEach { (host, value) -> put(host, value) }
-            DnsDefaults.bootstrapHostsFor(dohServers).forEach { (host, addresses) ->
-                putJsonArray(host) { addresses.forEach { add(it) } }
+            if (transport.dnsOverHttpsEnabled) {
+                DnsDefaults.bootstrapHostsFor(dnsServers).forEach { (host, addresses) ->
+                    putJsonArray(host) { addresses.forEach { add(it) } }
+                }
             }
         }
         val runtimeDns = sourceDns.toMutableMap()
         runtimeDns["hosts"] = dnsHosts
-        runtimeDns["servers"] = JsonArray(dohServers.map { JsonPrimitive(it) })
+        runtimeDns["servers"] = JsonArray(dnsServers.map { JsonPrimitive(it) })
         if (runtimeDns["queryStrategy"] == null) {
             runtimeDns["queryStrategy"] = JsonPrimitive(if (transport.ipV6Enabled) "UseIP" else "UseIPv4")
         }

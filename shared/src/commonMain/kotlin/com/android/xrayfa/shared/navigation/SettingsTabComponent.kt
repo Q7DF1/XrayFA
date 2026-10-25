@@ -41,7 +41,15 @@ interface SettingsComponent {
 
     fun onSetSocksPassword(password: String)
 
+    fun onEnableDeveloperMode()
+
+    fun onExitDeveloperMode()
+
+    fun onSetDnsOverHttpsEnabled(enable: Boolean)
+
     fun onSetDnsOverHttpsServers(servers: String)
+
+    fun onSetUdpDnsServers(servers: String)
 
     fun onSetIpV6Enable(enable: Boolean)
 

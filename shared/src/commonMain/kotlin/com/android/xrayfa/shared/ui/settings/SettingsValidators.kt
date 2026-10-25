@@ -41,6 +41,14 @@ object SettingsValidators {
         return if (servers.distinctBy(String::lowercase).size == servers.size) null else labels.dohServerInvalid
     }
 
+    fun validateUdpDnsServerList(
+        input: String,
+        labels: SettingsUiLabels,
+    ): String? {
+        if (input.isBlank()) return labels.cannotBeEmpty
+        return if (DnsDefaults.isValidUdpDnsServerList(input)) null else labels.udpDnsServerInvalid
+    }
+
     fun validateIpv4List(
         input: String,
         labels: SettingsUiLabels,

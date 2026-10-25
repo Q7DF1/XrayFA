@@ -219,7 +219,7 @@ class XrayBaseService constructor(
         val builder = Builder()
         val settings = settingsRepo.settingsFlow.first()
         // The VPN interface advertises only its synthetic DNS address. Xray
-        // intercepts port 53 and forwards queries to the configured DoH servers.
+        // intercepts port 53 and forwards queries to the selected DNS upstreams.
         builder.addDnsServer(JsonVpnConfig.VPN_DNS)
         val allowedPackages = settingsRepo.getAllowedPackages()
         if (!allowedPackages.isEmpty()) {

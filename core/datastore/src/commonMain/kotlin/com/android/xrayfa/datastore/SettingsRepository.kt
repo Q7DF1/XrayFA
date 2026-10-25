@@ -34,7 +34,10 @@ data class SettingsState(
     val socksUserName: String = "",
     val socksPassword: String = "",
     val socksListen: String = "",
+    val developerModeEnabled: Boolean = false,
+    val dnsOverHttpsEnabled: Boolean = true,
     val dnsOverHttpsServers: String = DnsDefaults.DEFAULT_DOH_SERVERS,
+    val udpDnsServers: String = DnsDefaults.DEFAULT_UDP_DNS_SERVERS,
     val delayTestUrl: String = DEFAULT_DELAY_TEST_URL,
     val xrayCoreVersion: String = "unknown",
     val version: String = "1.0.0",
@@ -62,7 +65,10 @@ object SettingsKeys {
     val SOCKS_USERNAME = stringPreferencesKey("socks_username")
     val SOCKS_PASSWORD = stringPreferencesKey("socks_password")
     val SOCKS_LISTEN = stringPreferencesKey("socks_listen")
+    val DEVELOPER_MODE_ENABLED = booleanPreferencesKey("developer_mode_enabled")
+    val DNS_OVER_HTTPS_ENABLED = booleanPreferencesKey("dns_over_https_enabled")
     val DNS_OVER_HTTPS_SERVERS = stringPreferencesKey("dns_over_https_servers")
+    val UDP_DNS_SERVERS = stringPreferencesKey("udp_dns_servers")
     val VERSION = stringPreferencesKey("version")
     val DELAY_TEST_URL = stringPreferencesKey("delay_test_site")
     val ALLOW_PACKAGES = stringPreferencesKey("allow_packages")
@@ -104,8 +110,18 @@ class SettingsRepository(
             socksUserName = prefs[SettingsKeys.SOCKS_USERNAME] ?: "",
             socksPassword = prefs[SettingsKeys.SOCKS_PASSWORD] ?: "",
             socksListen = prefs[SettingsKeys.SOCKS_LISTEN] ?: "127.0.0.1",
+            developerModeEnabled = prefs[SettingsKeys.DEVELOPER_MODE_ENABLED] == true,
+            dnsOverHttpsEnabled =
+                if (prefs[SettingsKeys.DEVELOPER_MODE_ENABLED] == true) {
+                    prefs[SettingsKeys.DNS_OVER_HTTPS_ENABLED] ?: true
+                } else {
+                    true
+                },
             dnsOverHttpsServers = DnsDefaults.parseDohServers(
                 prefs[SettingsKeys.DNS_OVER_HTTPS_SERVERS] ?: DnsDefaults.DEFAULT_DOH_SERVERS,
+            ).joinToString(","),
+            udpDnsServers = DnsDefaults.parseUdpDnsServers(
+                prefs[SettingsKeys.UDP_DNS_SERVERS] ?: DnsDefaults.DEFAULT_UDP_DNS_SERVERS,
             ).joinToString(","),
             delayTestUrl = prefs[SettingsKeys.DELAY_TEST_URL] ?: DEFAULT_DELAY_TEST_URL,
             version = prefs[SettingsKeys.VERSION] ?: "1.0.0",
@@ -181,6 +197,29 @@ class SettingsRepository(
     suspend fun setDnsOverHttpsServers(servers: String) {
         dataStore.edit {
             it[SettingsKeys.DNS_OVER_HTTPS_SERVERS] = DnsDefaults.parseDohServers(servers).joinToString(",")
+        }
+    }
+
+    suspend fun setDeveloperModeEnabled(enable: Boolean) {
+        dataStore.edit { prefs ->
+            prefs[SettingsKeys.DEVELOPER_MODE_ENABLED] = enable
+            if (!enable) prefs[SettingsKeys.DNS_OVER_HTTPS_ENABLED] = true
+        }
+    }
+
+    suspend fun setDnsOverHttpsEnabled(enable: Boolean) {
+        dataStore.edit { prefs ->
+            if (prefs[SettingsKeys.DEVELOPER_MODE_ENABLED] == true) {
+                prefs[SettingsKeys.DNS_OVER_HTTPS_ENABLED] = enable
+            }
+        }
+    }
+
+    suspend fun setUdpDnsServers(servers: String) {
+        dataStore.edit { prefs ->
+            if (prefs[SettingsKeys.DEVELOPER_MODE_ENABLED] == true) {
+                prefs[SettingsKeys.UDP_DNS_SERVERS] = DnsDefaults.parseUdpDnsServers(servers).joinToString(",")
+            }
         }
     }
 
@@ -309,7 +348,9 @@ class SettingsRepository(
             routingRules = settings.routingRules,
             routingMode = settings.routingMode,
             geoLiteInstall = settings.geoLiteInstall,
+            dnsOverHttpsEnabled = settings.dnsOverHttpsEnabled,
             dnsOverHttpsServers = settings.dnsOverHttpsServers,
+            udpDnsServers = settings.udpDnsServers,
         )
     }
 }
