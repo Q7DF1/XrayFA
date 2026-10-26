@@ -44,6 +44,7 @@ fun Modifier.sharedContainer(
     destination: String,
     shape: Shape,
     containerColor: Color,
+    fixedContentSize: Boolean = false,
 ): Modifier {
     val sharedScope = LocalSharedTransitionScope.current ?: return this
     val avScope = LocalStackAnimationScope.current ?: return this
@@ -59,6 +60,9 @@ fun Modifier.sharedContainer(
             )
             .background(containerColor, shape)
             .clip(shape)
+            // Keep the reveal clip outside the fixed-size content. Full screens can
+            // retain their final layout instead of reflowing every animation frame.
+            .then(if (fixedContentSize) Modifier.skipToLookaheadSize() else Modifier)
     }
 }
 

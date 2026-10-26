@@ -96,10 +96,9 @@ fun HomeConnectButton(
                         CircleShape,
                     ),
         )
-        HomeConnectPulseRings(
-            color = if (isConnected) Color(0xFF48E5D5) else Color(0xFF55CAD2),
-            active = isConnected,
-        )
+        if (isConnected) {
+            HomeConnectPulseRings(color = Color(0xFF48E5D5))
+        }
 
         Box(
             contentAlignment = Alignment.Center,
@@ -130,7 +129,7 @@ fun HomeConnectButton(
 }
 
 @Composable
-private fun BoxScope.HomeConnectPulseRings(color: Color, active: Boolean) {
+private fun BoxScope.HomeConnectPulseRings(color: Color) {
     val transition = rememberInfiniteTransition(label = "pulse")
     repeat(2) { index ->
         val progress by
@@ -152,7 +151,7 @@ private fun BoxScope.HomeConnectPulseRings(color: Color, active: Boolean) {
                     .clip(CircleShape)
                     .border(
                         width = 2.dp,
-                        color = color.copy(alpha = (1f - progress) * if (active) 0.5f else 0.20f),
+                        color = color.copy(alpha = (1f - progress) * 0.5f),
                         shape = CircleShape,
                     ),
         )
