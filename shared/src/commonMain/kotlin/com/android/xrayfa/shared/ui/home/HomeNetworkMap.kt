@@ -9,6 +9,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -16,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,23 +30,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.PathFillType
+import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalDensity
 import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.math.roundToInt
+import androidx.compose.ui.graphics.Canvas as ImageCanvas
 
 /** Draws both location pins and their labels from the same latitude/longitude projection. */
 @Composable
@@ -111,8 +116,36 @@ fun HomeNetworkMap(
                 calloutGapPx,
             )
         }
-        val transition = rememberInfiniteTransition(label = "home-map-route")
-        val flowProgress =
+        // Rasterize once per size/theme. A display-list layer alone still replays the
+        // complex land clip and hundreds of dots on the GPU during page transitions.
+        val layoutDirection = LocalLayoutDirection.current
+        val surface = remember(viewport, mapTint, darkTheme, density, layoutDirection) {
+            ImageBitmap(
+                width = mapWidthPx.roundToInt().coerceAtLeast(1),
+                height = mapHeightPx.roundToInt().coerceAtLeast(1),
+            ).also { bitmap ->
+                CanvasDrawScope().draw(
+                    density = density,
+                    layoutDirection = layoutDirection,
+                    canvas = ImageCanvas(bitmap),
+                    size = Size(bitmap.width.toFloat(), bitmap.height.toFloat()),
+                ) {
+                    drawMapSurface(viewport, mapTint, darkTheme)
+                }
+            }
+        }
+        Canvas(Modifier.fillMaxSize()) {
+            drawImage(surface)
+        }
+        val route = remember(fromPoint, toPoint, viewport) {
+            if (fromPoint != null && toPoint != null) {
+                makeRoute(fromPoint, toPoint, viewport)
+            } else {
+                emptyList()
+            }
+        }
+        val flowProgress = if (fromPoint != null || toPoint != null) {
+            val transition = rememberInfiniteTransition(label = "home-map-route")
             transition.animateFloat(
                 initialValue = 0f,
                 targetValue = 1f,
@@ -121,7 +154,8 @@ fun HomeNetworkMap(
                     repeatMode = RepeatMode.Restart,
                 ),
                 label = "home-map-route-progress",
-            ).value
+            )
+        } else null
 
         Canvas(
             Modifier
@@ -141,24 +175,19 @@ fun HomeNetworkMap(
                     }
                 },
         ) {
-            drawMapSurface(viewport, mapTint, darkTheme)
-
-            val route = if (fromPoint != null && toPoint != null) {
-                makeRoute(fromPoint, toPoint, viewport)
-            } else {
-                emptyList()
-            }
+            // Read animation state only during drawing, never during composition.
+            val progress = flowProgress?.value ?: 0f
             if (route.isNotEmpty()) {
-                drawAnimatedRoute(route, fromAccent, toAccent, viewport, flowProgress)
+                drawAnimatedRoute(route, fromAccent, toAccent, progress)
             }
 
             fromPoint?.let { point ->
                 if (selectedEndpoint == MapEndpoint.FROM) callout?.let { drawCalloutLeader(point, it, fromAccent) }
-                drawLocationMarker(point, fromAccent, selectedEndpoint == MapEndpoint.FROM, flowProgress)
+                drawLocationMarker(point, fromAccent, selectedEndpoint == MapEndpoint.FROM, progress)
             }
             toPoint?.let { point ->
                 if (selectedEndpoint == MapEndpoint.TO) callout?.let { drawCalloutLeader(point, it, toAccent) }
-                drawLocationMarker(point, toAccent, selectedEndpoint == MapEndpoint.TO, (flowProgress + 0.5f) % 1f)
+                drawLocationMarker(point, toAccent, selectedEndpoint == MapEndpoint.TO, (progress + 0.5f) % 1f)
             }
         }
 
@@ -266,19 +295,15 @@ private fun DrawScope.drawAnimatedRoute(
     route: List<RouteCurve>,
     fromColor: Color,
     toColor: Color,
-    viewport: MapViewport,
     progress: Float,
 ) {
-    val totalLength = route.sumOf { it.approximateLength().toDouble() }.toFloat()
+    val totalLength = route.sumOf { it.length.toDouble() }.toFloat()
     if (totalLength <= 0f) return
 
     val intervals = floatArrayOf(4.dp.toPx(), 5.dp.toPx())
     val dashPhase = progress * (intervals[0] + intervals[1])
     route.forEachIndexed { index, curve ->
-        val path = Path().apply {
-            moveTo(curve.start.x, curve.start.y)
-            quadraticTo(curve.control.x, curve.control.y, curve.end.x, curve.end.y)
-        }
+        val path = curve.path
         drawPath(
             path = path,
             brush = Brush.linearGradient(
@@ -297,14 +322,14 @@ private fun DrawScope.drawAnimatedRoute(
     var particleDistance = progress * totalLength
     var particleCurve = route.last()
     for (curve in route) {
-        val segmentLength = curve.approximateLength()
+        val segmentLength = curve.length
         if (particleDistance <= segmentLength) {
             particleCurve = curve
             break
         }
         particleDistance -= segmentLength
     }
-    val particleT = (particleDistance / particleCurve.approximateLength().coerceAtLeast(1f)).coerceIn(0f, 1f)
+    val particleT = (particleDistance / particleCurve.length.coerceAtLeast(1f)).coerceIn(0f, 1f)
     val particle = particleCurve.pointAt(particleT)
     drawCircle(toColor.copy(alpha = 0.24f), 7.dp.toPx(), particle)
     drawCircle(Color.White.copy(alpha = 0.96f), 2.dp.toPx(), particle)
@@ -451,6 +476,12 @@ private data class MapViewport(
 }
 
 private data class RouteCurve(val start: Offset, val control: Offset, val end: Offset) {
+    val path = Path().apply {
+        moveTo(start.x, start.y)
+        quadraticTo(control.x, control.y, end.x, end.y)
+    }
+    val length = approximateLength()
+
     fun pointAt(t: Float): Offset {
         val inverse = 1f - t
         return Offset(
@@ -459,7 +490,7 @@ private data class RouteCurve(val start: Offset, val control: Offset, val end: O
         )
     }
 
-    fun approximateLength(): Float {
+    private fun approximateLength(): Float {
         var length = 0f
         var previous = start
         for (step in 1..16) {

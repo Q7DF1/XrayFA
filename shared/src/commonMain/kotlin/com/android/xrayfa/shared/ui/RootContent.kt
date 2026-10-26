@@ -140,6 +140,7 @@ fun RootContent(
                                 modifier =
                                     Modifier.sharedContainer(
                                         destination = TransitionDestinations.SETTINGS,
+                                        fixedContentSize = true,
                                         shape = rememberDestinationShape(startCorner = 20.dp),
                                         containerColor = MaterialTheme.colorScheme.background,
                                     )
