@@ -296,4 +296,6 @@
     <string name="edit_legacy_kcp_error">기존 mKCP header/seed는 JSON 구성에서 FinalMask로 설정해야 합니다</string>
     <string name="home_screen_widgets_title">홈 화면 위젯</string>
     <string name="home_screen_widgets_desc">시스템 위젯 목록에 XrayFA를 표시합니다. 끄면 기존 위젯이 제거되며, 다시 켠 후 새로 추가해야 합니다.</string>
+    <string name="connect_map_title">Connect Map</string>
+    <string name="connect_map_desc">연결 지도에서 위치를 조회하고 표시합니다. 끄면 위치를 조회하지 않고 정적 지도만 표시합니다.</string>
 </resources>

@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PowerSettingsNew
 import androidx.compose.material.icons.outlined.Public
@@ -76,13 +75,11 @@ fun SharedSettingsGeneralSection(
                 icon = Icons.Outlined.Widgets,
             )
             SharedSettingsSwitchRow(
-                title = labels.agentFunctionsTitle,
-                description = if (platformHooks.agentFunctionsAvailable) labels.agentFunctionsDescription
-                    else "${labels.inDevelopmentLabel} · ${labels.agentFunctionsDescription}",
-                checked = platformHooks.agentFunctionsAvailable && state.agentFunctionsEnabled,
-                enabled = platformHooks.agentFunctionsAvailable,
-                onCheckedChange = component::onSetAgentFunctionsEnabled,
-                icon = Icons.Outlined.Lock,
+                title = labels.connectMapTitle,
+                description = labels.connectMapDescription,
+                checked = state.connectMapEnabled,
+                onCheckedChange = component::onSetConnectMapEnabled,
+                icon = Icons.Outlined.Public,
             )
             if (platformHooks.supportsHideFromRecents) SharedSettingsSwitchRow(
                 title = labels.hideFromRecentsTitle,

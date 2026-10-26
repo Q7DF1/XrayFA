@@ -5,6 +5,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.android.xrayfa.shared.navigation.SettingsComponent
+import com.android.xrayfa.shared.ui.platform.LocalPlatformRootHooks
 import com.android.xrayfa.shared.platform.AppMetadataProvider
 import com.android.xrayfa.shared.platform.REPO_URL
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
@@ -37,6 +39,7 @@ fun SharedSettingsAboutSection(
     appMetadataProvider: AppMetadataProvider = remember { KoinPlatform.getKoin().get() },
 ) {
     val state by component.state.subscribeAsState()
+    val platformHooks = LocalPlatformRootHooks.current
     val appVersion = remember { appMetadataProvider.getAppVersion() }
     var versionTapCount by remember { mutableStateOf(0) }
     var toastMessage by remember { mutableStateOf<String?>(null) }
@@ -123,6 +126,15 @@ fun SharedSettingsAboutSection(
 
     if (state.developerModeEnabled) {
         SharedSettingsGroup(groupName = labels.developerOptionsTitle) {
+            SharedSettingsSwitchRow(
+                title = labels.agentFunctionsTitle,
+                description = if (platformHooks.agentFunctionsAvailable) labels.agentFunctionsDescription
+                    else "${labels.inDevelopmentLabel} · ${labels.agentFunctionsDescription}",
+                checked = platformHooks.agentFunctionsAvailable && state.agentFunctionsEnabled,
+                enabled = platformHooks.agentFunctionsAvailable,
+                onCheckedChange = component::onSetAgentFunctionsEnabled,
+                icon = Icons.Outlined.Lock,
+            )
             SharedSettingsSwitchRow(
                 title = labels.enableDohTitle,
                 description = labels.enableDohDescription,

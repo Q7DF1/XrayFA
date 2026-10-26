@@ -286,4 +286,6 @@
     <string name="edit_legacy_kcp_error">旧版 mKCP header / seed 已失效，请通过 JSON 配置中的 FinalMask 配置混淆</string>
     <string name="home_screen_widgets_title">桌面微件</string>
     <string name="home_screen_widgets_desc">在系统微件列表中显示 XrayFA。关闭会移除已添加的微件，重新开启后需再次添加。</string>
+    <string name="connect_map_title">Connect Map</string>
+    <string name="connect_map_desc">查询并显示连接地图上的位置信息。关闭后不再查询地址或显示位置信息，仅保留静态地图。</string>
 </resources>

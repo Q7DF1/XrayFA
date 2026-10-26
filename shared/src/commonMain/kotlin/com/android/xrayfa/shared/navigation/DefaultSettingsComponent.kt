@@ -86,6 +86,10 @@ class DefaultSettingsComponent(
         scope.launch { settingsRepository.setHomeScreenWidgetsEnabled(enable) }
     }
 
+    override fun onSetConnectMapEnabled(enable: Boolean) {
+        scope.launch { settingsRepository.setConnectMapEnabled(enable) }
+    }
+
     override fun onSetAgentFunctionsEnabled(enable: Boolean) {
         scope.launch {
             settingsRepository.setAgentFunctionsEnabled(enable)

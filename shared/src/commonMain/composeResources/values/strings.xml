@@ -299,4 +299,6 @@
     <string name="edit_legacy_kcp_error">Legacy mKCP header/seed require FinalMask in a JSON configuration</string>
     <string name="home_screen_widgets_title">Home screen widget</string>
     <string name="home_screen_widgets_desc">Show XrayFA in the system widget picker. Turning this off removes existing widgets; add them again after enabling.</string>
+    <string name="connect_map_title">Connect Map</string>
+    <string name="connect_map_desc">Look up and show locations on the connection map. When off, only the static map is shown.</string>
 </resources>

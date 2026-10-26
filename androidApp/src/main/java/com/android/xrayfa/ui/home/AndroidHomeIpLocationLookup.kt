@@ -13,6 +13,8 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
@@ -40,6 +42,8 @@ class AndroidHomeIpLocationLookup(
         } else {
             null
         }
+        // A disabled map cancels the caller; do not start the node lookup afterward.
+        currentCoroutineContext().ensureActive()
         val serverAddress = nodeAddress
             ?.trim()
             ?.takeIf(String::isNotEmpty)
