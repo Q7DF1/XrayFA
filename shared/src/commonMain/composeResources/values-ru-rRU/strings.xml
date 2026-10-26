@@ -295,4 +295,6 @@
     <string name="edit_legacy_kcp_error">Старые header/seed mKCP требуют FinalMask в JSON-конфигурации</string>
     <string name="home_screen_widgets_title">Виджет на главном экране</string>
     <string name="home_screen_widgets_desc">Показывать XrayFA в списке виджетов. Отключение удаляет добавленные виджеты; после включения добавьте их заново.</string>
+    <string name="connect_map_title">Connect Map</string>
+    <string name="connect_map_desc">Определять и показывать местоположения на карте соединения. При отключении остаётся только статическая карта без запросов местоположения.</string>
 </resources>

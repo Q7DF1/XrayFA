@@ -54,6 +54,7 @@ data class SettingsState(
     val allowedPackages: List<String> = emptyList(),
     val agentFunctionsEnabled: Boolean = false,
     val homeScreenWidgetsEnabled: Boolean = false,
+    val connectMapEnabled: Boolean = true,
 )
 
 object SettingsKeys {
@@ -87,6 +88,7 @@ object SettingsKeys {
     val AGENT_FUNCTIONS_ENABLED = booleanPreferencesKey("agent_functions_enabled")
     /** Widgets are opt-in when no preference has been saved. */
     val HOME_SCREEN_WIDGETS_ENABLED = booleanPreferencesKey("home_screen_widgets_enabled")
+    val CONNECT_MAP_ENABLED = booleanPreferencesKey("connect_map_enabled")
 }
 
 const val DEFAULT_DELAY_TEST_URL = "https://www.google.com"
@@ -138,6 +140,7 @@ class SettingsRepository(
             sendHwid = prefs[SettingsKeys.SEND_HWID] ?: true,
             agentFunctionsEnabled = prefs[SettingsKeys.AGENT_FUNCTIONS_ENABLED] == true,
             homeScreenWidgetsEnabled = prefs[SettingsKeys.HOME_SCREEN_WIDGETS_ENABLED] ?: false,
+            connectMapEnabled = prefs[SettingsKeys.CONNECT_MAP_ENABLED] ?: true,
         )
     }
 
@@ -298,6 +301,10 @@ class SettingsRepository(
 
     suspend fun setHomeScreenWidgetsEnabled(enable: Boolean) {
         dataStore.edit { it[SettingsKeys.HOME_SCREEN_WIDGETS_ENABLED] = enable }
+    }
+
+    suspend fun setConnectMapEnabled(enable: Boolean) {
+        dataStore.edit { it[SettingsKeys.CONNECT_MAP_ENABLED] = enable }
     }
 
     suspend fun setAgentFunctionsEnabled(enable: Boolean) {

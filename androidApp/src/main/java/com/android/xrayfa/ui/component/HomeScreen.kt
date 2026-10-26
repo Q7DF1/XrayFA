@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.R
+import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.shared.navigation.HomeComponent
 import com.android.xrayfa.shared.ui.home.HomeMapLocation
 import com.android.xrayfa.shared.ui.home.HomeMapLocations
@@ -50,6 +52,7 @@ import com.android.xrayfa.shared.ui.rememberHomeUiLabels
 import com.android.xrayfa.ui.home.AndroidHomeIpLocationLookup
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.map
 import org.koin.compose.koinInject
 
 @Composable
@@ -192,6 +195,14 @@ fun ExpandedHomeContent(
 
 @Composable
 private fun rememberHomeMapLocations(nodeAddress: String?): HomeMapLocations {
+    val settingsRepository: SettingsRepository = koinInject()
+    val enabledFlow = remember(settingsRepository) {
+        settingsRepository.settingsFlow.map { it.connectMapEnabled }
+    }
+    // Wait for the saved choice before starting any lookup, including after app restart.
+    val enabled by enabledFlow.collectAsState(initial = null)
+    if (enabled != true) return HomeMapLocations()
+
     val lookup: AndroidHomeIpLocationLookup = koinInject()
     val context = LocalContext.current.applicationContext
     val connectivityManager = remember(context) {

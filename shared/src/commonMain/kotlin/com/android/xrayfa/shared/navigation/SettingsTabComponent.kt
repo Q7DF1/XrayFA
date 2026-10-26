@@ -21,6 +21,8 @@ interface SettingsComponent {
 
     fun onSetBootAutoStart(enable: Boolean)
 
+    fun onSetConnectMapEnabled(enable: Boolean)
+
     fun onSetAgentFunctionsEnabled(enable: Boolean)
 
     fun onSetHomeScreenWidgetsEnabled(enable: Boolean)
