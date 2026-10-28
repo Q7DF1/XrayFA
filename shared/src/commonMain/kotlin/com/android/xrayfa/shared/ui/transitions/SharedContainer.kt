@@ -4,7 +4,6 @@ import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -106,7 +105,7 @@ fun rememberDestinationShape(
             bottomStart = bottomStart,
         )
     val raw by avScope.transition.animateFloat(
-        transitionSpec = { spring(dampingRatio = 1f, stiffness = 800f) },
+        transitionSpec = { XrayMotion.SpatialFloat },
         label = "sharedContainerCorner",
     ) { state ->
         if (state == EnterExitState.Visible) 0f else 1f

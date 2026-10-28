@@ -3,6 +3,7 @@ package com.android.xrayfa.shared.navigation
 import com.android.xrayfa.common.routing.DomainStrategy
 import com.android.xrayfa.common.routing.RoutingMode
 import com.android.xrayfa.common.routing.Rule
+import com.android.xrayfa.datastore.ConnectMapOrigin
 import com.android.xrayfa.datastore.SettingsState
 import com.arkivanov.decompose.value.Value
 
@@ -13,13 +14,26 @@ data class GeoLiteDownloadState(
     val downloadSupported: Boolean = true,
 )
 
+data class CityDatabaseState(
+    val installed: Boolean = false,
+    val downloading: Boolean = false,
+    val progress: Float = 0f,
+    val failed: Boolean = false,
+)
+
 interface SettingsComponent {
+    val cityDatabase: Value<CityDatabaseState>
+    fun onDownloadCityDatabase()
+    fun onCancelCityDatabaseDownload()
+
     val state: Value<SettingsState>
     val geoLiteDownload: Value<GeoLiteDownloadState>
 
     fun onSetTheme(themeCode: Int)
 
     fun onSetBootAutoStart(enable: Boolean)
+
+    fun onSetConnectMapOrigin(origin: ConnectMapOrigin?)
 
     fun onSetConnectMapEnabled(enable: Boolean)
 
@@ -64,6 +78,7 @@ interface SettingsComponent {
     fun onSetRoutingRules(rules: List<Rule>)
 
     fun onDownloadGeoLite()
+    fun onCancelGeoLiteDownload()
 }
 
 /** Typealias for tab naming consistency with [HomeTabComponent]. */

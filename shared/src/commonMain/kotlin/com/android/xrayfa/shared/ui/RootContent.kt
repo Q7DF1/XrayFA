@@ -50,11 +50,13 @@ import com.android.xrayfa.shared.ui.nav.ProvideFloatingNavBackdrop
 import com.android.xrayfa.shared.ui.nav.XrayFloatingNav
 import com.android.xrayfa.shared.ui.nav.toFloatingNavItem
 import com.android.xrayfa.shared.ui.platform.LocalPlatformRootHooks
+import com.android.xrayfa.shared.ui.settings.SharedConnectMapScreen
 import com.android.xrayfa.shared.ui.settings.SharedRouteSettingsScreen
 import com.android.xrayfa.shared.ui.subscription.SharedSubscriptionScreen
 import com.android.xrayfa.shared.ui.transitions.LocalSharedTransitionScope
 import com.android.xrayfa.shared.ui.transitions.LocalStackAnimationScope
-import com.android.xrayfa.shared.ui.transitions.PlatformRowOuterCorner
+import com.android.xrayfa.shared.ui.transitions.SettingsDetailTransitions
+import com.android.xrayfa.shared.ui.transitions.settingsDetailDestination
 import com.android.xrayfa.shared.ui.transitions.TransitionDestinations
 import com.android.xrayfa.shared.ui.transitions.floatingNavOverlay
 import com.android.xrayfa.shared.ui.transitions.rememberDestinationShape
@@ -137,6 +139,7 @@ fun RootContent(
                                 onAppsClick = component::openApps,
                                 onLogcatClick = component::openLogcat,
                                 onRouteClick = component::openRouteSettings,
+                                onConnectMapClick = component::openConnectMap,
                                 modifier =
                                     Modifier.sharedContainer(
                                         destination = TransitionDestinations.SETTINGS,
@@ -186,28 +189,21 @@ fun RootContent(
                                 component = component.settingsComponent,
                                 onBack = component::navigateBack,
                                 modifier =
-                                    Modifier.sharedContainer(
-                                        destination = TransitionDestinations.APPS,
-                                        shape =
-                                            rememberDestinationShape(
-                                                topStart = PlatformRowOuterCorner,
-                                                topEnd = PlatformRowOuterCorner,
-                                                bottomStart = 0.dp,
-                                                bottomEnd = 0.dp,
-                                            ),
-                                        containerColor = MaterialTheme.colorScheme.background,
-                                    )
+                                    Modifier.settingsDetailDestination(SettingsDetailTransitions.Apps)
                                     .fillMaxSize(),
                             )
                         RootComponent.StackChild.Logcat ->
                             platformHooks.LogcatScreen(
                                 onBack = component::navigateBack,
                                 modifier =
-                                    Modifier.sharedContainer(
-                                        destination = TransitionDestinations.LOGCAT,
-                                        shape = RectangleShape,
-                                        containerColor = MaterialTheme.colorScheme.background,
-                                    )
+                                    Modifier.settingsDetailDestination(SettingsDetailTransitions.Logcat)
+                                    .fillMaxSize(),
+                            )
+                        RootComponent.StackChild.ConnectMap ->
+                            SharedConnectMapScreen(
+                                component = component.settingsComponent,
+                                onBack = component::navigateBack,
+                                modifier = Modifier.settingsDetailDestination(SettingsDetailTransitions.ConnectMap)
                                     .fillMaxSize(),
                             )
                         RootComponent.StackChild.RouteSettings ->
@@ -216,17 +212,7 @@ fun RootContent(
                                 onBack = component::navigateBack,
                                 labels = routeSettingsLabels,
                                 modifier =
-                                    Modifier.sharedContainer(
-                                        destination = TransitionDestinations.ROUTE,
-                                        shape =
-                                            rememberDestinationShape(
-                                                topStart = 0.dp,
-                                                topEnd = 0.dp,
-                                                bottomStart = PlatformRowOuterCorner,
-                                                bottomEnd = PlatformRowOuterCorner,
-                                            ),
-                                        containerColor = MaterialTheme.colorScheme.background,
-                                    )
+                                    Modifier.settingsDetailDestination(SettingsDetailTransitions.Route)
                                     .fillMaxSize(),
                             )
                         RootComponent.StackChild.Search -> {

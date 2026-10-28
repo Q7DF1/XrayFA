@@ -26,7 +26,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,16 +42,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.R
-import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.shared.navigation.HomeComponent
-import com.android.xrayfa.shared.ui.home.HomeMapLocation
-import com.android.xrayfa.shared.ui.home.HomeMapLocations
 import com.android.xrayfa.shared.ui.SharedHomeSection
+import com.android.xrayfa.shared.ui.home.HomeMapLocations
 import com.android.xrayfa.shared.ui.rememberHomeUiLabels
 import com.android.xrayfa.ui.home.AndroidHomeIpLocationLookup
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.map
 import org.koin.compose.koinInject
 
 @Composable
@@ -63,6 +59,7 @@ fun CompactHomeContent(
     val homeState by homeComponent.state.subscribeAsState()
     val mapLocations = rememberHomeMapLocations(
         nodeAddress = homeState.selectedNode?.address.takeIf { homeState.isConnected },
+        enabled = homeState.connectMapEnabled,
     )
     val homeLabels = rememberHomeUiLabels()
 
@@ -107,6 +104,7 @@ fun ExpandedHomeContent(
     val context = LocalContext.current
     val mapLocations = rememberHomeMapLocations(
         nodeAddress = selectedNode?.address.takeIf { homeState.isConnected },
+        enabled = homeState.connectMapEnabled,
     )
 
     val homeLabels = rememberHomeUiLabels()
@@ -194,14 +192,8 @@ fun ExpandedHomeContent(
 }
 
 @Composable
-private fun rememberHomeMapLocations(nodeAddress: String?): HomeMapLocations {
-    val settingsRepository: SettingsRepository = koinInject()
-    val enabledFlow = remember(settingsRepository) {
-        settingsRepository.settingsFlow.map { it.connectMapEnabled }
-    }
-    // Wait for the saved choice before starting any lookup, including after app restart.
-    val enabled by enabledFlow.collectAsState(initial = null)
-    if (enabled != true) return HomeMapLocations()
+private fun rememberHomeMapLocations(nodeAddress: String?, enabled: Boolean): HomeMapLocations {
+    if (!enabled) return HomeMapLocations()
 
     val lookup: AndroidHomeIpLocationLookup = koinInject()
     val context = LocalContext.current.applicationContext
@@ -210,8 +202,6 @@ private fun rememberHomeMapLocations(nodeAddress: String?): HomeMapLocations {
     }
     var networkEpoch by remember { mutableIntStateOf(0) }
     var locations by remember { mutableStateOf(HomeMapLocations()) }
-    var lastNodeAddress by remember { mutableStateOf<String?>(null) }
-    var knownServerLocations by remember { mutableStateOf<Map<String, HomeMapLocation>>(emptyMap()) }
 
     DisposableEffect(connectivityManager) {
         val callback = object : ConnectivityManager.NetworkCallback() {
@@ -228,23 +218,10 @@ private fun rememberHomeMapLocations(nodeAddress: String?): HomeMapLocations {
     }
 
     LaunchedEffect(nodeAddress, networkEpoch) {
-        if (nodeAddress != lastNodeAddress || nodeAddress == null) {
-            locations = locations.copy(server = nodeAddress?.let(knownServerLocations::get))
-        }
-        lastNodeAddress = nodeAddress
+        // A new session or network must never retain pins from a previous network/node.
+        locations = HomeMapLocations()
         while (true) {
-            val refreshed = lookup.lookup(nodeAddress)
-            if (nodeAddress != null) {
-                refreshed.server?.let { serverLocation ->
-                    knownServerLocations = knownServerLocations + (nodeAddress to serverLocation)
-                }
-            }
-            locations = HomeMapLocations(
-                user = refreshed.user ?: locations.user,
-                server = if (nodeAddress == null) null else {
-                    refreshed.server ?: knownServerLocations[nodeAddress] ?: locations.server
-                },
-            )
+            locations = lookup.lookup(nodeAddress)
             delay(15 * 60 * 1_000L)
         }
     }

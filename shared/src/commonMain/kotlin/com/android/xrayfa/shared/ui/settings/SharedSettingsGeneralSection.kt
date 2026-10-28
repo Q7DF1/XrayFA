@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PowerSettingsNew
 import androidx.compose.material.icons.outlined.Public
@@ -17,6 +18,8 @@ import com.android.xrayfa.datastore.Theme
 import com.android.xrayfa.shared.navigation.DefaultSettingsComponent
 import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.ui.platform.LocalPlatformRootHooks
+import com.android.xrayfa.shared.ui.transitions.SettingsDetailTransitions
+import com.android.xrayfa.shared.ui.transitions.settingsDetailSource
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 
 @Composable
@@ -25,6 +28,7 @@ fun SharedSettingsGeneralSection(
     modifier: Modifier = Modifier,
     labels: SettingsUiLabels = SettingsUiLabels(),
     scrollEnabled: Boolean = true,
+    onConnectMapClick: (() -> Unit)? = null,
     additionalGeneralContent: @Composable ColumnScope.() -> Unit = {},
     additionalNetworkContent: @Composable ColumnScope.() -> Unit = {},
 ) {
@@ -74,12 +78,13 @@ fun SharedSettingsGeneralSection(
                 onCheckedChange = component::onSetHomeScreenWidgetsEnabled,
                 icon = Icons.Outlined.Widgets,
             )
-            SharedSettingsSwitchRow(
+            if (onConnectMapClick != null) SharedSettingsFieldRow(
                 title = labels.connectMapTitle,
-                description = labels.connectMapDescription,
-                checked = state.connectMapEnabled,
-                onCheckedChange = component::onSetConnectMapEnabled,
+                content = labels.connectMapEntryDescription,
                 icon = Icons.Outlined.Public,
+                trailingIcon = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                onClick = onConnectMapClick,
+                modifier = Modifier.settingsDetailSource(SettingsDetailTransitions.ConnectMap),
             )
             if (platformHooks.supportsHideFromRecents) SharedSettingsSwitchRow(
                 title = labels.hideFromRecentsTitle,

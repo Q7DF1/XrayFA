@@ -287,5 +287,16 @@
     <string name="home_screen_widgets_title">桌面微件</string>
     <string name="home_screen_widgets_desc">在系统微件列表中显示 XrayFA。关闭会移除已添加的微件，重新开启后需再次添加。</string>
     <string name="connect_map_title">Connect Map</string>
-    <string name="connect_map_desc">查询并显示连接地图上的位置信息。关闭后不再查询地址或显示位置信息，仅保留静态地图。</string>
+    <string name="connect_map_desc">手动选择我的位置并下载 City 数据库，节点位置使用本地数据库查询。</string>
+    <string name="city_database_title">City 城市数据库</string>
+    <string name="city_database_desc">下载 GeoLite2-City.mmdb 后可开启 Connect Map，再次下载可更新数据库。</string>
+    <string name="city_database_failed">下载或校验失败，已保留原数据库。请点击下载重试。</string>
+    <string name="map_database_missing">Connect Map：缺少 City 数据库，请前往设置下载。</string>
+    <string name="map_database_invalid">Connect Map：City 数据库无效，请前往设置重新下载。</string>
+    <string name="map_server_unavailable">Connect Map：无法获取节点坐标，请检查节点地址或更新 City 数据库。</string>
+    <string name="map_origin_title">我的地图位置</string>
+    <string name="map_origin_unset">尚未选择</string>
+    <string name="map_origin_hint">在地图上点选您的大致位置并保存，之后可在此重新选择。</string>
+    <string name="map_origin_missing">Connect Map：请在设置中点选我的位置，以显示连线起点。</string>
+    <string name="connect_map_entry_desc">地图显示、我的位置和离线 City 数据库</string>
 </resources>

@@ -10,6 +10,7 @@ object TransitionDestinations {
     const val SETTINGS = "settings"
     const val SUBSCRIPTIONS = "subscriptions"
     const val SEARCH = "search"
+    const val CONNECT_MAP = "connect-map"
     const val APPS = "apps"
     const val LOGCAT = "logcat"
     const val ROUTE = "route"

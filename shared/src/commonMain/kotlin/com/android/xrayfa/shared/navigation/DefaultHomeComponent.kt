@@ -48,6 +48,14 @@ class DefaultHomeComponent(
 
     init {
         scope.launch {
+            settingsRepository.settingsFlow.collect { settings ->
+                _state.update { it.copy(
+                    connectMapEnabled = settings.connectMapEnabled,
+                    connectMapOrigin = settings.connectMapOrigin,
+                ) }
+            }
+        }
+        scope.launch {
             vpnController.state.collect { vpnState ->
                 _state.update { it.copy(isConnected = vpnState.isConnected) }
             }

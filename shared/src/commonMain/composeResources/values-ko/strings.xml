@@ -297,5 +297,16 @@
     <string name="home_screen_widgets_title">홈 화면 위젯</string>
     <string name="home_screen_widgets_desc">시스템 위젯 목록에 XrayFA를 표시합니다. 끄면 기존 위젯이 제거되며, 다시 켠 후 새로 추가해야 합니다.</string>
     <string name="connect_map_title">Connect Map</string>
-    <string name="connect_map_desc">연결 지도에서 위치를 조회하고 표시합니다. 끄면 위치를 조회하지 않고 정적 지도만 표시합니다.</string>
+    <string name="connect_map_desc">내 위치를 선택하고 City 데이터베이스를 다운로드하세요. 노드 위치는 로컬에서 조회합니다.</string>
+    <string name="city_database_title">City 데이터베이스</string>
+    <string name="city_database_desc">Connect Map을 켜기 전에 GeoLite2-City.mmdb를 다운로드하세요. 다시 다운로드하면 업데이트됩니다.</string>
+    <string name="city_database_failed">다운로드 또는 검증 실패. 기존 데이터베이스가 유지됩니다. 다시 시도하세요.</string>
+    <string name="map_database_missing">Connect Map: City 데이터베이스가 없습니다. 설정에서 다운로드하세요.</string>
+    <string name="map_database_invalid">Connect Map: City 데이터베이스가 잘못되었습니다. 다시 다운로드하세요.</string>
+    <string name="map_server_unavailable">Connect Map: 노드 좌표가 없습니다. 노드 주소를 확인하거나 City 데이터베이스를 업데이트하세요.</string>
+    <string name="map_origin_title">내 지도 위치</string>
+    <string name="map_origin_unset">선택하지 않음</string>
+    <string name="map_origin_hint">지도에서 대략적인 위치를 누르고 저장하세요. 여기에서 언제든 변경할 수 있습니다.</string>
+    <string name="map_origin_missing">Connect Map: 설정에서 내 위치를 선택하면 경로의 시작점이 표시됩니다.</string>
+    <string name="connect_map_entry_desc">지도 표시, 내 위치 및 오프라인 City 데이터베이스</string>
 </resources>

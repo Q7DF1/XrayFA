@@ -300,5 +300,16 @@
     <string name="home_screen_widgets_title">Home screen widget</string>
     <string name="home_screen_widgets_desc">Show XrayFA in the system widget picker. Turning this off removes existing widgets; add them again after enabling.</string>
     <string name="connect_map_title">Connect Map</string>
-    <string name="connect_map_desc">Look up and show locations on the connection map. When off, only the static map is shown.</string>
+    <string name="connect_map_desc">Choose your location and download the City database. Node locations are looked up locally.</string>
+    <string name="city_database_title">City database</string>
+    <string name="city_database_desc">Download GeoLite2-City.mmdb before enabling Connect Map. Download again to update.</string>
+    <string name="city_database_failed">Download or validation failed. The previous database was kept. Tap download to retry.</string>
+    <string name="map_database_missing">Connect Map: City database missing. Download it in Settings.</string>
+    <string name="map_database_invalid">Connect Map: City database is invalid. Download it again in Settings.</string>
+    <string name="map_server_unavailable">Connect Map: node coordinates are unavailable. Check the node address or update the City database.</string>
+    <string name="map_origin_title">My map location</string>
+    <string name="map_origin_unset">Not selected</string>
+    <string name="map_origin_hint">Tap your approximate location on the map and save. You can change it here anytime.</string>
+    <string name="map_origin_missing">Connect Map: select your location in Settings to show the route origin.</string>
+    <string name="connect_map_entry_desc">Map display, your location, and the offline City database</string>
 </resources>

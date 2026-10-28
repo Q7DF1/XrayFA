@@ -1,5 +1,6 @@
 package com.android.xrayfa.shared.ui.home
 
+import com.android.xrayfa.datastore.ConnectMapOrigin
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -60,6 +61,7 @@ fun HomeNetworkMap(
     fromLabel: String,
     toLabel: String,
     modifier: Modifier = Modifier,
+    onLocationSelected: ((ConnectMapOrigin) -> Unit)? = null,
 ) {
     val darkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val mapTint = if (darkTheme) Color(0xFF4ABBCB) else Color(0xFF398D9D)
@@ -160,8 +162,12 @@ fun HomeNetworkMap(
         Canvas(
             Modifier
                 .fillMaxSize()
-                .pointerInput(fromPoint, toPoint) {
+                .pointerInput(fromPoint, toPoint, viewport, onLocationSelected) {
                     detectTapGestures { tap ->
+                        if (onLocationSelected != null) {
+                            viewport.unproject(tap)?.let(onLocationSelected)
+                            return@detectTapGestures
+                        }
                         val fromDistance = fromPoint?.distanceTo(tap)
                         val toDistance = toPoint?.distanceTo(tap)
                         selectedEndpoint = when {
@@ -450,7 +456,7 @@ private fun placeCallout(
 
 private data class CalloutPlacement(val x: Float, val y: Float, val width: Float, val height: Float)
 
-private data class MapViewport(
+internal data class MapViewport(
     val left: Float,
     val top: Float,
     val width: Float,
@@ -460,6 +466,16 @@ private data class MapViewport(
         x = left + ((longitude + 180f) / 360f).coerceIn(0f, 1f) * width,
         y = top + ((90f - latitude) / 180f).coerceIn(0f, 1f) * height,
     )
+
+    fun unproject(point: Offset): ConnectMapOrigin? {
+        if (width <= 0f || height <= 0f || !point.x.isFinite() || !point.y.isFinite() ||
+            point.x !in left..(left + width) || point.y !in top..(top + height)
+        ) return null
+        return ConnectMapOrigin.fromCoordinates(
+            (90.0 - (point.y - top) / height * 180.0).coerceIn(-90.0, 90.0),
+            ((point.x - left) / width * 360.0 - 180.0).coerceIn(-180.0, 180.0),
+        )
+    }
 
     companion object {
         fun fit(width: Float, height: Float): MapViewport {

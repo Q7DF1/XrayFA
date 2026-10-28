@@ -7,36 +7,39 @@ import android.provider.OpenableColumns
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.IntDef
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.android.xrayfa.datastore.Theme
-import com.android.xrayfa.datastore.SettingsRepository
-import com.android.xrayfa.datastore.SettingsState
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import androidx.core.net.toUri
 import com.android.xrayfa.R
+import com.android.xrayfa.common.core.AtomicAssetInstaller
 import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.routing.DomainStrategy
 import com.android.xrayfa.common.routing.RoutingMode
 import com.android.xrayfa.common.routing.Rule
 import com.android.xrayfa.common.utils.calculateFileHash
+import com.android.xrayfa.core.XrayAssetInstaller
+import com.android.xrayfa.datastore.SettingsRepository
+import com.android.xrayfa.datastore.SettingsState
+import com.android.xrayfa.datastore.Theme
+import com.android.xrayfa.network.FileDownloader
 import com.android.xrayfa.vpn.VpnController
 import com.android.xrayfa.vpn.isConnected
+import java.io.File
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import com.android.xrayfa.network.FileDownloader
-import java.io.File
-import com.android.xrayfa.core.XrayAssetInstaller
 
 const val LOCAL_PROXY_LISTEN_ADDRESS = "127.0.0.1"
 const val LAN_PROXY_LISTEN_ADDRESS = "0.0.0.0"
@@ -81,10 +84,10 @@ class SettingsViewmodel(
         const val TAG = "SettingsViewmodel"
     }
 
-    val geoIPUrlTest = "https://github.com/v2fly/geoip/releases/latest/download/geoip.dat"
-    val geoSiteUrlTest = "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
-    val geoLiteUrlTest = "https://github.com/P3TERX/GeoLite.mmdb/raw/download/GeoLite2-Country.mmdb"
+    private val geoIpDownloadUrl = "https://github.com/v2fly/geoip/releases/latest/download/geoip.dat"
+    private val geoSiteDownloadUrl = "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
     val xrayFaReleaseUrl = "https://api.github.com/repos/q7df1/xrayfa/releases/latest"
+    private val geoDownloadJobs = mutableMapOf<Int, Job>()
     private val _geoIPDownloading = MutableStateFlow(false)
     val geoIPDownloading = _geoIPDownloading.asStateFlow()
 
@@ -96,12 +99,6 @@ class SettingsViewmodel(
 
     private val _geoSiteProgress = MutableStateFlow(0f)
     val geoSiteProgress = _geoSiteProgress.asStateFlow()
-
-    private val _geoLiteDownloading = MutableStateFlow(false)
-    val geoLiteDownloading = _geoLiteDownloading.asStateFlow()
-
-    private val _geoLiteProgress = MutableStateFlow(0f)
-    val geoLiteProgress = _geoLiteProgress.asStateFlow()
 
     private val _xrayFaDownloading = MutableStateFlow(false)
     val xrayFaDownloading = _xrayFaDownloading.asStateFlow()
@@ -255,103 +252,78 @@ class SettingsViewmodel(
     }
 
 
-    fun downloadGeoSite(context: Context) {
-        if (_geoSiteDownloading.value || _geoIPDownloading.value || _geoLiteDownloading.value) {
-            return
-        }
-        viewModelScope.launch(Dispatchers.IO) {
-            _geoSiteDownloading.value = true
-            val downloaded = download(GEOFileType.FILE_TYPE_SITE)
-            if (downloaded) onConfigChanged()
-            _geoSiteDownloading.value = false
+    init {
+        for (type in listOf(GEOFileType.FILE_TYPE_IP, GEOFileType.FILE_TYPE_SITE)) {
+            runCatching {
+                val target = File(if (type == GEOFileType.FILE_TYPE_IP) assetPaths.geoIpPath else assetPaths.geoSitePath)
+                // Also clean the random temporary names used by earlier versions of the downloader.
+                target.parentFile?.listFiles()?.filter {
+                    it.name.startsWith(target.name) && it.name.endsWith(".download")
+                }?.forEach { java.nio.file.Files.deleteIfExists(it.toPath()) }
+            }.onFailure(::reportDownloadFailure)
         }
     }
 
-    fun downloadGeoLite(context: Context) {
-        if (_geoSiteDownloading.value || _geoIPDownloading.value || _geoLiteDownloading.value) {
-            return
-        }
-        viewModelScope.launch(Dispatchers.IO) {
-            _geoLiteDownloading.value = true
-            val downloaded = download(GEOFileType.FILE_TYPE_LITE)
-            _geoLiteDownloading.value = false
-            if (downloaded) {
-                Log.i(TAG, "downloadGeoLite: download successful!")
-                repository.setGeoLiteInstall(true)
+    fun downloadGeoSite() = startGeoDownload(GEOFileType.FILE_TYPE_SITE)
+    fun downloadGeoIP() = startGeoDownload(GEOFileType.FILE_TYPE_IP)
+    fun cancelGeoSiteDownload() { geoDownloadJobs[GEOFileType.FILE_TYPE_SITE]?.cancel() }
+    fun cancelGeoIPDownload() { geoDownloadJobs[GEOFileType.FILE_TYPE_IP]?.cancel() }
+
+    private fun startGeoDownload(@GEOFileType type: Int) {
+        if (_geoIPDownloading.value || _geoSiteDownloading.value) return
+        val status = if (type == GEOFileType.FILE_TYPE_IP) _geoIPDownloading else _geoSiteDownloading
+        val progress = if (type == GEOFileType.FILE_TYPE_IP) _geoIPProgress else _geoSiteProgress
+        val target = if (type == GEOFileType.FILE_TYPE_IP) assetPaths.geoIpPath else assetPaths.geoSitePath
+        val url = if (type == GEOFileType.FILE_TYPE_IP) geoIpDownloadUrl else geoSiteDownloadUrl
+        status.value = true
+        progress.value = 0f
+        var committed = false
+        val installer = AtomicAssetInstaller(
+            destination = target,
+            url = url,
+            download = { address, partial, update ->
+                withContext(Dispatchers.IO) {
+                    fileDownloader.downloadToFile(address, partial, onProgress = update)
+                }
+            },
+            validate = { partial ->
+                check(XrayAssetInstaller.readCodes(File(partial)) != null) { "Invalid or incomplete geodata" }
+            },
+        )
+        val job = viewModelScope.launch(start = CoroutineStart.LAZY) {
+            try {
+                installer.install { progress.value = it }
+                committed = true
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                reportDownloadFailure(failure)
             }
         }
-
+        geoDownloadJobs[type] = job
+        job.invokeOnCompletion {
+            if (geoDownloadJobs[type] === job) {
+                geoDownloadJobs.remove(type)
+                status.value = false
+                progress.value = 0f
+                // A cancelled or failed transfer must not restart the running VPN.
+                if (committed && !job.isCancelled) viewModelScope.launch { onConfigChanged() }
+            }
+        }
+        job.start()
     }
 
-    fun downloadGeoIP(context: Context) {
-
-        if (_geoSiteDownloading.value || _geoIPDownloading.value || _geoLiteDownloading.value) {
-            return
-        }
-        viewModelScope.launch(Dispatchers.IO) {
-            _geoIPDownloading.value = true
-            val downloaded = download(GEOFileType.FILE_TYPE_IP)
-            if (downloaded) onConfigChanged()
-            _geoIPDownloading.value = false
+    private fun reportDownloadFailure(failure: Throwable) {
+        Log.e(TAG, "Geodata download or cleanup failed", failure)
+        _downloadException.value = true
+        viewModelScope.launch {
+            delay(2000L)
+            _downloadException.value = false
         }
     }
 
     suspend fun onConfigChanged() {
         vpnController.restartIfNeeded()
-    }
-
-
-    private suspend fun download(
-        url: String,
-        targetPath: String,
-        statusFlow: MutableStateFlow<Boolean>,
-        progressFlow: MutableStateFlow<Float>,
-    ): Boolean = withContext(Dispatchers.IO) {
-
-
-        Log.i(TAG, "$url: downloading")
-        var temporary: File? = null
-        try {
-            val target = File(targetPath)
-            val downloaded = File.createTempFile(target.name, ".download", target.parentFile)
-            temporary = downloaded
-            fileDownloader.downloadToFile(url, downloaded.absolutePath) { progress ->
-                progressFlow.value = progress
-            }
-            XrayAssetInstaller.publish(downloaded, target)
-            return@withContext true
-        } catch (e: Exception) {
-            if (e is kotlinx.coroutines.CancellationException) throw e
-            statusFlow.value = false
-            launch {
-                _downloadException.value = true
-                delay(2000L)
-                _downloadException.value = false
-            }
-            Log.e(TAG, "download: exception $e")
-            return@withContext false
-        } finally {
-            temporary?.delete()
-            progressFlow.value = 0f
-        }
-    }
-    private suspend fun download(
-        @GEOFileType fileType: Int,
-    ):Boolean {
-
-        return when(fileType) {
-            GEOFileType.FILE_TYPE_IP ->
-                download(geoIPUrlTest, assetPaths.geoIpPath, _geoIPDownloading, _geoIPProgress)
-            GEOFileType.FILE_TYPE_SITE ->
-                download(geoSiteUrlTest, assetPaths.geoSitePath, _geoSiteDownloading, _geoSiteProgress)
-            GEOFileType.FILE_TYPE_LITE ->
-                download(geoLiteUrlTest, assetPaths.geoLiteDatabasePath, _geoLiteDownloading, _geoLiteProgress)
-            else -> {
-                Log.e(TAG, "download: download type error")
-                false
-            }
-        }
-
     }
 
     fun onSelectFile(context: Context,uri: Uri,@GEOFileType fileType: Int) {

@@ -296,5 +296,16 @@
     <string name="home_screen_widgets_title">Виджет на главном экране</string>
     <string name="home_screen_widgets_desc">Показывать XrayFA в списке виджетов. Отключение удаляет добавленные виджеты; после включения добавьте их заново.</string>
     <string name="connect_map_title">Connect Map</string>
-    <string name="connect_map_desc">Определять и показывать местоположения на карте соединения. При отключении остаётся только статическая карта без запросов местоположения.</string>
+    <string name="connect_map_desc">Выберите своё местоположение и скачайте базу City. Координаты узла определяются локально.</string>
+    <string name="city_database_title">База городов City</string>
+    <string name="city_database_desc">Скачайте GeoLite2-City.mmdb перед включением Connect Map. Повторная загрузка обновляет базу.</string>
+    <string name="city_database_failed">Ошибка загрузки или проверки. Предыдущая база сохранена. Повторите загрузку.</string>
+    <string name="map_database_missing">Connect Map: база City отсутствует. Скачайте её в настройках.</string>
+    <string name="map_database_invalid">Connect Map: база City повреждена. Скачайте её заново.</string>
+    <string name="map_server_unavailable">Connect Map: координаты узла недоступны. Проверьте адрес узла или обновите базу City.</string>
+    <string name="map_origin_title">Моё место на карте</string>
+    <string name="map_origin_unset">Не выбрано</string>
+    <string name="map_origin_hint">Нажмите на карте своё примерное местоположение и сохраните. Позже его можно изменить здесь.</string>
+    <string name="map_origin_missing">Connect Map: выберите своё местоположение в настройках для отображения начала маршрута.</string>
+    <string name="connect_map_entry_desc">Отображение карты, ваше местоположение и локальная база City</string>
 </resources>

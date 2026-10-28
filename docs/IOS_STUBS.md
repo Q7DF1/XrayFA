@@ -23,7 +23,7 @@ These behaviors are deliberate. Do not move tunnel or core execution into the ho
 | QR scanner: photo library / flashlight | AVFoundation live camera only | Photo import and flashlight controls unavailable |
 | `SystemBackHandler` | Empty implementation | Relies on system gestures |
 | Logs | `SharedInProcessAppLogScreen` backed by `AppLogStore` | Host-process logs only; Network Extension log bridge remains unresolved |
-| Home map IP geolocation | Shared map shows unavailable location markers | Android uses a direct-network IP lookup; iOS still needs a platform lookup that distinguishes the device network from the Network Extension route |
+| Home map IP geolocation | Shared map shows unavailable location markers | Users select their origin in the shared map picker; public-IP discovery is not used. The common City reader and file storage are implemented, but iOS still needs node resolution and local City lookup through platform home hooks. City downloads remain disabled with the existing GeoLite download restriction |
 
 ## Implemented
 

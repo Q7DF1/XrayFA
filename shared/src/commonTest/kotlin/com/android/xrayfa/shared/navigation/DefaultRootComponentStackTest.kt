@@ -193,4 +193,37 @@ class DefaultRootComponentStackTest {
         root.selectTab(RootTab.Home)
         assertEquals(listOf(RootStackConfig.Idle), configs(root))
     }
+    @Test
+    fun connectMapReturnsToSettingsAndDoesNotDuplicate() {
+        val root = testRootComponent()
+        root.openSettings()
+        root.openConnectMap()
+        root.openConnectMap()
+        assertEquals(
+            listOf(RootStackConfig.Idle, RootStackConfig.Settings, RootStackConfig.ConnectMap),
+            configs(root),
+        )
+        root.navigateBack()
+        assertEquals(RootStackConfig.Settings, active(root))
+        root.navigateBack()
+        assertEquals(RootStackConfig.Idle, active(root))
+    }
+
+    @Test
+    fun connectMapOpenedOutsideSettingsOwnsTheStack() {
+        val root = testRootComponent()
+        root.openNodeEdit(3)
+        root.openConnectMap()
+        assertEquals(listOf(RootStackConfig.Idle, RootStackConfig.ConnectMap), configs(root))
+        root.navigateBack()
+        assertEquals(RootStackConfig.Idle, active(root))
+    }
+
+    @Test
+    fun connectMapDestinationCanBeRestored() {
+        val json = kotlinx.serialization.json.Json
+        val encoded = json.encodeToString(RootStackConfig.serializer(), RootStackConfig.ConnectMap)
+        assertEquals(RootStackConfig.ConnectMap, json.decodeFromString(RootStackConfig.serializer(), encoded))
+    }
+
 }

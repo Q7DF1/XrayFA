@@ -1,5 +1,9 @@
 package com.android.xrayfa.common.core
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
+
 /** Official GeoLite2-Country MMDB used for node country flags. */
 object GeoLiteAsset {
     const val DOWNLOAD_URL =
@@ -11,15 +15,35 @@ object GeoLiteAsset {
  * Failures leave the install flag unchanged (Android previously set it even on error).
  */
 class GeoLiteInstaller(
-    private val destPath: String,
-    private val download: suspend (url: String, destPath: String, onProgress: (Float) -> Unit) -> Unit,
+    destPath: String,
+    download: suspend (url: String, destPath: String, onProgress: (Float) -> Unit) -> Unit,
     private val setInstalled: suspend (Boolean) -> Unit,
+    read: (String) -> ByteArray? = AssetFiles::read,
+    validate: (ByteArray) -> Unit = {
+        require(MmdbReader(it).databaseType.contains("Country", ignoreCase = true)) { "A Country MMDB is required" }
+    },
+    replace: (String, String) -> Unit = AssetFiles::replace,
+    delete: (String) -> Unit = AssetFiles::delete,
 ) {
+    private val installer = AtomicAssetInstaller(
+        destination = destPath,
+        url = GeoLiteAsset.DOWNLOAD_URL,
+        download = download,
+        validate = { path -> validate(read(path) ?: error("Missing Country database")) },
+        replace = replace,
+        delete = delete,
+    )
+
+    fun clearPartialDownload() = installer.clearPartialDownload()
+
     suspend fun install(onProgress: (Float) -> Unit = {}): Boolean {
         return try {
-            download(GeoLiteAsset.DOWNLOAD_URL, destPath, onProgress)
-            setInstalled(true)
+            installer.install(onProgress)
+            // Once committed, finish persisting its installed flag even if the caller is cancelled.
+            withContext(NonCancellable) { setInstalled(true) }
             true
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (_: Exception) {
             false
         }

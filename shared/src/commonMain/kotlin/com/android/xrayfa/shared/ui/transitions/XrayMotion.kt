@@ -37,6 +37,9 @@ object XrayMotion {
     val EffectsFloat: FiniteAnimationSpec<Float> =
         spring(dampingRatio = 1f, stiffness = 1600f)
 
+    val SpatialFloat: FiniteAnimationSpec<Float> =
+        spring(dampingRatio = 1f, stiffness = 800f)
+
     /** 圆角插值。临界阻尼，避免冲过 0 再弹回来。 */
     val SpatialDp: FiniteAnimationSpec<Dp> =
         spring(dampingRatio = 1f, stiffness = 800f, visibilityThreshold = Dp.VisibilityThreshold)

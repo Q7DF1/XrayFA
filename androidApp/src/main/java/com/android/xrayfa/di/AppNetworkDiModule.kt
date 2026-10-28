@@ -22,7 +22,7 @@ val appNetworkDiModule: Module = module {
     single {
         AndroidHomeIpLocationLookup(
             androidContext(),
-            get(named(WIDGET_EXIT_IP_HTTP_CLIENT)),
+            get<com.android.xrayfa.common.core.XrayAssetPaths>(),
         )
     }
 

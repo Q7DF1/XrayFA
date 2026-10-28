@@ -1,10 +1,13 @@
 package com.android.xrayfa.shared.navigation
 
-import com.android.xrayfa.model.Node
 import com.android.xrayfa.common.core.VpnStartupFailure
+import com.android.xrayfa.datastore.ConnectMapOrigin
+import com.android.xrayfa.model.Node
 
 /** Home tab presentation state owned by [HomeComponent]. */
 data class HomeState(
+    val connectMapEnabled: Boolean = false,
+    val connectMapOrigin: ConnectMapOrigin? = null,
     val isConnected: Boolean = false,
     val selectedNode: Node? = null,
     val busy: Boolean = false,

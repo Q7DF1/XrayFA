@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -223,7 +224,8 @@ fun SettingsScreen(
                         icon = Icons.Outlined.Language,
                         downloading = geoIPDownloading,
                         progress = geoIPProgress,
-                        onDownloadClick = {viewmodel.downloadGeoIP(context = context)},
+                        onDownloadClick = viewmodel::downloadGeoIP,
+                        onCancelClick = viewmodel::cancelGeoIPDownload,
                         downloadEnable = isVpnConnected,
                         downloadDisabledHint = R.string.geo_download_need_service_hint,
                         onImportClick = {
@@ -240,7 +242,8 @@ fun SettingsScreen(
                         title = R.string.geo_site,
                         description = R.string.geo_site_description,
                         icon = Icons.Outlined.Public,
-                        onDownloadClick = {viewmodel.downloadGeoSite(context)},
+                        onDownloadClick = viewmodel::downloadGeoSite,
+                        onCancelClick = viewmodel::cancelGeoSiteDownload,
                         downloading = geoSiteDownloading,
                         progress = geoSiteProgress,
                         downloadEnable = isVpnConnected,
@@ -338,8 +341,10 @@ fun SettingsWithBtnBox(
     onImportClick: (() -> Unit)? = null,
     enable: Boolean = true,
     downloadEnable: Boolean = true,
-    @StringRes downloadDisabledHint: Int? = null
+    @StringRes downloadDisabledHint: Int? = null,
+    onCancelClick: (() -> Unit)? = null,
 ) {
+    val canCancel = downloading && onCancelClick != null
 
     val infiniteTransition = rememberInfiniteTransition()
     val angle by infiniteTransition.animateFloat(
@@ -400,24 +405,25 @@ fun SettingsWithBtnBox(
         trailingContent = {
             Row {
                 IconButton(
-                    onClick = onDownloadClick,
-                    enabled = downloadEnable
+                    onClick = { if (canCancel) onCancelClick.invoke() else onDownloadClick() },
+                    enabled = canCancel || downloadEnable
                 ) {
                     Icon(
-                        imageVector = if (!downloading)
-                            Icons.Outlined.Download
-                        else
-                            Icons.Default.Refresh,
-                        contentDescription = "download",
+                        imageVector = when {
+                            canCancel -> Icons.Filled.Close
+                            downloading -> Icons.Default.Refresh
+                            else -> Icons.Outlined.Download
+                        },
+                        contentDescription = if (canCancel) stringResource(R.string.cancel) else "download",
                         modifier = Modifier
                             .size(24.dp)
-                            .rotate(angle)
+                            .rotate(if (canCancel) 0f else angle)
                     )
                 }
                 if (onImportClick != null) {
                     IconButton(
                         onClick = onImportClick,
-                        enabled = enable
+                        enabled = enable && !downloading
                     ) {
                         Icon(
                             imageVector = Icons.Filled.UploadFile,

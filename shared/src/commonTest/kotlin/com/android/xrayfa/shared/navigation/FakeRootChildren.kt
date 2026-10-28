@@ -1,5 +1,6 @@
 package com.android.xrayfa.shared.navigation
 
+import com.android.xrayfa.datastore.ConnectMapOrigin
 import com.android.xrayfa.common.routing.DomainStrategy
 import com.android.xrayfa.common.routing.RoutingMode
 import com.android.xrayfa.common.routing.Rule
@@ -45,10 +46,14 @@ class FakeConfigComponent : ConfigComponent {
 }
 
 class FakeSettingsComponent : SettingsComponent {
+    override val cityDatabase: Value<CityDatabaseState> = MutableValue(CityDatabaseState())
+    override fun onDownloadCityDatabase() = Unit
+    override fun onCancelCityDatabaseDownload() = Unit
     override val state: Value<SettingsState> = MutableValue(SettingsState())
     override val geoLiteDownload: Value<GeoLiteDownloadState> = MutableValue(GeoLiteDownloadState())
     override fun onSetTheme(themeCode: Int) = Unit
     override fun onSetBootAutoStart(enable: Boolean) = Unit
+    override fun onSetConnectMapOrigin(origin: ConnectMapOrigin?) = Unit
     override fun onSetConnectMapEnabled(enable: Boolean) = Unit
     override fun onSetAgentFunctionsEnabled(enable: Boolean) = Unit
     override fun onSetHomeScreenWidgetsEnabled(enable: Boolean) = Unit
@@ -71,6 +76,7 @@ class FakeSettingsComponent : SettingsComponent {
     override fun onSetDomainStrategy(strategy: DomainStrategy) = Unit
     override fun onSetRoutingRules(rules: List<Rule>) = Unit
     override fun onDownloadGeoLite() = Unit
+    override fun onCancelGeoLiteDownload() = Unit
 }
 
 class FakeSubscriptionComponent : SubscriptionComponent {

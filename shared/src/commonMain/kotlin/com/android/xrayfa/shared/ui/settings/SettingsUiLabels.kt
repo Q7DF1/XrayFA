@@ -15,8 +15,15 @@ data class SettingsUiLabels(
     val homeScreenWidgetsDescription: String =
         "Show XrayFA in the system widget picker. Turning this off removes existing widgets; add them again after enabling.",
     val connectMapTitle: String = "Connect Map",
+    val connectMapEntryDescription: String = "Map display, your location, and the offline City database",
     val connectMapDescription: String =
-        "Look up and show locations on the connection map. When off, only the static map is shown.",
+        "Choose your location and download the City database. Node locations are looked up locally.",
+    val mapOriginTitle: String = "My map location",
+    val mapOriginUnset: String = "Not selected",
+    val mapOriginHint: String = "Tap your approximate location on the map and save. You can change it here anytime.",
+    val cityDatabaseTitle: String = "City database",
+    val cityDatabaseDescription: String = "Download GeoLite2-City.mmdb before enabling Connect Map. Tap download again to update.",
+    val cityDatabaseFailed: String = "City database download or validation failed. The previous database was kept. Tap to retry.",
     val agentFunctionsTitle: String = "Agent functions",
     val inDevelopmentLabel: String = "In development",
     val agentFunctionsDescription: String =

@@ -1,6 +1,6 @@
 package com.android.xrayfa.shared.ui.home
 
-/** Approximate IP geolocation returned by the configured IP lookup provider. */
+/** A manually selected origin or an approximate node location from the local City database. */
 data class HomeMapLocation(
     val ipAddress: String,
     val city: String?,
@@ -16,4 +16,12 @@ data class HomeMapLocation(
 data class HomeMapLocations(
     val user: HomeMapLocation? = null,
     val server: HomeMapLocation? = null,
+    val issue: HomeMapIssue? = null,
 )
+
+enum class HomeMapIssue {
+    DATABASE_MISSING,
+    DATABASE_INVALID,
+    ORIGIN_MISSING,
+    SERVER_UNAVAILABLE,
+}

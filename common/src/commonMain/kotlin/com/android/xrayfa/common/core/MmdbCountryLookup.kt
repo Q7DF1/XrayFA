@@ -91,7 +91,7 @@ private fun parseIpv6(ip: String): ByteArray? {
     return out
 }
 
-private class MmdbReader(private val data: ByteArray) {
+internal class MmdbReader(private val data: ByteArray) {
     private val metadataOffset = findMetadataStart()
     private val metadata = decodeValue(Cursor(data, metadataOffset), pointerBase = metadataOffset) as? Val.Map
         ?: error("MMDB metadata is not a map")
@@ -102,17 +102,28 @@ private class MmdbReader(private val data: ByteArray) {
     private val searchTreeSize = nodeCount * nodeByteSize
     private val ipV4Start = findIpV4Start()
 
+    val databaseType: String get() = (metadata.v["database_type"] as? Val.Str)?.v.orEmpty()
+
+    init {
+        require(recordSize in listOf(24, 28, 32) && ipVersion in listOf(4, 6))
+        require(nodeCount > 0 && searchTreeSize + DATA_SECTION_SEPARATOR <= metadataOffset)
+    }
+
     fun countryIso(ipBytes: ByteArray): String? {
+        val map = record(ipBytes)?.v ?: return null
+        val country = (map["country"] as? Val.Map)?.v
+        return (country?.get("iso_code") as? Val.Str)?.v ?: ""
+    }
+
+    fun record(ipBytes: ByteArray): Val.Map? {
         if (ipVersion == 4 && ipBytes.size == 16) return null
         val record = traverse(ipBytes)
         if (record <= nodeCount) return null
         val resolved = (record - nodeCount) + searchTreeSize
+        require(resolved >= searchTreeSize + DATA_SECTION_SEPARATOR && resolved < metadataOffset)
         val pointerBase = searchTreeSize + DATA_SECTION_SEPARATOR
         val decoded = decodeValue(Cursor(data, resolved.toInt()), pointerBase.toInt())
-        val map = (decoded as? Val.Map)?.v ?: return ""
-        val country = (map["country"] as? Val.Map)?.v
-        val iso = (country?.get("iso_code") as? Val.Str)?.v
-        return iso ?: ""
+        return decoded as? Val.Map
     }
 
     private fun traverse(ipBytes: ByteArray): Long {
@@ -170,7 +181,7 @@ private class MmdbReader(private val data: ByteArray) {
         val marker = METADATA_START_MARKER
         val fileSize = data.size
         var i = 0
-        while (i < fileSize - marker.size + 1) {
+        while (i < minOf(fileSize - marker.size + 1, 128 * 1024)) {
             var j = 0
             while (j < marker.size) {
                 if (data[fileSize - i - j - 1] != marker[marker.size - j - 1]) break
@@ -195,9 +206,10 @@ private class MmdbReader(private val data: ByteArray) {
     }
 }
 
-private sealed class Val {
+internal sealed class Val {
     data class Str(val v: String) : Val()
     data class Num(val v: Long) : Val()
+    data class Decimal(val v: Double) : Val()
     data class Bool(val v: Boolean) : Val()
     data class Map(val v: kotlin.collections.Map<String, Val>) : Val()
     data class Arr(val v: List<Val>) : Val()
@@ -208,13 +220,15 @@ private fun Val.Map.long(key: String): Long =
     (v[key] as? Val.Num)?.v ?: error("MMDB metadata missing $key")
 
 private class Cursor(val data: ByteArray, var pos: Int) {
+    var depth = 0
+    var remainingValues = 100_000
     fun getU(): Int {
-        if (pos >= data.size) error("MMDB truncated")
+        if (pos !in data.indices) error("MMDB truncated")
         return unsigned(data[pos++])
     }
 
     fun take(n: Int): ByteArray {
-        if (pos + n > data.size) error("MMDB truncated")
+        if (n < 0 || pos < 0 || n > data.size - pos) error("MMDB truncated")
         val slice = data.copyOfRange(pos, pos + n)
         pos += n
         return slice
@@ -224,6 +238,12 @@ private class Cursor(val data: ByteArray, var pos: Int) {
 private fun unsigned(b: Byte): Int = b.toInt() and 0xFF
 
 private fun decodeValue(cursor: Cursor, pointerBase: Int): Val {
+    require(cursor.depth < 64 && cursor.remainingValues-- > 0) { "MMDB decode limit" }
+    cursor.depth++
+    return try { decodeValueBody(cursor, pointerBase) } finally { cursor.depth-- }
+}
+
+private fun decodeValueBody(cursor: Cursor, pointerBase: Int): Val {
     val ctrlByte = cursor.getU()
     var type = ctrlByte ushr 5
     if (type == TYPE_POINTER) {
@@ -258,8 +278,8 @@ private fun decodeByType(cursor: Cursor, pointerBase: Int, type: Int, size: Int)
     when (type) {
         TYPE_UTF8 -> Val.Str(cursor.take(size).decodeToString())
         TYPE_DOUBLE -> {
-            cursor.take(8)
-            Val.Other
+            require(size == 8)
+            Val.Decimal(Double.fromBits(decodeLong(cursor, 0, 8)))
         }
         TYPE_BYTES -> {
             cursor.take(size)
@@ -267,6 +287,7 @@ private fun decodeByType(cursor: Cursor, pointerBase: Int, type: Int, size: Int)
         }
         TYPE_UINT16, TYPE_UINT32, TYPE_INT32 -> Val.Num(decodeLong(cursor, 0, size))
         TYPE_MAP -> {
+            require(size <= cursor.remainingValues / 2)
             val map = LinkedHashMap<String, Val>(size)
             repeat(size) {
                 val key = (decodeValue(cursor, pointerBase) as? Val.Str)?.v ?: error("MMDB map key")
@@ -281,6 +302,7 @@ private fun decodeByType(cursor: Cursor, pointerBase: Int, type: Int, size: Int)
             Val.Num(n)
         }
         TYPE_ARRAY -> {
+            require(size <= cursor.remainingValues)
             val list = ArrayList<Val>(size)
             repeat(size) { list.add(decodeValue(cursor, pointerBase)) }
             Val.Arr(list)
@@ -294,8 +316,8 @@ private fun decodeByType(cursor: Cursor, pointerBase: Int, type: Int, size: Int)
                 },
             )
         TYPE_FLOAT -> {
-            cursor.take(4)
-            Val.Other
+            require(size == 4)
+            Val.Decimal(Float.fromBits(decodeLong(cursor, 0, 4).toInt()).toDouble())
         }
         else -> {
             cursor.take(size)
