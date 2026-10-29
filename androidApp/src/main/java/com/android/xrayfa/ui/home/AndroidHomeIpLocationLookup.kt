@@ -1,31 +1,70 @@
 package com.android.xrayfa.ui.home
 
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.Network
-import android.net.NetworkCapabilities
+import com.android.xrayfa.common.config.DnsDefaults
 import com.android.xrayfa.common.core.AssetFiles
+import com.android.xrayfa.common.core.NodeDnsResolver
 import com.android.xrayfa.common.core.MmdbCityLookup
 import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.core.parseIpLiteral
+import com.android.xrayfa.datastore.SettingsRepository
+import com.android.xrayfa.network.SocksProxyConfig
+import com.android.xrayfa.network.exchangeDnsThroughSocks
 import com.android.xrayfa.shared.ui.home.HomeMapIssue
 import com.android.xrayfa.shared.ui.home.HomeMapLocation
 import com.android.xrayfa.shared.ui.home.HomeMapLocations
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import java.io.File
+import java.net.IDN
 import java.util.Locale
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 
-/** Resolves only the node on the physical network; coordinates come from the local City MMDB. */
+/** Uses configured DoH or ordinary DNS through local SOCKS; coordinates remain in City MMDB. */
 class AndroidHomeIpLocationLookup(
-    context: Context,
     private val assetPaths: XrayAssetPaths,
+    private val settingsRepository: SettingsRepository,
+    proxyClient: HttpClient,
 ) {
-    private val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
+    private val client = proxyClient.config { followRedirects = false }
+    private val resolver = NodeDnsResolver(
+        exchange = { mode, endpoint, query ->
+            if (mode == NodeDnsResolver.Mode.PLAIN) {
+                val settings = settingsRepository.settingsFlow.first()
+                NodeDnsResolver.Response(exchangeDnsThroughSocks(
+                    endpoint, query, SocksProxyConfig(settings.socksPort, settings.socksUserName, settings.socksPassword),
+                ))
+            } else {
+                val response = client.post(endpoint) {
+                    contentType(ContentType.parse("application/dns-message"))
+                    headers[HttpHeaders.Accept] = "application/dns-message"
+                    setBody(query)
+                }
+                check(response.status.isSuccess()) { "DoH HTTP request failed" }
+                check(response.contentType()?.withoutParameters()?.toString() == "application/dns-message")
+                NodeDnsResolver.Response(response.body<ByteArray>(), response.headers[HttpHeaders.Age]?.toLongOrNull() ?: 0)
+            }
+        },
+        now = System::currentTimeMillis,
+        scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+    )
     private var databaseVersion: Pair<Long, Long>? = null
     private var reader: MmdbCityLookup? = null
 
-    suspend fun lookup(nodeAddress: String?): HomeMapLocations = withContext(Dispatchers.IO) {
+    suspend fun lookup(
+        nodeAddress: String?,
+        sessionId: Long?,
+        socksInboundAvailable: Boolean,
+    ): HomeMapLocations = withContext(Dispatchers.IO) {
         val address = nodeAddress?.trim()?.takeIf { it.isNotEmpty() }
             ?: return@withContext HomeMapLocations()
         val file = File(assetPaths.cityDatabasePath)
@@ -46,11 +85,20 @@ class AndroidHomeIpLocationLookup(
         } catch (_: Exception) {
             return@withContext HomeMapLocations(issue = HomeMapIssue.DATABASE_INVALID)
         }
-        val network = findDirectInternetNetwork()
         val language = Locale.getDefault().toLanguageTag()
         val ips = if (parseIpLiteral(address) != null) listOf(address) else {
-            runCatching { network?.getAllByName(address)?.mapNotNull { it.hostAddress } }
-                .getOrNull().orEmpty()
+            if (sessionId == null || !socksInboundAvailable) {
+                return@withContext HomeMapLocations(issue = HomeMapIssue.DNS_UNAVAILABLE)
+            }
+            val host = runCatching { IDN.toASCII(address.trimEnd('.')) }.getOrNull()
+                ?: return@withContext HomeMapLocations(issue = HomeMapIssue.DNS_UNAVAILABLE)
+            val settings = settingsRepository.settingsFlow.first()
+            val mode = if (settings.dnsOverHttpsEnabled) NodeDnsResolver.Mode.DOH else NodeDnsResolver.Mode.PLAIN
+            val upstreams = if (settings.dnsOverHttpsEnabled) DnsDefaults.parseDohServers(settings.dnsOverHttpsServers)
+                else DnsDefaults.parseUdpDnsServers(settings.udpDnsServers)
+            resolver.resolve(host, upstreams, settings.ipV6Enable, sessionId, mode)
+                .takeIf { it.isNotEmpty() }
+                ?: return@withContext HomeMapLocations(issue = HomeMapIssue.DNS_UNAVAILABLE)
         }
         val server = ips.firstNotNullOfOrNull { locate(db, it, language) }
         HomeMapLocations(
@@ -65,18 +113,4 @@ class AndroidHomeIpLocationLookup(
                 HomeMapLocation(ip, it.city, it.region, it.country, it.latitude, it.longitude)
             }
         }.getOrNull()
-
-    private fun findDirectInternetNetwork(): Network? {
-        val candidates = connectivityManager.allNetworks.filter { network ->
-            val caps = connectivityManager.getNetworkCapabilities(network)
-            caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-                caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN) &&
-                !caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
-        }
-        return candidates.firstOrNull { it == connectivityManager.activeNetwork }
-            ?: candidates.firstOrNull { network ->
-                connectivityManager.getNetworkCapabilities(network)
-                    ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) == true
-            } ?: candidates.firstOrNull()
-    }
 }

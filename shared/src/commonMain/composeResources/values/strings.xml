@@ -318,4 +318,5 @@
     <string name="map_exit_timeout">Connect Map: exit-location query timed out. Retrying automatically.</string>
     <string name="map_exit_service_error">Connect Map: the exit-location service returned an error or invalid data. Retrying automatically.</string>
     <string name="map_exit_rate_limited">Connect Map: the exit-location service has rate limited this exit IP. Retrying after its cooldown.</string>
+    <string name="map_dns_unavailable">Connect Map: cannot resolve the node domain using the selected DNS mode. Check the proxy connection, SOCKS support and DNS settings.</string>
 </resources>

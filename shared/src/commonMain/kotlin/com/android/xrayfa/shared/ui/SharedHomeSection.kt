@@ -51,6 +51,7 @@ fun SharedHomeSection(
             HomeMapIssue.DATABASE_INVALID -> Res.string.map_database_invalid
             HomeMapIssue.ORIGIN_MISSING -> Res.string.map_origin_missing
             HomeMapIssue.SERVER_UNAVAILABLE -> Res.string.map_server_unavailable
+            HomeMapIssue.DNS_UNAVAILABLE -> Res.string.map_dns_unavailable
             HomeMapIssue.EXIT_UNAVAILABLE -> Res.string.map_exit_unavailable
             HomeMapIssue.EXIT_TIMEOUT -> Res.string.map_exit_timeout
             HomeMapIssue.EXIT_SERVICE_ERROR -> Res.string.map_exit_service_error

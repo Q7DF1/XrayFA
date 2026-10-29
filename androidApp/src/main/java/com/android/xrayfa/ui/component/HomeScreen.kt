@@ -48,6 +48,7 @@ import com.android.xrayfa.shared.navigation.HomeComponent
 import com.android.xrayfa.shared.ui.SharedHomeSection
 import com.android.xrayfa.shared.ui.home.HomeMapLocations
 import com.android.xrayfa.shared.ui.rememberHomeUiLabels
+import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.core.XrayBaseService
 import com.android.xrayfa.ui.home.AndroidExitLocationLookup
 import com.android.xrayfa.shared.ui.home.HomeMapIssue
@@ -208,6 +209,8 @@ private fun rememberHomeMapLocations(
 
     val lookup: AndroidHomeIpLocationLookup = koinInject()
     val exitLookup: AndroidExitLocationLookup = koinInject()
+    val settingsRepository: SettingsRepository = koinInject()
+    val settings by settingsRepository.settingsFlow.collectAsState(initial = null)
     val session by XrayBaseService.activeSession.collectAsState()
     val context = LocalContext.current.applicationContext
     val connectivityManager = remember(context) {
@@ -230,14 +233,17 @@ private fun rememberHomeMapLocations(
         onDispose { connectivityManager.unregisterNetworkCallback(callback) }
     }
 
-    LaunchedEffect(nodeAddress, networkEpoch, httpExitEnabled, session) {
+    LaunchedEffect(
+        nodeAddress, networkEpoch, httpExitEnabled, session,
+        settings?.dnsOverHttpsServers, settings?.udpDnsServers, settings?.ipV6Enable, settings?.dnsOverHttpsEnabled,
+    ) {
         // A new session or network must never retain pins from a previous network/node.
         locations = HomeMapLocations()
         // Let VPN/default-network callbacks settle before starting a remote lookup.
         if (httpExitEnabled) delay(1_000)
         while (true) {
             val active = session
-            var nextLookupDelayMillis = if (httpExitEnabled) 60_000L else 15 * 60 * 1_000L
+            var nextLookupDelayMillis = 60_000L
             locations = if (httpExitEnabled && active?.socksInboundAvailable == true) {
                 val network = connectivityManager.allNetworks.filter {
                     val capabilities = connectivityManager.getNetworkCapabilities(it)
@@ -253,7 +259,11 @@ private fun rememberHomeMapLocations(
                 )
             } else if (httpExitEnabled) {
                 HomeMapLocations(issue = HomeMapIssue.EXIT_UNAVAILABLE.takeIf { active != null })
-            } else lookup.lookup(active?.serverAddress ?: nodeAddress)
+            } else lookup.lookup(
+                nodeAddress = active?.serverAddress ?: nodeAddress,
+                sessionId = active?.sessionId,
+                socksInboundAvailable = active?.socksInboundAvailable == true,
+            )
             delay(nextLookupDelayMillis)
         }
     }

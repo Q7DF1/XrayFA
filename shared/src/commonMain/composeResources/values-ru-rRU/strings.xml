@@ -314,4 +314,5 @@
     <string name="map_exit_timeout">Connect Map: время ожидания запроса истекло. Запрос повторится автоматически.</string>
     <string name="map_exit_service_error">Connect Map: сервис вернул ошибку или некорректные данные. Запрос повторится автоматически.</string>
     <string name="map_exit_rate_limited">Connect Map: сервис ограничил запросы с этого выходного IP. Повтор после окончания ограничения.</string>
+    <string name="map_dns_unavailable">Connect Map: не удалось разрешить домен узла выбранным способом DNS. Проверьте соединение с прокси, поддержку SOCKS и настройки DNS.</string>
 </resources>

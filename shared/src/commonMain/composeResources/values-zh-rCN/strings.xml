@@ -305,4 +305,5 @@
     <string name="map_exit_timeout">Connect Map：出口位置查询超时，稍后将自动重试。</string>
     <string name="map_exit_service_error">Connect Map：出口位置服务返回错误或无效数据，稍后将自动重试。</string>
     <string name="map_exit_rate_limited">Connect Map：查询服务已限制该出口 IP 的请求，将在服务端冷却结束后重试。</string>
+    <string name="map_dns_unavailable">Connect Map：无法使用当前 DNS 模式解析节点域名，请检查代理连接、SOCKS 支持和 DNS 设置。</string>
 </resources>

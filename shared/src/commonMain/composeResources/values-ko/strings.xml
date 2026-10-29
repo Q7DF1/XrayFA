@@ -315,4 +315,5 @@
     <string name="map_exit_timeout">Connect Map: 출구 위치 조회 시간이 초과되었습니다. 자동으로 재시도합니다.</string>
     <string name="map_exit_service_error">Connect Map: 출구 위치 서비스가 오류나 잘못된 데이터를 반환했습니다. 자동으로 재시도합니다.</string>
     <string name="map_exit_rate_limited">Connect Map: 서비스가 이 출구 IP의 요청을 제한했습니다. 제한이 끝나면 재시도합니다.</string>
+    <string name="map_dns_unavailable">Connect Map: 선택한 DNS 모드로 노드 도메인을 조회할 수 없습니다. 프록시 연결, SOCKS 지원 및 DNS 설정을 확인하세요.</string>
 </resources>

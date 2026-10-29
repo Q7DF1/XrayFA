@@ -22,8 +22,9 @@ private const val WIDGET_EXIT_IP_HTTP_CLIENT = "widgetExitIpHttpClient"
 val appNetworkDiModule: Module = module {
     single {
         AndroidHomeIpLocationLookup(
-            androidContext(),
             get<com.android.xrayfa.common.core.XrayAssetPaths>(),
+            get<SettingsRepository>(),
+            get(named(WIDGET_EXIT_IP_HTTP_CLIENT)),
         )
     }
 
