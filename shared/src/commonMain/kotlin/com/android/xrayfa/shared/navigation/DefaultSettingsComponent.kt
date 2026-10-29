@@ -84,7 +84,10 @@ class DefaultSettingsComponent(
                     .getOrDefault(false)
             }
             _cityDatabase.value = _cityDatabase.value.copy(installed = installed)
-            if (!installed) settingsRepository.setConnectMapEnabled(false)
+            settingsRepository.disableConnectMapIfUnavailable(
+                cityDatabaseInstalled = installed,
+                httpExitSupported = geoLiteDownloadSupported,
+            )
         }
         scope.launch {
             combine(
@@ -124,8 +127,23 @@ class DefaultSettingsComponent(
         scope.launch { settingsRepository.setConnectMapOrigin(origin) }
     }
 
+    override fun onSetConnectMapHttpExitEnabled(enable: Boolean) {
+        scope.launch {
+            settingsRepository.setConnectMapHttpExitEnabled(
+                enable = enable && geoLiteDownloadSupported,
+                cityDatabaseInstalled = _cityDatabase.value.installed,
+            )
+        }
+    }
+
     override fun onSetConnectMapEnabled(enable: Boolean) {
-        scope.launch { settingsRepository.setConnectMapEnabled(enable && _cityDatabase.value.installed) }
+        scope.launch {
+            settingsRepository.setConnectMapEnabled(
+                enable = enable,
+                cityDatabaseInstalled = _cityDatabase.value.installed,
+                httpExitSupported = geoLiteDownloadSupported,
+            )
+        }
     }
 
     override fun onSetAgentFunctionsEnabled(enable: Boolean) {

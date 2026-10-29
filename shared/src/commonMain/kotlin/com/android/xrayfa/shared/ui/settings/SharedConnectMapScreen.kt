@@ -57,8 +57,16 @@ fun SharedConnectMapScreen(
                     title = labels.connectMapTitle,
                     description = labels.connectMapDescription,
                     checked = state.connectMapEnabled,
-                    enabled = cityDatabase.installed,
+                    enabled = state.connectMapEnabled || cityDatabase.installed ||
+                        (geoLite.downloadSupported && state.connectMapHttpExitEnabled),
                     onCheckedChange = component::onSetConnectMapEnabled,
+                    icon = Icons.Outlined.Public,
+                )
+                if (geoLite.downloadSupported) SharedSettingsSwitchRow(
+                    title = labels.mapHttpExitTitle,
+                    description = labels.mapHttpExitDescription,
+                    checked = state.connectMapHttpExitEnabled,
+                    onCheckedChange = component::onSetConnectMapHttpExitEnabled,
                     icon = Icons.Outlined.Public,
                 )
                 SharedSettingsFieldRow(

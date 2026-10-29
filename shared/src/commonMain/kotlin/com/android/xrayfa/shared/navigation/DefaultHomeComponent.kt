@@ -51,6 +51,7 @@ class DefaultHomeComponent(
             settingsRepository.settingsFlow.collect { settings ->
                 _state.update { it.copy(
                     connectMapEnabled = settings.connectMapEnabled,
+                    connectMapHttpExitEnabled = settings.connectMapHttpExitEnabled,
                     connectMapOrigin = settings.connectMapOrigin,
                 ) }
             }

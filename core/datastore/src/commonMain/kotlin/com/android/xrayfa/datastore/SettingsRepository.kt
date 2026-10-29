@@ -56,6 +56,7 @@ data class SettingsState(
     val agentFunctionsEnabled: Boolean = false,
     val homeScreenWidgetsEnabled: Boolean = false,
     val connectMapEnabled: Boolean = false,
+    val connectMapHttpExitEnabled: Boolean = false,
     val connectMapOrigin: ConnectMapOrigin? = null,
 )
 
@@ -92,6 +93,7 @@ object SettingsKeys {
     val HOME_SCREEN_WIDGETS_ENABLED = booleanPreferencesKey("home_screen_widgets_enabled")
     val CONNECT_MAP_LATITUDE = doublePreferencesKey("connect_map_latitude")
     val CONNECT_MAP_LONGITUDE = doublePreferencesKey("connect_map_longitude")
+    val CONNECT_MAP_HTTP_EXIT_ENABLED = booleanPreferencesKey("connect_map_http_exit_enabled")
     val CONNECT_MAP_ENABLED = booleanPreferencesKey("connect_map_local_enabled")
 }
 
@@ -145,6 +147,7 @@ class SettingsRepository(
             agentFunctionsEnabled = prefs[SettingsKeys.AGENT_FUNCTIONS_ENABLED] == true,
             homeScreenWidgetsEnabled = prefs[SettingsKeys.HOME_SCREEN_WIDGETS_ENABLED] ?: false,
             connectMapEnabled = prefs[SettingsKeys.CONNECT_MAP_ENABLED] ?: false,
+            connectMapHttpExitEnabled = prefs[SettingsKeys.CONNECT_MAP_HTTP_EXIT_ENABLED] ?: false,
             connectMapOrigin = ConnectMapOrigin.fromCoordinates(
                 prefs[SettingsKeys.CONNECT_MAP_LATITUDE], prefs[SettingsKeys.CONNECT_MAP_LONGITUDE],
             ),
@@ -322,8 +325,31 @@ class SettingsRepository(
         }
     }
 
-    suspend fun setConnectMapEnabled(enable: Boolean) {
-        dataStore.edit { it[SettingsKeys.CONNECT_MAP_ENABLED] = enable }
+    suspend fun setConnectMapHttpExitEnabled(enable: Boolean, cityDatabaseInstalled: Boolean) {
+        dataStore.edit {
+            it[SettingsKeys.CONNECT_MAP_HTTP_EXIT_ENABLED] = enable
+            if (!enable && !cityDatabaseInstalled) it[SettingsKeys.CONNECT_MAP_ENABLED] = false
+        }
+    }
+
+    suspend fun setConnectMapEnabled(
+        enable: Boolean,
+        cityDatabaseInstalled: Boolean,
+        httpExitSupported: Boolean,
+    ) {
+        dataStore.edit {
+            it[SettingsKeys.CONNECT_MAP_ENABLED] = enable && (
+                cityDatabaseInstalled || httpExitSupported && it[SettingsKeys.CONNECT_MAP_HTTP_EXIT_ENABLED] == true
+            )
+        }
+    }
+
+    suspend fun disableConnectMapIfUnavailable(cityDatabaseInstalled: Boolean, httpExitSupported: Boolean) {
+        dataStore.edit {
+            if (!cityDatabaseInstalled && !(httpExitSupported && it[SettingsKeys.CONNECT_MAP_HTTP_EXIT_ENABLED] == true)) {
+                it[SettingsKeys.CONNECT_MAP_ENABLED] = false
+            }
+        }
     }
 
     suspend fun setAgentFunctionsEnabled(enable: Boolean) {

@@ -6,6 +6,7 @@ import com.android.xrayfa.model.Node
 
 /** Home tab presentation state owned by [HomeComponent]. */
 data class HomeState(
+    val connectMapHttpExitEnabled: Boolean = false,
     val connectMapEnabled: Boolean = false,
     val connectMapOrigin: ConnectMapOrigin? = null,
     val isConnected: Boolean = false,

@@ -37,10 +37,51 @@ class ConnectMapOriginSettingsTest {
         val moved = ConnectMapOrigin(-33.87, 151.21)
         repository.setConnectMapOrigin(moved)
         assertEquals(moved, repository.settingsFlow.first().connectMapOrigin)
-        repository.setConnectMapEnabled(false)
+        repository.setConnectMapEnabled(false, cityDatabaseInstalled = true, httpExitSupported = false)
         assertEquals(moved, repository.settingsFlow.first().connectMapOrigin)
         repository.setConnectMapOrigin(null)
         assertNull(SettingsRepository(store, logger).settingsFlow.first().connectMapOrigin)
+    }
+
+    @Test
+    fun httpExitLookupIsOptInAndPersists() = runBlocking {
+        val store = MemoryStore()
+        val repository = SettingsRepository(store, logger)
+        assertEquals(false, repository.settingsFlow.first().connectMapHttpExitEnabled)
+        repository.setConnectMapHttpExitEnabled(true, cityDatabaseInstalled = false)
+        assertEquals(true, SettingsRepository(store, logger).settingsFlow.first().connectMapHttpExitEnabled)
+        repository.setConnectMapHttpExitEnabled(false, cityDatabaseInstalled = false)
+        assertEquals(false, SettingsRepository(store, logger).settingsFlow.first().connectMapHttpExitEnabled)
+    }
+
+    @Test
+    fun httpModeNeedsNoCityDatabaseAndSurvivesStartupValidation() = runBlocking {
+        val store = MemoryStore()
+        val repository = SettingsRepository(store, logger)
+        repository.setConnectMapEnabled(true, cityDatabaseInstalled = false, httpExitSupported = true)
+        assertEquals(false, repository.settingsFlow.first().connectMapEnabled)
+        repository.setConnectMapHttpExitEnabled(true, cityDatabaseInstalled = false)
+        repository.setConnectMapEnabled(true, cityDatabaseInstalled = false, httpExitSupported = true)
+        assertEquals(true, repository.settingsFlow.first().connectMapEnabled)
+        val restarted = SettingsRepository(store, logger)
+        restarted.disableConnectMapIfUnavailable(cityDatabaseInstalled = false, httpExitSupported = true)
+        assertEquals(true, restarted.settingsFlow.first().connectMapEnabled)
+        restarted.setConnectMapHttpExitEnabled(false, cityDatabaseInstalled = false)
+        assertEquals(false, restarted.settingsFlow.first().connectMapEnabled)
+    }
+
+    @Test
+    fun disablingHttpKeepsOfflineMapAndUnsupportedHttpCannotEnableMap() = runBlocking {
+        val repository = SettingsRepository(MemoryStore(), logger)
+        repository.setConnectMapEnabled(true, cityDatabaseInstalled = true, httpExitSupported = true)
+        repository.setConnectMapHttpExitEnabled(false, cityDatabaseInstalled = true)
+        assertEquals(true, repository.settingsFlow.first().connectMapEnabled)
+        repository.setConnectMapHttpExitEnabled(true, cityDatabaseInstalled = false)
+        repository.setConnectMapEnabled(true, cityDatabaseInstalled = false, httpExitSupported = false)
+        assertEquals(false, repository.settingsFlow.first().connectMapEnabled)
+        repository.setConnectMapEnabled(true, cityDatabaseInstalled = true, httpExitSupported = false)
+        repository.disableConnectMapIfUnavailable(cityDatabaseInstalled = false, httpExitSupported = false)
+        assertEquals(false, repository.settingsFlow.first().connectMapEnabled)
     }
 
     @Test

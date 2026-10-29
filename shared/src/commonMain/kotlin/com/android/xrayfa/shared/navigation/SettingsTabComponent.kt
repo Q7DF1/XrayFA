@@ -35,6 +35,8 @@ interface SettingsComponent {
 
     fun onSetConnectMapOrigin(origin: ConnectMapOrigin?)
 
+    fun onSetConnectMapHttpExitEnabled(enable: Boolean)
+
     fun onSetConnectMapEnabled(enable: Boolean)
 
     fun onSetAgentFunctionsEnabled(enable: Boolean)

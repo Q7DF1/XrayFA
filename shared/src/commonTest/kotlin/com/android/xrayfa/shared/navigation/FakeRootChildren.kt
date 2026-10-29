@@ -54,6 +54,7 @@ class FakeSettingsComponent : SettingsComponent {
     override fun onSetTheme(themeCode: Int) = Unit
     override fun onSetBootAutoStart(enable: Boolean) = Unit
     override fun onSetConnectMapOrigin(origin: ConnectMapOrigin?) = Unit
+    override fun onSetConnectMapHttpExitEnabled(enable: Boolean) = Unit
     override fun onSetConnectMapEnabled(enable: Boolean) = Unit
     override fun onSetAgentFunctionsEnabled(enable: Boolean) = Unit
     override fun onSetHomeScreenWidgetsEnabled(enable: Boolean) = Unit

@@ -287,9 +287,9 @@
     <string name="home_screen_widgets_title">桌面微件</string>
     <string name="home_screen_widgets_desc">在系统微件列表中显示 XrayFA。关闭会移除已添加的微件，重新开启后需再次添加。</string>
     <string name="connect_map_title">Connect Map</string>
-    <string name="connect_map_desc">手动选择我的位置并下载 City 数据库，节点位置使用本地数据库查询。</string>
+    <string name="connect_map_desc">手动选择我的位置。开启 HTTP 落地出口查询或下载 City 数据库后，即可启用 Connect Map。</string>
     <string name="city_database_title">City 城市数据库</string>
-    <string name="city_database_desc">下载 GeoLite2-City.mmdb 后可开启 Connect Map，再次下载可更新数据库。</string>
+    <string name="city_database_desc">开启 HTTP 落地出口查询后无需下载。离线查询节点位置需下载 GeoLite2-City.mmdb，再次下载可更新。</string>
     <string name="city_database_failed">下载或校验失败，已保留原数据库。请点击下载重试。</string>
     <string name="map_database_missing">Connect Map：缺少 City 数据库，请前往设置下载。</string>
     <string name="map_database_invalid">Connect Map：City 数据库无效，请前往设置重新下载。</string>
@@ -299,4 +299,10 @@
     <string name="map_origin_hint">在地图上点选您的大致位置并保存，之后可在此重新选择。</string>
     <string name="map_origin_missing">Connect Map：请在设置中点选我的位置，以显示连线起点。</string>
     <string name="connect_map_entry_desc">地图显示、我的位置和离线 City 数据库</string>
+    <string name="map_http_exit_title">通过 HTTP 查询落地出口位置</string>
+    <string name="map_http_exit_desc">连接后通过代理访问 http://ip-api.com/json/，查询实际落地出口 IP 的位置。HTTP 并非加密访问，站点会获知出口 IP，传输内容可能被读取或篡改。结果缓存 30 分钟，失败后间隔 1 分钟自动重试。默认关闭。</string>
+    <string name="map_exit_unavailable">Connect Map：无法通过代理连接出口位置查询服务，请检查代理连接，稍后将自动重试。</string>
+    <string name="map_exit_timeout">Connect Map：出口位置查询超时，稍后将自动重试。</string>
+    <string name="map_exit_service_error">Connect Map：出口位置服务返回错误或无效数据，稍后将自动重试。</string>
+    <string name="map_exit_rate_limited">Connect Map：查询服务已限制该出口 IP 的请求，将在服务端冷却结束后重试。</string>
 </resources>
