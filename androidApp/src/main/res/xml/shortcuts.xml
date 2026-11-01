@@ -6,7 +6,7 @@
         android:enabled="true"
         android:icon="@drawable/ic_scan"
         android:shortcutShortLabel="@string/scan_qr_title"
-        android:shortcutLongLabel="@string/scan_qr_permission_desc">
+        android:shortcutLongLabel="@string/scan_qr_title">
         <intent
             android:action="android.intent.action.VIEW"
             android:targetPackage="com.android.xrayfa"
