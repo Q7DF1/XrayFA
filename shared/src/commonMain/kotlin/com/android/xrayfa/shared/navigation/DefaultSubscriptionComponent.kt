@@ -1,5 +1,6 @@
 package com.android.xrayfa.shared.navigation
 
+import com.android.xrayfa.common.utils.Logger
 import com.android.xrayfa.model.Subscription
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.repository.SubscriptionRepository
@@ -8,6 +9,10 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.update
 import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
+import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -17,9 +22,11 @@ class DefaultSubscriptionComponent(
     componentContext: ComponentContext,
     private val subscriptionRepository: SubscriptionRepository,
     private val nodeRepository: NodeRepository,
+    private val logger: Logger,
 ) : SubscriptionComponent,
     ComponentContext by componentContext {
     private val scope = coroutineScope()
+    private var errorJob: Job? = null
 
     private val _state = MutableValue(SubscriptionState())
     override val state: Value<SubscriptionState> = _state
@@ -90,67 +97,56 @@ class DefaultSubscriptionComponent(
         subscription: Subscription,
         onSuccess: (Int) -> Unit,
     ) {
+        if (!beginRequest()) return
         if (subscription.id == 0) {
             scope.launch {
-                _state.update { it.copy(requesting = true) }
-                val sub =
-                    Subscription(
-                        id = 0,
-                        url = subscription.url,
-                        mark = subscription.mark,
-                        preNodeId = subscription.preNodeId,
-                        nextNodeId = subscription.nextNodeId,
-                        isAutoUpdate = subscription.isAutoUpdate,
-                    )
+                val sub = subscription.copy(id = 0)
                 var newId = 0
                 try {
                     newId = subscriptionRepository.addSubscription(sub).toInt()
                     val meta = subscriptionRepository.fetchAndSaveNodes(subscription.url, newId)
                     val mark = subscription.mark.ifEmpty { meta.profileTitle.orEmpty() }
                     if (mark.isNotEmpty() && isMarkDuplicate(mark, newId)) {
-                        throw IllegalStateException("Duplicate subscription mark: $mark")
+                        throw DuplicateSubscriptionMarkException()
                     }
                     if (mark.isNotEmpty() && mark != sub.mark) {
                         subscriptionRepository.updateSubscription(
-                            Subscription(
-                                id = newId,
-                                url = sub.url,
-                                mark = mark,
-                                preNodeId = sub.preNodeId,
-                                nextNodeId = sub.nextNodeId,
-                                isAutoUpdate = sub.isAutoUpdate,
-                            ),
+                            sub.copy(id = newId, mark = mark),
                         )
                     }
                     closeSheet()
                     onSuccess(newId)
-                } catch (_: Exception) {
+                } catch (e: Exception) {
                     if (newId > 0) {
-                        subscriptionRepository.deleteSubscription(
-                            Subscription(
-                                id = newId,
-                                url = sub.url,
-                                mark = sub.mark,
-                                preNodeId = sub.preNodeId,
-                                nextNodeId = sub.nextNodeId,
-                                isAutoUpdate = sub.isAutoUpdate,
-                            ),
-                        )
+                        withContext(NonCancellable) {
+                            try {
+                                subscriptionRepository.deleteSubscription(sub.copy(id = newId))
+                            } catch (cleanupError: Exception) {
+                                logSubscriptionFailure(cleanupError, "Rollback failed")
+                            }
+                        }
                     }
-                    showSubscribeError()
+                    if (e is CancellationException) throw e
+                    showSubscribeError(e)
                 } finally {
                     _state.update { it.copy(requesting = false) }
                 }
             }
         } else {
             scope.launch {
-                if (isMarkDuplicate(subscription.mark, subscription.id)) {
-                    showSubscribeError()
-                    return@launch
+                try {
+                    if (isMarkDuplicate(subscription.mark, subscription.id)) {
+                        throw DuplicateSubscriptionMarkException()
+                    }
+                    subscriptionRepository.updateSubscription(subscription)
+                    closeSheet()
+                    onSuccess(subscription.id)
+                } catch (e: Exception) {
+                    if (e is CancellationException) throw e
+                    showSubscribeError(e)
+                } finally {
+                    _state.update { it.copy(requesting = false) }
                 }
-                subscriptionRepository.updateSubscription(subscription)
-                closeSheet()
-                onSuccess(subscription.id)
             }
         }
     }
@@ -159,24 +155,53 @@ class DefaultSubscriptionComponent(
         subscription: Subscription,
         onSuccess: (Int) -> Unit,
     ) {
+        if (!beginRequest()) return
         scope.launch {
-            _state.update { it.copy(requesting = true) }
             try {
                 subscriptionRepository.fetchAndSaveNodes(subscription.url, subscription.id)
                 onSuccess(subscription.id)
-            } catch (_: Exception) {
-                showSubscribeError()
+            } catch (e: Exception) {
+                if (e is CancellationException) throw e
+                showSubscribeError(e)
             } finally {
                 _state.update { it.copy(requesting = false) }
             }
         }
     }
 
-    private fun showSubscribeError() {
-        scope.launch {
-            _state.update { it.copy(subscribeError = true) }
-            delay(2_000L)
+    private fun beginRequest(): Boolean {
+        if (_state.value.requesting) return false
+        errorJob?.cancel()
+        _state.update { it.copy(requesting = true, subscribeError = false, subscribeErrorCode = null, subscribeHttpStatus = null) }
+        return true
+    }
+
+    private fun logSubscriptionFailure(
+        error: Exception,
+        operation: String,
+        details: SubscriptionErrorDetails = subscriptionErrorDetails(error),
+    ) {
+        logger.e(
+            "Subscription",
+            "$operation: reason=${details.kind}, http=${details.httpStatus}, types=${details.exceptionTypes}, " +
+                "${details.parseContext}, validation=${details.validationReason}, locations=${details.codeLocations}",
+        )
+    }
+
+    private fun showSubscribeError(error: Exception) {
+        val details = if (error is DuplicateSubscriptionMarkException) {
+            SubscriptionErrorDetails(SubscriptionErrorKind.DUPLICATE)
+        } else subscriptionErrorDetails(error)
+        logSubscriptionFailure(error, "Subscription failed", details)
+        errorJob?.cancel()
+        _state.update {
+            it.copy(subscribeError = true, subscribeErrorCode = details.kind.name, subscribeHttpStatus = details.httpStatus)
+        }
+        errorJob = scope.launch {
+            delay(8_000L)
             _state.update { it.copy(subscribeError = false) }
         }
     }
 }
+
+private class DuplicateSubscriptionMarkException : Exception()

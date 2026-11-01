@@ -306,4 +306,15 @@
     <string name="map_exit_service_error">Connect Map：出口位置服务返回错误或无效数据，稍后将自动重试。</string>
     <string name="map_exit_rate_limited">Connect Map：查询服务已限制该出口 IP 的请求，将在服务端冷却结束后重试。</string>
     <string name="map_dns_unavailable">Connect Map：无法使用当前 DNS 模式解析节点域名，请检查代理连接、SOCKS 支持和 DNS 设置。</string>
+    <string name="config_sort">节点排序</string>
+    <string name="config_sort_default">默认顺序</string>
+    <string name="config_sort_delay">延迟从低到高</string>
+    <string name="subscription_error_timeout">请求超时</string>
+    <string name="subscription_error_dns">无法解析服务器域名</string>
+    <string name="subscription_error_tls">TLS 或证书错误</string>
+    <string name="subscription_error_network">无法下载订阅</string>
+    <string name="subscription_error_parse">无法解析订阅节点</string>
+    <string name="subscription_error_save">无法保存订阅节点</string>
+    <string name="subscription_error_duplicate">订阅名称已存在</string>
+    <string name="subscription_error_unknown">未知错误</string>
 </resources>

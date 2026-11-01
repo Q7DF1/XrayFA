@@ -1,5 +1,7 @@
 package com.android.xrayfa.shared.ui
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,10 +12,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.DeleteForever
+import androidx.compose.material.icons.automirrored.outlined.Sort
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -69,6 +74,7 @@ internal fun ConfigTabScreen(
     val configBottomClearance = rememberFloatingNavClearance()
     var shareNode by remember { mutableStateOf<Node?>(null) }
     var showBugReport by remember { mutableStateOf(false) }
+    var showSortMenu by remember { mutableStateOf(false) }
 
     val selectedIndex = configState.nodes.indexOfFirst { it.selected }
     LaunchedEffect(selectedIndex, configState.nodes) {
@@ -106,18 +112,43 @@ internal fun ConfigTabScreen(
             SharedConfigFilterBar(
                 component = component,
                 trailingContent = {
-                    IconButton(onClick = component::onTestAllDelays) {
-                        Icon(
-                            imageVector = Icons.Outlined.Speed,
-                            contentDescription = configLabels.speedTestAllLabel,
-                            tint =
-                                if (configState.testingAll) {
-                                    MaterialTheme.colorScheme.secondary
-                                } else {
-                                    MaterialTheme.colorScheme.primary
-                                },
-                            modifier = Modifier.size(20.dp),
-                        )
+                    Row {
+                        Box {
+                            IconButton(onClick = { showSortMenu = true }) {
+                                Icon(
+                                    Icons.AutoMirrored.Outlined.Sort,
+                                    contentDescription = stringResource(Res.string.config_sort),
+                                    tint = if (configState.sortByDelay) MaterialTheme.colorScheme.secondary
+                                        else MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                            }
+                            DropdownMenu(expanded = showSortMenu, onDismissRequest = { showSortMenu = false }) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(Res.string.config_sort_default)) },
+                                    leadingIcon = { if (!configState.sortByDelay) Icon(Icons.Filled.Check, contentDescription = null) },
+                                    onClick = { showSortMenu = false; component.onSetSortByDelay(false) },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(Res.string.config_sort_delay)) },
+                                    leadingIcon = { if (configState.sortByDelay) Icon(Icons.Filled.Check, contentDescription = null) },
+                                    onClick = { showSortMenu = false; component.onSetSortByDelay(true) },
+                                )
+                            }
+                        }
+                        IconButton(onClick = component::onTestAllDelays) {
+                            Icon(
+                                imageVector = Icons.Outlined.Speed,
+                                contentDescription = configLabels.speedTestAllLabel,
+                                tint =
+                                    if (configState.testingAll) {
+                                        MaterialTheme.colorScheme.secondary
+                                    } else {
+                                        MaterialTheme.colorScheme.primary
+                                    },
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
                     }
                 },
             )

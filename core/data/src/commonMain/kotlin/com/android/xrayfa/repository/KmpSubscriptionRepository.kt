@@ -1,6 +1,6 @@
 package com.android.xrayfa.repository
 
-import com.android.xrayfa.common.utils.Logger
+import com.android.xrayfa.database.dao.NodeDao
 import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.database.dao.SubscriptionDao
 import com.android.xrayfa.dto.ParseLinkInput
@@ -11,12 +11,14 @@ import com.android.xrayfa.model.SubscriptionMeta
 import com.android.xrayfa.network.SubscriptionFetcher
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.parser.SubscriptionParser
+import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 private const val XHWID = "x-hwid"
-private const val TAG = "KmpSubscriptionRepository"
 
 /** KMP [SubscriptionRepository] for Android and iOS. */
 class KmpSubscriptionRepository(
@@ -26,7 +28,7 @@ class KmpSubscriptionRepository(
     private val subscriptionParser: SubscriptionParser,
     private val parserFactory: ParserFactory,
     private val settingsRepository: SettingsRepository,
-    private val logger: Logger,
+    private val nodeDao: NodeDao,
 ) : SubscriptionRepository {
 
     override val allSubscriptions: Flow<List<Subscription>> =
@@ -66,27 +68,50 @@ class KmpSubscriptionRepository(
             putAll(extraHeaders)
         }
 
-        val fetchResult = subscriptionFetcher.fetch(url, requestHeaders)
+        val fetchResult = subscriptionStep(SubscriptionFailure.Stage.FETCH) {
+            subscriptionFetcher.fetch(url, requestHeaders)
+        }
         val subscriptionMeta = fetchResult.meta
 
         val content = fetchResult.body
         if (content.isBlank()) return subscriptionMeta
 
-        val urls = subscriptionParser.parseUrl(content)
-        nodeRepository.deleteLinkBySubscriptionId(subscriptionId)
-
-        val newNodes = urls.map { rawUrl ->
-            logger.i(TAG, "fetchAndSaveNodes: protocol=${rawUrl.substringBefore("://")}")
-            val input = ParseLinkInput(
-                protocolPrefix = rawUrl.substringBefore("://"),
-                content = rawUrl,
-                selected = false,
-                subscriptionId = subscriptionId,
-            )
-            parserFactory.getParser(input.content).preParse(input)
+        val newNodes = withContext(Dispatchers.Default) {
+            subscriptionStep(SubscriptionFailure.Stage.PARSE) {
+                val urls = try {
+                    subscriptionParser.parseUrl(content)
+                } catch (e: Exception) {
+                    if (e is CancellationException) throw e
+                    throw SubscriptionParseFailure("decode_subscription", null, null, e)
+                }
+                urls.mapIndexed { index, rawUrl ->
+                    val input = ParseLinkInput(
+                        protocolPrefix = rawUrl.substringBefore("://"),
+                        content = rawUrl,
+                        selected = false,
+                        subscriptionId = subscriptionId,
+                    )
+                    try {
+                        parserFactory.getParser(input.content).preParse(input)
+                    } catch (e: Exception) {
+                        if (e is CancellationException) throw e
+                        throw SubscriptionParseFailure("parse_node", index + 1, input.protocolPrefix, e)
+                    }
+                }
+            }
         }
 
-        nodeRepository.addNode(*newNodes.toTypedArray())
+        subscriptionStep(SubscriptionFailure.Stage.SAVE) {
+            nodeDao.replaceSubscriptionNodes(subscriptionId, newNodes.map { it.toEntity() })
+        }
         return subscriptionMeta
     }
 }
+
+private suspend fun <T> subscriptionStep(stage: SubscriptionFailure.Stage, block: suspend () -> T): T =
+    try {
+        block()
+    } catch (e: Exception) {
+        if (e is CancellationException) throw e
+        throw SubscriptionFailure(stage, e)
+    }

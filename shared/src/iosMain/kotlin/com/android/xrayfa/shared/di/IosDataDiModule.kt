@@ -25,7 +25,7 @@ val iosDataDiModule: Module = module {
             subscriptionParser = get(),
             parserFactory = get(),
             settingsRepository = get(),
-            logger = get(),
+            nodeDao = get(),
         )
     }
     single { VpnStartOptionsResolver(get(), get()) }

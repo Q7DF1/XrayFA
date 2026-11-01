@@ -42,6 +42,7 @@ class FakeConfigComponent : ConfigComponent {
     override fun onDismissDeleteAll() = Unit
     override fun onConfirmDeleteAll() = Unit
     override fun onSearch(query: String) = Unit
+    override fun onSetSortByDelay(enabled: Boolean) = Unit
     override fun onTestAllDelays() = Unit
 }
 

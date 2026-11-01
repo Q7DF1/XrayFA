@@ -191,6 +191,10 @@ Android launcher Start/Stop shortcuts invoke `XrayViewmodel` service operations 
 
 The shared manual node editor exposes only fields implemented by its share-link encoding path. Protocol defaults, transport/security choices, advanced parameter keys, and structural validation live in `shared/config/NodeFormOptions.kt` and `NodeFormValidation.kt`. Outbound previews use `OutboundObjectSerializer`, the runtime serializer. Keep the editor toolbar pinned while scrolling so Back and Save remain accessible, and clear input focus before opening pickers or previews. Keep endpoint summaries (address and country) synchronized when updating node URLs. Verify new editor fields in `NodeFormTransportTest` against serialized outbound JSON, and check core compatibility against the version in `AndroidLibXrayLite/go.mod`.
 
+`SubscriptionNodeTransactionTest` verifies rollback and replacement against Room; run it only with isolated `APPLICATION_ID=com.android.xrayfa.review`.
+
+Config delay probes are blocking native calls: run them on `Dispatchers.IO` with at most 32 workers, and keep filtering/sorting on `Dispatchers.Default`. Publish delay ordering after a test batch finishes, and cancel obsolete list computations. Subscription imports parse all nodes before replacing them in one `NodeDao` transaction. Subscription diagnostics must never log raw exception messages, URLs, response bodies, or node credentials; use allowlisted validation reasons and sanitized code locations.
+
 ## 7. Code Style & Conventions
 
 - Kotlin official style; 4-space indent; match surrounding code. No ktlint/detekt.

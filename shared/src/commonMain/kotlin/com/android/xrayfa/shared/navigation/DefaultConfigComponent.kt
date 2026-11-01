@@ -24,13 +24,13 @@ import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.update
 import com.arkivanov.essenty.lifecycle.coroutines.coroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.coroutineScope as nestedCoroutineScope
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 
 class DefaultConfigComponent(
@@ -55,7 +55,11 @@ class DefaultConfigComponent(
     private val _state = MutableValue(ConfigState())
     override val state: Value<ConfigState> = _state
 
+    private var completedDelays: Map<Int, Long> = emptyMap()
     private var allNodesCache: List<Node> = emptyList()
+    private var nodeIdsCache: Set<Int> = emptySet()
+    private var favoritesCache: List<Node> = emptyList()
+    private var refreshJob: Job? = null
     private var selectedFilterId: Int = ConfigFilterIds.SUB_ALL
     private var searchQuery: String = ""
 
@@ -69,17 +73,19 @@ class DefaultConfigComponent(
                 Triple(allNodes, favorites, subscriptions)
             }.collect { (allNodes, favorites, subscriptions) ->
                 allNodesCache = allNodes
+                nodeIdsCache = allNodes.mapTo(hashSetOf()) { it.id }
+                completedDelays = completedDelays.filterKeys { it in nodeIdsCache }
+                favoritesCache = favorites
                 val filters = buildFilters(subscriptions)
-                val filteredNodes = filterNodes(allNodes, favorites, selectedFilterId, searchQuery)
                 _state.update { current ->
                     current.copy(
-                        nodes = filteredNodes,
                         subscriptions = subscriptions,
                         filters = filters,
                         selectedFilterId = selectedFilterId,
                         searchQuery = searchQuery,
                     )
                 }
+                refreshNodes()
             }
         }
     }
@@ -228,52 +234,64 @@ class DefaultConfigComponent(
         refreshNodes()
     }
 
+    override fun onSetSortByDelay(enabled: Boolean) {
+        if (_state.value.sortByDelay == enabled) return
+        _state.update { it.copy(sortByDelay = enabled) }
+        refreshNodes()
+    }
+
     override fun onTestAllDelays() {
         if (!configDelayTestAllEnabled(_state.value.testingAll)) return
+        // Set synchronously so rapid taps cannot start overlapping test batches.
+        _state.update { it.copy(testingAll = true) }
+        val nodes = _state.value.nodes.filterNot { it.isJsonConfig }
         scope.launch {
-            _state.update { it.copy(testingAll = true) }
             try {
                 val testUrl = settingsRepository.settingsFlow.first().delayTestUrl
-                val nodes = _state.value.nodes.filterNot { it.isJsonConfig }
                 nestedCoroutineScope {
-                    val semaphore = Semaphore(CONFIG_DELAY_CONCURRENCY)
-                    nodes.forEach { node ->
+                    // Workers share this iterator only on the UI dispatcher. No coroutine per node.
+                    val pending = nodes.iterator()
+                    repeat(minOf(CONFIG_DELAY_CONCURRENCY, nodes.size)) {
                         launch {
-                            semaphore.withPermit {
+                            while (pending.hasNext()) {
+                                val node = pending.next()
                                 _state.update {
-                                    it.copy(
-                                        nodeDelayMap =
-                                            it.nodeDelayMap + (node.id to DelayMeasurement.TESTING_SENTINEL),
-                                    )
+                                    it.copy(nodeDelayMap = it.nodeDelayMap + (node.id to DelayMeasurement.TESTING_SENTINEL))
                                 }
-                                val delay =
-                                    withContext(Dispatchers.Default) {
-                                        delayProbe.measureNode(node.url, testUrl)
-                                    }
-                                _state.update {
-                                    it.copy(nodeDelayMap = it.nodeDelayMap + (node.id to delay))
+                                val delay = withContext(Dispatchers.IO) {
+                                    delayProbe.measureNode(node.url, testUrl)
+                                }
+                                // A subscription refresh may have removed this node while testing.
+                                if (node.id in nodeIdsCache) {
+                                    _state.update { it.copy(nodeDelayMap = it.nodeDelayMap + (node.id to delay)) }
                                 }
                             }
                         }
                     }
                 }
             } finally {
-                _state.update { it.copy(testingAll = false) }
+                completedDelays = _state.value.nodeDelayMap.filter { (id, value) -> id in nodeIdsCache && value != DelayMeasurement.TESTING_SENTINEL }
+                _state.update { it.copy(testingAll = false, nodeDelayMap = completedDelays) }
+                refreshNodes()
             }
         }
     }
 
     private fun refreshNodes() {
-        scope.launch {
-            val allNodes = nodeRepository.allNodes.first()
-            val favorites = nodeRepository.favorites.first()
-            allNodesCache = allNodes
+        refreshJob?.cancel()
+        // Snapshot on the UI thread; repository emissions keep these caches current.
+        val allNodes = allNodesCache
+        val favorites = favoritesCache
+        val filterId = selectedFilterId
+        val query = searchQuery
+        val sortByDelay = _state.value.sortByDelay
+        val delays = completedDelays
+        refreshJob = scope.launch {
+            val nodes = withContext(Dispatchers.Default) {
+                filterNodes(allNodes, favorites, filterId, query, sortByDelay, delays)
+            }
             _state.update { current ->
-                current.copy(
-                    nodes = filterNodes(allNodes, favorites, selectedFilterId, searchQuery),
-                    selectedFilterId = selectedFilterId,
-                    searchQuery = searchQuery,
-                )
+                current.copy(nodes = nodes, selectedFilterId = filterId, searchQuery = query)
             }
         }
     }
@@ -296,6 +314,8 @@ class DefaultConfigComponent(
         favorites: List<com.android.xrayfa.model.Node>,
         filterId: Int,
         query: String,
+        sortByDelay: Boolean,
+        delays: Map<Int, Long>,
     ): List<com.android.xrayfa.model.Node> {
         val filtered =
             when (filterId) {
@@ -304,13 +324,11 @@ class DefaultConfigComponent(
                 else -> allNodes.filter { it.subscriptionId == filterId }
             }
         val reversed = filtered.reversed()
-        if (query.isBlank()) {
-            return reversed
-        }
-        return reversed.filter { node ->
+        val matching = if (query.isBlank()) reversed else reversed.filter { node ->
             node.remark?.contains(query, ignoreCase = true) == true ||
                 node.url.contains(query, ignoreCase = true)
         }
+        return if (sortByDelay) sortNodesByDelay(matching, delays) else matching
     }
 
     private companion object {

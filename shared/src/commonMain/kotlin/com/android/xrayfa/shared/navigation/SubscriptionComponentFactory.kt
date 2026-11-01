@@ -12,5 +12,6 @@ fun defaultSubscriptionComponentFactory(): SubscriptionComponentFactory =
             componentContext = componentContext,
             subscriptionRepository = koin.get(),
             nodeRepository = koin.get(),
+            logger = koin.get(),
         )
     }

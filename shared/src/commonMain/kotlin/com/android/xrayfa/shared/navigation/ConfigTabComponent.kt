@@ -45,6 +45,8 @@ interface ConfigComponent {
 
     fun onSearch(query: String)
 
+    fun onSetSortByDelay(enabled: Boolean)
+
     fun onTestAllDelays()
 }
 
