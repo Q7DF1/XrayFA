@@ -315,4 +315,15 @@
     <string name="map_exit_service_error">Connect Map: сервис вернул ошибку или некорректные данные. Запрос повторится автоматически.</string>
     <string name="map_exit_rate_limited">Connect Map: сервис ограничил запросы с этого выходного IP. Повтор после окончания ограничения.</string>
     <string name="map_dns_unavailable">Connect Map: не удалось разрешить домен узла выбранным способом DNS. Проверьте соединение с прокси, поддержку SOCKS и настройки DNS.</string>
+    <string name="config_sort">Сортировка узлов</string>
+    <string name="config_sort_default">По умолчанию</string>
+    <string name="config_sort_delay">По возрастанию задержки</string>
+    <string name="subscription_error_timeout">Время ожидания запроса истекло</string>
+    <string name="subscription_error_dns">Не удалось разрешить адрес сервера</string>
+    <string name="subscription_error_tls">Ошибка TLS или сертификата</string>
+    <string name="subscription_error_network">Не удалось скачать подписку</string>
+    <string name="subscription_error_parse">Не удалось разобрать узлы подписки</string>
+    <string name="subscription_error_save">Не удалось сохранить узлы подписки</string>
+    <string name="subscription_error_duplicate">Имя подписки уже существует</string>
+    <string name="subscription_error_unknown">Неизвестная ошибка</string>
 </resources>

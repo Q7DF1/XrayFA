@@ -12,7 +12,8 @@ internal data class ShareLinkUri(
 ) {
     companion object {
         fun parse(url: String, schemes: Set<String>, defaultPort: Int? = null): ShareLinkUri {
-            val uri = UrlCodec.parseUri(url)
+            val normalizedUrl = normalizeShareLinkText(url)
+            val uri = UrlCodec.parseUri(normalizedUrl)
             require(uri.scheme?.lowercase() in schemes) { "Unsupported share link scheme" }
             val address = uri.host?.removeSurrounding("[", "]")
             require(!address.isNullOrBlank()) { "Share link server is missing or invalid" }
@@ -20,12 +21,12 @@ internal data class ShareLinkUri(
             require(port != null && port in 1..65535) { "Share link port must be between 1 and 65535" }
             val credential = uri.userInfo
             require(!credential.isNullOrEmpty()) { "Share link credential is missing" }
-            val rawQuery = url.substringBefore('#').substringAfter('?', "")
+            val rawQuery = normalizedUrl.substringBefore('#').substringAfter('?', "")
             val params = rawQuery.split('&').filter { it.isNotEmpty() }.associate { pair ->
                 decode(pair.substringBefore('=')) to decode(pair.substringAfter('=', ""))
             }
             return ShareLinkUri(credential, address, port, params,
-                url.substringAfter('#', "").takeIf { it.isNotEmpty() }?.let(::decode))
+                normalizedUrl.substringAfter('#', "").takeIf { it.isNotEmpty() }?.let(::decode))
         }
 
         // Query/remark values keep compatibility with legacy URLEncoder links.
@@ -48,5 +49,22 @@ internal fun encodeShareLink(
         append("$scheme://${encode(credential)}@$host:$port")
         if (query.isNotEmpty()) append("?$query")
         if (!remark.isNullOrEmpty()) append("#${encode(remark)}")
+    }
+}
+
+/** Some providers leave display names and query values unescaped. Keep URI separators and
+ * existing escapes intact; never repair the authority or accept control characters. */
+private fun normalizeShareLinkText(url: String): String {
+    val textStart = url.indexOfFirst { it == '?' || it == '#' }
+    if (textStart < 0) return url
+    return buildString {
+        append(url.substring(0, textStart))
+        for (c in url.substring(textStart)) {
+            if (c in " \"<>{}|\\^`" || c.category == CharCategory.SPACE_SEPARATOR) {
+                append(UrlCodec.encode(c.toString()).replace("+", "%20"))
+            } else {
+                append(c)
+            }
+        }
     }
 }

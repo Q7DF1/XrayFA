@@ -17,6 +17,7 @@ data class ConfigState(
     val deleteTarget: Node? = null,
     val nodeDelayMap: Map<Int, Long> = emptyMap(),
     val testingAll: Boolean = false,
+    val sortByDelay: Boolean = false,
     val searchQuery: String = "",
     val pendingDeleteAll: Boolean = false,
     val configError: String? = null,

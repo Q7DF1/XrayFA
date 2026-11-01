@@ -319,4 +319,15 @@
     <string name="map_exit_service_error">Connect Map: the exit-location service returned an error or invalid data. Retrying automatically.</string>
     <string name="map_exit_rate_limited">Connect Map: the exit-location service has rate limited this exit IP. Retrying after its cooldown.</string>
     <string name="map_dns_unavailable">Connect Map: cannot resolve the node domain using the selected DNS mode. Check the proxy connection, SOCKS support and DNS settings.</string>
+    <string name="config_sort">Sort nodes</string>
+    <string name="config_sort_default">Default order</string>
+    <string name="config_sort_delay">Latency: low to high</string>
+    <string name="subscription_error_timeout">Request timed out</string>
+    <string name="subscription_error_dns">Cannot resolve server address</string>
+    <string name="subscription_error_tls">TLS or certificate error</string>
+    <string name="subscription_error_network">Could not download subscription</string>
+    <string name="subscription_error_parse">Could not parse subscription nodes</string>
+    <string name="subscription_error_save">Could not save subscription nodes</string>
+    <string name="subscription_error_duplicate">Subscription name already exists</string>
+    <string name="subscription_error_unknown">Unexpected error</string>
 </resources>

@@ -12,4 +12,6 @@ data class SubscriptionState(
     val deleteTarget: Subscription? = null,
     val requesting: Boolean = false,
     val subscribeError: Boolean = false,
+    val subscribeErrorCode: String? = null,
+    val subscribeHttpStatus: Int? = null,
 )

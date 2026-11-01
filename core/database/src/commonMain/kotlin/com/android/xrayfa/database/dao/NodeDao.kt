@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import com.android.xrayfa.database.entity.NodeEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -21,6 +22,13 @@ interface NodeDao {
 
     @Insert
     suspend fun addNode(vararg nodes: NodeEntity)
+
+    @Transaction
+    suspend fun replaceSubscriptionNodes(subscriptionId: Int, nodes: List<NodeEntity>) {
+        require(nodes.all { it.subscriptionId == subscriptionId })
+        deleteBySubscriptionId(subscriptionId)
+        addNode(*nodes.toTypedArray())
+    }
 
     @Delete
     suspend fun deleteNode(node: NodeEntity)

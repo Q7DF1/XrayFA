@@ -25,7 +25,7 @@ val appDataDiModule: Module = module {
             subscriptionParser = get(),
             parserFactory = get(),
             settingsRepository = get(),
-            logger = get(),
+            nodeDao = get(),
         )
     }
 }

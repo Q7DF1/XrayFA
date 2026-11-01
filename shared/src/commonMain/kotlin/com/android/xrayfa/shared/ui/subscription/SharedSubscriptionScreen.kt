@@ -69,7 +69,7 @@ import com.android.xrayfa.shared.ui.widgets.SharedModalBottomSheet
 import com.android.xrayfa.shared.ui.widgets.SharedOptionPickerField
 import com.android.xrayfa.shared.platform.ClipboardWriter
 import com.android.xrayfa.shared.resources.Res
-import com.android.xrayfa.shared.resources.cancel
+import com.android.xrayfa.shared.resources.*
 import com.android.xrayfa.shared.subscription.validateSubscriptionUrl
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import org.jetbrains.compose.resources.stringResource
@@ -85,6 +85,17 @@ fun SharedSubscriptionScreen(
     onScanQr: (() -> Unit)? = null,
 ) {
     val state by component.state.subscribeAsState()
+    val subscriptionErrorMessage = if (state.subscribeError) labels.subscribeFailed + ": " + when (state.subscribeErrorCode) {
+        "HTTP" -> "HTTP ${state.subscribeHttpStatus}"
+        "TIMEOUT" -> stringResource(Res.string.subscription_error_timeout)
+        "DNS" -> stringResource(Res.string.subscription_error_dns)
+        "TLS" -> stringResource(Res.string.subscription_error_tls)
+        "NETWORK" -> stringResource(Res.string.subscription_error_network)
+        "PARSE" -> stringResource(Res.string.subscription_error_parse)
+        "SAVE" -> stringResource(Res.string.subscription_error_save)
+        "DUPLICATE" -> stringResource(Res.string.subscription_error_duplicate)
+        else -> stringResource(Res.string.subscription_error_unknown)
+    } else null
     val clipboardWriter = remember { KoinPlatform.getKoin().get<ClipboardWriter>() }
     var copiedMessage by remember { mutableStateOf<String?>(null) }
 
@@ -186,7 +197,7 @@ fun SharedSubscriptionScreen(
                             color = MaterialTheme.colorScheme.errorContainer,
                         ) {
                             Text(
-                                text = labels.subscribeFailed,
+                                text = subscriptionErrorMessage.orEmpty(),
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                                 color = MaterialTheme.colorScheme.onErrorContainer,
                             )
@@ -221,6 +232,8 @@ fun SharedSubscriptionScreen(
     state.sheetSubscription?.let { sheetSubscription ->
         SharedSubscriptionEditSheet(
             subscription = sheetSubscription,
+            errorMessage = subscriptionErrorMessage,
+            requesting = state.requesting,
             nodes = state.allNodes,
             labels = labels,
             isMarkDuplicate = { mark ->
@@ -339,6 +352,8 @@ private fun SharedSubscriptionCard(
 @Composable
 private fun SharedSubscriptionEditSheet(
     subscription: Subscription,
+    errorMessage: String?,
+    requesting: Boolean,
     nodes: List<Node>,
     labels: SubscriptionUiLabels,
     isMarkDuplicate: (String) -> Boolean,
@@ -355,7 +370,7 @@ private fun SharedSubscriptionEditSheet(
     val nameMissing = resolvedMark.isBlank()
     val duplicateName = resolvedMark.isNotBlank() && isMarkDuplicate(resolvedMark)
     val validUrl = validateSubscriptionUrl(url.trim())
-    val canConfirm = !nameMissing && !duplicateName && validUrl
+    val canConfirm = !requesting && !nameMissing && !duplicateName && validUrl
 
     SharedModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -381,6 +396,9 @@ private fun SharedSubscriptionEditSheet(
             ) { Text(labels.confirm) }
         },
     ) {
+        errorMessage?.let {
+            Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.fillMaxWidth())
+        }
         OutlinedTextField(
             value = nickName,
             onValueChange = { nickName = it; nameTouched = true },
