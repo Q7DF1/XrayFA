@@ -31,6 +31,23 @@ class MmdbCityLookupTest {
     }
 
     @Test
+    fun missingRecordAndMissingCoordinatesHaveDistinctDiagnostics() {
+        val cases = listOf(
+            cityDatabase(empty = true) to MmdbCityLookup.MissReason.NO_RECORD,
+            cityDatabase(withLocation = false) to MmdbCityLookup.MissReason.NO_LOCATION,
+            cityDatabase(latitude = 91.0) to MmdbCityLookup.MissReason.INVALID_COORDINATES,
+        )
+        for ((database, expected) in cases) {
+            val reasons = mutableListOf<MmdbCityLookup.MissReason>()
+            assertNull(MmdbCityLookup(database).location("1.1.1.1", onMiss = { reasons.add(it) }))
+            assertEquals(listOf(expected), reasons)
+        }
+        val reasons = mutableListOf<MmdbCityLookup.MissReason>()
+        assertNotNull(MmdbCityLookup(cityDatabase()).location("1.1.1.1", onMiss = { reasons.add(it) }))
+        assertEquals(emptyList(), reasons)
+    }
+
+    @Test
     fun wrongDatabaseAndCorruptFilesAreRejected() {
         assertFailsWith<IllegalArgumentException> { MmdbCityLookup(cityDatabase(type = "GeoLite2-Country")) }
         assertFailsWith<Exception> { MmdbCityLookup(byteArrayOf(1, 2, 3)) }

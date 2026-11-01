@@ -1,9 +1,11 @@
 package com.android.xrayfa.ui.home
 
+import android.util.Log
+import com.android.xrayfa.BuildConfig
 import com.android.xrayfa.common.config.DnsDefaults
 import com.android.xrayfa.common.core.AssetFiles
-import com.android.xrayfa.common.core.NodeDnsResolver
 import com.android.xrayfa.common.core.MmdbCityLookup
+import com.android.xrayfa.common.core.NodeDnsResolver
 import com.android.xrayfa.common.core.XrayAssetPaths
 import com.android.xrayfa.common.core.parseIpLiteral
 import com.android.xrayfa.datastore.SettingsRepository
@@ -69,6 +71,7 @@ class AndroidHomeIpLocationLookup(
             ?: return@withContext HomeMapLocations()
         val file = File(assetPaths.cityDatabasePath)
         if (!file.isFile) {
+            Log.w(TAG, "City database is missing")
             reader = null
             databaseVersion = null
             return@withContext HomeMapLocations(issue = HomeMapIssue.DATABASE_MISSING)
@@ -80,9 +83,11 @@ class AndroidHomeIpLocationLookup(
                 val bytes = AssetFiles.read(file.path) ?: error("Missing database")
                 reader = MmdbCityLookup(bytes)
                 databaseVersion = version
+                Log.i(TAG, "City database loaded: bytes=${bytes.size}, modified=${version.first}")
             }
             requireNotNull(reader)
-        } catch (_: Exception) {
+        } catch (error: Exception) {
+            Log.w(TAG, "City database could not be loaded: bytes=${file.length()}", error)
             return@withContext HomeMapLocations(issue = HomeMapIssue.DATABASE_INVALID)
         }
         val language = Locale.getDefault().toLanguageTag()
@@ -96,11 +101,17 @@ class AndroidHomeIpLocationLookup(
             val mode = if (settings.dnsOverHttpsEnabled) NodeDnsResolver.Mode.DOH else NodeDnsResolver.Mode.PLAIN
             val upstreams = if (settings.dnsOverHttpsEnabled) DnsDefaults.parseDohServers(settings.dnsOverHttpsServers)
                 else DnsDefaults.parseUdpDnsServers(settings.udpDnsServers)
+            if (BuildConfig.DEBUG) Log.d(TAG, "Resolving host=$host, mode=$mode, ipv6=${settings.ipV6Enable}, session=$sessionId")
             resolver.resolve(host, upstreams, settings.ipV6Enable, sessionId, mode)
                 .takeIf { it.isNotEmpty() }
-                ?: return@withContext HomeMapLocations(issue = HomeMapIssue.DNS_UNAVAILABLE)
+                ?: run {
+                    Log.w(TAG, "DNS returned no addresses: mode=$mode")
+                    return@withContext HomeMapLocations(issue = HomeMapIssue.DNS_UNAVAILABLE)
+                }
         }
+        if (BuildConfig.DEBUG) Log.d(TAG, "City lookup candidates=$ips, language=$language")
         val server = ips.firstNotNullOfOrNull { locate(db, it, language) }
+        if (server == null) Log.w(TAG, "City lookup failed for all ${ips.size} candidate IPs; see per-IP diagnostics")
         HomeMapLocations(
             server = server,
             issue = if (server == null) HomeMapIssue.SERVER_UNAVAILABLE else null,
@@ -108,9 +119,24 @@ class AndroidHomeIpLocationLookup(
     }
 
     private fun locate(db: MmdbCityLookup, ip: String, language: String): HomeMapLocation? =
-        runCatching {
-            db.location(ip, language)?.let {
+        try {
+            val location = db.location(ip, language) { reason ->
+                val family = if (':' in ip) "IPv6" else "IPv4"
+                Log.w(TAG, "City lookup miss: family=$family, reason=$reason")
+                if (BuildConfig.DEBUG) Log.d(TAG, "City lookup miss: ip=$ip, reason=$reason")
+            }
+            if (location != null) {
+                if (BuildConfig.DEBUG) Log.d(TAG, "City lookup succeeded: ip=$ip")
+            }
+            location?.let {
                 HomeMapLocation(ip, it.city, it.region, it.country, it.latitude, it.longitude)
             }
-        }.getOrNull()
+        } catch (error: Exception) {
+            Log.w(TAG, "City record decoding failed", error)
+            null
+        }
+
+    private companion object {
+        const val TAG = "ConnectMapLookup"
+    }
 }

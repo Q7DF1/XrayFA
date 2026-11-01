@@ -2,9 +2,11 @@ package com.android.xrayfa.shared.ui.transitions
 
 import androidx.compose.animation.BoundsTransform
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -21,6 +23,9 @@ import androidx.compose.ui.unit.IntOffset
  */
 @OptIn(ExperimentalSharedTransitionApi::class)
 object XrayMotion {
+    /** One connection reveal; Animatable respects the platform motion duration scale. */
+    val MapConnectionReveal: FiniteAnimationSpec<Float> = tween(700, easing = FastOutSlowInEasing)
+
     /**
      * 全屏容器扩张。临界阻尼，避免过冲后回弹；那段回弹会占住输入，看起来像卡住。
      */

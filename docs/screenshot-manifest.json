@@ -3,7 +3,7 @@
   "sdk": 36,
   "system_image": "android-36.1/google_apis_playstore/x86_64",
   "application": "1.7.3 Debug",
-  "date": "2026-10-26",
+  "date": "2026-11-01",
   "theme": "Light",
   "locale": "en-US",
   "density": 420,
@@ -14,7 +14,8 @@
       "height": 2400,
       "format": "PNG",
       "mode": "RGB",
-      "sha256": "3883fdd40810c19980cc5273a1a6a15c5f7ce814ceb58a72883f48e225d699a5"
+      "sha256": "3883fdd40810c19980cc5273a1a6a15c5f7ce814ceb58a72883f48e225d699a5",
+      "capture_date": "2026-10-26"
     },
     {
       "file": "fastlane/metadata/android/en-US/images/phoneScreenshots/2.png",
@@ -22,7 +23,9 @@
       "height": 2400,
       "format": "PNG",
       "mode": "RGB",
-      "sha256": "66761ced5be9567503f6f0f8ab668b2043b7728934af829afb5663933b01e103"
+      "sha256": "4016910c0b262f399275c48b68218835bd564bc8676730c3b11e2f67e7cd758c",
+      "capture_date": "2026-11-01",
+      "capture_note": "Production Home UI rendered on the emulator with deterministic example connection, traffic, node, and location data; no live proxy connection or user account data."
     },
     {
       "file": "fastlane/metadata/android/en-US/images/phoneScreenshots/3.png",
@@ -30,7 +33,8 @@
       "height": 2400,
       "format": "PNG",
       "mode": "RGB",
-      "sha256": "f6abc81aea223957b6007ce114eb2c7e1a04403f2c8f68e38f701df5284dae7e"
+      "sha256": "28026baa4d2f022ee56169b6022efa14a6050ace960023325cd0eaa475c465cb",
+      "capture_date": "2026-11-01"
     },
     {
       "file": "fastlane/metadata/android/en-US/images/phoneScreenshots/4.png",
@@ -38,7 +42,8 @@
       "height": 2400,
       "format": "PNG",
       "mode": "RGB",
-      "sha256": "fde6251893d3c47507269a65422d78ded3629cef4b1c8f12d2af44eef0dc083a"
+      "sha256": "fde6251893d3c47507269a65422d78ded3629cef4b1c8f12d2af44eef0dc083a",
+      "capture_date": "2026-10-26"
     }
   ],
   "aspect_ratio": "9:20",
