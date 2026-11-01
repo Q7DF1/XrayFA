@@ -31,6 +31,9 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
         }
+        androidUnitTest.dependencies {
+            implementation(libs.junit)
+        }
         if (enableIosTargets) {
             iosMain.dependencies {
                 implementation(libs.ktor.client.darwin)

@@ -1,5 +1,7 @@
 package com.android.xrayfa.network
 
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import io.ktor.client.HttpClient
 import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.bodyAsChannel
@@ -24,6 +26,7 @@ class FileDownloader(
             val buffer = ByteArray(8192)
             var totalRead = 0L
             while (!channel.isClosedForRead) {
+                currentCoroutineContext().ensureActive()
                 val read = channel.readAvailable(buffer, 0, buffer.size)
                 if (read <= 0) break
                 receiveBytes(buffer, 0, read)
@@ -36,9 +39,11 @@ class FileDownloader(
     suspend fun downloadToFile(
         url: String,
         targetPath: String,
+        maxBytes: Long = Long.MAX_VALUE,
         onProgress: (Float) -> Unit = {},
     ) {
         val sink = FileByteSink(targetPath)
+        var receivedBytes = 0L
         try {
             download(
                 url = url,
@@ -48,6 +53,8 @@ class FileDownloader(
                     }
                 },
             ) { buffer, offset, length ->
+                check(length.toLong() <= maxBytes - receivedBytes) { "Download exceeds size limit" }
+                receivedBytes += length
                 sink.write(buffer, offset, length)
             }
         } finally {

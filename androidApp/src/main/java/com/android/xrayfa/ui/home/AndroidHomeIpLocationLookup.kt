@@ -1,206 +1,142 @@
 package com.android.xrayfa.ui.home
 
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.Network
-import android.net.NetworkCapabilities
-import android.os.SystemClock
+import android.util.Log
+import com.android.xrayfa.BuildConfig
+import com.android.xrayfa.common.config.DnsDefaults
+import com.android.xrayfa.common.core.AssetFiles
+import com.android.xrayfa.common.core.MmdbCityLookup
+import com.android.xrayfa.common.core.NodeDnsResolver
+import com.android.xrayfa.common.core.XrayAssetPaths
+import com.android.xrayfa.common.core.parseIpLiteral
+import com.android.xrayfa.datastore.SettingsRepository
+import com.android.xrayfa.network.SocksProxyConfig
+import com.android.xrayfa.network.exchangeDnsThroughSocks
+import com.android.xrayfa.shared.ui.home.HomeMapIssue
 import com.android.xrayfa.shared.ui.home.HomeMapLocation
 import com.android.xrayfa.shared.ui.home.HomeMapLocations
 import io.ktor.client.HttpClient
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
+import io.ktor.client.call.body
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
 import io.ktor.http.isSuccess
-import kotlinx.coroutines.CancellationException
+import java.io.File
+import java.net.IDN
+import java.util.Locale
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
-import java.net.URLEncoder
 
-/**
- * Looks up the device's public IP on a direct non-VPN network and the selected node separately.
- * The node lookup uses the app's local SOCKS proxy because the VPN app itself is excluded from the
- * VPN interface.
- */
+/** Uses configured DoH or ordinary DNS through local SOCKS; coordinates remain in City MMDB. */
 class AndroidHomeIpLocationLookup(
-    context: Context,
-    private val proxyHttpClient: HttpClient,
+    private val assetPaths: XrayAssetPaths,
+    private val settingsRepository: SettingsRepository,
+    proxyClient: HttpClient,
 ) {
-    private val connectivityManager = context.getSystemService(ConnectivityManager::class.java)
-
-    suspend fun lookup(nodeAddress: String?): HomeMapLocations = withContext(Dispatchers.IO) {
-        val deviceNetwork = findDirectInternetNetwork()
-
-        val userLocation = if (deviceNetwork != null) {
-            cached("device:${deviceNetwork.networkHandle}") {
-                requestDirectLocation(deviceNetwork)
+    private val client = proxyClient.config { followRedirects = false }
+    private val resolver = NodeDnsResolver(
+        exchange = { mode, endpoint, query ->
+            if (mode == NodeDnsResolver.Mode.PLAIN) {
+                val settings = settingsRepository.settingsFlow.first()
+                NodeDnsResolver.Response(exchangeDnsThroughSocks(
+                    endpoint, query, SocksProxyConfig(settings.socksPort, settings.socksUserName, settings.socksPassword),
+                ))
+            } else {
+                val response = client.post(endpoint) {
+                    contentType(ContentType.parse("application/dns-message"))
+                    headers[HttpHeaders.Accept] = "application/dns-message"
+                    setBody(query)
+                }
+                check(response.status.isSuccess()) { "DoH HTTP request failed" }
+                check(response.contentType()?.withoutParameters()?.toString() == "application/dns-message")
+                NodeDnsResolver.Response(response.body<ByteArray>(), response.headers[HttpHeaders.Age]?.toLongOrNull() ?: 0)
             }
-        } else {
-            null
+        },
+        now = System::currentTimeMillis,
+        scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+    )
+    private var databaseVersion: Pair<Long, Long>? = null
+    private var reader: MmdbCityLookup? = null
+
+    suspend fun lookup(
+        nodeAddress: String?,
+        sessionId: Long?,
+        socksInboundAvailable: Boolean,
+    ): HomeMapLocations = withContext(Dispatchers.IO) {
+        val address = nodeAddress?.trim()?.takeIf { it.isNotEmpty() }
+            ?: return@withContext HomeMapLocations()
+        val file = File(assetPaths.cityDatabasePath)
+        if (!file.isFile) {
+            Log.w(TAG, "City database is missing")
+            reader = null
+            databaseVersion = null
+            return@withContext HomeMapLocations(issue = HomeMapIssue.DATABASE_MISSING)
         }
-        // A disabled map cancels the caller; do not start the node lookup afterward.
-        currentCoroutineContext().ensureActive()
-        val serverAddress = nodeAddress
-            ?.trim()
-            ?.takeIf(String::isNotEmpty)
-        val serverLocation = serverAddress?.let { address ->
-            cached("server:${address.lowercase()}") {
-                requestProxyLocation(address)
+        val db = try {
+            val version = file.lastModified() to file.length()
+            if (reader == null || databaseVersion != version) {
+                reader = null
+                val bytes = AssetFiles.read(file.path) ?: error("Missing database")
+                reader = MmdbCityLookup(bytes)
+                databaseVersion = version
+                Log.i(TAG, "City database loaded: bytes=${bytes.size}, modified=${version.first}")
             }
+            requireNotNull(reader)
+        } catch (error: Exception) {
+            Log.w(TAG, "City database could not be loaded: bytes=${file.length()}", error)
+            return@withContext HomeMapLocations(issue = HomeMapIssue.DATABASE_INVALID)
         }
-
-        HomeMapLocations(user = userLocation, server = serverLocation)
-    }
-
-    private fun findDirectInternetNetwork(): Network? {
-        val candidates = connectivityManager.allNetworks.mapNotNull { network ->
-            val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return@mapNotNull null
-            if (!capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) ||
-                !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN) ||
-                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
-            ) {
-                return@mapNotNull null
+        val language = Locale.getDefault().toLanguageTag()
+        val ips = if (parseIpLiteral(address) != null) listOf(address) else {
+            if (sessionId == null || !socksInboundAvailable) {
+                return@withContext HomeMapLocations(issue = HomeMapIssue.DNS_UNAVAILABLE)
             }
-            val rank = when {
-                capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) -> 0
-                else -> 1
-            }
-            Triple(network, capabilities, rank)
+            val host = runCatching { IDN.toASCII(address.trimEnd('.')) }.getOrNull()
+                ?: return@withContext HomeMapLocations(issue = HomeMapIssue.DNS_UNAVAILABLE)
+            val settings = settingsRepository.settingsFlow.first()
+            val mode = if (settings.dnsOverHttpsEnabled) NodeDnsResolver.Mode.DOH else NodeDnsResolver.Mode.PLAIN
+            val upstreams = if (settings.dnsOverHttpsEnabled) DnsDefaults.parseDohServers(settings.dnsOverHttpsServers)
+                else DnsDefaults.parseUdpDnsServers(settings.udpDnsServers)
+            if (BuildConfig.DEBUG) Log.d(TAG, "Resolving host=$host, mode=$mode, ipv6=${settings.ipV6Enable}, session=$sessionId")
+            resolver.resolve(host, upstreams, settings.ipV6Enable, sessionId, mode)
+                .takeIf { it.isNotEmpty() }
+                ?: run {
+                    Log.w(TAG, "DNS returned no addresses: mode=$mode")
+                    return@withContext HomeMapLocations(issue = HomeMapIssue.DNS_UNAVAILABLE)
+                }
         }
-        val activeNetwork = connectivityManager.activeNetwork
-        return candidates.firstOrNull { it.first == activeNetwork }?.first
-            ?: candidates.minByOrNull { it.third }?.first
-    }
-
-    private fun requestDirectLocation(network: Network): HomeMapLocation? {
-        if (IpApiRateLimit.isBlocked()) return null
-        val url = URL("$API_URL?$FIELDS&lang=zh-CN")
-        val connection = network.openConnection(url) as HttpURLConnection
-        return try {
-            connection.requestMethod = "GET"
-            connection.connectTimeout = CONNECT_TIMEOUT_MILLIS
-            connection.readTimeout = READ_TIMEOUT_MILLIS
-            connection.instanceFollowRedirects = true
-            connection.setRequestProperty("Accept", "application/json")
-            connection.setRequestProperty("User-Agent", USER_AGENT)
-
-            val responseCode = connection.responseCode
-            val remainingRequests = connection.getHeaderField("X-Rl")?.toIntOrNull()
-            val retryAfterSeconds = connection.getHeaderField("X-Ttl")?.toLongOrNull()
-            if (remainingRequests == 0 && retryAfterSeconds != null) {
-                IpApiRateLimit.blockFor(retryAfterSeconds)
-            }
-            if (responseCode !in 200..299) return null
-            val body = connection.inputStream.bufferedReader().use { reader -> reader.readText() }
-            parseLocation(body)
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (_: Exception) {
-            null
-        } finally {
-            connection.disconnect()
-        }
-    }
-
-    private suspend fun requestProxyLocation(address: String): HomeMapLocation? {
-        if (IpApiRateLimit.isBlocked()) return null
-        val encodedAddress = URLEncoder.encode(address, Charsets.UTF_8.name())
-        return try {
-            val response = proxyHttpClient.get("$API_URL$encodedAddress?$FIELDS&lang=zh-CN") {
-                headers.append("Accept", "application/json")
-            }
-            val remainingRequests = response.headers["X-Rl"]?.toIntOrNull()
-            val retryAfterSeconds = response.headers["X-Ttl"]?.toLongOrNull()
-            if (remainingRequests == 0 && retryAfterSeconds != null) {
-                IpApiRateLimit.blockFor(retryAfterSeconds)
-            }
-            if (!response.status.isSuccess()) return null
-            parseLocation(response.bodyAsText(), fallbackQuery = address)
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (_: Exception) {
-            null
-        }
-    }
-
-    private fun parseLocation(body: String, fallbackQuery: String? = null): HomeMapLocation? {
-        if (body.length > MAX_RESPONSE_CHARS) return null
-        val json = JSONObject(body)
-        if (json.optString("status") != "success") return null
-        val latitude = json.optDouble("lat", Double.NaN)
-        val longitude = json.optDouble("lon", Double.NaN)
-        if (!latitude.isFinite() || !longitude.isFinite() || latitude !in -90.0..90.0 || longitude !in -180.0..180.0) {
-            return null
-        }
-
-        return HomeMapLocation(
-            ipAddress = json.optString("query").takeIf(String::isNotBlank) ?: fallbackQuery.orEmpty(),
-            city = json.optString("city").takeIf(String::isNotBlank),
-            region = json.optString("regionName").takeIf(String::isNotBlank),
-            country = json.optString("country").takeIf(String::isNotBlank),
-            latitude = latitude,
-            longitude = longitude,
+        if (BuildConfig.DEBUG) Log.d(TAG, "City lookup candidates=$ips, language=$language")
+        val server = ips.firstNotNullOfOrNull { locate(db, it, language) }
+        if (server == null) Log.w(TAG, "City lookup failed for all ${ips.size} candidate IPs; see per-IP diagnostics")
+        HomeMapLocations(
+            server = server,
+            issue = if (server == null) HomeMapIssue.SERVER_UNAVAILABLE else null,
         )
     }
 
-    private suspend fun cached(key: String, load: suspend () -> HomeMapLocation?): HomeMapLocation? {
-        val now = SystemClock.elapsedRealtime()
-        val cached = LocationCache.get(key, now)
-        if (cached != null) return cached.value
-        val result = load()
-        LocationCache.put(key, result, now + CACHE_TTL_MILLIS)
-        return result
-    }
-
-    private data class CacheEntry(
-        val value: HomeMapLocation?,
-        val expiresAtMillis: Long,
-    )
-
-    private object LocationCache {
-        private val entries = mutableMapOf<String, CacheEntry>()
-
-        @Synchronized
-        fun get(key: String, now: Long): CacheEntry? {
-            val entry = entries[key] ?: return null
-            if (entry.expiresAtMillis <= now) {
-                entries.remove(key)
-                return null
+    private fun locate(db: MmdbCityLookup, ip: String, language: String): HomeMapLocation? =
+        try {
+            val location = db.location(ip, language) { reason ->
+                val family = if (':' in ip) "IPv6" else "IPv4"
+                Log.w(TAG, "City lookup miss: family=$family, reason=$reason")
+                if (BuildConfig.DEBUG) Log.d(TAG, "City lookup miss: ip=$ip, reason=$reason")
             }
-            return entry
+            if (location != null) {
+                if (BuildConfig.DEBUG) Log.d(TAG, "City lookup succeeded: ip=$ip")
+            }
+            location?.let {
+                HomeMapLocation(ip, it.city, it.region, it.country, it.latitude, it.longitude)
+            }
+        } catch (error: Exception) {
+            Log.w(TAG, "City record decoding failed", error)
+            null
         }
-
-        @Synchronized
-        fun put(key: String, value: HomeMapLocation?, expiresAtMillis: Long) {
-            entries[key] = CacheEntry(value, expiresAtMillis)
-        }
-    }
-
-    private object IpApiRateLimit {
-        @Volatile
-        private var blockedUntilMillis: Long = 0L
-
-        fun isBlocked(): Boolean = SystemClock.elapsedRealtime() < blockedUntilMillis
-
-        fun blockFor(seconds: Long) {
-            blockedUntilMillis = maxOf(
-                blockedUntilMillis,
-                SystemClock.elapsedRealtime() + seconds.coerceAtLeast(1L) * 1_000L,
-            )
-        }
-    }
 
     private companion object {
-        const val API_URL = "http://ip-api.com/json/"
-        const val FIELDS = "fields=status,message,query,country,regionName,city,lat,lon"
-        const val CONNECT_TIMEOUT_MILLIS = 6_000
-        const val READ_TIMEOUT_MILLIS = 6_000
-        const val CACHE_TTL_MILLIS = 5 * 60 * 1_000L
-        const val MAX_RESPONSE_CHARS = 16_384
-        const val USER_AGENT = "XrayFA"
+        const val TAG = "ConnectMapLookup"
     }
 }

@@ -66,6 +66,7 @@ class DefaultRootComponent(
                     RootStackConfig.QrScanner -> RootComponent.StackChild.QrScanner
                     RootStackConfig.Apps -> RootComponent.StackChild.Apps
                     RootStackConfig.Logcat -> RootComponent.StackChild.Logcat
+                    RootStackConfig.ConnectMap -> RootComponent.StackChild.ConnectMap
                     RootStackConfig.RouteSettings -> RootComponent.StackChild.RouteSettings
                     RootStackConfig.Search -> RootComponent.StackChild.Search
                     is RootStackConfig.NodeEdit -> RootComponent.StackChild.NodeEdit(config.nodeId)
@@ -141,6 +142,10 @@ class DefaultRootComponent(
     }
     override fun openApps() = pushOnSettingsOrIdle(RootStackConfig.Apps)
     override fun openLogcat() = pushOnSettingsOrIdle(RootStackConfig.Logcat)
+    override fun openConnectMap() {
+        if (stack.value.active.configuration is RootStackConfig.ConnectMap) return
+        pushOnSettingsOrIdle(RootStackConfig.ConnectMap)
+    }
     override fun openRouteSettings() = pushOnSettingsOrIdle(RootStackConfig.RouteSettings)
     override fun openNodeEdit(nodeId: Int) = bringOrPush(RootStackConfig.NodeEdit(nodeId))
     override fun openJsonConfigEdit(nodeId: Int) = bringOrPush(RootStackConfig.JsonConfigEdit(nodeId))
@@ -162,6 +167,7 @@ class DefaultRootComponent(
             RootStackConfig.Subscriptions -> openSubscriptions()
             RootStackConfig.Settings -> openSettings()
             RootStackConfig.Apps -> openApps()
+            RootStackConfig.ConnectMap -> openConnectMap()
             RootStackConfig.RouteSettings -> openRouteSettings()
             RootStackConfig.QrScanner -> openQrScanner()
             RootStackConfig.Logcat -> openLogcat()

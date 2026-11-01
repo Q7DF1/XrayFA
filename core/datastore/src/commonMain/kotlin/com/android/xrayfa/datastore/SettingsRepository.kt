@@ -3,6 +3,7 @@ package com.android.xrayfa.datastore
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -54,7 +55,9 @@ data class SettingsState(
     val allowedPackages: List<String> = emptyList(),
     val agentFunctionsEnabled: Boolean = false,
     val homeScreenWidgetsEnabled: Boolean = false,
-    val connectMapEnabled: Boolean = true,
+    val connectMapEnabled: Boolean = false,
+    val connectMapHttpExitEnabled: Boolean = false,
+    val connectMapOrigin: ConnectMapOrigin? = null,
 )
 
 object SettingsKeys {
@@ -88,7 +91,10 @@ object SettingsKeys {
     val AGENT_FUNCTIONS_ENABLED = booleanPreferencesKey("agent_functions_enabled")
     /** Widgets are opt-in when no preference has been saved. */
     val HOME_SCREEN_WIDGETS_ENABLED = booleanPreferencesKey("home_screen_widgets_enabled")
-    val CONNECT_MAP_ENABLED = booleanPreferencesKey("connect_map_enabled")
+    val CONNECT_MAP_LATITUDE = doublePreferencesKey("connect_map_latitude")
+    val CONNECT_MAP_LONGITUDE = doublePreferencesKey("connect_map_longitude")
+    val CONNECT_MAP_HTTP_EXIT_ENABLED = booleanPreferencesKey("connect_map_http_exit_enabled")
+    val CONNECT_MAP_ENABLED = booleanPreferencesKey("connect_map_local_enabled")
 }
 
 const val DEFAULT_DELAY_TEST_URL = "https://www.google.com"
@@ -140,7 +146,11 @@ class SettingsRepository(
             sendHwid = prefs[SettingsKeys.SEND_HWID] ?: true,
             agentFunctionsEnabled = prefs[SettingsKeys.AGENT_FUNCTIONS_ENABLED] == true,
             homeScreenWidgetsEnabled = prefs[SettingsKeys.HOME_SCREEN_WIDGETS_ENABLED] ?: false,
-            connectMapEnabled = prefs[SettingsKeys.CONNECT_MAP_ENABLED] ?: true,
+            connectMapEnabled = prefs[SettingsKeys.CONNECT_MAP_ENABLED] ?: false,
+            connectMapHttpExitEnabled = prefs[SettingsKeys.CONNECT_MAP_HTTP_EXIT_ENABLED] ?: false,
+            connectMapOrigin = ConnectMapOrigin.fromCoordinates(
+                prefs[SettingsKeys.CONNECT_MAP_LATITUDE], prefs[SettingsKeys.CONNECT_MAP_LONGITUDE],
+            ),
         )
     }
 
@@ -303,8 +313,43 @@ class SettingsRepository(
         dataStore.edit { it[SettingsKeys.HOME_SCREEN_WIDGETS_ENABLED] = enable }
     }
 
-    suspend fun setConnectMapEnabled(enable: Boolean) {
-        dataStore.edit { it[SettingsKeys.CONNECT_MAP_ENABLED] = enable }
+    suspend fun setConnectMapOrigin(origin: ConnectMapOrigin?) {
+        dataStore.edit { prefs ->
+            if (origin == null) {
+                prefs.remove(SettingsKeys.CONNECT_MAP_LATITUDE)
+                prefs.remove(SettingsKeys.CONNECT_MAP_LONGITUDE)
+            } else {
+                prefs[SettingsKeys.CONNECT_MAP_LATITUDE] = origin.latitude
+                prefs[SettingsKeys.CONNECT_MAP_LONGITUDE] = origin.longitude
+            }
+        }
+    }
+
+    suspend fun setConnectMapHttpExitEnabled(enable: Boolean, cityDatabaseInstalled: Boolean) {
+        dataStore.edit {
+            it[SettingsKeys.CONNECT_MAP_HTTP_EXIT_ENABLED] = enable
+            if (!enable && !cityDatabaseInstalled) it[SettingsKeys.CONNECT_MAP_ENABLED] = false
+        }
+    }
+
+    suspend fun setConnectMapEnabled(
+        enable: Boolean,
+        cityDatabaseInstalled: Boolean,
+        httpExitSupported: Boolean,
+    ) {
+        dataStore.edit {
+            it[SettingsKeys.CONNECT_MAP_ENABLED] = enable && (
+                cityDatabaseInstalled || httpExitSupported && it[SettingsKeys.CONNECT_MAP_HTTP_EXIT_ENABLED] == true
+            )
+        }
+    }
+
+    suspend fun disableConnectMapIfUnavailable(cityDatabaseInstalled: Boolean, httpExitSupported: Boolean) {
+        dataStore.edit {
+            if (!cityDatabaseInstalled && !(httpExitSupported && it[SettingsKeys.CONNECT_MAP_HTTP_EXIT_ENABLED] == true)) {
+                it[SettingsKeys.CONNECT_MAP_ENABLED] = false
+            }
+        }
     }
 
     suspend fun setAgentFunctionsEnabled(enable: Boolean) {

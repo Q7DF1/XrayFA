@@ -9,10 +9,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.resources.*
@@ -22,9 +20,8 @@ import com.android.xrayfa.shared.ui.settings.SharedSettingsAboutSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsGeneralSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsPlatformSection
 import com.android.xrayfa.shared.ui.settings.SharedSettingsSubscriptionSection
-import com.android.xrayfa.shared.ui.transitions.TransitionDestinations
-import com.android.xrayfa.shared.ui.transitions.platformRowShape
-import com.android.xrayfa.shared.ui.transitions.sharedContainer
+import com.android.xrayfa.shared.ui.transitions.SettingsDetailTransitions
+import com.android.xrayfa.shared.ui.transitions.settingsDetailSource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -34,6 +31,7 @@ internal fun SettingsTabScreen(
     onAppsClick: () -> Unit,
     onLogcatClick: () -> Unit,
     onRouteClick: () -> Unit,
+    onConnectMapClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val settingsLabels = rememberSettingsUiLabels()
@@ -64,6 +62,7 @@ internal fun SettingsTabScreen(
                 component = component,
                 scrollEnabled = false,
                 labels = settingsLabels,
+                onConnectMapClick = onConnectMapClick,
                 additionalGeneralContent = {
                     with(platformHooks) { SettingsGeneralExtras(component) }
                 },
@@ -71,31 +70,14 @@ internal fun SettingsTabScreen(
                     with(platformHooks) { SettingsNetworkExtras(component) }
                 },
             )
-            // 与 SharedSettingsGroup 的卡片底色一致，避免共享容器在静止时把这三行涂成另一块灰。
-            val rowColor = MaterialTheme.colorScheme.surfaceContainerLowest
             SharedSettingsPlatformSection(
                 labels = settingsLabels,
                 onAppsClick = onAppsClick,
                 onLogcatClick = onLogcatClick,
                 onRouteClick = onRouteClick,
-                appsModifier =
-                    Modifier.sharedContainer(
-                        destination = TransitionDestinations.APPS,
-                        shape = platformRowShape(roundTop = true),
-                        containerColor = rowColor,
-                    ),
-                logcatModifier =
-                    Modifier.sharedContainer(
-                        destination = TransitionDestinations.LOGCAT,
-                        shape = RectangleShape,
-                        containerColor = rowColor,
-                    ),
-                routeModifier =
-                    Modifier.sharedContainer(
-                        destination = TransitionDestinations.ROUTE,
-                        shape = platformRowShape(roundTop = false),
-                        containerColor = rowColor,
-                    ),
+                appsModifier = Modifier.settingsDetailSource(SettingsDetailTransitions.Apps),
+                logcatModifier = Modifier.settingsDetailSource(SettingsDetailTransitions.Logcat),
+                routeModifier = Modifier.settingsDetailSource(SettingsDetailTransitions.Route),
             )
             SharedSettingsSubscriptionSection(component = component, labels = settingsLabels)
             SharedSettingsAboutSection(component = component, labels = settingsLabels)

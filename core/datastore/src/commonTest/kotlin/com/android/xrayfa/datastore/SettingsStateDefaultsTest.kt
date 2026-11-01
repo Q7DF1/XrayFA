@@ -6,6 +6,12 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
 class SettingsStateDefaultsTest {
+    @Test
+    fun localConnectMapRequiresFreshOptIn() {
+        assertFalse(SettingsState().connectMapEnabled)
+        assertEquals("connect_map_local_enabled", SettingsKeys.CONNECT_MAP_ENABLED.name)
+    }
+
 
     @Test
     fun agentFunctionsEnabled_defaultsFalse() {

@@ -296,5 +296,23 @@
     <string name="home_screen_widgets_title">Виджет на главном экране</string>
     <string name="home_screen_widgets_desc">Показывать XrayFA в списке виджетов. Отключение удаляет добавленные виджеты; после включения добавьте их заново.</string>
     <string name="connect_map_title">Connect Map</string>
-    <string name="connect_map_desc">Определять и показывать местоположения на карте соединения. При отключении остаётся только статическая карта без запросов местоположения.</string>
+    <string name="connect_map_desc">Выберите своё местоположение. Для Connect Map включите HTTP-запрос расположения выхода или скачайте базу City.</string>
+    <string name="city_database_title">База городов City</string>
+    <string name="city_database_desc">Необязательно при включённом HTTP-запросе расположения выхода. Для офлайн-координат узлов скачайте GeoLite2-City.mmdb. Повторная загрузка обновляет базу.</string>
+    <string name="city_database_failed">Ошибка загрузки или проверки. Предыдущая база сохранена. Повторите загрузку.</string>
+    <string name="map_database_missing">Connect Map: база City отсутствует. Скачайте её в настройках.</string>
+    <string name="map_database_invalid">Connect Map: база City повреждена. Скачайте её заново.</string>
+    <string name="map_server_unavailable">Connect Map: координаты узла недоступны. Проверьте адрес узла или обновите базу City.</string>
+    <string name="map_origin_title">Моё место на карте</string>
+    <string name="map_origin_unset">Не выбрано</string>
+    <string name="map_origin_hint">Нажмите на карте своё примерное местоположение и сохраните. Позже его можно изменить здесь.</string>
+    <string name="map_origin_missing">Connect Map: выберите своё местоположение в настройках для отображения начала маршрута.</string>
+    <string name="connect_map_entry_desc">Отображение карты, ваше местоположение и локальная база City</string>
+    <string name="map_http_exit_title">Определять расположение выхода по HTTP</string>
+    <string name="map_http_exit_desc">После подключения запрос к http://ip-api.com/json/ через прокси определяет расположение выходного IP. HTTP не шифруется: сайт видит выходной IP, а данные могут быть прочитаны или изменены в пути. Кэш действует 30 минут; повтор после ошибки — через 1 минуту. По умолчанию выключено.</string>
+    <string name="map_exit_unavailable">Connect Map: не удалось подключиться к сервису через прокси. Проверьте соединение. Запрос повторится автоматически.</string>
+    <string name="map_exit_timeout">Connect Map: время ожидания запроса истекло. Запрос повторится автоматически.</string>
+    <string name="map_exit_service_error">Connect Map: сервис вернул ошибку или некорректные данные. Запрос повторится автоматически.</string>
+    <string name="map_exit_rate_limited">Connect Map: сервис ограничил запросы с этого выходного IP. Повтор после окончания ограничения.</string>
+    <string name="map_dns_unavailable">Connect Map: не удалось разрешить домен узла выбранным способом DNS. Проверьте соединение с прокси, поддержку SOCKS и настройки DNS.</string>
 </resources>

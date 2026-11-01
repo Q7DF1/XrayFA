@@ -26,6 +26,7 @@ fun HomeConnectionStatusLabel(
     disconnectedHint: String,
     large: Boolean = false,
     modifier: Modifier = Modifier,
+    showHint: Boolean = true,
 ) {
     val statusColor =
         if (isConnected) {
@@ -55,11 +56,13 @@ fun HomeConnectionStatusLabel(
                 color = statusColor,
             )
         }
-        Spacer(Modifier.size(4.dp))
-        Text(
-            text = if (isConnected) connectedHint else disconnectedHint,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        if (showHint) {
+            Spacer(Modifier.size(4.dp))
+            Text(
+                text = if (isConnected) connectedHint else disconnectedHint,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }

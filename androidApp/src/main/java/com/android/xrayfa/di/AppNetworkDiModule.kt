@@ -7,6 +7,7 @@ import com.android.xrayfa.network.createSocksProxyHttpClient
 import com.android.xrayfa.network.createProxyFileDownloader
 import com.android.xrayfa.network.createSubscriptionFetcher
 import com.android.xrayfa.widget.WidgetExitIpLookup
+import com.android.xrayfa.ui.home.AndroidExitLocationLookup
 import com.android.xrayfa.ui.home.AndroidHomeIpLocationLookup
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.first
@@ -21,7 +22,8 @@ private const val WIDGET_EXIT_IP_HTTP_CLIENT = "widgetExitIpHttpClient"
 val appNetworkDiModule: Module = module {
     single {
         AndroidHomeIpLocationLookup(
-            androidContext(),
+            get<com.android.xrayfa.common.core.XrayAssetPaths>(),
+            get<SettingsRepository>(),
             get(named(WIDGET_EXIT_IP_HTTP_CLIENT)),
         )
     }
@@ -55,6 +57,8 @@ val appNetworkDiModule: Module = module {
             SocksProxyConfig(settings.socksPort, settings.socksUserName, settings.socksPassword)
         }
     }
+
+    single { AndroidExitLocationLookup(androidContext(), get(named(WIDGET_EXIT_IP_HTTP_CLIENT))) }
 
     single { WidgetExitIpLookup(get(named(WIDGET_EXIT_IP_HTTP_CLIENT))) }
 }

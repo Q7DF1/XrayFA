@@ -110,6 +110,8 @@ fun SharedSettingsNetworkDetailsSection(
                 labels.geoLiteDownloadUnavailableHint
             },
         onDownloadClick = component::onDownloadGeoLite,
+        onCancelClick = component::onCancelGeoLiteDownload,
+        cancelLabel = labels.cancelLabel,
         icon = Icons.Outlined.DataUsage,
     )
     SharedSettingsFieldRow(

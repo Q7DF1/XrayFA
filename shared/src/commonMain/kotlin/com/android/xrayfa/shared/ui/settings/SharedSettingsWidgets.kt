@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Info
@@ -213,7 +214,10 @@ fun SharedSettingsDownloadRow(
     downloadDisabledHint: String,
     onDownloadClick: () -> Unit,
     icon: ImageVector? = null,
+    onCancelClick: (() -> Unit)? = null,
+    cancelLabel: String = "",
 ) {
+    val canCancel = downloading && onCancelClick != null
     val infiniteTransition = rememberInfiniteTransition(label = "geoLiteDownload")
     val angle by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -284,14 +288,21 @@ fun SharedSettingsDownloadRow(
                 }
             },
         trailingContent = {
-            IconButton(onClick = onDownloadClick, enabled = downloadEnabled) {
+            IconButton(
+                onClick = { if (canCancel) onCancelClick.invoke() else onDownloadClick() },
+                enabled = canCancel || downloadEnabled,
+            ) {
                 Icon(
-                    imageVector = if (downloading) Icons.Filled.Refresh else Icons.Outlined.Download,
-                    contentDescription = title,
+                    imageVector = when {
+                        canCancel -> Icons.Filled.Close
+                        downloading -> Icons.Filled.Refresh
+                        else -> Icons.Outlined.Download
+                    },
+                    contentDescription = if (canCancel) cancelLabel else title,
                     modifier =
                         Modifier
                             .size(24.dp)
-                            .rotate(angle),
+                            .rotate(if (canCancel) 0f else angle),
                 )
             }
         },

@@ -15,6 +15,8 @@ interface XrayAssetPaths {
     /** Absolute path to geosite.dat */
     val geoSitePath: String
 
+    val cityDatabasePath: String get() = "$basePath/GeoLite2-City.mmdb"
+
     /** Absolute path to GeoLite2-Country.mmdb */
     val geoLiteDatabasePath: String
 }

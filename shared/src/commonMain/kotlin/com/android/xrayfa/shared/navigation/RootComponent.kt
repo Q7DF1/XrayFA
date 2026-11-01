@@ -32,6 +32,8 @@ interface RootComponent : BackHandlerOwner {
 
     fun openLogcat()
 
+    fun openConnectMap()
+
     fun openRouteSettings()
 
     fun openNodeEdit(nodeId: Int)
@@ -56,6 +58,7 @@ interface RootComponent : BackHandlerOwner {
         data object QrScanner : StackChild()
         data object Apps : StackChild()
         data object Logcat : StackChild()
+        data object ConnectMap : StackChild()
         data object RouteSettings : StackChild()
         data object Search : StackChild()
         class NodeEdit(val nodeId: Int) : StackChild()

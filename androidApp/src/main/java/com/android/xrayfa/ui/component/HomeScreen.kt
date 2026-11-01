@@ -3,6 +3,7 @@ package com.android.xrayfa.ui.component
 import android.app.Activity
 import android.net.ConnectivityManager
 import android.net.Network
+import android.net.NetworkCapabilities
 import android.net.VpnService
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -25,8 +26,8 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,16 +44,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.R
-import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.shared.navigation.HomeComponent
-import com.android.xrayfa.shared.ui.home.HomeMapLocation
-import com.android.xrayfa.shared.ui.home.HomeMapLocations
 import com.android.xrayfa.shared.ui.SharedHomeSection
+import com.android.xrayfa.shared.ui.home.HomeMapLocations
 import com.android.xrayfa.shared.ui.rememberHomeUiLabels
+import com.android.xrayfa.datastore.SettingsRepository
+import com.android.xrayfa.core.XrayBaseService
+import com.android.xrayfa.ui.home.AndroidExitLocationLookup
+import com.android.xrayfa.shared.ui.home.HomeMapIssue
 import com.android.xrayfa.ui.home.AndroidHomeIpLocationLookup
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.map
 import org.koin.compose.koinInject
 
 @Composable
@@ -63,6 +65,8 @@ fun CompactHomeContent(
     val homeState by homeComponent.state.subscribeAsState()
     val mapLocations = rememberHomeMapLocations(
         nodeAddress = homeState.selectedNode?.address.takeIf { homeState.isConnected },
+        enabled = homeState.connectMapEnabled,
+        httpExitEnabled = homeState.connectMapHttpExitEnabled,
     )
     val homeLabels = rememberHomeUiLabels()
 
@@ -107,6 +111,8 @@ fun ExpandedHomeContent(
     val context = LocalContext.current
     val mapLocations = rememberHomeMapLocations(
         nodeAddress = selectedNode?.address.takeIf { homeState.isConnected },
+        enabled = homeState.connectMapEnabled,
+        httpExitEnabled = homeState.connectMapHttpExitEnabled,
     )
 
     val homeLabels = rememberHomeUiLabels()
@@ -194,24 +200,24 @@ fun ExpandedHomeContent(
 }
 
 @Composable
-private fun rememberHomeMapLocations(nodeAddress: String?): HomeMapLocations {
-    val settingsRepository: SettingsRepository = koinInject()
-    val enabledFlow = remember(settingsRepository) {
-        settingsRepository.settingsFlow.map { it.connectMapEnabled }
-    }
-    // Wait for the saved choice before starting any lookup, including after app restart.
-    val enabled by enabledFlow.collectAsState(initial = null)
-    if (enabled != true) return HomeMapLocations()
+private fun rememberHomeMapLocations(
+    nodeAddress: String?,
+    enabled: Boolean,
+    httpExitEnabled: Boolean,
+): HomeMapLocations {
+    if (!enabled) return HomeMapLocations()
 
     val lookup: AndroidHomeIpLocationLookup = koinInject()
+    val exitLookup: AndroidExitLocationLookup = koinInject()
+    val settingsRepository: SettingsRepository = koinInject()
+    val settings by settingsRepository.settingsFlow.collectAsState(initial = null)
+    val session by XrayBaseService.activeSession.collectAsState()
     val context = LocalContext.current.applicationContext
     val connectivityManager = remember(context) {
         context.getSystemService(ConnectivityManager::class.java)
     }
     var networkEpoch by remember { mutableIntStateOf(0) }
     var locations by remember { mutableStateOf(HomeMapLocations()) }
-    var lastNodeAddress by remember { mutableStateOf<String?>(null) }
-    var knownServerLocations by remember { mutableStateOf<Map<String, HomeMapLocation>>(emptyMap()) }
 
     DisposableEffect(connectivityManager) {
         val callback = object : ConnectivityManager.NetworkCallback() {
@@ -227,25 +233,38 @@ private fun rememberHomeMapLocations(nodeAddress: String?): HomeMapLocations {
         onDispose { connectivityManager.unregisterNetworkCallback(callback) }
     }
 
-    LaunchedEffect(nodeAddress, networkEpoch) {
-        if (nodeAddress != lastNodeAddress || nodeAddress == null) {
-            locations = locations.copy(server = nodeAddress?.let(knownServerLocations::get))
-        }
-        lastNodeAddress = nodeAddress
+    LaunchedEffect(
+        nodeAddress, networkEpoch, httpExitEnabled, session,
+        settings?.dnsOverHttpsServers, settings?.udpDnsServers, settings?.ipV6Enable, settings?.dnsOverHttpsEnabled,
+    ) {
+        // A new session or network must never retain pins from a previous network/node.
+        locations = HomeMapLocations()
+        // Let VPN/default-network callbacks settle before starting a remote lookup.
+        if (httpExitEnabled) delay(1_000)
         while (true) {
-            val refreshed = lookup.lookup(nodeAddress)
-            if (nodeAddress != null) {
-                refreshed.server?.let { serverLocation ->
-                    knownServerLocations = knownServerLocations + (nodeAddress to serverLocation)
-                }
-            }
-            locations = HomeMapLocations(
-                user = refreshed.user ?: locations.user,
-                server = if (nodeAddress == null) null else {
-                    refreshed.server ?: knownServerLocations[nodeAddress] ?: locations.server
-                },
+            val active = session
+            var nextLookupDelayMillis = 60_000L
+            locations = if (httpExitEnabled && active?.socksInboundAvailable == true) {
+                val network = connectivityManager.allNetworks.filter {
+                    val capabilities = connectivityManager.getNetworkCapabilities(it)
+                    capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN) == true &&
+                        capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                }.map { it.networkHandle }.sorted().joinToString(",")
+                val identity = "${active.nodeId}|${active.serverAddress}|${active.serverPort}|${active.routingMode}|$network"
+                val exit = exitLookup.lookup(identity, active.sessionId)
+                nextLookupDelayMillis = exit.nextLookupDelayMillis
+                HomeMapLocations(
+                    server = exit.location,
+                    issue = exit.issue,
+                )
+            } else if (httpExitEnabled) {
+                HomeMapLocations(issue = HomeMapIssue.EXIT_UNAVAILABLE.takeIf { active != null })
+            } else lookup.lookup(
+                nodeAddress = active?.serverAddress ?: nodeAddress,
+                sessionId = active?.sessionId,
+                socksInboundAvailable = active?.socksInboundAvailable == true,
             )
-            delay(15 * 60 * 1_000L)
+            delay(nextLookupDelayMillis)
         }
     }
     return locations

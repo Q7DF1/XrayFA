@@ -15,8 +15,17 @@ data class SettingsUiLabels(
     val homeScreenWidgetsDescription: String =
         "Show XrayFA in the system widget picker. Turning this off removes existing widgets; add them again after enabling.",
     val connectMapTitle: String = "Connect Map",
+    val connectMapEntryDescription: String = "Map display, your location, and the offline City database",
     val connectMapDescription: String =
-        "Look up and show locations on the connection map. When off, only the static map is shown.",
+        "Choose your location. Enable HTTP exit lookup or download the City database to use Connect Map.",
+    val mapHttpExitTitle: String = "Look up exit location over HTTP",
+    val mapHttpExitDescription: String = "When connected, access http://ip-api.com/json/ through the proxy to locate its exit IP. HTTP is unencrypted; the site sees the exit IP and responses can be read or modified in transit. Results are cached for 30 minutes; failed requests retry after 1 minute. Off by default.",
+    val mapOriginTitle: String = "My map location",
+    val mapOriginUnset: String = "Not selected",
+    val mapOriginHint: String = "Tap your approximate location on the map and save. You can change it here anytime.",
+    val cityDatabaseTitle: String = "City database",
+    val cityDatabaseDescription: String = "Optional when HTTP exit lookup is enabled. Download GeoLite2-City.mmdb for offline node locations. Download again to update.",
+    val cityDatabaseFailed: String = "City database download or validation failed. The previous database was kept. Tap to retry.",
     val agentFunctionsTitle: String = "Agent functions",
     val inDevelopmentLabel: String = "In development",
     val agentFunctionsDescription: String =
