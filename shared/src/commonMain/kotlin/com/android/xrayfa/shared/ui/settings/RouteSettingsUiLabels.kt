@@ -13,6 +13,8 @@ data class RouteSettingsUiLabels(
     val quickConfigSectionTitle: String = "Quick Config Presets",
     val bypassChinaLabel: String = "Bypass Mainland China",
     val bypassChinaDescription: String = "geosite:cn, geoip:cn -> Direct",
+    val bypassRussiaLabel: String = "Bypass Russia",
+    val bypassRussiaDescription: String = "Russian domains and IP addresses connect directly.",
     val proxyTelegramGoogleLabel: String = "Proxy Telegram & Google",
     val proxyTelegramGoogleDescription: String = "geosite:telegram, geosite:google -> Proxy",
     val blockAdsLabel: String = "Block Ads",

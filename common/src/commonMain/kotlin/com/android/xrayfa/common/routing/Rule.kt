@@ -40,6 +40,7 @@ fun decodeRules(json: String): List<Rule> =
     AppJson.decodeFromString(ruleListSerializer, json).flatMap { rule ->
         // Only migrate the app preset; custom rules retain their AND semantics.
         when (rule) {
+            retiredGulfPreset -> emptyList()
             legacyChinaDirectRule -> chinaDirectRules
             // Repair the IP rule saved by the initial split, which reused the domain tag.
             legacyChinaDirectRule.copy(domain = null) -> listOf(chinaDirectRules[1])
@@ -91,3 +92,10 @@ val defaultRouteList = listOf(
 
 /** Default routing rules JSON persisted for new installs and fallback recovery. */
 val defaultRoutes: String by lazy { encodeRules(defaultRouteList) }
+
+// Remove only the exact experimental preset; user-authored rules keep their semantics.
+private val retiredGulfPreset = Rule(
+    ip = listOf("geoip:ae", "geoip:sa", "geoip:qa", "geoip:kw", "geoip:bh", "geoip:om"),
+    outboundTag = "direct",
+    ruleTag = "region:gcc:ip",
+)

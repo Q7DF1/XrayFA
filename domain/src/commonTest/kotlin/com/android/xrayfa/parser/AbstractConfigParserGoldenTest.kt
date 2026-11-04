@@ -1,6 +1,7 @@
 package com.android.xrayfa.parser
 
 import com.android.xrayfa.common.core.CoreStartOptions
+import com.android.xrayfa.common.routing.RegionRoutingPreset
 import com.android.xrayfa.common.routing.Rule
 import com.android.xrayfa.common.routing.RoutingMode
 import com.android.xrayfa.common.routing.encodeRules
@@ -17,6 +18,21 @@ class AbstractConfigParserGoldenTest {
 
     private val factory = ParserTestFixtures.factory()
     private val json = Json
+
+    @Test
+    fun routeMode_keepsRegionPresetsIndependentAndAfterCustomOverrides() {
+        val custom = Rule(domain = listOf("full:example.ru"), outboundTag = "proxy")
+        val presets = RegionRoutingPreset.entries.flatMap { it.rules }
+        val routing = factory.getParser(ShareLinks.VLESS).getBaseRoutingObject(
+            ParserTestFixtures.settings.copy(
+                routingMode = RoutingMode.ROUTE.code,
+                routingRules = encodeRules(listOf(custom) + presets),
+            ),
+        ).rules!!
+        assertEquals("dns-out", routing.first().outboundTag)
+        assertEquals(listOf(custom.toRuleObject()) + presets.map { it.toRuleObject() }, routing.drop(1))
+        assertTrue(routing.drop(2).all { it.domain == null || it.ip == null })
+    }
 
     @Test
     fun routeMode_migratesSavedChinaPresetToIndependentRuntimeRules() {

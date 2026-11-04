@@ -195,6 +195,8 @@ The shared manual node editor exposes only fields implemented by its share-link 
 
 Config delay probes are blocking native calls: run them on `Dispatchers.IO` with at most 32 workers, and keep filtering/sorting on `Dispatchers.Default`. Publish delay ordering after a test batch finishes, and cancel obsolete list computations. Subscription imports parse all nodes before replacing them in one `NodeDao` transaction. Subscription diagnostics must never log raw exception messages, URLs, response bodies, or node credentials; use allowlisted validation reasons and sanitized code locations.
 
+Routing presets in `common/routing/RegionRoutingPreset.kt` support independent CN and RU direct routing selections. RU uses `category-ru` domains plus RU IPs. The shared route screen recognizes exact preset rules so custom overrides remain editable. Geo data continues to come from the existing version-pinned build pipeline (`scripts/fdroid.sh` → native AAR assets); saving routing rules does not download or replace datasets. Existing CN rule serialization is preserved. On first recommendation initialization, Russian UI language with no saved routing rules or mode offers a confirmation dialog for RU direct routing. Consent and dismissal are persisted atomically; changing language later never changes routes or repeats a completed recommendation.
+
 ## 7. Code Style & Conventions
 
 - Kotlin official style; 4-space indent; match surrounding code. No ktlint/detekt.

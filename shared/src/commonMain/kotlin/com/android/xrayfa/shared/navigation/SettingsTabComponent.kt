@@ -22,6 +22,8 @@ data class CityDatabaseState(
 )
 
 interface SettingsComponent {
+    fun onInitializeRussiaRoutingRecommendation(language: String)
+    fun onResolveRussiaRoutingRecommendation(accept: Boolean)
     val cityDatabase: Value<CityDatabaseState>
     fun onDownloadCityDatabase()
     fun onCancelCityDatabaseDownload()

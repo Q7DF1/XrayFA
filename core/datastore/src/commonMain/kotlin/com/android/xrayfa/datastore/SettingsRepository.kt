@@ -14,6 +14,8 @@ import com.android.xrayfa.common.repository.ConfigParserSettings
 import com.android.xrayfa.common.repository.ConfigParserSettingsProvider
 import com.android.xrayfa.common.routing.DomainStrategy
 import com.android.xrayfa.common.routing.RoutingMode
+import com.android.xrayfa.common.routing.RegionRoutingPreset
+import com.android.xrayfa.common.routing.decodeRules
 import com.android.xrayfa.common.routing.Rule
 import com.android.xrayfa.common.routing.defaultRoutes
 import com.android.xrayfa.common.routing.encodeRules
@@ -27,6 +29,7 @@ import kotlinx.coroutines.flow.map
  * in `:domain`; map at the parser boundary.
  */
 data class SettingsState(
+    val showRussiaRoutingRecommendation: Boolean = false,
     val darkMode: Int = 0,
     val ipV6Enable: Boolean = false,
     val socksPort: Int = 10808,
@@ -61,6 +64,7 @@ data class SettingsState(
 )
 
 object SettingsKeys {
+    val RUSSIA_ROUTING_RECOMMENDATION = intPreferencesKey("russia_routing_recommendation")
     val DARK_MODE = intPreferencesKey("dark_mode")
     val IPV6_ENABLE = booleanPreferencesKey("ipv6_enable")
     val SOCKS_PORT = intPreferencesKey("socks_port")
@@ -110,6 +114,7 @@ class SettingsRepository(
 
     val settingsFlow = dataStore.data.map { prefs ->
         SettingsState(
+            showRussiaRoutingRecommendation = prefs[SettingsKeys.RUSSIA_ROUTING_RECOMMENDATION] == 1,
             darkMode = prefs[SettingsKeys.DARK_MODE] ?: 0,
             ipV6Enable = prefs[SettingsKeys.IPV6_ENABLE] == true,
             socksPort = prefs[SettingsKeys.SOCKS_PORT] ?: 10808,
@@ -173,6 +178,29 @@ class SettingsRepository(
     suspend fun setDomainStrategy(domainStrategy: DomainStrategy) {
         dataStore.edit {
             it[SettingsKeys.DOMAIN_STRATEGY] = domainStrategy.code
+        }
+    }
+
+    /** 1 = awaiting consent, 2 = completed or ineligible; absence is evaluated once. */
+    suspend fun initializeRussiaRoutingRecommendation(language: String) {
+        dataStore.edit { prefs ->
+            if (prefs[SettingsKeys.RUSSIA_ROUTING_RECOMMENDATION] != null) return@edit
+            val untouched = prefs[SettingsKeys.ROUTING_RULES] == null && prefs[SettingsKeys.ROUTING_MODE] == null
+            prefs[SettingsKeys.RUSSIA_ROUTING_RECOMMENDATION] =
+                if (language.substringBefore('-').substringBefore('_').lowercase() == "ru" && untouched) 1 else 2
+        }
+    }
+
+    suspend fun resolveRussiaRoutingRecommendation(accept: Boolean) {
+        dataStore.edit { prefs ->
+            if (prefs[SettingsKeys.RUSSIA_ROUTING_RECOMMENDATION] != 1) return@edit
+            // Never overwrite a routing choice made since the recommendation was initialized.
+            if (accept && prefs[SettingsKeys.ROUTING_RULES] == null && prefs[SettingsKeys.ROUTING_MODE] == null) {
+                prefs[SettingsKeys.ROUTING_RULES] = encodeRules(
+                    RegionRoutingPreset.RUSSIA.setEnabled(decodeRules(defaultRoutes), true),
+                )
+            }
+            prefs[SettingsKeys.RUSSIA_ROUTING_RECOMMENDATION] = 2
         }
     }
 
