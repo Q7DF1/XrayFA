@@ -15,8 +15,8 @@ import com.android.xrayfa.common.repository.ConfigParserSettingsProvider
 import com.android.xrayfa.common.routing.DomainStrategy
 import com.android.xrayfa.common.routing.RoutingMode
 import com.android.xrayfa.common.routing.RegionRoutingPreset
-import com.android.xrayfa.common.routing.decodeRules
 import com.android.xrayfa.common.routing.Rule
+import com.android.xrayfa.common.routing.defaultRouteList
 import com.android.xrayfa.common.routing.defaultRoutes
 import com.android.xrayfa.common.routing.encodeRules
 import com.android.xrayfa.common.utils.Logger
@@ -110,11 +110,14 @@ class SettingsRepository(
 
     companion object {
         private const val TAG = "SettingsRepository"
+        private const val RECOMMENDATION_PENDING = 1
+        private const val RECOMMENDATION_COMPLETED = 2
     }
 
     val settingsFlow = dataStore.data.map { prefs ->
         SettingsState(
-            showRussiaRoutingRecommendation = prefs[SettingsKeys.RUSSIA_ROUTING_RECOMMENDATION] == 1,
+            showRussiaRoutingRecommendation =
+                prefs[SettingsKeys.RUSSIA_ROUTING_RECOMMENDATION] == RECOMMENDATION_PENDING && !prefs.hasRoutingChoice(),
             darkMode = prefs[SettingsKeys.DARK_MODE] ?: 0,
             ipV6Enable = prefs[SettingsKeys.IPV6_ENABLE] == true,
             socksPort = prefs[SettingsKeys.SOCKS_PORT] ?: 10808,
@@ -166,6 +169,7 @@ class SettingsRepository(
     suspend fun setRoutingMode(mode: RoutingMode) {
         dataStore.edit {
             it[SettingsKeys.ROUTING_MODE] = mode.code
+            it[SettingsKeys.RUSSIA_ROUTING_RECOMMENDATION] = RECOMMENDATION_COMPLETED
         }
     }
 
@@ -181,33 +185,45 @@ class SettingsRepository(
         }
     }
 
-    /** 1 = awaiting consent, 2 = completed or ineligible; absence is evaluated once. */
+    /** Absence is evaluated once; pending consent survives process recreation. */
     suspend fun initializeRussiaRoutingRecommendation(language: String) {
         dataStore.edit { prefs ->
             if (prefs[SettingsKeys.RUSSIA_ROUTING_RECOMMENDATION] != null) return@edit
-            val untouched = prefs[SettingsKeys.ROUTING_RULES] == null && prefs[SettingsKeys.ROUTING_MODE] == null
+            val untouched = !prefs.hasRoutingChoice()
             prefs[SettingsKeys.RUSSIA_ROUTING_RECOMMENDATION] =
-                if (language.substringBefore('-').substringBefore('_').lowercase() == "ru" && untouched) 1 else 2
+                if (language.substringBefore('-').substringBefore('_').equals("ru", ignoreCase = true) && untouched) {
+                    RECOMMENDATION_PENDING
+                } else {
+                    RECOMMENDATION_COMPLETED
+                }
         }
     }
 
-    suspend fun resolveRussiaRoutingRecommendation(accept: Boolean) {
+    /** Returns true only when consent actually changed the persisted routes. */
+    suspend fun resolveRussiaRoutingRecommendation(accept: Boolean): Boolean {
+        var routingChanged = false
         dataStore.edit { prefs ->
-            if (prefs[SettingsKeys.RUSSIA_ROUTING_RECOMMENDATION] != 1) return@edit
+            if (prefs[SettingsKeys.RUSSIA_ROUTING_RECOMMENDATION] != RECOMMENDATION_PENDING) return@edit
             // Never overwrite a routing choice made since the recommendation was initialized.
-            if (accept && prefs[SettingsKeys.ROUTING_RULES] == null && prefs[SettingsKeys.ROUTING_MODE] == null) {
+            if (accept && !prefs.hasRoutingChoice()) {
                 prefs[SettingsKeys.ROUTING_RULES] = encodeRules(
-                    RegionRoutingPreset.RUSSIA.setEnabled(decodeRules(defaultRoutes), true),
+                    RegionRoutingPreset.RUSSIA.setEnabled(defaultRouteList, true),
                 )
+                routingChanged = true
             }
-            prefs[SettingsKeys.RUSSIA_ROUTING_RECOMMENDATION] = 2
+            prefs[SettingsKeys.RUSSIA_ROUTING_RECOMMENDATION] = RECOMMENDATION_COMPLETED
         }
+        return routingChanged
     }
+
+    private fun Preferences.hasRoutingChoice(): Boolean =
+        this[SettingsKeys.ROUTING_RULES] != null || this[SettingsKeys.ROUTING_MODE] != null
 
     suspend fun setRoutingRules(rules: List<Rule>) {
         val rulesString = encodeRules(rules)
         dataStore.edit {
             it[SettingsKeys.ROUTING_RULES] = rulesString
+            it[SettingsKeys.RUSSIA_ROUTING_RECOMMENDATION] = RECOMMENDATION_COMPLETED
         }
     }
 

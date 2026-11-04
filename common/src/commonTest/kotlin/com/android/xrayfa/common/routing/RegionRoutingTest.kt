@@ -6,12 +6,12 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class RegionRoutingTest {
-    @Test fun removesRetiredGulfPresetButPreservesCustomVariations() {
-        val retired = Rule(ip = listOf("geoip:ae", "geoip:sa", "geoip:qa", "geoip:kw", "geoip:bh", "geoip:om"),
+    @Test fun preservesUnrelatedRegionalRulesAndCustomVariations() {
+        val regional = Rule(ip = listOf("geoip:ae", "geoip:sa", "geoip:qa", "geoip:kw", "geoip:bh", "geoip:om"),
             outboundTag = "direct", ruleTag = "region:gcc:ip")
-        val custom = retired.copy(port = "443")
-        assertEquals(listOf(custom) + chinaDirectRules,
-            decodeRules(encodeRules(listOf(retired, custom) + chinaDirectRules)))
+        val custom = regional.copy(port = "443")
+        assertEquals(listOf(regional, custom) + chinaDirectRules,
+            decodeRules(encodeRules(listOf(regional, custom) + chinaDirectRules)))
     }
 
     @Test fun presetsUseSeparateDomainAndIpRules() {
@@ -36,5 +36,25 @@ class RegionRoutingTest {
         assertEquals(enabled, RegionRoutingPreset.RUSSIA.setEnabled(enabled, true))
         assertEquals(rules, RegionRoutingPreset.RUSSIA.setEnabled(enabled, false))
         assertEquals(enabled, decodeRules(encodeRules(enabled)))
+    }
+
+    @Test
+    fun enablingAnExistingPresetPreservesRulePriority() {
+        val rules = defaultRouteList + RegionRoutingPreset.RUSSIA.rules
+        for (preset in RegionRoutingPreset.entries) {
+            assertEquals(rules, preset.setEnabled(rules, true))
+        }
+    }
+
+    @Test
+    fun enablingAPartialPresetKeepsExistingRulesInPlace() {
+        val preset = RegionRoutingPreset.RUSSIA
+        val custom = Rule(domain = listOf("full:example.ru"), outboundTag = "proxy")
+        val rules = listOf(preset.rules.first(), custom)
+        assertFalse(preset.isEnabled(rules))
+        assertEquals(rules + preset.rules.last(), preset.setEnabled(rules, true))
+        assertEquals(listOf(custom), preset.setEnabled(rules, false))
+        assertTrue(isRegionPresetRule(preset.rules.first()))
+        assertFalse(isRegionPresetRule(preset.rules.first().copy(outboundTag = "proxy")))
     }
 }

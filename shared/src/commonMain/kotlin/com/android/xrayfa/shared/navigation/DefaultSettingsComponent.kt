@@ -274,8 +274,9 @@ class DefaultSettingsComponent(
 
     override fun onResolveRussiaRoutingRecommendation(accept: Boolean) {
         scope.launch {
-            settingsRepository.resolveRussiaRoutingRecommendation(accept)
-            if (accept) vpnController.restartIfNeeded()
+            if (settingsRepository.resolveRussiaRoutingRecommendation(accept)) {
+                vpnController.restartIfNeeded()
+            }
         }
     }
 

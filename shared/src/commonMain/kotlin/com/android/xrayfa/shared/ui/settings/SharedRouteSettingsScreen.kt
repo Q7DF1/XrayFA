@@ -96,7 +96,9 @@ fun SharedRouteSettingsScreen(
             )
         }
 
-    val allRules = remember(settingsState.routingRules) { decodeRules(settingsState.routingRules) }
+    var allRules by remember(settingsState.routingRules) {
+        mutableStateOf(decodeRules(settingsState.routingRules))
+    }
 
     val customRules =
         allRules.filter { rule ->
@@ -130,7 +132,9 @@ fun SharedRouteSettingsScreen(
                 else -> if (it.domain != null) 2 else 3
             }
         }
-        component.onSetRoutingRules(system + custom + orderedPresets)
+        val updatedRules = system + custom + orderedPresets
+        allRules = updatedRules
+        component.onSetRoutingRules(updatedRules)
     }
 
     SharedListScaffold(
