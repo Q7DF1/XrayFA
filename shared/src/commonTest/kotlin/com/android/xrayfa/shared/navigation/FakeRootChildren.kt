@@ -47,6 +47,8 @@ class FakeConfigComponent : ConfigComponent {
 }
 
 class FakeSettingsComponent : SettingsComponent {
+    override fun onInitializeRussiaRoutingRecommendation(language: String) = Unit
+    override fun onResolveRussiaRoutingRecommendation(accept: Boolean) = Unit
     override val cityDatabase: Value<CityDatabaseState> = MutableValue(CityDatabaseState())
     override fun onDownloadCityDatabase() = Unit
     override fun onCancelCityDatabaseDownload() = Unit

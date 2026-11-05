@@ -268,6 +268,18 @@ class DefaultSettingsComponent(
         }
     }
 
+    override fun onInitializeRussiaRoutingRecommendation(language: String) {
+        scope.launch { settingsRepository.initializeRussiaRoutingRecommendation(language) }
+    }
+
+    override fun onResolveRussiaRoutingRecommendation(accept: Boolean) {
+        scope.launch {
+            if (settingsRepository.resolveRussiaRoutingRecommendation(accept)) {
+                vpnController.restartIfNeeded()
+            }
+        }
+    }
+
     override fun onSetRoutingRules(rules: List<Rule>) {
         scope.launch {
             settingsRepository.setRoutingRules(rules)

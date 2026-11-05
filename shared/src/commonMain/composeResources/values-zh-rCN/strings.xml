@@ -231,9 +231,9 @@
     <string name="in_development_message">该功能在 iOS 上正在开发中。</string>
     <string name="platform_section">平台</string>
     <string name="domain_strategy_section">域名策略</string>
-    <string name="domain_strategy_asis">AsIs</string>
-    <string name="domain_strategy_ip_if_non_match">IPIfNonMatch</string>
-    <string name="domain_strategy_ip_on_demand">IPOnDemand</string>
+    <string name="domain_strategy_asis">不解析 IP（AsIs）</string>
+    <string name="domain_strategy_ip_if_non_match">无匹配规则时解析 IP（IPIfNonMatch）</string>
+    <string name="domain_strategy_ip_on_demand">按需解析 IP（IPOnDemand）</string>
     <string name="strategy_field">策略</string>
     <string name="quick_config_presets">快捷预设</string>
     <string name="bypass_china">绕过中国大陆</string>
@@ -286,7 +286,7 @@
     <string name="edit_legacy_kcp_error">旧版 mKCP header / seed 已失效，请通过 JSON 配置中的 FinalMask 配置混淆</string>
     <string name="home_screen_widgets_title">桌面微件</string>
     <string name="home_screen_widgets_desc">在系统微件列表中显示 XrayFA。关闭会移除已添加的微件，重新开启后需再次添加。</string>
-    <string name="connect_map_title">Connect Map</string>
+    <string name="connect_map_title">连接地图</string>
     <string name="connect_map_desc">手动选择我的位置。开启 HTTP 落地出口查询或下载 City 数据库后，即可启用 Connect Map。</string>
     <string name="city_database_title">City 城市数据库</string>
     <string name="city_database_desc">开启 HTTP 落地出口查询后无需下载。离线查询节点位置需下载 GeoLite2-City.mmdb，再次下载可更新。</string>
@@ -317,4 +317,16 @@
     <string name="subscription_error_save">无法保存订阅节点</string>
     <string name="subscription_error_duplicate">订阅名称已存在</string>
     <string name="subscription_error_unknown">未知错误</string>
+    <string name="bypass_russia">俄罗斯直连</string>
+    <string name="bypass_russia_desc">俄罗斯域名和 IP 地址直连。</string>
+    <string name="russia_routing_recommendation_title">启用俄罗斯直连？</string>
+    <string name="russia_routing_recommendation_message">俄罗斯网站和 IP 地址将直接连接，不经过代理。其他路由设置保持不变，可随时在路由设置中修改。</string>
+    <string name="russia_routing_recommendation_accept">启用</string>
+    <string name="russia_routing_recommendation_decline">保持当前设置</string>
+    <string name="socks_port">SOCKS 端口</string>
+    <string name="subscription_part">订阅</string>
+    <string name="send_hwid">发送设备标识</string>
+    <string name="send_hwid_desc">请求订阅时发送设备标识（HWID）</string>
+    <string name="core_start_failed">Xray 核心启动失败</string>
+    <string name="hwid">设备标识（HWID）</string>
 </resources>

@@ -16,6 +16,11 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import com.android.xrayfa.shared.ui.config.SelectedNodeViewport
 import org.jetbrains.compose.resources.painterResource
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -81,6 +86,28 @@ fun RootContent(
 ) {
     val stack by component.stack.subscribeAsState()
     val stackIdle = stack.active.configuration is RootStackConfig.Idle
+    val language = Locale.current.language
+    val routingSettings by component.settingsComponent.state.subscribeAsState()
+    LaunchedEffect(component.settingsComponent, language) {
+        component.settingsComponent.onInitializeRussiaRoutingRecommendation(language)
+    }
+    if (language == "ru" && routingSettings.showRussiaRoutingRecommendation) {
+        AlertDialog(
+            onDismissRequest = { component.settingsComponent.onResolveRussiaRoutingRecommendation(false) },
+            title = { Text(stringResource(Res.string.russia_routing_recommendation_title)) },
+            text = { Text(stringResource(Res.string.russia_routing_recommendation_message)) },
+            confirmButton = {
+                TextButton(onClick = { component.settingsComponent.onResolveRussiaRoutingRecommendation(true) }) {
+                    Text(stringResource(Res.string.russia_routing_recommendation_accept))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { component.settingsComponent.onResolveRussiaRoutingRecommendation(false) }) {
+                    Text(stringResource(Res.string.russia_routing_recommendation_decline))
+                }
+            },
+        )
+    }
     val configLabels = rememberConfigUiLabels()
     val configChromeState = rememberConfigTabChromeState()
 

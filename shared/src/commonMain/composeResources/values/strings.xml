@@ -330,4 +330,10 @@
     <string name="subscription_error_save">Could not save subscription nodes</string>
     <string name="subscription_error_duplicate">Subscription name already exists</string>
     <string name="subscription_error_unknown">Unexpected error</string>
+    <string name="bypass_russia">Bypass Russia</string>
+    <string name="bypass_russia_desc">Russian domains and IP addresses connect directly.</string>
+    <string name="russia_routing_recommendation_title">Enable direct connections to Russia?</string>
+    <string name="russia_routing_recommendation_message">Russian websites and IP addresses will connect directly instead of through the proxy. Your other routing settings stay the same. You can change this later in Route settings.</string>
+    <string name="russia_routing_recommendation_accept">Enable</string>
+    <string name="russia_routing_recommendation_decline">Keep current settings</string>
 </resources>

@@ -44,7 +44,8 @@ import com.android.xrayfa.common.routing.DomainStrategy
 import com.android.xrayfa.shared.ui.widgets.SharedGlassToggle
 import com.android.xrayfa.common.routing.RoutingMode
 import com.android.xrayfa.common.routing.Rule
-import com.android.xrayfa.common.routing.chinaDirectRules
+import com.android.xrayfa.common.routing.RegionRoutingPreset
+import com.android.xrayfa.common.routing.isRegionPresetRule
 import com.android.xrayfa.common.routing.decodeRules
 import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.ui.chrome.SharedListScaffold
@@ -85,7 +86,6 @@ fun SharedRouteSettingsScreen(
                 ruleTag = RoutePresetTags.TELEGRAM,
             )
         }
-    val chinaRuleTags = chinaDirectRules.map { it.ruleTag }.toSet()
     val adBlockRule =
         remember {
             Rule(
@@ -104,12 +104,9 @@ fun SharedRouteSettingsScreen(
         allRules.filter { rule ->
             val isSystem = rule.inboundTag?.any { it == "api" || it == "tun" } == true
             val isPreset =
-                rule.ruleTag == telegramRule.ruleTag ||
-                    rule.ruleTag in chinaRuleTags ||
-                    rule.ruleTag == adBlockRule.ruleTag ||
-                    rule.domain?.contains("geosite:cn") == true ||
-                    rule.domain?.contains("geosite:telegram") == true ||
-                    rule.domain?.contains("geosite:category-ads-all") == true
+                rule == telegramRule ||
+                    isRegionPresetRule(rule) ||
+                    rule == adBlockRule
             !isSystem && !isPreset
         }
 
@@ -123,12 +120,21 @@ fun SharedRouteSettingsScreen(
             }
         val presets =
             rules.filter {
-                it.ruleTag == telegramRule.ruleTag ||
-                    it.ruleTag in chinaRuleTags ||
-                    it.ruleTag == adBlockRule.ruleTag
+                it == telegramRule ||
+                    isRegionPresetRule(it) ||
+                    it == adBlockRule
             }
         val custom = rules.filter { it !in system && it !in presets }
-        component.onSetRoutingRules(system + custom + presets)
+        val orderedPresets = presets.sortedBy {
+            when (it) {
+                adBlockRule -> 0
+                telegramRule -> 1
+                else -> if (it.domain != null) 2 else 3
+            }
+        }
+        val updatedRules = system + custom + orderedPresets
+        allRules = updatedRules
+        component.onSetRoutingRules(updatedRules)
     }
 
     SharedListScaffold(
@@ -196,40 +202,36 @@ fun SharedRouteSettingsScreen(
             item {
                 SharedSettingsGroup(groupName = labels.quickConfigSectionTitle) {
                     Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                        SharedRoutePresetCheckbox(
-                            label = labels.bypassChinaLabel,
-                            description = labels.bypassChinaDescription,
-                            checked = allRules.any { it.ruleTag in chinaRuleTags },
-                            enabled = isRouteMode,
-                            onCheckedChange = { checked ->
-                                val newList = allRules.toMutableList()
-                                if (checked) {
-                                    newList.addAll(chinaDirectRules)
-                                } else {
-                                    newList.removeAll { it.ruleTag in chinaRuleTags }
-                                }
-                                allRules = newList
-                                saveRules(newList)
-                            },
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            thickness = 0.5.dp,
-                            color = MaterialTheme.colorScheme.outlineVariant,
-                        )
+                        RegionRoutingPreset.entries.forEach { preset ->
+                            val (label, description) = when (preset) {
+                                RegionRoutingPreset.CHINA -> labels.bypassChinaLabel to labels.bypassChinaDescription
+                                RegionRoutingPreset.RUSSIA -> labels.bypassRussiaLabel to labels.bypassRussiaDescription
+                            }
+                            SharedRoutePresetCheckbox(
+                                label = label,
+                                description = description,
+                                checked = preset.isEnabled(allRules),
+                                enabled = isRouteMode,
+                                onCheckedChange = { checked -> saveRules(preset.setEnabled(allRules, checked)) },
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                thickness = 0.5.dp,
+                                color = MaterialTheme.colorScheme.outlineVariant,
+                            )
+                        }
                         SharedRoutePresetCheckbox(
                             label = labels.proxyTelegramGoogleLabel,
                             description = labels.proxyTelegramGoogleDescription,
-                            checked = allRules.any { it.ruleTag == telegramRule.ruleTag },
+                            checked = telegramRule in allRules,
                             enabled = isRouteMode,
                             onCheckedChange = { checked ->
                                 val newList = allRules.toMutableList()
                                 if (checked) {
                                     newList.add(telegramRule)
                                 } else {
-                                    newList.removeAll { it.ruleTag == telegramRule.ruleTag }
+                                    newList.removeAll { it == telegramRule }
                                 }
-                                allRules = newList
                                 saveRules(newList)
                             },
                         )
@@ -241,16 +243,15 @@ fun SharedRouteSettingsScreen(
                         SharedRoutePresetCheckbox(
                             label = labels.blockAdsLabel,
                             description = labels.blockAdsDescription,
-                            checked = allRules.any { it.ruleTag == adBlockRule.ruleTag },
+                            checked = adBlockRule in allRules,
                             enabled = isRouteMode,
                             onCheckedChange = { checked ->
                                 val newList = allRules.toMutableList()
                                 if (checked) {
                                     newList.add(adBlockRule)
                                 } else {
-                                    newList.removeAll { it.ruleTag == adBlockRule.ruleTag }
+                                    newList.removeAll { it == adBlockRule }
                                 }
-                                allRules = newList
                                 saveRules(newList)
                             },
                         )
@@ -283,14 +284,12 @@ fun SharedRouteSettingsScreen(
                             val indexInAll = newList.indexOf(rule)
                             if (indexInAll != -1) {
                                 newList[indexInAll] = updatedRule
-                                allRules = newList
                                 saveRules(newList)
                             }
                         },
                         onDelete = {
                             val newList = allRules.toMutableList()
                             newList.remove(rule)
-                            allRules = newList
                             saveRules(newList)
                         },
                     )
@@ -305,7 +304,6 @@ fun SharedRouteSettingsScreen(
             onDismiss = { showAddSheet = false },
             onConfirm = { newRule ->
                 val newList = allRules + newRule
-                allRules = newList
                 saveRules(newList)
                 showAddSheet = false
             },
