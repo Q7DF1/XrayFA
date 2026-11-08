@@ -1,0 +1,2 @@
+headers = host.h
+package = com.android.xrayfa.cli.host

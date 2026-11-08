@@ -92,6 +92,18 @@ KMP `iosArm64` / `iosSimulatorArm64` / `iosX64` targets are registered **only on
 - Override applicationId with `-PAPPLICATION_ID=`
 - Debug APK is **debuggable**, no R8, and includes **LeakCanary** — expect jank vs release
 
+### Optional Linux configuration CLI
+
+Linux CLI is opt-in: `./gradlew -PenableLinuxCli=true :linux:cli:linkReleaseExecutableLinuxX64`.
+The Native executable at `linux/cli/build/bin/linuxX64/releaseExecutable/xrayfa.kexe` implements
+`add`, `ls`, `check`, and `logs`. It depends only on `:common` and `:domain`; Linux actuals
+use POSIX and Ubuntu 22.04 `libcrypto.so.3`. Without the flag, Linux targets/module are absent.
+`check` generates private TUN JSON and executes the designated external Xray **only with
+`run -test`**, without starting proxy/TUN or changing the network. Protocol and acceptance
+runners live in `linux/cli/tests`; see `linux/cli/README.md` for reproducible commands.
+Do not change mobile parsers/defaults/native dependencies to accommodate this CLI;
+review cross-platform proposals separately.
+
 ### 3.5 Windows
 
 `:tun2socks` runs `fix_headers.bat` before native `preBuild`. Run it in the repo root if header includes fail.
@@ -229,6 +241,7 @@ F-Droid: `dependenciesInfo.includeInApk/Bundle = false`. Debian builders skip iO
 
 ## 9. Security & Gotchas
 
+- Linux CLI publication: exclude operator inputs, device captures, raw runtime evidence, and private author/committer email addresses from outgoing commits. Synthetic node fixtures must remain independent of real subscriptions.
 - Never commit `androidApp/xrayfa.jks`, `local.properties`, `.env`, entitlements hacks, `androidApp/libs/*.aar`, `LibXrayLite.xcframework`, `.kotlin/`.
 - Do not commit unpublished `AndroidLibXrayLite` SHAs.
 - Test fixtures must not assign string literals to `*password*` fields (GitGuardian Generic Password). Use a named dummy constant; `.gitguardian.yaml` ignores test/golden paths.

@@ -1,0 +1,38 @@
+package = com.android.xrayfa.linux.crypto
+linkerOpts = -ldl
+---
+#include <dlfcn.h>
+#include <pthread.h>
+#include <stddef.h>
+static void *xf_crypto_handle;
+static pthread_once_t xf_crypto_once = PTHREAD_ONCE_INIT;
+static void xf_crypto_init(void) {
+    const char *candidates[] = {"libcrypto.so.3", "libcrypto.so.1.1", "libcrypto.so.1.0.0", NULL};
+    for (int i = 0; candidates[i] != NULL && xf_crypto_handle == NULL; ++i)
+        xf_crypto_handle = dlopen(candidates[i], RTLD_NOW | RTLD_LOCAL);
+}
+static void *xf_crypto_symbol(const char *name) {
+    pthread_once(&xf_crypto_once, xf_crypto_init);
+    return xf_crypto_handle ? dlsym(xf_crypto_handle, name) : NULL;
+}
+static inline void *xf_md_new(void) {
+    void *(*f)(void) = xf_crypto_symbol("EVP_MD_CTX_new"); return f ? f() : NULL;
+}
+static inline void xf_md_free(void *ctx) {
+    void (*f)(void *) = xf_crypto_symbol("EVP_MD_CTX_free"); if(f) f(ctx);
+}
+static inline const void *xf_sha256(void) {
+    const void *(*f)(void) = xf_crypto_symbol("EVP_sha256"); return f ? f() : NULL;
+}
+static inline const void *xf_md5(void) {
+    const void *(*f)(void) = xf_crypto_symbol("EVP_md5"); return f ? f() : NULL;
+}
+static inline int xf_md_init(void *ctx, const void *type, void *impl) {
+    int (*f)(void*,const void*,void*) = xf_crypto_symbol("EVP_DigestInit_ex"); return f && type ? f(ctx,type,impl) : 0;
+}
+static inline int xf_md_update(void *ctx, const void *data, size_t size) {
+    int (*f)(void*,const void*,size_t) = xf_crypto_symbol("EVP_DigestUpdate"); return f ? f(ctx,data,size) : 0;
+}
+static inline int xf_md_final(void *ctx, unsigned char *out, unsigned int *size) {
+    int (*f)(void*,unsigned char*,unsigned int*) = xf_crypto_symbol("EVP_DigestFinal_ex"); return f ? f(ctx,out,size) : 0;
+}

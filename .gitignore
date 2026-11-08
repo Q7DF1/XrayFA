@@ -40,8 +40,22 @@ render.experimental.xml
 .release-signing.env
 .release-signing.properties
 
+# Local proxy subscription links (sensitive)
+/sub.txt
+
 # Google Services (e.g. APIs or Firebase)
 google-services.json
 
 # Android Profiling
 *.hprof
+
+# Private operator inputs and local device captures
+/op.txt
+/Screenshot_*
+
+# Local runtime evidence may contain node or machine identifiers
+/linux/cli/tests/runtime/history/
+/linux/cli/tests/runtime/manifest-revisions.json
+
+# Local implementation plans and acceptance records
+/docs/plans/
