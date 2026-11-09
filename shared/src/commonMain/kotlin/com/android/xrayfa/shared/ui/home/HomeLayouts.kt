@@ -57,8 +57,9 @@ internal fun HomeBrandHeroLayout(
         modifier.fillMaxSize().padding(bottom = bottomContentPadding),
         contentAlignment = Alignment.TopCenter,
     ) {
-        val compactAction = maxHeight < 480.dp
-        val buttonDiameter = if (compactAction) 128.dp else 160.dp
+        // Reserve most of a short viewport for information, including enlarged display settings.
+        val buttonDiameter = (maxHeight * 0.24f).coerceIn(96.dp, 160.dp)
+        val compactAction = buttonDiameter < 144.dp
         val actionBottomGap = if (compactAction) 8.dp else 16.dp
 
         Column(Modifier.widthIn(max = 480.dp).fillMaxSize().padding(horizontal = 20.dp)) {
