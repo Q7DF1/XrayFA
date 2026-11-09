@@ -95,14 +95,33 @@ KMP `iosArm64` / `iosSimulatorArm64` / `iosX64` targets are registered **only on
 ### Optional Linux configuration CLI
 
 Linux CLI is opt-in: `./gradlew -PenableLinuxCli=true :linux:cli:linkReleaseExecutableLinuxX64`.
-The Native executable at `linux/cli/build/bin/linuxX64/releaseExecutable/xrayfa.kexe` implements
-`add`, `ls`, `check`, and `logs`. It depends only on `:common` and `:domain`; Linux actuals
-use POSIX and Ubuntu 22.04 `libcrypto.so.3`. Without the flag, Linux targets/module are absent.
-`check` generates private TUN JSON and executes the designated external Xray **only with
-`run -test`**, without starting proxy/TUN or changing the network. Protocol and acceptance
-runners live in `linux/cli/tests`; see `linux/cli/README.md` for reproducible commands.
-Do not change mobile parsers/defaults/native dependencies to accommodate this CLI;
-review cross-platform proposals separately.
+The Native executable at `linux/cli/build/bin/linuxX64/releaseExecutable/xrayfa.kexe`
+implements `add`, `ls`, `check`, `logs`, `doctor`, `run`, `stop`, and `recover`.
+Its Linux adapter depends only on `:common` and `:domain`; POSIX and dynamically
+loaded OpenSSL libcrypto (1.1 or newer) support the Ubuntu 18.04+ x86-64 runtime
+compatibility target. Without the flag, Linux targets/module are absent.
+A JVM test target in `:linux:cli` runs CLI-only pure models without mobile or
+POSIX dependencies: `./gradlew -PenableLinuxCli=true :linux:cli:jvmTest`.
+On Linux, `:linux:cli:linuxX64Test` adds temporary-file adapter checks; neither
+suite executes a core or changes networking. The `linux-cli-model-tests` CI job
+runs both. Linux cross-compilation on macOS does not establish runtime support.
+
+`check` writes private TUN JSON and invokes an external Xray with `run -test`;
+`doctor` executes version/capability probes. `run` supervises a real TUN session;
+`stop`/`recover` may change routes, DNS and firewall state. Execute runtime,
+protocol-matrix and acceptance scripts only in an isolated, rollback-capable
+Linux VM for CLI refactoring. Host smoke tests are limited to help/version and
+isolated `add`/`ls`. See `linux/cli/README.md` for the full test boundary.
+
+CLI internals use typed paths, node codecs, journal phases/identities, log levels,
+exit categories and an explicit cleanup deadline. Preserve schema-1 wire values
+and frozen V1 recovery policy for old journals. New schema-1 journals include
+optional `tunPolicy` evidence. Legacy duplicate-directory stores are used in
+place; conflicting stores are never automatically merged or overwritten.
+All commands share the same core path locator (`--core`, then `~/app/Xray/xray`,
+then `~/Xray/xray`), with execution-specific ownership checks retained.
+Do not change mobile parsers/defaults/native dependencies to accommodate this
+CLI; review cross-platform proposals separately.
 
 ### 3.5 Windows
 

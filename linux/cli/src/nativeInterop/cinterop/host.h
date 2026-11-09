@@ -80,6 +80,18 @@ static inline int xf_fd_owned(int fd, unsigned int uid, int directory) {
     return s.st_uid == uid && !(s.st_mode & 0077) &&
         (directory ? S_ISDIR(s.st_mode) : S_ISREG(s.st_mode));
 }
+/* Observe without following either leaf symlink. Never fall back on unsafe data. */
+static inline int xf_store_presence(const char *directory, unsigned int uid) {
+    struct stat s;
+    if (lstat(directory,&s)) return errno == ENOENT ? 0 : -1;
+    if (!S_ISDIR(s.st_mode) || s.st_uid != uid || (s.st_mode & 0077)) return -1;
+    int fd=open(directory,O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+    if(fd<0) return -1;
+    int rc=fstatat(fd,"nodes.json",&s,AT_SYMLINK_NOFOLLOW);
+    int saved=errno; close(fd);
+    if(rc) return saved==ENOENT ? 0 : -1;
+    return S_ISREG(s.st_mode) && s.st_uid==uid && !(s.st_mode & 0077) ? 1 : -1;
+}
 static inline int xf_snapshot_open_path(const char *profile, unsigned int uid) {
     int fd = open(profile, O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
     if (fd < 0) return -1;

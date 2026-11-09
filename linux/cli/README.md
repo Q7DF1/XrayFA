@@ -41,12 +41,32 @@ overrides the profile directory for isolated tests. Nodes live in
 symlinks and corrupt stores are rejected. Original share links remain in the
 private store; Linux compatibility conversions never overwrite them.
 
+`XRAYFA_HOME` is an isolation **root**, not the final data directory: setting it to
+`/tmp/example` places nodes at `/tmp/example/.local/share/xrayfa/nodes.json`
+and logs at `/tmp/example/.local/state/xrayfa/logs`. If the normal `.local`
+parent is unsuitable, the root falls back to `~/Xray/.xrayfa`.
+Runtime commands resolve the caller through passwd (using `SUDO_UID` only when
+already root); sudo must preserve `XRAYFA_HOME` explicitly when testing an
+isolated caller profile.
+
+Early runtime builds accidentally appended `.local/share/xrayfa` twice in the
+default layout. If that legacy store exists, this version continues reading and
+writing it **in place**. It never automatically moves, overwrites, or merges
+stores. If both the corrected and legacy locations contain `nodes.json`, it
+refuses the operation and preserves both. Unsafe store ownership, permissions
+or leaf symlinks are errors, not reasons to silently select another store.
+Old user logs are used in place when the corrected log directory is absent;
+when both directories exist, the corrected log directory takes precedence and
+old histories remain untouched.
+
 `check` requires a new `--output` path. It also reserves a sibling
 `*.validation.json` report. The report records the node/session, UTC time, exact
 config and core paths/hashes, core version/exit status, timeout and log location.
 Changing the config invalidates the report. Config files contain credentials;
-reports and terminal/file logs are redacted. The default core is the invoking
-user's `~/app/Xray/xray`; no core is bundled or downloaded at runtime.
+reports and terminal/file logs are redacted. All three commands (`doctor`, `check`, `run`) use the same core locator: an explicit
+`--core` wins, otherwise `~/app/Xray/xray` is preferred and `~/Xray/xray` is
+the fallback. Runtime execution still applies stricter ownership/permission checks.
+No core is bundled or downloaded at runtime.
 
 ## Install, upgrade and rollback
 
@@ -117,6 +137,57 @@ explicitly changes that policy.
 policy, whether a global IPv6 default route was observed, and a status such as
 `global-route-observed` or `link-local-only-or-no-default`. This reports
 capability only; it does not claim an IPv6 proxy data-path test passed.
+
+## Model boundaries and safe tests
+
+CLI-only pure models live in `src/commonMain`; they are shared by the Linux
+adapter and a JVM **test** target, not by the mobile application. `CliPaths`
+constructs paths, `CoreLocator` selects a candidate, `NodeStoreCodec` validates
+schema 1, and `ValidatedNode` verifies the outbound matches the stored snapshot.
+`TunPolicy` feeds config generation and readiness checks. Recovery interprets
+old journals using frozen V1 policy values, rather than a future default.
+New schema-1 journals carry an optional `tunPolicy` object; unknown policies
+are rejected. Existing node and validation report schemas, exit numbers and
+journal phase spellings (including `Running`) are preserved.
+
+`RecoveryJournal` checks required stage fields; `DurableJournal` publishes its
+in-memory state only after the atomic writer succeeds. `NetworkLease` exposes
+named journal fields and legal stage transitions. Process identities and pending
+helper states are typed, and helper authorization compares the **entire argv**
+against durable resource intent. TUN fallback address/route helpers now use the
+same gated mutation path as other helpers. `tun-intent` is accepted during
+recovery; earlier validation omitted that emitted stage. Cleanup passes one
+explicit `OperationContext` deadline through helper and resolver observations.
+
+Run pure model tests on macOS or Linux with the repository JDK/Gradle toolchain:
+
+```sh
+./gradlew -PenableLinuxCli=true :linux:cli:jvmTest
+```
+
+This command requires no root, Xray executable, TUN device or network changes.
+On Linux x86-64, the following additionally checks temporary-file ownership,
+corrupt data preservation, symlink rejection and snapshot decoding:
+
+```sh
+./gradlew -PenableLinuxCli=true :linux:cli:linuxX64Test
+```
+
+The `linux-cli-model-tests` CI job runs both. Native tests do not invoke the CLI
+entry point, spawn a core, or mutate networking. On macOS, Native sources can
+be cross-compiled with `:linux:cli:compileKotlinLinuxX64` and
+`:linux:cli:compileTestKotlinLinuxX64`; cross-compilation is not a Linux runtime
+test. Pure tests simulate journal writer crash windows, not real process death
+or kernel recovery.
+
+| Validation | Executes a core/helper | Changes host networking | Where to run |
+|---|---|---|---|
+| JVM model tests, config generation fixtures | No | No | Development host / CI |
+| Native temporary-file tests | No | No | Linux / CI |
+| `--help`, `--version`, `add`, `ls` | No | No | Linux; use temporary `XRAYFA_HOME` for fixtures |
+| `doctor` | Core version and read-only system helpers | No | Isolated Linux VM for this review |
+| `check`, protocol matrix, acceptance scripts | Core validation / injected process fixtures | No intentional TUN setup | Isolated Linux VM for this review |
+| `run`, `stop`, `recover`, runtime fault suite | Yes | Yes | Disposable, rollback-capable Linux VM only |
 
 ## Reproduce validation
 
