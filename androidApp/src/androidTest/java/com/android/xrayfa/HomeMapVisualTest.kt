@@ -212,4 +212,17 @@ class HomeMapVisualTest {
         assertTrue("Extra height must not stretch component gaps", mapToStatus in 8f..48f)
         screenshot("map-home-tall-phone.png")
     }
+
+    @Test fun pixel3DisplaySizeFitsEmptyHomeWithoutScrolling() {
+        showHome(dark = false, connected = false, availableHeight = 500.dp, availableWidth = 352.dp)
+        compose.runOnIdle { currentState.value = currentState.value.copy(selectedNode = null) }
+        compose.waitForIdle()
+        compose.onNodeWithText(HomeUiLabels().emptyNodeMessage).assertIsDisplayed()
+        compose.onNodeWithContentDescription("Toggle VPN").assertIsDisplayed()
+        val scrollable = compose.onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.VerticalScrollAxisRange))
+            .fetchSemanticsNodes().single()
+        assertTrue("Pixel 3 with enlarged display size must show the entire dashboard",
+            scrollable.config[SemanticsProperties.VerticalScrollAxisRange].maxValue() <= 1f)
+        screenshot("map-home-pixel3-empty.png")
+    }
 }
