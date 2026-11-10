@@ -146,11 +146,9 @@ fun SharedSubscriptionScreen(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Link,
+                                    SubscriptionIcon(
                                         contentDescription = null,
                                         modifier = Modifier.size(64.dp),
-                                        tint = MaterialTheme.colorScheme.outline,
                                     )
                                     Spacer(Modifier.height(16.dp))
                                     Text(

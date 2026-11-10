@@ -1,12 +1,15 @@
 package com.android.xrayfa.shared.ui.chrome
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.text.KeyboardActions
@@ -24,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -32,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import com.android.xrayfa.shared.ui.theme.AppRadius
 import com.android.xrayfa.shared.resources.Res
 import com.android.xrayfa.shared.resources.search_clear
+import com.android.xrayfa.shared.ui.transitions.TransitionDestinations
+import com.android.xrayfa.shared.ui.transitions.sharedIcon
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 
@@ -91,18 +97,24 @@ internal fun SharedSearchChrome(
                         )
                     }
                 },
-                trailingIcon =
-                    if (query.isNotEmpty()) {
-                        {
+                trailingIcon = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (query.isNotEmpty()) {
                             IconButton(onClick = { onQueryChange("") }) {
                                 Icon(Icons.Outlined.Close, contentDescription = clearLabel)
                             }
                         }
-                    } else {
-                        {
-                            Icon(Icons.Outlined.Search, contentDescription = searchLabel)
+                        // Keep the shared icon at the same trailing position while typing.
+                        Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                            Icon(
+                                Icons.Outlined.Search,
+                                contentDescription = searchLabel,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.sharedIcon(TransitionDestinations.SEARCH).size(24.dp),
+                            )
                         }
-                    },
+                    }
+                },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = { onImeSearch(query) }),
