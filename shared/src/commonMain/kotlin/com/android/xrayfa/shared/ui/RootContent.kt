@@ -303,6 +303,7 @@ fun RootContent(
                                     Modifier.sharedContainer(
                                         destination =
                                             TransitionDestinations.nodeEdit(instance.nodeId),
+                                        fixedContentSize = instance.nodeId <= 0,
                                         // 起点是列表里的矩形行，或顶栏那个圆形 Edit 按钮。
                                         shape =
                                             if (instance.nodeId > 0) {

@@ -182,6 +182,11 @@ internal fun ConfigTabScreen(
                 Icon(
                     imageVector = Icons.Filled.Edit,
                     contentDescription = configLabels.createConfigLabel,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.sharedIcon(
+                        destination = TransitionDestinations.NODE_EDIT_NEW,
+                        crossfadeContent = true,
+                    ).size(24.dp),
                 )
             }
             SharedConfigImportMenu(
