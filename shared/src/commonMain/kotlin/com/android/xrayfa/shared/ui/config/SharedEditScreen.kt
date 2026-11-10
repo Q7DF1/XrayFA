@@ -45,6 +45,8 @@ import com.android.xrayfa.shared.config.selectProtocol
 import com.android.xrayfa.shared.config.validationIssue
 import com.android.xrayfa.shared.ui.chrome.SharedListScaffold
 import com.android.xrayfa.shared.ui.chrome.SharedUnderlineTabBar
+import com.android.xrayfa.shared.ui.transitions.TransitionDestinations
+import com.android.xrayfa.shared.ui.transitions.sharedIcon
 
 @Composable
 fun SharedEditScreen(
@@ -138,7 +140,15 @@ fun SharedEditScreen(
                 onClick = { if (validateAndBuild()) onSave(form) },
                 modifier = Modifier.size(48.dp),
             ) {
-                Icon(Icons.Filled.Done, contentDescription = labels.saveContentDescription)
+                Icon(
+                    Icons.Filled.Done,
+                    contentDescription = labels.saveContentDescription,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.sharedIcon(
+                        destination = TransitionDestinations.nodeEdit(nodeId),
+                        crossfadeContent = true,
+                    ).size(24.dp),
+                )
             }
         },
         footerUnderBar = {

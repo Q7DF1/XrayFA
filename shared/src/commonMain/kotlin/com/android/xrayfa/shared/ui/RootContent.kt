@@ -15,13 +15,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import com.android.xrayfa.shared.ui.config.SelectedNodeViewport
-import org.jetbrains.compose.resources.painterResource
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.text.intl.Locale
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -58,6 +56,7 @@ import com.android.xrayfa.shared.ui.platform.LocalPlatformRootHooks
 import com.android.xrayfa.shared.ui.settings.SharedConnectMapScreen
 import com.android.xrayfa.shared.ui.settings.SharedRouteSettingsScreen
 import com.android.xrayfa.shared.ui.subscription.SharedSubscriptionScreen
+import com.android.xrayfa.shared.ui.subscription.SubscriptionIcon
 import com.android.xrayfa.shared.ui.transitions.LocalSharedTransitionScope
 import com.android.xrayfa.shared.ui.transitions.LocalStackAnimationScope
 import com.android.xrayfa.shared.ui.transitions.SettingsDetailTransitions
@@ -189,6 +188,7 @@ fun RootContent(
                                 modifier =
                                     Modifier.sharedContainer(
                                         destination = TransitionDestinations.SUBSCRIPTIONS,
+                                        fixedContentSize = true,
                                         shape = rememberDestinationShape(startCorner = 20.dp),
                                         containerColor = MaterialTheme.colorScheme.background,
                                     )
@@ -262,6 +262,7 @@ fun RootContent(
                                     modifier =
                                         Modifier.sharedContainer(
                                             destination = TransitionDestinations.SEARCH,
+                                            fixedContentSize = true,
                                             // 28dp 对应 64dp 圆形按钮的半径，起点看起来才是圆的。
                                             shape = rememberDestinationShape(startCorner = 28.dp),
                                             containerColor = MaterialTheme.colorScheme.surface,
@@ -302,6 +303,7 @@ fun RootContent(
                                     Modifier.sharedContainer(
                                         destination =
                                             TransitionDestinations.nodeEdit(instance.nodeId),
+                                        fixedContentSize = instance.nodeId <= 0,
                                         // 起点是列表里的矩形行，或顶栏那个圆形 Edit 按钮。
                                         shape =
                                             if (instance.nodeId > 0) {
@@ -405,17 +407,14 @@ private fun IdleContent(
                                 .fillMaxSize(),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Icon(
-                            painter = painterResource(Res.drawable.ic_subscription),
+                        SubscriptionIcon(
                             contentDescription = stringResource(Res.string.menu_subscription),
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             modifier = Modifier.size(22.dp),
                         )
                     }
                 },
                 onTrailingClick = component::openSubscriptions,
                 trailingContentDescription = stringResource(Res.string.menu_subscription),
-                trailingNativeSystemImage = "paperclip",
                 modifier =
                     Modifier
                         .align(Alignment.BottomCenter)

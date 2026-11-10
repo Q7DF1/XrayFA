@@ -52,6 +52,7 @@ import com.android.xrayfa.shared.ui.nav.rememberFloatingNavClearance
 import com.android.xrayfa.shared.ui.platform.LocalPlatformRootHooks
 import com.android.xrayfa.shared.ui.transitions.TransitionDestinations
 import com.android.xrayfa.shared.ui.transitions.sharedContainer
+import com.android.xrayfa.shared.ui.transitions.sharedIcon
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import kotlinx.coroutines.flow.distinctUntilChanged
 import com.android.xrayfa.shared.ui.config.selectedNodeViewport
@@ -162,7 +163,12 @@ internal fun ConfigTabScreen(
                     containerColor = Color.Transparent,
                 ),
             ) {
-                Icon(Icons.Outlined.Search, contentDescription = configLabels.searchLabel)
+                Icon(
+                    Icons.Outlined.Search,
+                    contentDescription = configLabels.searchLabel,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.sharedIcon(TransitionDestinations.SEARCH).size(24.dp),
+                )
             }
             IconButton(
                 onClick = { onOpenNodeEdit(0) },
@@ -176,6 +182,11 @@ internal fun ConfigTabScreen(
                 Icon(
                     imageVector = Icons.Filled.Edit,
                     contentDescription = configLabels.createConfigLabel,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.sharedIcon(
+                        destination = TransitionDestinations.NODE_EDIT_NEW,
+                        crossfadeContent = true,
+                    ).size(24.dp),
                 )
             }
             SharedConfigImportMenu(
