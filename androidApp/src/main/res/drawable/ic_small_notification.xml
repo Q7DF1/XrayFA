@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="48"
-    android:viewportHeight="48">
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
 
-    <path
-        android:strokeColor="#1565C0"
-        android:strokeWidth="4"
-        android:strokeLineCap="round"
-        android:pathData="M14,14 L34,34 M34,14 L14,34" />
+    <!-- Guard Cat brand mark, fitted to a system icon without launcher padding.
+         Opaque white lets SystemUI tint the silhouette; eyes remain transparent. -->
+    <group
+        android:scaleX="0.42"
+        android:scaleY="0.42"
+        android:translateX="-10.68"
+        android:translateY="-10.68">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M38.18,30.27 L47.785,39.31 C50.61,37.05 57.39,37.05 60.215,39.31 L69.82,30.27 C72.08,36.485 74.905,44.395 74.905,54 C74.905,63.04 72.08,69.255 65.865,73.21 C61.345,75.47 56.825,76.035 54,77.73 C51.175,76.035 46.655,75.47 42.135,73.21 C35.92,69.255 33.095,63.04 33.095,54 C33.095,44.395 35.92,36.485 38.18,30.27 Z M40.89,53.435 a5.2,5.2 0 1 1 10.4,0 a5.2,5.2 0 1 1 -10.4,0 z M56.71,53.435 a5.2,5.2 0 1 1 10.4,0 a5.2,5.2 0 1 1 -10.4,0 z" />
+    </group>
 
 </vector>
