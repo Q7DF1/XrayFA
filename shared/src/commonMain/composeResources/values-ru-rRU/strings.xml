@@ -336,4 +336,28 @@
     <string name="tap_to_connect">Нажмите кнопку для подключения</string>
     <string name="tap_to_disconnect">Нажмите кнопку для отключения</string>
     <string name="hwid">Идентификатор устройства (HWID)</string>
+
+    <string name="xdrive_service">Сервис хранения</string>
+    <string name="xdrive_folder_id">ID папки Google Drive</string>
+    <string name="xdrive_prefix">Префикс объектов</string>
+    <string name="xdrive_folder">Папка хранилища</string>
+    <string name="xdrive_endpoint">Адрес S3</string>
+    <string name="xdrive_region">Регион S3 (необязательно)</string>
+    <string name="xdrive_bucket">Бакет S3</string>
+    <string name="xdrive_path_style">Адресация S3 в стиле пути</string>
+    <string name="xdrive_client_id">ID клиента</string>
+    <string name="xdrive_client_secret">Секрет клиента</string>
+    <string name="xdrive_refresh_token">Токен обновления</string>
+    <string name="xdrive_access_key">ID ключа доступа</string>
+    <string name="xdrive_secret_key">Секретный ключ доступа</string>
+    <string name="xdrive_session_token">Токен сеанса (необязательно)</string>
+    <string name="xdrive_template_secrets">Секреты шаблона (по одному на строку)</string>
+    <string name="xdrive_advanced">Расширенные настройки XDRIVE JSON</string>
+    <string name="xdrive_no_sharing">Обмен и экспорт недоступны: учётные данные могут дать доступ к управлению вашим облачным хранилищем.</string>
+    <string name="xdrive_encryption_hint">Требуется VLESS Encryption; flow должен быть пустым. Для новых конфигураций включается Mux.</string>
+    <string name="xdrive_advanced_hint">Необязательные параметры времени, template и xmux. Не добавляйте сюда service, remoteFolder, secrets или s3.</string>
+    <string name="xdrive_encryption">VLESS Encryption (обязательно)</string>
+    <string name="xdrive_stats_unavailable">Статистика трафика XDRIVE пока недоступна.</string>
+    <string name="xdrive_chain_error">Перед выбором XDRIVE исключите узел из цепочек прокси подписок. XDRIVE не сохраняет цепочки прокси приложения.</string>
+    <string name="xdrive_limits">Для XDRIVE пока недоступны автономные проверки задержки и цепочки прокси приложения.</string>
 </resources>

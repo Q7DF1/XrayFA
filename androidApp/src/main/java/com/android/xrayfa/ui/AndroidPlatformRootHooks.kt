@@ -29,6 +29,7 @@ import androidx.window.core.layout.WindowWidthSizeClass
 import com.android.xrayfa.R
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.isJsonConfig
+import com.android.xrayfa.model.canShareConfiguration
 import com.android.xrayfa.shared.navigation.HomeComponent
 import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.ui.home.HomeUiLabels
@@ -122,7 +123,7 @@ internal class AndroidPlatformRootHooks(
         node: Node,
         onDismiss: () -> Unit,
     ) {
-        if (node.isJsonConfig) return
+        if (!node.canShareConfiguration) return
 
         val context = LocalContext.current
         val qrBitMap by xrayViewmodel.qrBitmap.collectAsState()
@@ -156,9 +157,7 @@ internal class AndroidPlatformRootHooks(
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
                             onClick = {
-                                xrayViewmodel.exportConfigToClipboard(context)
-                                xrayViewmodel.dismissDialog()
-                                onDismiss()
+                                xrayViewmodel.exportConfigToClipboard(context, onDone = onDismiss)
                             },
                         ) {
                             Text(text = stringResource(R.string.clipboard_export))

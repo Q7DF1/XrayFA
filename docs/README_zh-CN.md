@@ -64,6 +64,10 @@
 
 使用完整 Xray JSON 时，节点链接分享、延迟测试及部分流量统计能力存在限制。
 
+配置 XDRIVE：打开添加节点 → VLESS，在 Network（网络）中选择 xdrive，在同一页面填写展开的存储参数。完整 JSON 文件仍使用原有的全局导入 JSON 入口。共享编辑器支持 Google Drive、S3、template 和 local 后端。填写服务端提供的 VLESS UUID 和 Encryption，flow 必须为空，新建配置会启用必需的 Mux。Google Drive 需要文件夹 ID，以及按 Client ID / Client Secret / Refresh Token 顺序填写的凭据。S3 需要端点、存储桶、相对对象前缀和访问凭据；template 通过高级 JSON 定义适配器。local 需要客户端与服务端都能访问的本地目录，主要用于测试。可选调优参数放在高级 JSON 中。
+
+XDRIVE 配置保存在本地 JSON 记录中，禁止通过剪贴板、二维码或 JSON 文件分享和导出，避免泄露可能授予网盘操控权限的存储凭据。不引入任何自定义 XDRIVE 分享链接。应用中新建的 xdrive 节点仍在 VLESS 页编辑；全局导入的 JSON 保持通用的源 JSON 编辑方式。
+
 ## 技术与构建体系
 
 XrayFA 使用 Gradle Kotlin DSL 和版本目录管理依赖，通过 Kotlin Multiplatform 组织共享逻辑、Compose Multiplatform 构建界面，并接入 Android VPN 服务及原生能力。

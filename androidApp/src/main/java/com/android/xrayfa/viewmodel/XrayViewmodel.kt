@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.xrayfa.dto.ParseLinkInput
 import com.android.xrayfa.model.Node
+import com.android.xrayfa.model.canShareConfiguration
 import com.android.xrayfa.model.protocol.protocolsPrefix
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.common.core.XrayCore
@@ -258,7 +259,9 @@ class XrayViewmodel(
         return sanitized
     }
 
-    var shareUrl = ""
+    private var shareUrl = ""
+    private var shareNodeId: Int? = null
+    private var shareJob: Job? = null
 
 
     init {
@@ -422,23 +425,35 @@ class XrayViewmodel(
 
     //barcode
     fun generateQRCode(id: Int) {
-        viewModelScope.launch {
-            val node = repository.loadLinksById(id).first()
-            shareUrl = LinkUtils.cleanUrlForSharing(node?.url ?: "")
+        dismissDialog()
+        shareNodeId = id
+        shareJob = viewModelScope.launch {
+            val node = repository.loadLinksById(id).first() ?: return@launch
+            if (!node.canShareConfiguration || shareNodeId != id) return@launch
+            shareUrl = LinkUtils.cleanUrlForSharing(node.url)
             val bitmap = BarcodeUtils.encodeBitmap(shareUrl, BarcodeFormat.QR_CODE,400,400)
             _qrcodeBitmap.value = bitmap
         }
     }
     //export clipboard
-    fun exportConfigToClipboard(context: Context) {
-        if (shareUrl == "") {
-            return
+    fun exportConfigToClipboard(context: Context, onDone: () -> Unit = {}) {
+        val id = shareNodeId ?: return
+        val url = shareUrl.takeIf(String::isNotEmpty) ?: return
+        viewModelScope.launch {
+            // Recheck persistence at export time; a previously opened dialog is not authorization
+            // to export a record that was deleted, changed, or replaced with a JSON profile.
+            val node = repository.loadLinksById(id).first()
+            if (shareNodeId != id || shareUrl != url) return@launch
+            if (node == null || !node.canShareConfiguration || LinkUtils.cleanUrlForSharing(node.url) != url) {
+                dismissDialog()
+                onDone()
+                return@launch
+            }
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText("label", url))
+            dismissDialog()
+            onDone()
         }
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-
-        val clip = ClipData.newPlainText("label", shareUrl)
-        clipboard.setPrimaryClip(clip)
-        shareUrl = ""
     }
 
     //delete dialog
@@ -475,6 +490,10 @@ class XrayViewmodel(
     }
 
     fun dismissDialog() {
+        shareJob?.cancel()
+        shareJob = null
+        shareNodeId = null
+        shareUrl = ""
         _qrcodeBitmap.value = null
     }
 

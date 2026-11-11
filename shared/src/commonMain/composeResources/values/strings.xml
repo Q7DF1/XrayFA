@@ -336,4 +336,28 @@
     <string name="russia_routing_recommendation_message">Russian websites and IP addresses will connect directly instead of through the proxy. Your other routing settings stay the same. You can change this later in Route settings.</string>
     <string name="russia_routing_recommendation_accept">Enable</string>
     <string name="russia_routing_recommendation_decline">Keep current settings</string>
+
+    <string name="xdrive_service">Storage backend</string>
+    <string name="xdrive_folder_id">Google Drive folder ID</string>
+    <string name="xdrive_prefix">Object prefix</string>
+    <string name="xdrive_folder">Storage folder</string>
+    <string name="xdrive_endpoint">S3 endpoint</string>
+    <string name="xdrive_region">S3 region (optional)</string>
+    <string name="xdrive_bucket">S3 bucket</string>
+    <string name="xdrive_path_style">S3 path-style addressing</string>
+    <string name="xdrive_client_id">Client ID</string>
+    <string name="xdrive_client_secret">Client Secret</string>
+    <string name="xdrive_refresh_token">Refresh Token</string>
+    <string name="xdrive_access_key">Access Key ID</string>
+    <string name="xdrive_secret_key">Secret Access Key</string>
+    <string name="xdrive_session_token">Session Token (optional)</string>
+    <string name="xdrive_template_secrets">Template secrets (one per line)</string>
+    <string name="xdrive_advanced">Advanced XDRIVE JSON</string>
+    <string name="xdrive_no_sharing">Sharing and export are unavailable: storage credentials may grant control over your cloud storage.</string>
+    <string name="xdrive_encryption_hint">VLESS Encryption is required; flow must be empty. Mux is enabled for new configurations.</string>
+    <string name="xdrive_advanced_hint">Optional timing, template and xmux settings. Do not include service, remoteFolder, secrets or s3 here.</string>
+    <string name="xdrive_encryption">VLESS Encryption (required)</string>
+    <string name="xdrive_stats_unavailable">Traffic statistics are currently unavailable for XDRIVE.</string>
+    <string name="xdrive_chain_error">Remove this node from subscription proxy chains before selecting XDRIVE. XDRIVE cannot preserve application proxy chains.</string>
+    <string name="xdrive_limits">Offline delay tests and application proxy chains are currently unavailable for XDRIVE.</string>
 </resources>

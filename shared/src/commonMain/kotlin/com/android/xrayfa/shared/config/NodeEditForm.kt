@@ -2,6 +2,7 @@ package com.android.xrayfa.shared.config
 
 import com.android.xrayfa.model.protocol.Protocol
 import kotlinx.serialization.json.JsonObject
+import com.android.xrayfa.config.XDriveForm
 
 /** Form field snapshot for shared [SharedEditScreen]. */
 data class NodeEditForm(
@@ -32,4 +33,5 @@ data class NodeEditForm(
     val hysteria2ObfsPassword: String = "",
     val hysteria2Alpn: String = "",
     val advancedParams: Map<String, String> = emptyMap(),
+    val xdrive: XDriveForm = XDriveForm(),
 )

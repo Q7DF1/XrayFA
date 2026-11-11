@@ -4,6 +4,9 @@ import com.android.xrayfa.common.utils.Base64Compat
 import com.android.xrayfa.common.utils.UrlCodec
 import com.android.xrayfa.config.GsonXrayConfigEncoder
 import com.android.xrayfa.config.KotlinxXrayConfigEncoder
+import com.android.xrayfa.config.XDriveForm
+import com.android.xrayfa.config.JsonVpnConfig
+import com.android.xrayfa.config.JsonVpnTransport
 import com.android.xrayfa.parser.ParserTestFixtures
 import com.google.gson.Gson
 import java.io.File
@@ -19,8 +22,8 @@ class CoreConfigFixturesTest {
         val key = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         val extra = """{"xmux":{"maxConnections":3},"noSSEHeader":true,"downloadSettings":{"address":"example.com","port":443,"network":"xhttp","security":"tls","tlsSettings":{"serverName":"example.com"},"xhttpSettings":{"path":"/download"}}}"""
         val links = linkedMapOf(
-            "vless-raw" to "vless://$id@192.0.2.1:443",
-            "vless-default-routing" to "vless://$id@192.0.2.1:443",
+            "vless-raw" to "vless://$id@127.0.0.1:443",
+            "vless-default-routing" to "vless://$id@127.0.0.1:443",
             "vless-ws" to "vless://$id@192.0.2.1:443?type=ws&security=tls&sni=cert.example&host=cdn.example&alpn=http%2F1.1",
             "vless-xhttp" to "vless://$id@example.com:443?type=xhttp&security=tls&extra=${UrlCodec.encode(extra)}",
             "vless-reality" to "vless://$id@example.com:443?security=reality&pbk=$key&sid=00&fp=chrome",
@@ -42,6 +45,19 @@ class CoreConfigFixturesTest {
         val vmessReality = """{"add":"example.com","port":443,"id":"$id","net":"raw","tls":"reality","pbk":"$key","sid":"abcd","fp":"chrome"}"""
         links["vmess-reality"] = "vmess://" + Base64Compat.encode(vmessReality.encodeToByteArray())
         val directory = File("build/generated/xray-config-fixtures").apply { mkdirs() }
+        for (service in XDriveForm.services) {
+            // Dummy storage credentials; loader checks do not connect to any provider.
+            val credential = "fixture-only"
+            val profile = XDriveForm(id = id, encryption = "mlkem768x25519plus.native.1rtt.${"A".repeat(43)}",
+                service = service, remoteFolder = if (service == "local") "/tmp/xrayfa-xdrive-fixture" else "fixture-folder",
+                secrets = listOf(credential, credential, credential), endpoint = "https://s3.example.com", bucket = "fixture-bucket",
+                security = if (service == "google-drive") "tls" else "none", alpn = if (service == "google-drive") "h3" else "",
+                advanced = if (service == "template") """{"template":{"put":{"url":"https://example.com/{name}"},"get":{"url":"https://example.com/{name}"},"delete":{"url":"https://example.com/{name}"},"list":{"url":"https://example.com/list","namesRegex":"(.*)"}}}"""
+                    else """{"xmux":{"maxConnections":"1-4","hKeepAlivePeriod":-1},"segmentBytes":524288}""")
+            val source = profile.build().toString()
+            File(directory, "xdrive-$service-source.json").writeText(source)
+            File(directory, "xdrive-$service-runtime.json").writeText(JsonVpnConfig.prepare(source, JsonVpnTransport()))
+        }
         val factory = ParserTestFixtures.factory()
         for ((name, link) in links) {
             val config = XrayConfiguration(

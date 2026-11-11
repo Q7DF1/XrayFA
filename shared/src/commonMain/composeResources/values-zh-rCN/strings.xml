@@ -329,4 +329,28 @@
     <string name="send_hwid_desc">请求订阅时发送设备标识（HWID）</string>
     <string name="core_start_failed">Xray 核心启动失败</string>
     <string name="hwid">设备标识（HWID）</string>
+
+    <string name="xdrive_service">存储后端</string>
+    <string name="xdrive_folder_id">Google Drive 文件夹 ID</string>
+    <string name="xdrive_prefix">对象前缀</string>
+    <string name="xdrive_folder">存储目录</string>
+    <string name="xdrive_endpoint">S3 端点</string>
+    <string name="xdrive_region">S3 区域（可选）</string>
+    <string name="xdrive_bucket">S3 存储桶</string>
+    <string name="xdrive_path_style">S3 路径形式寻址</string>
+    <string name="xdrive_client_id">Client ID</string>
+    <string name="xdrive_client_secret">Client Secret</string>
+    <string name="xdrive_refresh_token">Refresh Token</string>
+    <string name="xdrive_access_key">Access Key ID</string>
+    <string name="xdrive_secret_key">Secret Access Key</string>
+    <string name="xdrive_session_token">Session Token（可选）</string>
+    <string name="xdrive_template_secrets">模板密钥（每行一个）</string>
+    <string name="xdrive_advanced">XDRIVE 高级 JSON</string>
+    <string name="xdrive_no_sharing">此配置禁止分享和导出：存储凭据可能授予他人操控网盘的权限。</string>
+    <string name="xdrive_encryption_hint">必须填写 VLESS Encryption，flow 必须为空。新建配置会启用 Mux。</string>
+    <string name="xdrive_advanced_hint">可选的时序、template 和 xmux 设置。请勿在此填写 service、remoteFolder、secrets 或 s3。</string>
+    <string name="xdrive_encryption">VLESS Encryption（必填）</string>
+    <string name="xdrive_stats_unavailable">XDRIVE 暂不支持流量统计。</string>
+    <string name="xdrive_chain_error">请先取消此节点参与的订阅代理链，再选择 XDRIVE。XDRIVE 暂不支持应用代理链。</string>
+    <string name="xdrive_limits">XDRIVE 暂不支持离线延迟测试和应用代理链。</string>
 </resources>

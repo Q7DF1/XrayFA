@@ -2,6 +2,12 @@ package com.android.xrayfa.shared.config
 
 import com.android.xrayfa.common.utils.Logger
 import com.android.xrayfa.config.XrayJson
+import com.android.xrayfa.config.XDriveForm
+import com.android.xrayfa.config.JsonVpnConfig
+import com.android.xrayfa.model.JSON_CONFIG_PREFIX
+import com.android.xrayfa.model.isManagedXDrive
+import com.android.xrayfa.model.jsonConfigIdentifier
+import com.android.xrayfa.model.jsonInboundTag
 import com.android.xrayfa.dto.HttpConfig
 import com.android.xrayfa.dto.Hysteria2Config
 import com.android.xrayfa.dto.ParseLinkInput
@@ -17,6 +23,7 @@ import com.android.xrayfa.model.serialization.OutboundObjectSerializer
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.parser.optionalString
 import com.android.xrayfa.repository.NodeRepository
+import com.android.xrayfa.repository.SubscriptionRepository
 import com.android.xrayfa.shared.navigation.ConfigFilterIds
 import com.android.xrayfa.vpn.VpnController
 import kotlinx.coroutines.flow.first
@@ -24,13 +31,17 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import kotlin.random.Random
 
 class NodeFormEditor(
     private val parserFactory: ParserFactory,
     private val nodeRepository: NodeRepository,
     private val vpnController: VpnController,
     private val logger: Logger,
+    private val subscriptionRepository: SubscriptionRepository,
 ) {
+    var lastSaveError: String? = null
+        private set
     fun parseForm(
         protocol: String?,
         content: String?,
@@ -45,6 +56,15 @@ class NodeFormEditor(
 
         if (content.isNullOrBlank()) {
             return form
+        }
+
+        if (protocol == JSON_CONFIG_PREFIX) {
+            val profile = requireNotNull(XDriveForm.fromJson(content)) { "Unsupported local VLESS configuration" }
+            return form.copy(selectedProtocol = Protocol.VLESS, network = "xdrive", xdrive = profile,
+                uuidOrPassword = profile.id, vlessEncryption = profile.encryption, flow = profile.flow,
+                transportSecurity = profile.security, sni = profile.serverName, fingerprint = profile.fingerprint,
+                advancedParams = mapOf("alpn" to profile.alpn, "pcs" to profile.pinnedPeerCertSha256,
+                    "vcn" to profile.verifyPeerCertByName, "ech" to profile.echConfigList))
         }
 
         return try {
@@ -170,8 +190,31 @@ class NodeFormEditor(
         nodeId: Int,
         form: NodeEditForm,
     ): Boolean {
+        lastSaveError = null
         return try {
             require(validationIssue(form) == null) { "Invalid node form" }
+            val existing = if (nodeId > 0) nodeRepository.loadLinksById(nodeId).first() else null
+            if (form.network == "xdrive") {
+                if (existing != null && subscriptionRepository.allSubscriptions.first().any { subscription ->
+                    subscription.preNodeId == existing.id || subscription.nextNodeId == existing.id ||
+                        (subscription.id == existing.subscriptionId && (subscription.preNodeId > 0 || subscription.nextNodeId > 0))
+                }) {
+                    lastSaveError = "XDRIVE_CHAIN"
+                    return false
+                }
+                require(nodeId <= 0 || existing?.isManagedXDrive == true || existing?.protocolPrefix == "vless") { "Invalid node type" }
+                val source = form.xdriveForm().build().toString()
+                JsonVpnConfig.inspect(source)
+                val key = if (existing?.isManagedXDrive == true) existing.url.substringAfter("://").substringBefore('?')
+                    else "xdrive-${Random.nextLong().toULong().toString(16)}"
+                val identifier = jsonConfigIdentifier(key, existing?.jsonInboundTag)
+                val name = form.remarks.ifBlank { "VLESS · XDRIVE" }
+                if (nodeId > 0) nodeRepository.updateNodeConfiguration(nodeId, JSON_CONFIG_PREFIX, identifier, source, "", 0, name)
+                else nodeRepository.addNode(Node(protocolPrefix = JSON_CONFIG_PREFIX, address = "", port = 0,
+                    subscriptionId = ConfigFilterIds.SUB_MANUAL, remark = name, url = identifier, jsonData = source))
+                if (nodeId > 0 && nodeRepository.querySelectedNode().first()?.id == nodeId) vpnController.restartIfNeeded()
+                return true
+            }
             val url = encodeUrl(form)
             parserFactory.getParser(url).parseOutbound(url)
             val parsed = parserFactory.getParser(url).preParse(ParseLinkInput(
@@ -183,7 +226,9 @@ class NodeFormEditor(
             val remarks = form.remarks
 
             if (nodeId > 0) {
-                nodeRepository.updateNode(nodeId, url, port, remarks, parsed.address, parsed.countryISO)
+                if (existing?.isManagedXDrive == true) {
+                    nodeRepository.updateNodeConfiguration(nodeId, form.selectedProtocol.protocolType, url, null, parsed.address, port, remarks)
+                } else nodeRepository.updateNode(nodeId, url, port, remarks, parsed.address, parsed.countryISO)
                 val selectedId = nodeRepository.querySelectedNode().first()?.id
                 if (selectedId == nodeId) {
                     vpnController.restartIfNeeded()
@@ -212,6 +257,7 @@ class NodeFormEditor(
 
     /** The same serializer used for the runtime configuration, without saving a node. */
     fun previewOutbound(form: NodeEditForm): String {
+        require(form.network != "xdrive") { "XDRIVE configuration preview is unavailable" }
         require(validationIssue(form) == null) { "Invalid node form" }
         val url = encodeUrl(form)
         val outbound = parserFactory.getParser(url).parseOutbound(url)
@@ -220,6 +266,7 @@ class NodeFormEditor(
     }
 
     internal fun encodeUrl(form: NodeEditForm): String {
+        require(form.network != "xdrive") { "XDRIVE configuration sharing is unavailable" }
         val protocol = form.selectedProtocol
         fun preservedParams(): MutableMap<String, String> {
             val params = if (form.importedProtocol == protocol) form.importedParams.toMutableMap()
@@ -427,6 +474,12 @@ class NodeFormEditor(
                     ),
                 )
         }
+    }
+
+    fun validateForSave(form: NodeEditForm) {
+        require(validationIssue(form) == null) { "Invalid node form" }
+        if (form.network == "xdrive") JsonVpnConfig.inspect(form.xdriveForm().build().toString())
+        else previewOutbound(form)
     }
 
     private companion object {

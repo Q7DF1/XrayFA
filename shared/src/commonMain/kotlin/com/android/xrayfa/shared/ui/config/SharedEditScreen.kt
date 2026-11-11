@@ -47,6 +47,9 @@ import com.android.xrayfa.shared.ui.chrome.SharedListScaffold
 import com.android.xrayfa.shared.ui.chrome.SharedUnderlineTabBar
 import com.android.xrayfa.shared.ui.transitions.TransitionDestinations
 import com.android.xrayfa.shared.ui.transitions.sharedIcon
+import com.android.xrayfa.shared.resources.Res
+import com.android.xrayfa.shared.resources.xdrive_encryption
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SharedEditScreen(
@@ -93,7 +96,7 @@ fun SharedEditScreen(
         focusManager.clearFocus()
         attemptedSave = true
         if (nodeFormEditor.validationIssue(form) != null) return false
-        return runCatching { nodeFormEditor.previewOutbound(form) }
+        return runCatching { nodeFormEditor.validateForSave(form) }
             .onFailure { buildFailed = true }.isSuccess
     }
 
@@ -203,14 +206,16 @@ fun SharedEditScreen(
                 color = MaterialTheme.colorScheme.primary,
             )
             SharedEditTextField(form.remarks, { form = form.copy(remarks = it) }, labels.remarksLabel)
-            SharedEditTextField(form.address, { form = form.copy(address = it) }, labels.addressLabel, isError = issue?.field == "address")
-            SharedEditTextField(
-                form.port,
-                { input -> if (input.all(Char::isDigit) && input.length <= 5) form = form.copy(port = input) },
-                labels.portLabel,
-                keyboardType = KeyboardType.Number,
-                isError = issue?.field == "port",
-            )
+            if (form.network != "xdrive") {
+                SharedEditTextField(form.address, { form = form.copy(address = it) }, labels.addressLabel, isError = issue?.field == "address")
+                SharedEditTextField(
+                    form.port,
+                    { input -> if (input.all(Char::isDigit) && input.length <= 5) form = form.copy(port = input) },
+                    labels.portLabel,
+                    keyboardType = KeyboardType.Number,
+                    isError = issue?.field == "port",
+                )
+            }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
@@ -225,13 +230,13 @@ fun SharedEditScreen(
                     SharedEditTextField(
                         form.vlessEncryption,
                         { form = form.copy(vlessEncryption = it) },
-                        labels.encryptionLabel,
+                        if (form.network == "xdrive") stringResource(Res.string.xdrive_encryption) else labels.encryptionLabel,
                     )
                     SharedEditDropdownField(
                         form.flow,
                         { form = form.copy(flow = it) },
                         labels.flowLabel,
-                        listOf("", "xtls-rprx-vision", "xtls-rprx-vision-udp443"),
+                        if (form.network == "xdrive") listOf("") else listOf("", "xtls-rprx-vision", "xtls-rprx-vision-udp443"),
                         noneOptionLabel = labels.noneOptionLabel,
                     )
                 }
@@ -311,9 +316,13 @@ fun SharedEditScreen(
                     form.network,
                     { form = form.copy(network = it, advancedParams = form.advancedParams + mapOf("mode" to if (it == "xhttp") "auto" else "", "headerType" to "none")) },
                     labels.networkLabel,
-                    NodeFormOptions.networks,
+                    NodeFormOptions.networks(form.selectedProtocol),
                     noneOptionLabel = labels.noneOptionLabel,
                 )
+
+                if (form.network == "xdrive") {
+                    XDriveEditorFields(form.xdrive, { form = form.copy(xdrive = it) }, enabled = true)
+                }
 
                 if (form.network in setOf("ws", "websocket", "xhttp", "splithttp", "httpupgrade") ||
                     (form.network in setOf("raw", "tcp") && form.advancedValue("headerType") == "http")) {
@@ -389,7 +398,7 @@ fun SharedEditScreen(
                     }
                 }
             }
-            TextButton(onClick = {
+            if (form.network != "xdrive") TextButton(onClick = {
                 if (validateAndBuild()) preview = nodeFormEditor.previewOutbound(form)
             }, modifier = Modifier.fillMaxWidth()) { Text(labels.previewLabel) }
         }

@@ -8,9 +8,14 @@ import com.android.xrayfa.common.utils.Logger
 import com.android.xrayfa.common.utils.UrlCodec
 import com.android.xrayfa.config.KotlinxXrayConfigEncoder
 import com.android.xrayfa.model.Node
+import com.android.xrayfa.model.isManagedXDrive
+import com.android.xrayfa.model.canShareConfiguration
+import com.android.xrayfa.config.XDriveForm
 import com.android.xrayfa.model.protocol.Protocol
 import com.android.xrayfa.parser.*
 import com.android.xrayfa.repository.NodeRepository
+import com.android.xrayfa.repository.SubscriptionRepository
+import com.android.xrayfa.model.Subscription
 import com.android.xrayfa.shared.platform.ClipboardReader
 import com.android.xrayfa.vpn.VpnController
 import com.android.xrayfa.vpn.VpnState
@@ -40,14 +45,24 @@ class NodeFormTransportTest {
         override fun i(tag: String, message: String) = Unit
         override fun e(tag: String, message: String, throwable: Throwable?) = Unit
     }
+    private var restarts = 0
     private val vpn = object : VpnController {
         override val state = MutableStateFlow<VpnState>(VpnState.Disconnected)
         override val connectError = MutableStateFlow<String?>(null)
         override suspend fun connect() = false
         override fun disconnect() = Unit
-        override suspend fun restartIfNeeded() = Unit
+        override suspend fun restartIfNeeded() { restarts++ }
     }
-    private val editor = NodeFormEditor(factory, nodes, vpn, logger)
+    private val subscriptions = MutableStateFlow<List<Subscription>>(emptyList())
+    private val subscriptionRepository = object : SubscriptionRepository {
+        override val allSubscriptions = subscriptions
+        override fun getSubscriptionById(id: Int) = subscriptions.map { it.find { sub -> sub.id == id } }
+        override suspend fun addSubscription(subscription: Subscription): Long = error("Unexpected mutation")
+        override suspend fun deleteSubscription(subscription: Subscription) = error("Unexpected mutation")
+        override suspend fun updateSubscription(subscription: Subscription) = error("Unexpected mutation")
+        override suspend fun fetchAndSaveNodes(url: String, subscriptionId: Int, extraHeaders: Map<String, String>) = error("Unexpected mutation")
+    }
+    private val editor = NodeFormEditor(factory, nodes, vpn, logger, subscriptionRepository)
     private val id = "00000000-0000-0000-0000-000000000001"
 
     @Test
@@ -255,6 +270,85 @@ class NodeFormTransportTest {
         assertTrue(nodes.nodes.value.isEmpty())
     }
 
+    private fun xdriveForm() = validForm().copy(address = "", port = "", network = "xdrive",
+        vlessEncryption = "mlkem768x25519plus.native.1rtt.${"A".repeat(43)}",
+        remarks = "Local storage node", xdrive = XDriveForm(service = "local", remoteFolder = "/tmp/xdrive-test"))
+
+    @Test fun xdriveIsAVlessTransportWithNoShareOrPreviewEncoder() {
+        assertTrue("xdrive" in NodeFormOptions.networks(Protocol.VLESS))
+        assertFalse("xdrive" in NodeFormOptions.networks(Protocol.VMESS))
+        assertFalse("xdrive" in NodeFormOptions.networks(Protocol.TROJAN))
+        val form = xdriveForm()
+        assertNull(editor.validationIssue(form))
+        assertFailsWith<IllegalArgumentException> { editor.encodeUrl(form) }
+        assertFailsWith<IllegalArgumentException> { editor.previewOutbound(form) }
+        assertNotNull(editor.validationIssue(form.copy(selectedProtocol = Protocol.TROJAN)))
+        assertEquals("encryption", editor.validationIssue(form.copy(vlessEncryption = "none"))?.field)
+        assertEquals("flow", editor.validationIssue(form.copy(flow = "xtls-rprx-vision"))?.field)
+    }
+
+    @Test fun inlineVlessAndTlsFieldsRoundTripThroughLocalNodeStorage() = runBlocking {
+        val form = xdriveForm().copy(sni = "storage.example", fingerprint = "firefox",
+            advancedParams = mapOf("alpn" to "h3", "pcs" to "a".repeat(64), "vcn" to "storage.example", "ech" to "storage.example"))
+        assertTrue(editor.saveForm(0, form))
+        val saved = nodes.nodes.value.single()
+        assertEquals(0, restarts)
+        assertTrue(saved.isManagedXDrive)
+        assertFalse(saved.canShareConfiguration)
+        assertFalse(saved.url.contains("storage.example"))
+        val reopened = editor.parseForm(saved.protocolPrefix, saved.jsonData, saved.remark)
+        assertEquals("xdrive", reopened.network)
+        assertEquals(form.uuidOrPassword, reopened.uuidOrPassword)
+        assertEquals(form.vlessEncryption, reopened.vlessEncryption)
+        assertEquals(form.fingerprint, reopened.fingerprint)
+        assertEquals(form.advancedParams, reopened.advancedParams)
+        assertEquals("/tmp/xdrive-test", reopened.xdrive.remoteFolder)
+    }
+
+    @Test fun transportConversionPreservesRecordIdentityAndClearsStoredCloudDataWhenLeavingXdrive() = runBlocking {
+        val original = Node(id = 9, protocolPrefix = "vless", address = "example.com", port = 443,
+            subscriptionId = 123, favorite = true, selected = true, isPreNode = true, isNextNode = true, url = "vless://$id@example.com:443?security=tls")
+        nodes.nodes.value = listOf(original)
+        val secret = "fixture-cloud-secret"
+        assertTrue(editor.saveForm(9, xdriveForm().copy(xdrive = XDriveForm(service = "google-drive", remoteFolder = "fixture-folder", secrets = listOf(secret, secret, secret)))))
+        val local = nodes.nodes.value.single()
+        assertEquals(9, local.id)
+        assertTrue(local.isManagedXDrive && local.favorite && local.selected)
+        assertEquals(123, local.subscriptionId)
+        assertTrue(local.isPreNode && local.isNextNode)
+        assertEquals(1, restarts)
+        val ordinary = editor.parseForm(local.protocolPrefix, local.jsonData).copy(network = "raw", address = "example.com", port = "443")
+        assertTrue(editor.saveForm(9, ordinary))
+        val converted = nodes.nodes.value.single()
+        assertEquals("vless", converted.protocolPrefix)
+        assertNull(converted.jsonData)
+        assertTrue(converted.canShareConfiguration && converted.favorite && converted.selected)
+        assertEquals(123, converted.subscriptionId)
+        assertTrue(converted.isPreNode && converted.isNextNode)
+        assertEquals(2, restarts)
+        assertFalse(converted.url.contains("xdrive"))
+        assertFalse(converted.url.contains(secret))
+    }
+
+    @Test fun xdriveConversionNeverRemovesConfiguredProxyChainHops() = runBlocking {
+        val original = Node(id = 9, protocolPrefix = "vless", address = "example.com", port = 443,
+            subscriptionId = 7, url = "vless://$id@example.com:443?security=tls")
+        nodes.nodes.value = listOf(original)
+        for (subscription in listOf(
+            Subscription(id = 8, mark = "chain", url = "https://example.com/sub", preNodeId = 9),
+            Subscription(id = 8, mark = "chain", url = "https://example.com/sub", nextNodeId = 9),
+            Subscription(id = 7, mark = "own chain", url = "https://example.com/sub", preNodeId = 3),
+        )) {
+            subscriptions.value = listOf(subscription)
+            val candidate = original.copy(selected = subscription.id == original.subscriptionId)
+            nodes.nodes.value = listOf(candidate)
+            assertFalse(editor.saveForm(9, xdriveForm()))
+            assertEquals("XDRIVE_CHAIN", editor.lastSaveError)
+            assertEquals(listOf(candidate), nodes.nodes.value)
+            assertEquals(0, restarts)
+        }
+    }
+
 }
 
 private class FormTestNodes : NodeRepository {
@@ -263,9 +357,9 @@ private class FormTestNodes : NodeRepository {
     override val favorites = nodes.map { it.filter(Node::favorite) }
     override suspend fun addNode(vararg nodes: Node) { this.nodes.value += nodes }
     override suspend fun deleteLink(link: Node) = error("Unexpected mutation")
-    override fun loadLinksById(id: Int) = flowOf<Node?>(null)
+    override fun loadLinksById(id: Int) = nodes.map { list -> list.find { it.id == id } }
     override suspend fun clearSelection() = error("Unexpected mutation")
-    override fun querySelectedNode() = flowOf<Node?>(null)
+    override fun querySelectedNode() = nodes.map { it.find(Node::selected) }
     override fun queryPreNode() = flowOf<Node?>(null)
     override fun queryNextNode() = flowOf<Node?>(null)
     var updatedAddress: String? = null
@@ -273,6 +367,9 @@ private class FormTestNodes : NodeRepository {
     override suspend fun updateNode(id: Int, url: String, port: Int, remark: String?, address: String?, countryISO: String?) {
         updatedAddress = address
         updatedCountry = countryISO
+    }
+    override suspend fun updateNodeConfiguration(id: Int, protocolPrefix: String, url: String, jsonData: String?, address: String, port: Int, remark: String?) {
+        nodes.value = nodes.value.map { if (it.id == id) it.copy(protocolPrefix = protocolPrefix, url = url, jsonData = jsonData, address = address, port = port, remark = remark) else it }
     }
     override suspend fun updateSelectById(id: Int, selected: Boolean) = error("Unexpected mutation")
     override suspend fun updateFavoriteById(id: Int, favorite: Boolean) = error("Unexpected mutation")

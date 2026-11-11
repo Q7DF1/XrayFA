@@ -337,4 +337,28 @@
     <string name="tap_to_connect">버튼을 눌러 연결하세요</string>
     <string name="tap_to_disconnect">버튼을 눌러 연결을 해제하세요</string>
     <string name="hwid">기기 식별자 (HWID)</string>
+
+    <string name="xdrive_service">저장소 백엔드</string>
+    <string name="xdrive_folder_id">Google Drive 폴더 ID</string>
+    <string name="xdrive_prefix">객체 접두사</string>
+    <string name="xdrive_folder">저장소 폴더</string>
+    <string name="xdrive_endpoint">S3 엔드포인트</string>
+    <string name="xdrive_region">S3 리전 (선택)</string>
+    <string name="xdrive_bucket">S3 버킷</string>
+    <string name="xdrive_path_style">S3 경로 스타일 주소 지정</string>
+    <string name="xdrive_client_id">클라이언트 ID</string>
+    <string name="xdrive_client_secret">클라이언트 보안 비밀</string>
+    <string name="xdrive_refresh_token">갱신 토큰</string>
+    <string name="xdrive_access_key">액세스 키 ID</string>
+    <string name="xdrive_secret_key">보안 액세스 키</string>
+    <string name="xdrive_session_token">세션 토큰 (선택)</string>
+    <string name="xdrive_template_secrets">템플릿 비밀 (한 줄에 하나)</string>
+    <string name="xdrive_advanced">XDRIVE 고급 JSON</string>
+    <string name="xdrive_no_sharing">저장소 자격 증명으로 클라우드를 제어할 수 있으므로 공유와 내보내기를 제공하지 않습니다.</string>
+    <string name="xdrive_encryption_hint">VLESS Encryption이 필요하며 flow는 비워야 합니다. 새 구성은 Mux를 활성화합니다.</string>
+    <string name="xdrive_advanced_hint">선택적 시간, template 및 xmux 설정입니다. service, remoteFolder, secrets, s3는 여기에 넣지 마세요.</string>
+    <string name="xdrive_encryption">VLESS Encryption (필수)</string>
+    <string name="xdrive_stats_unavailable">XDRIVE 트래픽 통계는 현재 지원되지 않습니다.</string>
+    <string name="xdrive_chain_error">XDRIVE를 선택하기 전에 이 노드를 구독 프록시 체인에서 제거하세요. XDRIVE는 앱 프록시 체인을 유지할 수 없습니다.</string>
+    <string name="xdrive_limits">XDRIVE는 현재 오프라인 지연 테스트와 앱 프록시 체인을 지원하지 않습니다.</string>
 </resources>

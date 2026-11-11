@@ -42,6 +42,8 @@ import com.android.xrayfa.shared.ui.config.ConfigUiLabels
 import com.android.xrayfa.shared.ui.config.OverlayScrollPending
 import com.android.xrayfa.shared.ui.config.SharedEditScreen
 import com.android.xrayfa.model.isJsonConfig
+import com.android.xrayfa.model.isManagedXDrive
+import com.android.xrayfa.config.XDriveForm
 import com.android.xrayfa.shared.ui.config.JsonConfigEditScreen
 import com.android.xrayfa.shared.ui.config.SharedSearchScreen
 import com.android.xrayfa.shared.ui.config.rememberConfigTabChromeState
@@ -284,12 +286,12 @@ fun RootContent(
                             val node = nodeState.value
                             val nodeFormEditor =
                                 remember { KoinPlatform.getKoin().get<NodeFormEditor>() }
-                            if (node?.isJsonConfig == true) {
+                            if (node?.isJsonConfig == true && (!node.isManagedXDrive || XDriveForm.fromJson(node.jsonData.orEmpty()) == null)) {
                                 configComponent?.let { JsonConfigEditScreen(instance.nodeId, it, component::navigateBack, Modifier.fillMaxSize()) }
                             } else SharedEditScreen(
                                 nodeId = instance.nodeId,
                                 protocol = node?.protocolPrefix,
-                                initialContent = node?.url,
+                                initialContent = if (node?.isManagedXDrive == true) node.jsonData else node?.url,
                                 initialRemark = node?.remark,
                                 nodeFormEditor = nodeFormEditor,
                                 onBack = component::navigateBack,

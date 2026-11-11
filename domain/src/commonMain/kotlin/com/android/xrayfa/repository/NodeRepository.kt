@@ -18,6 +18,9 @@ interface NodeRepository {
     suspend fun updateJsonConfig(id: Int, identifier: String, remark: String, jsonData: String) {
         throw UnsupportedOperationException("JSON configuration update is not supported")
     }
+    suspend fun updateNodeConfiguration(id: Int, protocolPrefix: String, url: String, jsonData: String?, address: String, port: Int, remark: String?) {
+        throw UnsupportedOperationException("Node configuration replacement is not supported")
+    }
     suspend fun updateSelectById(id: Int, selected: Boolean)
     suspend fun updateFavoriteById(id: Int, favorite: Boolean)
     suspend fun deleteLinkById(id: Int)

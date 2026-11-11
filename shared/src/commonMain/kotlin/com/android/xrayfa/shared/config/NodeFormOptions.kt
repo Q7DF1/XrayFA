@@ -6,6 +6,7 @@ import com.android.xrayfa.parser.optionalString
 /** Options implemented by the share-link parsers and the pinned Xray-core. */
 object NodeFormOptions {
     val networks = listOf("raw", "xhttp", "ws", "grpc", "httpupgrade", "kcp")
+    fun networks(protocol: Protocol): List<String> = networks + if (protocol == Protocol.VLESS) listOf("xdrive") else emptyList()
     val methods = listOf(
         "aes-256-gcm", "aes-128-gcm", "chacha20-ietf-poly1305", "xchacha20-ietf-poly1305",
         "2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm", "2022-blake3-chacha20-poly1305",
@@ -87,4 +88,12 @@ fun NodeEditForm.selectProtocol(protocol: Protocol): NodeEditForm = NodeEditForm
     address = address,
     port = port,
     transportSecurity = if (protocol in setOf(Protocol.VLESS, Protocol.TROJAN, Protocol.HYSTERIA2)) "tls" else "none",
+)
+
+/** Common VLESS/TLS controls and inline storage controls build one local configuration. */
+fun NodeEditForm.xdriveForm() = xdrive.copy(
+    id = uuidOrPassword, encryption = vlessEncryption, flow = flow,
+    security = transportSecurity, serverName = sni, fingerprint = fingerprint,
+    alpn = advancedValue("alpn"), pinnedPeerCertSha256 = advancedValue("pcs"),
+    verifyPeerCertByName = advancedValue("vcn"), echConfigList = advancedValue("ech"),
 )

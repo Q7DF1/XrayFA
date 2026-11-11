@@ -68,6 +68,10 @@ To add the Android widget, long-press the home screen, open Widgets, and select 
 
 Complete Xray JSON configurations have limitations for node-link sharing, latency tests, and some traffic statistics.
 
+To configure XDRIVE, open Add node → VLESS and choose xdrive in Network. Its storage settings expand in the same VLESS editor. Complete JSON files still use the existing global Import JSON action. The shared editor supports Google Drive, S3, template and local storage. Supply the VLESS UUID and Encryption from your server; flow must be empty, and new configurations enable the required Mux. Google Drive requires a folder ID and Client ID / Client Secret / Refresh Token in that order. S3 requires an endpoint, bucket, relative object prefix and access credentials; template adapters use advanced JSON. Local storage requires a directory shared by the client and server and is mainly useful for testing. Optional tuning remains in advanced JSON.
+
+XDRIVE configurations stay in local JSON records and cannot be shared or exported to the clipboard, QR codes or JSON files. Storage credentials may grant control over your cloud storage. No XDRIVE share-link format is introduced. App-created XDRIVE nodes reopen in the VLESS editor. Globally imported JSON remains in the general source editor.
+
 ## Architecture and build system
 
 XrayFA uses Gradle Kotlin DSL and a version catalog for dependencies, with Kotlin Multiplatform for shared logic, Compose Multiplatform for UI, and Android VPN and native integrations.

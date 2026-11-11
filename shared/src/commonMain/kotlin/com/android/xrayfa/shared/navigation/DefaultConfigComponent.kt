@@ -177,8 +177,12 @@ class DefaultConfigComponent(
         onDone: (Boolean) -> Unit,
     ) {
         scope.launch {
-            val success = nodeFormEditor.saveForm(nodeId, form)
-            onDone(success)
+            configMutex.lock()
+            try {
+                val success = nodeFormEditor.saveForm(nodeId, form)
+                if (!success) _state.update { it.copy(configError = nodeFormEditor.lastSaveError ?: "INVALID_CONFIG") }
+                onDone(success)
+            } finally { configMutex.unlock() }
         }
     }
 

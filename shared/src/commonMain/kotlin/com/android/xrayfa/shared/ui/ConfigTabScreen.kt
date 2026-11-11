@@ -39,6 +39,8 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.isJsonConfig
+import com.android.xrayfa.model.isManagedXDrive
+import com.android.xrayfa.model.canShareConfiguration
 import com.android.xrayfa.shared.ui.config.jsonConfigErrorText
 import com.android.xrayfa.shared.navigation.ConfigComponent
 import com.android.xrayfa.shared.resources.*
@@ -256,9 +258,9 @@ internal fun ConfigTabScreen(
                 )
             },
             onEmptyAddClick = { onOpenNodeEdit(0) },
-            onEditNode = { node -> if (node.isJsonConfig) onOpenJsonConfig(node.id) else onOpenNodeEdit(node.id) },
+            onEditNode = { node -> if (node.isJsonConfig && !node.isManagedXDrive) onOpenJsonConfig(node.id) else onOpenNodeEdit(node.id) },
             onDeleteNode = component::onShowDeleteNode,
-            onShareNode = { node -> shareNode = node },
+            onShareNode = { node -> if (node.canShareConfiguration) shareNode = node },
         )
     }
 
@@ -310,7 +312,7 @@ internal fun ConfigTabScreen(
         )
     }
 
-    shareNode?.let { node ->
+    shareNode?.takeIf { it.canShareConfiguration }?.let { node ->
         platformHooks.ShareNode(node = node, onDismiss = { shareNode = null })
     }
     platformHooks.BugReport(visible = showBugReport, onDismiss = { showBugReport = false })

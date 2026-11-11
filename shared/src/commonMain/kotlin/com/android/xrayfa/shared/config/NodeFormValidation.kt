@@ -14,6 +14,10 @@ fun NodeFormEditor.validationIssue(form: NodeEditForm): NodeFormIssue? {
     fun required(field: String) = NodeFormIssue(field, NodeFormIssueKind.REQUIRED)
     fun invalid(field: String) = NodeFormIssue(field, NodeFormIssueKind.INVALID)
     fun incompatible(field: String) = NodeFormIssue(field, NodeFormIssueKind.INCOMPATIBLE)
+    if (form.network == "xdrive") {
+        if (form.selectedProtocol != Protocol.VLESS) return incompatible("network / protocol")
+        return form.xdriveForm().issue()?.let(::invalid)
+    }
     if (form.address.isBlank()) return required("address")
     if (form.address.any { it.isWhitespace() } || form.address.contains("://") || form.address.any { it in "/?#@" }) return invalid("address")
     if (form.port.toIntOrNull() !in 1..65535) return invalid("port")
@@ -42,7 +46,7 @@ fun NodeFormEditor.validationIssue(form: NodeEditForm): NodeFormIssue? {
     }
     if (NodeFormOptions.hasTransport(protocol)) {
         val network = NodeFormOptions.canonicalNetwork(form.network)
-        if (network !in NodeFormOptions.networks) return invalid("network")
+        if (network !in NodeFormOptions.networks(protocol)) return invalid("network")
         if (form.transportSecurity !in NodeFormOptions.securities(network)) return incompatible("security / network")
         if (protocol in setOf(Protocol.VLESS, Protocol.TROJAN) && form.transportSecurity == "none" &&
             (protocol != Protocol.VLESS || form.vlessEncryption == "none") && !isXrayPrivateEndpoint(form.address)) {
