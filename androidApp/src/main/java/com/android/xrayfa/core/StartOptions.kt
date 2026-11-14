@@ -13,6 +13,9 @@ data class StartOptions(
     val nodeName: String? = null,
     val serverAddress: String? = null,
     val serverPort: Int = 0,
+    val muxSettings: String? = null,
+    var preMuxSettings: String? = null,
+    var nextMuxSettings: String? = null,
 ): Parcelable {
 
     constructor(parcel: Parcel) : this(
@@ -24,6 +27,9 @@ data class StartOptions(
         if (parcel.dataAvail() > 0) parcel.readString() else null,
         if (parcel.dataAvail() > 0) parcel.readString() else null,
         if (parcel.dataAvail() > 0) parcel.readInt() else 0,
+        if (parcel.dataAvail() > 0) parcel.readString() else null,
+        if (parcel.dataAvail() > 0) parcel.readString() else null,
+        if (parcel.dataAvail() > 0) parcel.readString() else null,
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -35,6 +41,9 @@ data class StartOptions(
         parcel.writeString(nodeName)
         parcel.writeString(serverAddress)
         parcel.writeInt(serverPort)
+        parcel.writeString(muxSettings)
+        parcel.writeString(preMuxSettings)
+        parcel.writeString(nextMuxSettings)
     }
 
     override fun describeContents(): Int {
@@ -58,4 +67,5 @@ data class StartOptions(
 }
 
 fun StartOptions.toCoreStartOptions(): CoreStartOptions =
-    CoreStartOptions(url = url, preUrl = preUrl, nextUrl = nextUrl)
+    CoreStartOptions(url = url, preUrl = preUrl, nextUrl = nextUrl,
+        muxSettings = muxSettings, preMuxSettings = preMuxSettings, nextMuxSettings = nextMuxSettings)

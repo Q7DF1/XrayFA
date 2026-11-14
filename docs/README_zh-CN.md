@@ -36,7 +36,6 @@
 ## 功能
 
 - **节点与订阅管理**：导入节点链接，添加、管理和更新订阅。
-- **多协议支持**：支持 VLESS、VMess、Shadowsocks、Trojan、Hysteria2、SOCKS 和 HTTP 代理链接。
 - **多种导入方式**：剪贴板、二维码，以及完整 Xray JSON 配置。
 - **连接状态与流量显示**：查看 VPN 连接状态、上传和下载速度。
 - **路由与 DNS 设置**：配置代理路由、DNS 和相关网络选项。
@@ -63,6 +62,13 @@
 4. 连接后查看状态和流量；需要时调整路由及 DNS 设置。
 
 使用完整 Xray JSON 时，节点链接分享、延迟测试及部分流量统计能力存在限制。
+
+## 支持的协议与传输
+
+| 类型 | 支持 |
+| --- | --- |
+| 代理协议 | VLESS、VMess、Shadowsocks、Trojan、Hysteria2、SOCKS、HTTP |
+| 网络传输 | RAW（TCP）、XHTTP、WebSocket（WS）、gRPC、HTTPUpgrade、KCP、XDRIVE（VLESS） |
 
 ## 技术与构建体系
 

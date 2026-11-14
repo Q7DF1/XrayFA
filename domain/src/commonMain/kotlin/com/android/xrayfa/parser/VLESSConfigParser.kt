@@ -6,7 +6,6 @@ import com.android.xrayfa.config.XrayConfigEncoder
 import com.android.xrayfa.dto.ParseLinkInput
 import com.android.xrayfa.dto.ParsedNode
 import com.android.xrayfa.dto.VLESSConfig
-import com.android.xrayfa.model.MuxObject
 import com.android.xrayfa.model.OutboundObject
 import com.android.xrayfa.model.ServerObject
 import com.android.xrayfa.model.UserObject
@@ -54,14 +53,16 @@ class VLESSConfigParser(
                 ),
             ),
             streamSettings = shareLinkStreamSettings(queryParams, parseVLESS.server),
-            mux = MuxObject(concurrency = -1, enabled = false, xudpConcurrency = 8, xudpProxyUDP443 = ""),
             tag = "proxy",
         )
     }
 
     override suspend fun preParse(link: ParseLinkInput): ParsedNode {
-        parseOutbound(link.content)
         val vlessConfig = decodeProtocol(link.content)
+        if (vlessConfig.param["type"]?.lowercase() == "xdrive") {
+            return com.android.xrayfa.config.XDriveShareLink.importDraft(link, vlessConfig)
+        }
+        parseOutbound(link.content)
         return ParsedNode(
             id = link.id,
             url = link.content,

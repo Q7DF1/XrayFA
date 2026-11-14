@@ -9,6 +9,7 @@ import com.android.xrayfa.common.routing.DomainStrategy
 import com.android.xrayfa.common.routing.RoutingMode
 import com.android.xrayfa.common.routing.decodeRules
 import com.android.xrayfa.common.routing.defaultRoutes
+import com.android.xrayfa.config.withNodeMux
 import com.android.xrayfa.config.XrayConfigEncoder
 import com.android.xrayfa.dto.ParseLinkInput
 import com.android.xrayfa.dto.ParsedNode
@@ -284,7 +285,7 @@ abstract class AbstractConfigParser<T : AbsOutboundConfigurationObject, P> {
 
     suspend fun parse(startOptions: CoreStartOptions): String {
         val settings = settingsProvider.getConfigParserSettings()
-        val outbound = parseOutbound(startOptions.url)
+        val outbound = withNodeMux(parseOutbound(startOptions.url), startOptions.muxSettings)
         val outbounds = mutableListOf<OutboundObject<*>>()
 
         val pre = parsePreNodeIfNeeded(startOptions)
@@ -320,7 +321,9 @@ abstract class AbstractConfigParser<T : AbsOutboundConfigurationObject, P> {
                 settings = NoneOutboundConfigurationObject(),
             ),
         )
-        val tcpOnlyProxy = outbound.protocol == "http"
+        val tcpOnlyProxy = outbound.protocol == "http" && outbound.mux?.let {
+            it.enabled && (it.xudpConcurrency > 0 || (it.xudpConcurrency == 0 && it.concurrency >= 0))
+        } != true
         val xrayConfig = XrayConfiguration(
             stats = emptyMap(),
             api = getBaseAPIObject(),
@@ -336,7 +339,7 @@ abstract class AbstractConfigParser<T : AbsOutboundConfigurationObject, P> {
 
     fun parsePreNodeIfNeeded(startOptions: CoreStartOptions): OutboundObject<*>? {
         val outbound = startOptions.preUrl?.let {
-            otherProtocolParser?.invoke(it)
+            otherProtocolParser?.invoke(it)?.let { parsed -> withNodeMux(parsed, startOptions.preMuxSettings) }
         }
         outbound?.tag = "pre-node"
         return outbound
@@ -344,7 +347,7 @@ abstract class AbstractConfigParser<T : AbsOutboundConfigurationObject, P> {
 
     fun parseNextNodeIfNeeded(startOptions: CoreStartOptions): OutboundObject<*>? {
         val outbound = startOptions.nextUrl?.let {
-            otherProtocolParser?.invoke(it)
+            otherProtocolParser?.invoke(it)?.let { parsed -> withNodeMux(parsed, startOptions.nextMuxSettings) }
         }
         outbound?.tag = "next-node"
         return outbound

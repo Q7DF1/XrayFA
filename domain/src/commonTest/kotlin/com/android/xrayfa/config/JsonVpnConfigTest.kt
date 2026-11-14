@@ -75,6 +75,19 @@ class JsonVpnConfigTest {
         assertTrue(servers.all { it.startsWith("https://") })
     }
 
+    @Test fun allowsDnsToWaitForXDriveHandshakeInBothDnsModes() {
+        val text = """{"outbounds":[{"protocol":"vless","streamSettings":{"network":"xdrive"}}]}"""
+        for (doh in listOf(false, true)) {
+            val runtime = Json.parseToJsonElement(JsonVpnConfig.prepare(text, transport.copy(dnsOverHttpsEnabled = doh))).jsonObject
+            val servers = runtime["dns"]!!.jsonObject["servers"]!!.jsonArray
+            assertTrue(servers.isNotEmpty())
+            servers.forEach { server ->
+                assertEquals(30_000, server.jsonObject["timeoutMs"]!!.jsonPrimitive.int)
+                assertTrue(server.jsonObject["address"]!!.jsonPrimitive.content.isNotBlank())
+            }
+        }
+    }
+
     @Test fun rejectsDuplicateKeysAndDeepOrOversizedDocuments() {
         assertFailsWith<JsonConfigException> { JsonVpnConfig.inspect("""{"outbounds":[],"outbounds":[{"protocol":"freedom"}]}""") }
         assertFailsWith<JsonConfigException> { JsonVpnConfig.inspect("[".repeat(65) + "0" + "]".repeat(65)) }

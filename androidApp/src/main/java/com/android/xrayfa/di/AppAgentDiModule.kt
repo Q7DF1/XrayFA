@@ -30,7 +30,7 @@ private const val AGENT_SYNC_TAG = "AgentAppFunctionSync"
 val appAgentDiModule: Module = module {
     single<XrayAgentNodeQueries> { XrayAgentCatalog(get(), get()) }
     single<TrafficStatsSource> { AndroidTrafficStatsSource(get()) }
-    single { AndroidAgentDelayProbe(get(), get(), get()) }
+    single { AndroidAgentDelayProbe(get(), get(), get(), get()) }
     single {
         val manager = AppFunctionManager.getInstance(androidContext())
         AgentAppFunctionEnableSync(

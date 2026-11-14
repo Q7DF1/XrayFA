@@ -1,0 +1,274 @@
+--- a/transport/internet/xdrive/template.go
++++ b/transport/internet/xdrive/template.go
+@@ -439,6 +439,31 @@
+ }
+ 
+ func (s *templateStorage) Delete(ctx context.Context, name string) error {
++	// A flattened session has no directory object. The collector passes
++	// streams/<session>; delete its descendants using a separator boundary.
++	if s.tmpl.Flatten && strings.HasPrefix(name, streamsDir+"/") && strings.Count(name, "/") == 1 {
++		vars := s.baseVars()
++		vars["prefix"] = s.storedName(name)
++		status, payload, err := s.run(ctx, &s.tmpl.List, vars, nil)
++		if err != nil {
++			return err
++		}
++		if status == http.StatusNotFound {
++			return nil
++		}
++		if status < 200 || status >= 300 {
++			return errors.New("list for cleanup answered ", status)
++		}
++		want := s.storedName(name) + flatSeparator
++		for _, match := range s.tmpl.names.FindAllStringSubmatch(string(payload), -1) {
++			if strings.HasPrefix(match[1], want) {
++				if err := s.Delete(ctx, match[1]); err != nil {
++					return err
++				}
++			}
++		}
++		return nil
++	}
+ 	vars := s.baseVars()
+ 	vars["name"] = s.storedName(name)
+ 
+@@ -507,3 +532,6 @@
+ 	}
+ 	return nil
+ }
++
++// Flat object keys permit bounded reads without downloading the directory.
++func (s *templateStorage) directWALReads() bool { return s.tmpl.Flatten }
+--- a/transport/internet/xdrive/wal.go
++++ b/transport/internet/xdrive/wal.go
+@@ -206,10 +206,11 @@
+ 	params
+ 	seq int64
+ 
+-	ch        chan []byte
+-	discards  chan string
+-	wake      chan struct{}
+-	holeSince time.Time
++	ch             chan []byte
++	discards       chan string
++	wake           chan struct{}
++	holeSince      time.Time
++	controlProbeAt time.Time
+ 
+ 	errMu sync.Mutex
+ 	err   error
+@@ -292,6 +293,77 @@
+ }
+ 
+ func (r *walReader) poll() (advanced, eof bool, err error) {
++	if direct, ok := r.storage.(interface{ directWALReads() bool }); ok && direct.directWALReads() {
++		return r.pollExact()
++	}
++	return r.pollListed()
++}
++
++// Sequence names are known in advance. Flattened templates must not download
++// the entire shared folder on every read just to discover the next object.
++func (r *walReader) pollExact() (advanced, eof bool, err error) {
++	for i := 0; i < r.concurrency; i++ {
++		name := objectName(r.prefix, r.seq, segSuffix)
++		chunk, getErr := r.storage.Get(r.ctx, name)
++		if getErr == nil {
++			if len(chunk) == 0 {
++				return advanced, false, nil
++			}
++			select {
++			case r.ch <- chunk:
++			case <-r.ctx.Done():
++				return advanced, true, nil
++			}
++			r.seq++
++			advanced = true
++			r.holeSince = time.Time{}
++			r.controlProbeAt = time.Now()
++			r.discard(name)
++			continue
++		}
++		if getErr != errNotFound {
++			return advanced, false, getErr
++		}
++		// Missing data is the common idle case. Probing three control objects
++		// on every poll serializes extra service round trips ahead of the next
++		// data read. Check controls periodically while polling data normally.
++		if r.controlProbeAt.IsZero() {
++			r.controlProbeAt = time.Now()
++		}
++		if time.Since(r.controlProbeAt) < max(5*time.Second, r.maxPollInterval) {
++			return advanced, false, nil
++		}
++		r.controlProbeAt = time.Now()
++		for _, suffix := range []string{errSuffix, endSuffix} {
++			marker := objectName(r.prefix, r.seq, suffix)
++			if _, markerErr := r.storage.Get(r.ctx, marker); markerErr == nil {
++				r.discard(marker)
++				if suffix == errSuffix {
++					return advanced, false, errors.New("the peer could not store segment ", r.seq)
++				}
++				return advanced, true, nil
++			} else if markerErr != errNotFound {
++				return advanced, false, markerErr
++			}
++		}
++		// Preserve missing-segment detection without an unbounded directory scan.
++		if next, nextErr := r.storage.Get(r.ctx, objectName(r.prefix, r.seq+1, segSuffix)); nextErr == nil && len(next) > 0 {
++			if r.holeSince.IsZero() {
++				r.holeSince = time.Now()
++			} else if time.Since(r.holeSince) >= r.holeTimeout {
++				return advanced, false, errors.New("segment ", r.seq, " never arrived while later ones did, the peer lost it")
++			}
++		} else if nextErr != nil && nextErr != errNotFound {
++			return advanced, false, nextErr
++		} else {
++			r.holeSince = time.Time{}
++		}
++		return advanced, false, nil
++	}
++	return advanced, false, nil
++}
++
++func (r *walReader) pollListed() (advanced, eof bool, err error) {
+ 	listed, err := r.storage.List(r.ctx, r.prefix)
+ 	if err != nil {
+ 		return false, false, err
+@@ -399,6 +471,12 @@
+ 		if failures[i] != nil {
+ 			return nil, failures[i]
+ 		}
++		// A WAL writer never emits an empty .seg. WebDAV may expose a new
++		// object before its PUT completes. Keep the sequence and retry; consuming
++		// an empty object silently drops bytes from the encrypted stream.
++		if len(chunks[i]) == 0 {
++			return nil, errNotFound
++		}
+ 	}
+ 	return chunks, nil
+ }
+--- a/transport/internet/xdrive/template_cleanup_test.go
++++ b/transport/internet/xdrive/template_cleanup_test.go
+@@ -0,0 +1,38 @@
++package xdrive
++
++import (
++	"context"
++	"testing"
++)
++
++func TestFlattenedSessionCleanupPreservesNeighbors(t *testing.T) {
++	store := newFakeStore(t)
++	settings := templateSettings(store, nil, nil)
++	s, err := newTemplateStorage(settings, settings.ProtocolSettings.(*Config))
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer s.Close()
++	ctx := context.Background()
++	names := []string{"streams/session/c2s/000000000.seg", "streams/session/s2c/000000001.end", "streams/session-extra/c2s/000000000.seg", "sessions/123-session"}
++	for _, n := range names {
++		if err := s.Put(ctx, n, []byte("data")); err != nil {
++			t.Fatal(err)
++		}
++	}
++	if err := s.Delete(ctx, "streams/session"); err != nil {
++		t.Fatal(err)
++	}
++	for i, n := range names {
++		_, err := s.Get(ctx, n)
++		if i < 2 && err != errNotFound {
++			t.Fatalf("stale object %s: %v", n, err)
++		}
++		if i >= 2 && err != nil {
++			t.Fatalf("neighbor removed %s: %v", n, err)
++		}
++	}
++	if err := s.Delete(ctx, "streams/session"); err != nil {
++		t.Fatalf("cleanup must be idempotent: %v", err)
++	}
++}
+--- a/transport/internet/xdrive/wal_visibility_test.go
++++ b/transport/internet/xdrive/wal_visibility_test.go
+@@ -0,0 +1,80 @@
++package xdrive
++
++import (
++	"bytes"
++	"context"
++	"testing"
++	"time"
++)
++
++type pendingPutStorage struct {
++	Storage
++	name    string
++	pending bool
++}
++
++func (s *pendingPutStorage) Get(ctx context.Context, n string) ([]byte, error) {
++	if n == s.name && s.pending {
++		s.pending = false
++		return []byte{}, nil
++	}
++	return s.Storage.Get(ctx, n)
++}
++func TestWALRetriesVisibleEmptySegmentWithoutLosingBytes(t *testing.T) {
++	ctx := context.Background()
++	base, err := newLocalStorage(t.TempDir())
++	if err != nil {
++		t.Fatal(err)
++	}
++	first := objectName("up", 0, segSuffix)
++	second := objectName("up", 1, segSuffix)
++	base.Put(ctx, first, []byte("encrypted record 2"))
++	base.Put(ctx, second, []byte("encrypted record 3"))
++	s := &pendingPutStorage{Storage: base, name: first, pending: true}
++	p := paramsFromConfig(&Config{Concurrency: 2})
++	r := &walReader{ctx: ctx, storage: s, prefix: "up", params: p, ch: make(chan []byte, 2), discards: make(chan string, 8)}
++	advanced, eof, err := r.poll()
++	if err != nil || advanced || eof || r.seq != 0 || len(r.ch) != 0 || len(r.discards) != 0 {
++		t.Fatalf("incomplete PUT consumed: advanced=%v eof=%v seq=%d queued=%d discards=%d err=%v", advanced, eof, r.seq, len(r.ch), len(r.discards), err)
++	}
++	advanced, eof, err = r.poll()
++	if err != nil || !advanced || eof || r.seq != 2 {
++		t.Fatalf("completed PUT not retried: advanced=%v eof=%v seq=%d err=%v", advanced, eof, r.seq, err)
++	}
++	if !bytes.Equal(<-r.ch, []byte("encrypted record 2")) || !bytes.Equal(<-r.ch, []byte("encrypted record 3")) {
++		t.Fatal("stream lost bytes or changed order")
++	}
++}
++
++type exactPendingStorage struct{ *pendingPutStorage }
++
++func (s *exactPendingStorage) directWALReads() bool { return true }
++func (s *exactPendingStorage) List(context.Context, string) ([]Entry, error) {
++	panic("exact reads must not enumerate the shared directory")
++}
++func TestExactWALRetriesEmptyAndPreservesEndMarker(t *testing.T) {
++	ctx := context.Background()
++	base, err := newLocalStorage(t.TempDir())
++	if err != nil {
++		t.Fatal(err)
++	}
++	first := objectName("up", 0, segSuffix)
++	base.Put(ctx, first, []byte("record"))
++	base.Put(ctx, objectName("up", 1, endSuffix), nil)
++	s := &exactPendingStorage{&pendingPutStorage{Storage: base, name: first, pending: true}}
++	p := paramsFromConfig(&Config{Concurrency: 2})
++	r := &walReader{ctx: ctx, storage: s, prefix: "up", params: p, ch: make(chan []byte, 2), discards: make(chan string, 8)}
++	advanced, eof, err := r.poll()
++	if err != nil || advanced || eof || r.seq != 0 || len(r.discards) != 0 {
++		t.Fatalf("empty object consumed: seq=%d error=%v", r.seq, err)
++	}
++	advanced, eof, err = r.poll()
++	if err != nil || !advanced || eof || r.seq != 1 || string(<-r.ch) != "record" {
++		t.Fatalf("stream lost: seq=%d advanced=%v eof=%v error=%v", r.seq, advanced, eof, err)
++	}
++	r.controlProbeAt = time.Now().Add(-6 * time.Second)
++	advanced, eof, err = r.poll()
++	if err != nil || advanced || !eof {
++		t.Fatalf("end marker lost: advanced=%v eof=%v err=%v", advanced, eof, err)
++	}
++}

@@ -24,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,12 +42,16 @@ import com.android.xrayfa.shared.config.NodeFormEditor
 import com.android.xrayfa.shared.config.NodeFormIssueKind
 import com.android.xrayfa.shared.config.NodeFormOptions
 import com.android.xrayfa.shared.config.advancedValue
+import com.android.xrayfa.shared.config.selectNetwork
 import com.android.xrayfa.shared.config.selectProtocol
 import com.android.xrayfa.shared.config.validationIssue
 import com.android.xrayfa.shared.ui.chrome.SharedListScaffold
 import com.android.xrayfa.shared.ui.chrome.SharedUnderlineTabBar
 import com.android.xrayfa.shared.ui.transitions.TransitionDestinations
 import com.android.xrayfa.shared.ui.transitions.sharedIcon
+import com.android.xrayfa.shared.resources.Res
+import com.android.xrayfa.shared.resources.xdrive_encryption
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SharedEditScreen(
@@ -60,40 +65,38 @@ fun SharedEditScreen(
     modifier: Modifier = Modifier,
     protocolChangeEnabled: Boolean = nodeId <= 0,
     labels: EditUiLabels = EditUiLabels(),
+    initialMuxSettings: String? = null,
+    initialPreNodeId: Int? = null,
 ) {
-    var form by remember(nodeId, protocol, initialContent, initialRemark) {
+    val formState = remember(nodeId, protocol, initialContent, initialRemark, initialMuxSettings, initialPreNodeId) {
         mutableStateOf(
             nodeFormEditor.parseForm(
                 protocol = protocol,
                 content = initialContent,
                 remark = initialRemark,
+                muxSettings = initialMuxSettings,
+                preNodeId = initialPreNodeId,
             ),
         )
     }
 
-    LaunchedEffect(nodeId, protocol, initialContent, initialRemark) {
-        form =
-            nodeFormEditor.parseForm(
-                protocol = protocol,
-                content = initialContent,
-                remark = initialRemark,
-            )
-    }
+    var form by formState
 
+    val allNodes by nodeFormEditor.availableNodes.collectAsState(initial = emptyList())
     val scrollState = rememberScrollState()
     val focusManager = LocalFocusManager.current
-    val protocolDrafts = remember(nodeId, protocol, initialContent, initialRemark) { mutableMapOf<Protocol, NodeEditForm>() }
+    val protocolDrafts = remember(nodeId, protocol, initialContent, initialRemark, initialMuxSettings, initialPreNodeId) { mutableMapOf<Protocol, NodeEditForm>() }
     var attemptedSave by remember(nodeId) { mutableStateOf(false) }
     var buildFailed by remember(form) { mutableStateOf(false) }
     var showAdvanced by remember(nodeId) { mutableStateOf(false) }
     var preview by remember { mutableStateOf<String?>(null) }
     val issue = if (attemptedSave) nodeFormEditor.validationIssue(form) else null
 
-    fun validateAndBuild(): Boolean {
+    fun validateAndBuild(snapshot: NodeEditForm): Boolean {
         focusManager.clearFocus()
         attemptedSave = true
-        if (nodeFormEditor.validationIssue(form) != null) return false
-        return runCatching { nodeFormEditor.previewOutbound(form) }
+        if (nodeFormEditor.validationIssue(snapshot) != null) return false
+        return runCatching { nodeFormEditor.validateForSave(snapshot) }
             .onFailure { buildFailed = true }.isSuccess
     }
 
@@ -137,7 +140,10 @@ fun SharedEditScreen(
         },
         actions = {
             IconButton(
-                onClick = { if (validateAndBuild()) onSave(form) },
+                onClick = {
+                    val snapshot = formState.value
+                    if (validateAndBuild(snapshot)) onSave(snapshot)
+                },
                 modifier = Modifier.size(48.dp),
             ) {
                 Icon(
@@ -159,7 +165,7 @@ fun SharedEditScreen(
                 onSelect = { selected ->
                     if (selected != form.selectedProtocol) {
                         protocolDrafts[form.selectedProtocol] = form
-                        form = protocolDrafts[selected]?.copy(remarks = form.remarks, address = form.address, port = form.port)
+                        form = protocolDrafts[selected]?.copy(remarks = form.remarks, address = form.address, port = form.port, preNodeId = form.preNodeId)
                             ?: form.selectProtocol(selected)
                         attemptedSave = false
                     }
@@ -202,6 +208,14 @@ fun SharedEditScreen(
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
             )
+            NodePreProxyPicker(
+                ownerId = nodeId,
+                selectedNodeId = form.preNodeId,
+                nodes = allNodes,
+                isXDrive = form.network == "xdrive",
+                noneLabel = labels.noneOptionLabel,
+                onSelected = { form = form.copy(preNodeId = it) },
+            )
             SharedEditTextField(form.remarks, { form = form.copy(remarks = it) }, labels.remarksLabel)
             SharedEditTextField(form.address, { form = form.copy(address = it) }, labels.addressLabel, isError = issue?.field == "address")
             SharedEditTextField(
@@ -225,13 +239,13 @@ fun SharedEditScreen(
                     SharedEditTextField(
                         form.vlessEncryption,
                         { form = form.copy(vlessEncryption = it) },
-                        labels.encryptionLabel,
+                        if (form.network == "xdrive") stringResource(Res.string.xdrive_encryption) else labels.encryptionLabel,
                     )
                     SharedEditDropdownField(
                         form.flow,
                         { form = form.copy(flow = it) },
                         labels.flowLabel,
-                        listOf("", "xtls-rprx-vision", "xtls-rprx-vision-udp443"),
+                        if (form.network == "xdrive") listOf("") else listOf("", "xtls-rprx-vision", "xtls-rprx-vision-udp443"),
                         noneOptionLabel = labels.noneOptionLabel,
                     )
                 }
@@ -309,11 +323,15 @@ fun SharedEditScreen(
                 )
                 SharedEditDropdownField(
                     form.network,
-                    { form = form.copy(network = it, advancedParams = form.advancedParams + mapOf("mode" to if (it == "xhttp") "auto" else "", "headerType" to "none")) },
+                    { form = form.selectNetwork(it) },
                     labels.networkLabel,
-                    NodeFormOptions.networks,
+                    NodeFormOptions.networks(form.selectedProtocol),
                     noneOptionLabel = labels.noneOptionLabel,
                 )
+
+                if (form.network == "xdrive") {
+                    XDriveEditorFields(form.xdrive, { form = form.copy(xdrive = it) }, enabled = true)
+                }
 
                 if (form.network in setOf("ws", "websocket", "xhttp", "splithttp", "httpupgrade") ||
                     (form.network in setOf("raw", "tcp") && form.advancedValue("headerType") == "http")) {
@@ -354,7 +372,7 @@ fun SharedEditScreen(
                 }
             }
             val advancedKeys = NodeFormOptions.advancedKeys(form)
-            if (advancedKeys.isNotEmpty()) {
+            if (advancedKeys.isNotEmpty() || form.selectedProtocol != Protocol.HYSTERIA2 || form.mux != null) {
                 HorizontalDivider()
                 TextButton(onClick = { showAdvanced = !showAdvanced }, modifier = Modifier.fillMaxWidth()) {
                     Text(if (showAdvanced) labels.hideAdvancedLabel else labels.advancedLabel)
@@ -387,10 +405,12 @@ fun SharedEditScreen(
                             )
                         }
                     }
+                    MuxEditorFields(form, { form = it }, issue?.field)
                 }
             }
-            TextButton(onClick = {
-                if (validateAndBuild()) preview = nodeFormEditor.previewOutbound(form)
+            if (form.network != "xdrive") TextButton(onClick = {
+                val snapshot = formState.value
+                if (validateAndBuild(snapshot)) preview = nodeFormEditor.previewOutbound(snapshot)
             }, modifier = Modifier.fillMaxWidth()) { Text(labels.previewLabel) }
         }
     }

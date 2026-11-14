@@ -36,7 +36,6 @@
 ## 기능
 
 - **노드 및 구독 관리**: 노드 링크 가져오기, 구독 추가·관리·업데이트.
-- **다양한 프로토콜**: VLESS, VMess, Shadowsocks, Trojan, Hysteria2, SOCKS, HTTP 프록시 링크.
 - **가져오기 방식**: 클립보드, QR 코드, 전체 Xray JSON 구성.
 - **연결 상태 및 트래픽**: VPN 상태와 업로드·다운로드 속도 표시.
 - **라우팅 및 DNS**: 라우팅, DNS와 관련 네트워크 옵션 설정.
@@ -63,6 +62,13 @@
 4. 연결 상태와 트래픽을 확인하고 필요한 경우 라우팅 및 DNS를 조정합니다.
 
 전체 Xray JSON 구성을 사용하면 노드 링크 공유, 지연 시간 테스트 및 일부 트래픽 통계에 제한이 있습니다.
+
+## 지원 프로토콜 및 전송 방식
+
+| 구분 | 지원 항목 |
+| --- | --- |
+| 프록시 프로토콜 | VLESS, VMess, Shadowsocks, Trojan, Hysteria2, SOCKS, HTTP |
+| 네트워크 전송 방식 | RAW (TCP), XHTTP, WebSocket (WS), gRPC, HTTPUpgrade, KCP, XDRIVE (VLESS) |
 
 ## 기술 및 빌드 시스템
 

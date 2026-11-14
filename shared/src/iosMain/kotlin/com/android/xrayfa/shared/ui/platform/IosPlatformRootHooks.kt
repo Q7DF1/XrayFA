@@ -18,9 +18,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.android.xrayfa.common.utils.ShareLinkCleaner
+import com.android.xrayfa.model.configurationShareLink
 import com.android.xrayfa.model.Node
+import com.android.xrayfa.model.isManagedXDrive
 import com.android.xrayfa.model.isJsonConfig
+import com.android.xrayfa.model.canShareConfiguration
 import com.android.xrayfa.shared.navigation.HomeComponent
 import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.platform.ClipboardWriter
@@ -121,11 +123,11 @@ object IosPlatformRootHooks : PlatformRootHooks {
         node: Node,
         onDismiss: () -> Unit,
     ) {
-        if (node.isJsonConfig) return
+        if (!node.canShareConfiguration) return
 
         val labels = rememberConfigUiLabels()
         val clipboardWriter = remember { KoinPlatform.getKoin().get<ClipboardWriter>() }
-        val shareUrl = remember(node.url) { ShareLinkCleaner.cleanUrlForSharing(node.url) }
+        val shareUrl = remember(node) { node.configurationShareLink() } ?: return
         val qrBitmap = remember(shareUrl) { encodeQrImageBitmap(shareUrl) }
         Dialog(onDismissRequest = onDismiss) {
             Surface(
@@ -143,6 +145,11 @@ object IosPlatformRootHooks : PlatformRootHooks {
                             contentDescription = labels.shareLabel,
                             modifier = Modifier.size(250.dp),
                         )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                    if (node.isManagedXDrive) {
+                        Text(stringResource(Res.string.xdrive_no_sharing),
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                     Button(

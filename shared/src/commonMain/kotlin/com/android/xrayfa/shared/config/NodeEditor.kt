@@ -63,6 +63,8 @@ class NodeEditor(
                 isPreNode = existing.isPreNode,
                 isNextNode = existing.isNextNode,
                 subscriptionId = existing.subscriptionId,
+                muxSettings = existing.muxSettings,
+                preNodeId = existing.preNodeId,
             )
 
         nodeRepository.deleteLinkById(existing.id)

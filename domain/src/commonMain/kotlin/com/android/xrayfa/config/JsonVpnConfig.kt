@@ -3,7 +3,7 @@ package com.android.xrayfa.config
 import com.android.xrayfa.common.config.DnsDefaults
 import kotlinx.serialization.json.*
 
-enum class JsonConfigError { INVALID_JSON, TOO_LARGE, INVALID_CONFIG, DUPLICATE_KEY, TOO_DEEP, INBOUND_REQUIRED, CONFLICT, EXTERNAL_FILE }
+enum class JsonConfigError { INVALID_JSON, TOO_LARGE, INVALID_CONFIG, DUPLICATE_KEY, TOO_DEEP, INBOUND_REQUIRED, CONFLICT, EXTERNAL_FILE, XDRIVE_SETUP_REQUIRED }
 class JsonConfigException(val reason: JsonConfigError) : IllegalArgumentException(reason.name)
 
 data class JsonVpnTransport(
@@ -170,7 +170,17 @@ object JsonVpnConfig {
         }
         val runtimeDns = sourceDns.toMutableMap()
         runtimeDns["hosts"] = dnsHosts
-        runtimeDns["servers"] = JsonArray(dnsServers.map { JsonPrimitive(it) })
+        // Storage transports can take several seconds even for a healthy round trip.
+        // The core's default four-second DNS timeout expires during their handshake.
+        val usesXDrive = (source["outbounds"] as JsonArray).any {
+            ((it as? JsonObject)?.get("streamSettings") as? JsonObject)?.string("network") == "xdrive"
+        }
+        runtimeDns["servers"] = JsonArray(dnsServers.map { address ->
+            if (usesXDrive) buildJsonObject {
+                put("address", address)
+                put("timeoutMs", 30_000)
+            } else JsonPrimitive(address)
+        })
         if (runtimeDns["queryStrategy"] == null) {
             runtimeDns["queryStrategy"] = JsonPrimitive(if (transport.ipV6Enabled) "UseIP" else "UseIPv4")
         }

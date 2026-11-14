@@ -26,10 +26,14 @@ class DelayProbe(
     private val measureLive: (testUrl: String) -> Long,
     private val parseConfig: suspend (nodeUrl: String) -> String,
     private val measureOutbound: (config: String, testUrl: String) -> Long,
+    private val parseNodeConfig: (suspend (String, String?) -> String)? = null,
+    private val parseStartOptions: (suspend (CoreStartOptions) -> String)? = null,
 ) {
     suspend fun measureHome(
         testUrl: String,
         selectedNodeUrl: String?,
+        muxSettings: String? = null,
+        startOptions: CoreStartOptions? = null,
     ): Long {
         val live =
             try {
@@ -40,15 +44,21 @@ class DelayProbe(
             }
         if (live > 0L) return live
         val nodeUrl = selectedNodeUrl ?: return DelayMeasurement.TIMEOUT_SENTINEL
-        return measureNode(nodeUrl, testUrl)
+        return measureNode(nodeUrl, testUrl, muxSettings, startOptions)
     }
 
     suspend fun measureNode(
         nodeUrl: String,
         testUrl: String,
+        muxSettings: String? = null,
+        startOptions: CoreStartOptions? = null,
     ): Long {
         return try {
-            val config = parseConfig(nodeUrl)
+            val config = if (startOptions != null) {
+                requireNotNull(parseStartOptions).invoke(startOptions)
+            } else {
+                parseNodeConfig?.invoke(nodeUrl, muxSettings) ?: parseConfig(nodeUrl)
+            }
             mapNativeDelayResult(measureOutbound(config, testUrl))
         } catch (e: Exception) {
             if (e is CancellationException) throw e

@@ -18,6 +18,8 @@ import com.android.xrayfa.shared.config.NodeEditForm
 import com.android.xrayfa.shared.config.NodeEditor
 import com.android.xrayfa.shared.config.NodeFormEditor
 import com.android.xrayfa.shared.vpn.createDelayProbe
+import com.android.xrayfa.shared.vpn.measureNodeWithOptions
+import com.android.xrayfa.shared.vpn.VpnStartOptionsResolver
 import com.android.xrayfa.vpn.VpnController
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
@@ -50,6 +52,7 @@ class DefaultConfigComponent(
     ComponentContext by componentContext {
     private val scope = coroutineScope()
     private val delayProbe: DelayProbe = createDelayProbe(xrayCore, parserFactory)
+    private val startOptionsResolver = VpnStartOptionsResolver(nodeRepository, subscriptionRepository, parserFactory)
     private val configMutex = kotlinx.coroutines.sync.Mutex()
 
     private val _state = MutableValue(ConfigState())
@@ -177,8 +180,12 @@ class DefaultConfigComponent(
         onDone: (Boolean) -> Unit,
     ) {
         scope.launch {
-            val success = nodeFormEditor.saveForm(nodeId, form)
-            onDone(success)
+            configMutex.lock()
+            try {
+                val success = nodeFormEditor.saveForm(nodeId, form)
+                if (!success) _state.update { it.copy(configError = nodeFormEditor.lastSaveError ?: "INVALID_CONFIG") }
+                onDone(success)
+            } finally { configMutex.unlock() }
         }
     }
 
@@ -259,7 +266,7 @@ class DefaultConfigComponent(
                                     it.copy(nodeDelayMap = it.nodeDelayMap + (node.id to DelayMeasurement.TESTING_SENTINEL))
                                 }
                                 val delay = withContext(Dispatchers.IO) {
-                                    delayProbe.measureNode(node.url, testUrl)
+                                    delayProbe.measureNodeWithOptions(node, testUrl, startOptionsResolver)
                                 }
                                 // A subscription refresh may have removed this node while testing.
                                 if (node.id in nodeIdsCache) {

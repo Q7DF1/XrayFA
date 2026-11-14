@@ -50,6 +50,7 @@ val appComponentDiModule: Module = module {
             notificationHelper = get(),
             nodeRepository = get(),
             startupStateStore = get(),
+            startOptionsResolver = get(),
         )
     }
     factory {

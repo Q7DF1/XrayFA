@@ -27,6 +27,9 @@ fun jsonConfigErrorText(reason: String): String = stringResource(when (reason) {
     "CONFLICT" -> Res.string.json_config_conflict
     "EXTERNAL_FILE" -> Res.string.json_config_external_file
     "READ" -> Res.string.json_config_read_error
+    "XDRIVE_SETUP_REQUIRED" -> Res.string.xdrive_setup_required
+    "PRE_NODE_INVALID", "PRE_NODE_UNAVAILABLE" -> Res.string.node_pre_error
+    "XDRIVE_CHAIN" -> Res.string.xdrive_chain_error
     else -> Res.string.json_config_invalid
 })
 

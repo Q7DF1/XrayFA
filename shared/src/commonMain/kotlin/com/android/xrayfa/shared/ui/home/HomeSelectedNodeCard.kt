@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.isJsonConfig
+import com.android.xrayfa.model.isManagedXDrive
 import com.android.xrayfa.shared.resources.*
 import org.jetbrains.compose.resources.stringResource
 import com.android.xrayfa.model.protocol.protocolPrefixMap
@@ -104,7 +105,7 @@ fun HomeSelectedNodeCard(
                 ) {
                     Text(
                         text =
-                            if (node.isJsonConfig) stringResource(Res.string.json_config_title) else protocolPrefixMap[node.protocolPrefix]?.protocolType
+                            if (node.isManagedXDrive) "vless · xdrive" else if (node.isJsonConfig) stringResource(Res.string.json_config_title) else protocolPrefixMap[node.protocolPrefix]?.protocolType
                                 ?: unknownProtocolLabel,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

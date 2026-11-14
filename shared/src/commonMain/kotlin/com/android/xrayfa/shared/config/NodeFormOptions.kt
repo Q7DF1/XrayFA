@@ -6,6 +6,7 @@ import com.android.xrayfa.parser.optionalString
 /** Options implemented by the share-link parsers and the pinned Xray-core. */
 object NodeFormOptions {
     val networks = listOf("raw", "xhttp", "ws", "grpc", "httpupgrade", "kcp")
+    fun networks(protocol: Protocol): List<String> = networks + if (protocol == Protocol.VLESS) listOf("xdrive") else emptyList()
     val methods = listOf(
         "aes-256-gcm", "aes-128-gcm", "chacha20-ietf-poly1305", "xchacha20-ietf-poly1305",
         "2022-blake3-aes-128-gcm", "2022-blake3-aes-256-gcm", "2022-blake3-chacha20-poly1305",
@@ -84,7 +85,42 @@ fun NodeEditForm.advancedValue(key: String): String {
 fun NodeEditForm.selectProtocol(protocol: Protocol): NodeEditForm = NodeEditForm(
     selectedProtocol = protocol,
     remarks = remarks,
+    preNodeId = preNodeId,
     address = address,
     port = port,
     transportSecurity = if (protocol in setOf(Protocol.VLESS, Protocol.TROJAN, Protocol.HYSTERIA2)) "tls" else "none",
 )
+
+/** Common VLESS/TLS controls and inline storage controls build one local configuration. */
+fun NodeEditForm.xdriveForm() = xdrive.copy(
+    id = uuidOrPassword, encryption = vlessEncryption, flow = flow,
+    address = address, port = port.toIntOrNull() ?: 0,
+    security = transportSecurity, serverName = sni, fingerprint = fingerprint,
+    alpn = advancedValue("alpn"), pinnedPeerCertSha256 = advancedValue("pcs"),
+    verifyPeerCertByName = advancedValue("vcn"), echConfigList = advancedValue("ech"),
+    muxOverride = mux?.toConfig(),
+)
+
+/** Apply transport requirements when the user explicitly selects a new network. */
+fun NodeEditForm.selectNetwork(value: String): NodeEditForm {
+    val network = NodeFormOptions.canonicalNetwork(value)
+    val configuredMux = when (network) {
+        "xhttp" -> null
+        "xdrive" -> (mux ?: NodeMuxForm()).let {
+            it.copy(
+                concurrency = if ((it.concurrency.toIntOrNull() ?: 0) < 0) "8" else it.concurrency,
+                xudpConcurrency = if ((it.xudpConcurrency.toIntOrNull() ?: 0) < 0) "8" else it.xudpConcurrency,
+                udp443 = if (it.udp443 == "skip") "reject" else it.udp443,
+            )
+        }
+        else -> mux
+    }
+    return copy(
+        network = network,
+        address = if (network == "xdrive" && address.isBlank()) "127.0.0.1" else address,
+        port = if (network == "xdrive" && port.isBlank()) "443" else port,
+        flow = if (network == "xdrive") "" else flow,
+        mux = configuredMux,
+        advancedParams = advancedParams + mapOf("mode" to if (network == "xhttp") "auto" else "", "headerType" to "none"),
+    )
+}

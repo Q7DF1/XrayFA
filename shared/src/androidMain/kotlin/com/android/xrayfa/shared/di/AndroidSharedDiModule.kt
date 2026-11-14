@@ -18,7 +18,7 @@ val androidSharedDiModule: Module =
         single<ClipboardReader> { AndroidClipboardReader(androidContext()) }
         single<ClipboardWriter> { AndroidClipboardWriter(androidContext()) }
         single<AppMetadataProvider> { AndroidAppMetadataProvider(androidContext()) }
-        single { VpnStartOptionsResolver(get(), get()) }
+        single { VpnStartOptionsResolver(get(), get(), get()) }
         single<VpnConnectCoordinator> {
             AndroidVpnConnectCoordinator(
                 vpnController = get(),

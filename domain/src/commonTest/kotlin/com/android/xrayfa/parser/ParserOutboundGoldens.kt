@@ -44,12 +44,6 @@ internal object ParserOutboundGoldens {
                 "type": "none"
             }
         }
-    },
-    "mux": {
-        "enabled": false,
-        "concurrency": -1,
-        "xudpConcurrency": 8,
-        "xudpProxyUDP443": ""
     }
 }
 """

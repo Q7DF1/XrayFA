@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.android.xrayfa.common.core.homeDelayTestEnabled
 import com.android.xrayfa.model.isJsonConfig
+import com.android.xrayfa.model.isManagedXDrive
 import com.android.xrayfa.shared.navigation.HomeState
 import com.android.xrayfa.shared.resources.*
 import kotlin.math.roundToInt
@@ -205,7 +206,7 @@ private fun HomeSessionBundleCard(
                 .padding(horizontal = 12.dp, vertical = 8.dp),
     ) {
         if (state.selectedNode?.isJsonConfig == true) {
-            Text(stringResource(Res.string.json_config_stats_unavailable), Modifier.padding(16.dp))
+            Text(stringResource(if (state.selectedNode?.isManagedXDrive == true) Res.string.xdrive_stats_unavailable else Res.string.json_config_stats_unavailable), Modifier.padding(16.dp))
         } else {
             HomeTrafficStatusCard(
                 isConnected = state.isConnected,

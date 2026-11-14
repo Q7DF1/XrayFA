@@ -19,6 +19,8 @@ fun NodeEntity.toDomain(): Node = Node(
     jsonData = jsonData,
     url = url,
     countryISO = countryISO,
+    muxSettings = muxSettings,
+    preNodeId = preNodeId,
 )
 
 fun Node.toEntity(): NodeEntity = NodeEntity(
@@ -35,6 +37,8 @@ fun Node.toEntity(): NodeEntity = NodeEntity(
     jsonData = jsonData,
     url = url,
     countryISO = countryISO,
+    muxSettings = muxSettings,
+    preNodeId = preNodeId,
 )
 
 fun SubscriptionEntity.toDomain(): Subscription = Subscription(

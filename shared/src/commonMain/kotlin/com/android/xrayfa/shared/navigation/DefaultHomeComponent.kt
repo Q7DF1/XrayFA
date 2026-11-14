@@ -16,6 +16,8 @@ import com.android.xrayfa.shared.vpn.EmptyTrafficStatsSource
 import com.android.xrayfa.shared.vpn.TrafficStatsSource
 import com.android.xrayfa.shared.vpn.VpnConnectCoordinator
 import com.android.xrayfa.shared.vpn.createDelayProbe
+import com.android.xrayfa.shared.vpn.VpnStartOptionsResolver
+import kotlinx.coroutines.CancellationException
 import com.android.xrayfa.vpn.VpnController
 import com.android.xrayfa.vpn.isConnected
 import com.arkivanov.decompose.ComponentContext
@@ -38,6 +40,7 @@ class DefaultHomeComponent(
     private val settingsRepository: SettingsRepository,
     xrayCore: XrayCore,
     parserFactory: ParserFactory,
+    private val startOptionsResolver: VpnStartOptionsResolver,
 ) : HomeComponent,
     ComponentContext by componentContext {
     private val scope = coroutineScope()
@@ -122,7 +125,7 @@ class DefaultHomeComponent(
                     _state.update { it.copy(startupFailure = null) }
                 }
             } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
+                if (e is CancellationException) throw e
                 _state.update { it.copy(startupFailure = classifyStartupFailure(e, StartupStage.CONFIGURATION)) }
             } finally {
                 _state.update { it.copy(busy = false) }
@@ -146,7 +149,7 @@ class DefaultHomeComponent(
             try {
                 vpnController.restartIfNeeded()
             } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
+                if (e is CancellationException) throw e
                 _state.update { it.copy(startupFailure = classifyStartupFailure(e, StartupStage.CONFIGURATION)) }
             } finally {
                 _state.update { it.copy(busy = false) }
@@ -165,7 +168,7 @@ class DefaultHomeComponent(
                     ?: VpnStartupFailure(StartupFailureKind.GEODATA_INVALID, StartupStage.GEODATA,
                         "Bundled geodata could not be restored")) }
             } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
+                if (e is CancellationException) throw e
                 _state.update { it.copy(startupFailure = classifyStartupFailure(e, StartupStage.GEODATA)) }
             } finally {
                 _state.update { it.copy(busy = false) }
@@ -184,7 +187,14 @@ class DefaultHomeComponent(
             val result =
                 withTimeoutOrNull(DelayMeasurement.HOME_TIMEOUT_MS) {
                     withContext(Dispatchers.Default) {
-                        delayProbe.measureHome(testUrl, snapshot.selectedNode?.url)
+                        try {
+                            val options = snapshot.selectedNode?.takeUnless { it.isJsonConfig }
+                                ?.let { startOptionsResolver.resolveNode(it) }
+                            delayProbe.measureHome(testUrl, snapshot.selectedNode?.url, snapshot.selectedNode?.muxSettings, options)
+                        } catch (e: Exception) {
+                            if (e is CancellationException) throw e
+                            DelayMeasurement.TIMEOUT_SENTINEL
+                        }
                     }
                 } ?: DelayMeasurement.TIMEOUT_SENTINEL
             _state.update { it.copy(testing = false, delayMs = result) }

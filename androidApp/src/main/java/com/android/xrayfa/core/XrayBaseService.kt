@@ -25,6 +25,7 @@ import com.android.xrayfa.common.core.classifyStartupFailure
 import com.android.xrayfa.common.routing.RoutingMode
 import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.model.isJsonConfig
+import com.android.xrayfa.shared.vpn.VpnStartOptionsResolver
 import com.android.xrayfa.shared.vpn.prepareJsonVpn
 import com.android.xrayfa.config.JsonVpnConfig
 import com.android.xrayfa.datastore.SettingsRepository
@@ -51,6 +52,7 @@ class XrayBaseService constructor(
     private val notificationHelper: NotificationHelper,
     private val nodeRepository: NodeRepository,
     private val startupStateStore: VpnStartupStateStore,
+    private val startOptionsResolver: VpnStartOptionsResolver,
 ): VpnService(){
 
     companion object {
@@ -260,7 +262,9 @@ class XrayBaseService constructor(
         if (options.jsonNodeId <= 0) return options.toCoreStartOptions()
         val node = nodeRepository.loadLinksById(options.jsonNodeId).first() ?: error("JSON_CONFIG_ERROR")
         check(node.isJsonConfig)
-        return CoreStartOptions(url = node.url, jsonConfig = prepareJsonVpn(node, settingsRepo.settingsFlow.first()))
+        val resolved = startOptionsResolver.resolveNode(node)
+        val settings = settingsRepo.settingsFlow.first()
+        return resolved.copy(jsonConfig = prepareJsonVpn(node, settings, resolved.jsonConfig))
     }
 
     private suspend fun startXrayCoreService(startOptions: StartOptions, prepared: CoreStartOptions? = null,
