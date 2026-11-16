@@ -45,3 +45,8 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Local XDRIVE acceptance credentials and raw runtime captures
+/debug-xdirve/
+/docs/plans/
+**/__pycache__/

@@ -17,5 +17,6 @@ fun defaultHomeComponentFactory(): HomeComponentFactory =
             settingsRepository = koin.get(),
             xrayCore = koin.get(),
             parserFactory = koin.get(),
+            startOptionsResolver = koin.get(),
         )
     }

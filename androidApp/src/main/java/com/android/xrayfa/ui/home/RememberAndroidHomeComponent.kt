@@ -35,6 +35,7 @@ fun rememberAndroidHomeComponent(): HomeComponent {
             settingsRepository = koin.get(),
             xrayCore = koin.get(),
             parserFactory = koin.get(),
+            startOptionsResolver = koin.get(),
         )
     }
 }

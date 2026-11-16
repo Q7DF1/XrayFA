@@ -181,12 +181,6 @@ internal const val VLESS_FULL_CONFIG_GOLDEN = """
                         "type": "none"
                     }
                 }
-            },
-            "mux": {
-                "enabled": false,
-                "concurrency": -1,
-                "xudpConcurrency": 8,
-                "xudpProxyUDP443": ""
             }
         },
         {

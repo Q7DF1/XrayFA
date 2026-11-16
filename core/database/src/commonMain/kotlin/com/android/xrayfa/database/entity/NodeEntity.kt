@@ -26,4 +26,7 @@ data class NodeEntity(
     val jsonData: String? = null,
     val url: String,
     val countryISO: String = "",
+    val muxSettings: String? = null,
+    // null uses the default (subscription for ordinary nodes); -1 disables it; positive IDs select a hop.
+    val preNodeId: Int? = null,
 )

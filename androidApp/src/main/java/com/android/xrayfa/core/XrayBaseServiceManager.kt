@@ -13,12 +13,12 @@ import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.model.isJsonConfig
 import com.android.xrayfa.datastore.SettingsRepository
 import com.android.xrayfa.shared.vpn.prepareJsonVpn
-import com.android.xrayfa.repository.SubscriptionRepository
+import com.android.xrayfa.shared.vpn.VpnStartOptionsResolver
 import kotlinx.coroutines.flow.first
 
 class XrayBaseServiceManager(
     val repository: NodeRepository,
-    val subscriptionRepository: SubscriptionRepository,
+    private val startOptionsResolver: VpnStartOptionsResolver,
     val trafficDetector: TrafficDetector,
     val context: Context,
     val settingsRepository: SettingsRepository,
@@ -35,8 +35,9 @@ class XrayBaseServiceManager(
     suspend fun getConfigInformation(): StartOptions? {
 
         val node = repository.querySelectedNode().first() ?: return null
+        val resolved = startOptionsResolver.resolveNode(node)
         if (node.isJsonConfig) {
-            prepareJsonVpn(node, settingsRepository.settingsFlow.first())
+            prepareJsonVpn(node, settingsRepository.settingsFlow.first(), resolved.jsonConfig)
             return StartOptions(
                 url = node.url,
                 jsonNodeId = node.id,
@@ -45,23 +46,19 @@ class XrayBaseServiceManager(
             )
         }
         val startOption = StartOptions(
-            url = node.url,
+            url = resolved.url,
             selectedNodeId = node.id,
             nodeName = node.remark,
             serverAddress = node.address,
             serverPort = node.port,
+            preUrl = resolved.preUrl,
+            nextUrl = resolved.nextUrl,
+            muxSettings = resolved.muxSettings,
+            preMuxSettings = resolved.preMuxSettings,
+            nextMuxSettings = resolved.nextMuxSettings,
         )
-        val subId = node.subscriptionId
-        val subscription = subscriptionRepository.getSubscriptionById(subId).first()
-        subscription?.preNodeId?.let {
-            val node = repository.loadLinksById(it).first()
-            startOption.preUrl = node?.takeUnless { it.isJsonConfig }?.url
-        }
-        subscription?.nextNodeId?.let {
-            val node = repository.loadLinksById(it).first()
-            startOption.nextUrl = node?.takeUnless { it.isJsonConfig }?.url
-        }
-        Log.d(TAG, "getConfigInformation: node selected, chained=${startOption.preUrl != null || startOption.nextUrl != null}")
+        val usesProxyChain = startOption.preUrl != null || startOption.nextUrl != null
+        Log.d(TAG, "getConfigInformation: node selected, chained=$usesProxyChain")
         return startOption
     }
     suspend fun startXrayBaseService(): Boolean {

@@ -43,6 +43,13 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
     }
 }
 
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE Node ADD COLUMN muxSettings TEXT")
+        db.execSQL("ALTER TABLE Node ADD COLUMN preNodeId INTEGER")
+    }
+}
+
 val MIGRATION_4_5 = object : Migration(4, 5) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("CREATE INDEX IF NOT EXISTS index_Node_subscriptionId ON Node(subscriptionId)")

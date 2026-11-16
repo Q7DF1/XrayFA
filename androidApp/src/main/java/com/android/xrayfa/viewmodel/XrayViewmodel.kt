@@ -13,6 +13,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.android.xrayfa.dto.ParseLinkInput
 import com.android.xrayfa.model.Node
+import com.android.xrayfa.model.configurationShareLink
+import com.android.xrayfa.model.canShareConfiguration
 import com.android.xrayfa.model.protocol.protocolsPrefix
 import com.android.xrayfa.parser.ParserFactory
 import com.android.xrayfa.common.core.XrayCore
@@ -46,7 +48,7 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import com.android.xrayfa.repository.SubscriptionRepository
-import com.android.xrayfa.common.core.CoreStartOptions
+import com.android.xrayfa.shared.vpn.VpnStartOptionsResolver
 import com.android.xrayfa.model.Subscription
 import com.android.xrayfa.model.BugReportData
 import com.android.xrayfa.ui.navigation.NavigateDestination
@@ -54,7 +56,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 
-import com.android.xrayfa.utils.LinkUtils
 
 class XrayViewmodel(
     private val repository: NodeRepository,
@@ -65,6 +66,8 @@ class XrayViewmodel(
     private val parserFactory: ParserFactory,
     private val subscriptionParser: SubscriptionParser
 ): ViewModel(){
+
+    private val startOptionsResolver = VpnStartOptionsResolver(repository, subscriptionRepository, parserFactory)
 
     companion object {
         const val TAG = "XrayViewmodel"
@@ -258,7 +261,9 @@ class XrayViewmodel(
         return sanitized
     }
 
-    var shareUrl = ""
+    private var shareUrl = ""
+    private var shareNodeId: Int? = null
+    private var shareJob: Job? = null
 
 
     init {
@@ -422,23 +427,35 @@ class XrayViewmodel(
 
     //barcode
     fun generateQRCode(id: Int) {
-        viewModelScope.launch {
-            val node = repository.loadLinksById(id).first()
-            shareUrl = LinkUtils.cleanUrlForSharing(node?.url ?: "")
+        dismissDialog()
+        shareNodeId = id
+        shareJob = viewModelScope.launch {
+            val node = repository.loadLinksById(id).first() ?: return@launch
+            if (!node.canShareConfiguration || shareNodeId != id) return@launch
+            shareUrl = node.configurationShareLink() ?: return@launch
             val bitmap = BarcodeUtils.encodeBitmap(shareUrl, BarcodeFormat.QR_CODE,400,400)
             _qrcodeBitmap.value = bitmap
         }
     }
     //export clipboard
-    fun exportConfigToClipboard(context: Context) {
-        if (shareUrl == "") {
-            return
+    fun exportConfigToClipboard(context: Context, onDone: () -> Unit = {}) {
+        val id = shareNodeId ?: return
+        val url = shareUrl.takeIf(String::isNotEmpty) ?: return
+        viewModelScope.launch {
+            // Recheck persistence at export time; a previously opened dialog is not authorization
+            // to export a record that was deleted, changed, or replaced with a JSON profile.
+            val node = repository.loadLinksById(id).first()
+            if (shareNodeId != id || shareUrl != url) return@launch
+            if (node == null || !node.canShareConfiguration || node.configurationShareLink() != url) {
+                dismissDialog()
+                onDone()
+                return@launch
+            }
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText("label", url))
+            dismissDialog()
+            onDone()
         }
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-
-        val clip = ClipData.newPlainText("label", shareUrl)
-        clipboard.setPrimaryClip(clip)
-        shareUrl = ""
     }
 
     //delete dialog
@@ -475,6 +492,10 @@ class XrayViewmodel(
     }
 
     fun dismissDialog() {
+        shareJob?.cancel()
+        shareJob = null
+        shareNodeId = null
+        shareUrl = ""
         _qrcodeBitmap.value = null
     }
 
@@ -538,7 +559,7 @@ class XrayViewmodel(
                         updateNodeDelay(node.id, -1L)
                         
                         val delay = try {
-                            val config = parserFactory.getParser(node.url).parse(CoreStartOptions(node.url))
+                            val config = parserFactory.getParser(node.url).parse(startOptionsResolver.resolveNode(node))
                             val res = xrayCore.measureOutboundDelay(config, url)
                             if (res <= 0L) -2L else res
                         } catch (e: Exception) {

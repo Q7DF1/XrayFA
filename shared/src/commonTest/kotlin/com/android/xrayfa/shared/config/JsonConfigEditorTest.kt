@@ -51,7 +51,7 @@ class JsonConfigEditorTest {
         val after = link(3).copy(selected = false, url = "socks://after:1080")
         val repo = MemoryNodes(listOf(selected, before, after))
         val subs = MemorySubscriptions(Subscription(id = 10, url = "https://example.org", mark = "test", preNodeId = 2, nextNodeId = 3, isAutoUpdate = false))
-        val resolver = VpnStartOptionsResolver(repo, subs)
+        val resolver = VpnStartOptionsResolver(repo, subs, testParserFactory())
         val normal = resolver.resolve()!!
         assertEquals(before.url, normal.preUrl)
         assertEquals(after.url, normal.nextUrl)

@@ -81,6 +81,20 @@ class DelayProbeTest {
     }
 
     @Test
+    fun homeFallbackAndNodeTestsPassLocalMuxToTheParser() = runTestBlocking {
+        val received = mutableListOf<String?>()
+        val probe = DelayProbe(
+            measureLive = { -1L },
+            parseConfig = { error("Node-aware parsing should be used") },
+            measureOutbound = { config, _ -> assertEquals("configured", config); 12L },
+            parseNodeConfig = { url, mux -> assertEquals("vless://node", url); received += mux; "configured" },
+        )
+        assertEquals(12L, probe.measureHome("https://test", "vless://node", "home-mux"))
+        assertEquals(12L, probe.measureNode("vless://node", "https://test", "node-mux"))
+        assertEquals(listOf<String?>("home-mux", "node-mux"), received)
+    }
+
+    @Test
     fun node_parseFailureIsTimeout() = runTestBlocking {
         val probe =
             DelayProbe(

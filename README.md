@@ -36,7 +36,6 @@ English · [简体中文](docs/README_zh-CN.md) · [Русский](docs/README_
 ## Features
 
 - **Nodes and subscriptions**: Import node links; add, manage, and update subscriptions.
-- **Multiple protocols**: VLESS, VMess, Shadowsocks, Trojan, Hysteria2, SOCKS, and HTTP proxy links.
 - **Import options**: Clipboard, QR codes, and complete Xray JSON configurations.
 - **Connection and traffic display**: VPN status and upload/download speeds.
 - **Routing and DNS**: Configure routing, DNS, and related network options.
@@ -67,6 +66,13 @@ The **Home screen widget** switch in Settings → General controls whether XrayF
 To add the Android widget, long-press the home screen, open Widgets, and select XrayFA. Resize it for a compact switch or an expanded connection card; the switch controls the VPN and “Switch” opens the node list. The first connection requests VPN permission when needed.
 
 Complete Xray JSON configurations have limitations for node-link sharing, latency tests, and some traffic statistics.
+
+## Supported protocols and transports
+
+| Type | Supported |
+| --- | --- |
+| Proxy protocols | VLESS, VMess, Shadowsocks, Trojan, Hysteria2, SOCKS, HTTP |
+| Network transports | RAW (TCP), XHTTP, WebSocket (WS), gRPC, HTTPUpgrade, KCP, XDRIVE (VLESS) |
 
 ## Architecture and build system
 

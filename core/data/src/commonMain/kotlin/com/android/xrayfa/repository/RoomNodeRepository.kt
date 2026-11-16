@@ -66,6 +66,15 @@ class RoomNodeRepository(
         nodeDao.updateJsonConfig(id, identifier, remark, jsonData)
     }
 
+    override suspend fun updateNodeConfiguration(id: Int, protocolPrefix: String, url: String, jsonData: String?, address: String, port: Int, remark: String?) {
+        nodeDao.updateNodeConfiguration(id, protocolPrefix, url, jsonData, address, port, remark)
+    }
+
+    override suspend fun updateNodeWithOptions(node: Node) {
+        nodeDao.updateNodeWithOptions(node.id, node.protocolPrefix, node.url, node.jsonData, node.address,
+            node.port, node.remark, node.countryISO, node.muxSettings, node.preNodeId)
+    }
+
     override suspend fun updateSelectById(id: Int, selected: Boolean) {
         nodeDao.updateSelectById(id, selected)
     }

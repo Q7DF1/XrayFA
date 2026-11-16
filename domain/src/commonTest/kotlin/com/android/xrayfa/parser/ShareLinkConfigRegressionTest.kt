@@ -60,8 +60,7 @@ class ShareLinkConfigRegressionTest {
         assertEquals("cdn.example", stream["wsSettings"]!!.jsonObject["host"]!!.jsonPrimitive.content)
         assertEquals("/", stream["wsSettings"]!!.jsonObject["path"]!!.jsonPrimitive.content)
         assertNull(stream["wsSettings"]!!.jsonObject["headers"])
-        assertFalse(json["mux"]!!.jsonObject["enabled"]!!.jsonPrimitive.boolean)
-        assertNull(json["mux"]!!.jsonObject["enable"])
+        assertNull(json["mux"])
     }
 
     @Test

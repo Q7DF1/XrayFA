@@ -28,5 +28,5 @@ val iosDataDiModule: Module = module {
             nodeDao = get(),
         )
     }
-    single { VpnStartOptionsResolver(get(), get()) }
+    single { VpnStartOptionsResolver(get(), get(), get()) }
 }

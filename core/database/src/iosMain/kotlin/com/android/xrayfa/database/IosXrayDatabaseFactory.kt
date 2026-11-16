@@ -17,6 +17,13 @@ object IosXrayDatabaseFactory {
 
     private const val DATABASE_NAME = "xrayfa_database"
 
+    private val migration5To6 = object : Migration(5, 6) {
+        override fun migrate(connection: SQLiteConnection) {
+            connection.execSQL("ALTER TABLE Node ADD COLUMN muxSettings TEXT")
+            connection.execSQL("ALTER TABLE Node ADD COLUMN preNodeId INTEGER")
+        }
+    }
+
     private val migration4To5 = object : Migration(4, 5) {
         override fun migrate(connection: SQLiteConnection) {
             connection.execSQL("CREATE INDEX IF NOT EXISTS index_Node_subscriptionId ON Node(subscriptionId)")
@@ -37,7 +44,7 @@ object IosXrayDatabaseFactory {
         return Room.databaseBuilder<XrayFADatabase>(
             name = databasePath(),
         )
-            .addMigrations(migration4To5)
+            .addMigrations(migration4To5, migration5To6)
             .setDriver(BundledSQLiteDriver())
             .build()
     }

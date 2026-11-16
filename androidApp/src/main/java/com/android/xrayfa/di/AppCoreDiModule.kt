@@ -66,7 +66,7 @@ val appCoreDiModule: Module = module {
     single {
         XrayBaseServiceManager(
             repository = get(),
-            subscriptionRepository = get(),
+            startOptionsResolver = get(),
             trafficDetector = get<TrafficDetector>(),
             context = androidContext(),
             settingsRepository = get(),

@@ -32,6 +32,7 @@ val sharedServicesDiModule: Module =
                 nodeRepository = get(),
                 vpnController = get(),
                 logger = get(),
+                subscriptionRepository = get(),
             )
         }
     }

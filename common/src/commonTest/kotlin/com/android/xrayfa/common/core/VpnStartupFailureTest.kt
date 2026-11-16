@@ -65,6 +65,13 @@ class VpnStartupFailureTest {
         assertFalse(redactStartupDetails("a\u0000b").contains('\u0000'))
     }
 
+    @Test fun diagnosticsRedactXDriveStorageCredentials() {
+        val raw = """xdriveSettings={"secrets":["client-private","refresh-private"],"s3":{"accessKeyId":"access-private","secretAccessKey":"key-private"}} clientSecret=oauth-private refreshToken=token-private"""
+        val safe = redactStartupDetails(raw)
+        listOf("client-private", "refresh-private", "access-private", "key-private", "oauth-private", "token-private")
+            .forEach { assertFalse(safe.contains(it), it) }
+    }
+
     @Test fun failureSurvivesRetryAndClearsOnlyAfterSuccess() {
         val store = VpnStartupStateStore()
         val first = store.begin()

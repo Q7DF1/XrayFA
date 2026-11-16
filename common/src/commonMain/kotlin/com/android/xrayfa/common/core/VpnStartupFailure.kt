@@ -34,8 +34,11 @@ data class VpnStartupFailure(
 fun redactStartupDetails(text: String): String {
     var safe = text.replace(Regex("(?i)[a-z][a-z0-9+.-]*://[^\\s\"'<>]+"), "[REDACTED LINK]")
     safe = safe.replace(Regex("(?i)\\b[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\\b"), "[REDACTED UUID]")
+    safe = safe.replace(Regex("(?i)([\"']?secrets[\"']?\\s*[:=]\\s*)\\[[^]]*]")) {
+        "${it.groupValues[1]}[REDACTED]"
+    }
     safe = safe.replace(Regex(
-        "(?i)([\"']?(?:password|pass|auth|token|uuid|id|privateKey|encryption|publicKey|pbk|shortId|sid)[\"']?\\s*[:=]\\s*)(?:\"[^\"]*\"|'[^']*'|[^,\\s;>]+)",
+        "(?i)([\"']?(?:password|pass|auth|token|uuid|id|privateKey|encryption|publicKey|pbk|shortId|sid|clientSecret|clientId|refreshToken|accessKeyId|secretAccessKey|sessionToken)[\"']?\\s*[:=]\\s*)(?:\"[^\"]*\"|'[^']*'|[^,\\s;>]+)",
     )) { "${it.groupValues[1]}[REDACTED]" }
     return safe.filter { it == '\n' || it == '\t' || !it.isISOControl() }.take(4_000)
 }
