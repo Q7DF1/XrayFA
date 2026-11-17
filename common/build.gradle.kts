@@ -7,6 +7,13 @@ plugins {
 val enableIosTargets = rootProject.extra["enableIosTargets"] as Boolean
 
 kotlin {
+    if (providers.gradleProperty("enableLinuxCli").orNull == "true") {
+        linuxX64 {
+            compilations.getByName("main").cinterops.create("linuxCrypto") {
+                defFile(project.file("src/nativeInterop/cinterop/linuxCrypto.def"))
+            }
+        }
+    }
     androidTarget {
         compilations.all {
             compileTaskProvider.configure {

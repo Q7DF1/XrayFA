@@ -30,3 +30,20 @@ jobs:
             :core:datastore:testDebugUnitTest \
             :core:data:compileDebugKotlinAndroid \
             --no-daemon
+
+  linux-cli-model-tests:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: gradle
+      - name: Test CLI models and temporary-file adapters (no core or network changes)
+        run: |
+          chmod +x gradlew
+          ./gradlew -PenableLinuxCli=true \
+            :linux:cli:jvmTest \
+            :linux:cli:linuxX64Test \
+            --no-daemon

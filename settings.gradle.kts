@@ -31,3 +31,5 @@ include(":core:datastore")
 include(":core:native-bridge")
 include(":platform:vpn")
 include(":shared")
+// Linux is opt-in; mobile builds retain their existing target graph.
+if (providers.gradleProperty("enableLinuxCli").orNull == "true") include(":linux:cli")

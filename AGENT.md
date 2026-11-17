@@ -92,6 +92,34 @@ KMP `iosArm64` / `iosSimulatorArm64` / `iosX64` targets are registered **only on
 - Override applicationId with `-PAPPLICATION_ID=`
 - Debug APK is **debuggable**, no R8, and includes **LeakCanary** — expect jank vs release
 
+### Optional Linux configuration CLI
+
+Linux CLI is opt-in: `./gradlew -PenableLinuxCli=true :linux:cli:linkReleaseExecutableLinuxX64`.
+The Native executable at `linux/cli/build/bin/linuxX64/releaseExecutable/xrayfa.kexe`
+implements `add`, `ls`, `check`, `logs`, `doctor`, `run`, `stop`, and `recover`.
+Its Linux adapter depends only on `:common` and `:domain`; POSIX and dynamically
+loaded OpenSSL libcrypto (1.1 or newer) support the Ubuntu 18.04+ x86-64 runtime
+compatibility target. Without the flag, Linux targets/module are absent.
+A JVM test target in `:linux:cli` runs CLI-only pure models without mobile or
+POSIX dependencies: `./gradlew -PenableLinuxCli=true :linux:cli:jvmTest`.
+On Linux, `:linux:cli:linuxX64Test` adds temporary-file adapter checks; neither
+suite executes a core or changes networking. The `linux-cli-model-tests` CI job
+runs both. Linux cross-compilation on macOS does not establish runtime support.
+
+`check` validates private SOCKS5 JSON. `run` supervises an unprivileged loopback
+SOCKS5 listener on port 10999, without changing host networking. `clear` backs up
+and clears current and legacy stores explicitly. Legacy `stop`/`recover` remain
+for old TUN journals and must only be tested in disposable VMs. Pure tests and
+SOCKS5 acceptance use synthetic fixtures and isolated profiles; never publish
+operator credentials or raw machine-specific reports.
+
+The CLI imports links or JSON files through `add FILE`, including complete
+XDRIVE storage settings, and prefers an adjacent native `xray` executable.
+Keep CLI paths, storage, process supervision and configuration composition
+separate. Never automatically merge conflicting node stores.
+Do not change mobile parsers/defaults/native dependencies to accommodate this
+CLI; review cross-platform proposals separately.
+
 ### 3.5 Windows
 
 `:tun2socks` runs `fix_headers.bat` before native `preBuild`. Run it in the repo root if header includes fail.
@@ -232,6 +260,7 @@ F-Droid: `dependenciesInfo.includeInApk/Bundle = false`. Debian builders skip iO
 
 ## 9. Security & Gotchas
 
+- Linux CLI publication: exclude operator inputs, device captures, raw runtime evidence, and private author/committer email addresses from outgoing commits. Synthetic node fixtures must remain independent of real subscriptions.
 - Never commit `androidApp/xrayfa.jks`, `local.properties`, `.env`, entitlements hacks, `androidApp/libs/*.aar`, `LibXrayLite.xcframework`, `.kotlin/`.
 - Do not commit unpublished `AndroidLibXrayLite` SHAs.
 - Test fixtures must not assign string literals to `*password*` fields (GitGuardian Generic Password). Use a named dummy constant; `.gitguardian.yaml` ignores test/golden paths.

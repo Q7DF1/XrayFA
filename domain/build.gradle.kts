@@ -7,6 +7,7 @@ plugins {
 val enableIosTargets = rootProject.extra["enableIosTargets"] as Boolean
 
 kotlin {
+    if (providers.gradleProperty("enableLinuxCli").orNull == "true") linuxX64()
     androidTarget {
         compilations.all {
             compileTaskProvider.configure {

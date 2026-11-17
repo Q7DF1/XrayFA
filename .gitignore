@@ -40,6 +40,9 @@ render.experimental.xml
 .release-signing.env
 .release-signing.properties
 
+# Local proxy subscription links (sensitive)
+/sub.txt
+
 # Google Services (e.g. APIs or Firebase)
 google-services.json
 
@@ -50,3 +53,15 @@ google-services.json
 /debug-xdirve/
 /docs/plans/
 **/__pycache__/
+# Private operator inputs and local device captures
+/op.txt
+/Screenshot_*
+
+# Local runtime evidence may contain node or machine identifiers
+/linux/cli/tests/runtime/history/
+/linux/cli/tests/runtime/manifest-revisions.json
+
+
+# Local native CLI delivery artifacts
+/xrayfa
+/xray
