@@ -204,6 +204,8 @@ Include the app version, OS version, architecture, installation channel, and rep
 
 [Report an issue](https://github.com/Q7DF1/XrayFA/issues)
 
+For background kills and VPN drops, [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) collects the log-capture commands and the per-OEM battery settings worth checking before filing a report.
+
 ## Contributing
 
 Bug reports, fixes, translations, and documentation improvements are welcome. Read the [contribution guide](CONTRIBUTING.md) to get started.
