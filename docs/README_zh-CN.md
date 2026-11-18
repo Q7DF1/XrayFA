@@ -200,6 +200,8 @@ KEY_PASSWORD=私钥密码
 
 [提交问题](https://github.com/Q7DF1/XrayFA/issues)
 
+后台被杀、VPN 掉线等常见问题的排查步骤（含 `adb` 抓日志命令、ColorOS / HyperOS / OriginOS 等厂商的电池与自启动设置）见 [TROUBLESHOOTING.md](TROUBLESHOOTING.md)。
+
 ## 贡献指南
 
 欢迎反馈问题、修复缺陷、完善翻译和文档。开始前请阅读 [贡献指南（英文）](../CONTRIBUTING.md)。
