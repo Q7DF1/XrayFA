@@ -2,10 +2,46 @@
 
 package com.android.xrayfa.cli
 
-import com.android.xrayfa.cli.host.*
-import kotlinx.cinterop.*
-import kotlinx.serialization.json.*
-import platform.posix.*
+import com.android.xrayfa.cli.host.xf_fd_owned
+import com.android.xrayfa.cli.host.xf_millis
+import com.android.xrayfa.cli.host.xf_pidfd_exited
+import com.android.xrayfa.cli.host.xf_pidfd_open
+import com.android.xrayfa.cli.host.xf_pidfd_signal
+import com.android.xrayfa.cli.host.xf_process_exe_matches
+import com.android.xrayfa.cli.host.xf_try_lock
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import platform.posix.F_OK
+import platform.posix.O_CLOEXEC
+import platform.posix.O_CREAT
+import platform.posix.O_DIRECTORY
+import platform.posix.O_NOFOLLOW
+import platform.posix.O_RDONLY
+import platform.posix.O_RDWR
+import platform.posix.SIGINT
+import platform.posix.SIGKILL
+import platform.posix.SIGTERM
+import platform.posix.access
+import platform.posix.close
+import platform.posix.fputs
+import platform.posix.fsync
+import platform.posix.geteuid
+import platform.posix.getpid
+import platform.posix.kill
+import platform.posix.open
+import platform.posix.stderr
+import platform.posix.unlink
+import platform.posix.usleep
 
 /** Drop only elapsed lease lifetimes, never actual addresses/routes/DNS configuration. */
 internal fun normalizedNetwork(v: JsonElement): JsonElement =
@@ -13,7 +49,14 @@ internal fun normalizedNetwork(v: JsonElement): JsonElement =
         is JsonObject ->
             JsonObject(
                 v.filterKeys { it !in setOf("valid_life_time", "preferred_life_time", "expires") }
-                    .mapValues { normalizedNetwork(it.value) }
+                    .mapValues { (key, value) ->
+                        // iproute2's text route adapter keeps the original line as well as
+                        // structured fields. RA lifetimes tick there even without a change.
+                        if (key == "routes" && value is JsonArray) normalizedRoutes(value)
+                        else if (key == "raw" && value is JsonPrimitive && value.isString)
+                            JsonPrimitive(value.content.replace(Regex("\\s+expires\\s+[0-9]+(?:\\.[0-9]+)?(?:msec|sec)?(?=\\s|$)"), ""))
+                        else normalizedNetwork(value)
+                    }
             )
         is JsonArray -> JsonArray(v.map { normalizedNetwork(it) })
         else -> v
@@ -101,7 +144,11 @@ private fun restoreOwnedWithinDeadline(
             if (log == null) println("$name restored")
         } catch (e: Exception) {
             complete = false
-            val reason = if (e is CliError) e.message else "Resource operation failed"
+            val reason = if (e is CliError) e.message else {
+                val type = e::class.simpleName ?: "Exception"
+                val detail = e.message?.let { redact(clean(it), log?.secrets ?: emptySet()).take(400) }
+                "Resource operation failed [$type]" + (detail?.let { ": $it" } ?: "")
+            }
             log?.event(
                 "restore",
                 "$name incomplete: $reason; resource preserved for inspection",
@@ -287,11 +334,26 @@ private fun restoreOwnedWithinDeadline(
             }
         }
         if (before != null) {
-            if (
-                normalizedNetwork(ipJson("route", "show", "table", "all", context = context)) !=
-                    normalizedNetwork(before.getValue("routes"))
-            )
-                fail(ExitCode.RECOVERY, "Routes differ from baseline")
+            val baselineRoutes = before.getValue("routes")
+            var observedRoutes = ipJson("route", "show", "table", "all", context = context)
+            val underlay = record["underlay"]?.jsonPrimitive?.content
+            fun settling(routes: JsonElement): Boolean = underlay != null &&
+                (connectivityMetricChange(baselineRoutes, baselineRoutes, routes, underlay) ||
+                    connectivityMetricTransition(baselineRoutes, baselineRoutes, routes, underlay))
+            if (settling(observedRoutes)) {
+                // The desktop connectivity probe can revert its penalty shortly after
+                // TUN closes. Wait briefly for an exact baseline; never rewrite its route.
+                val deadline = minOf(xf_millis() + 2500, context.deadlineMillis ?: Long.MAX_VALUE)
+                while (routeDifference(baselineRoutes, observedRoutes) != null && xf_millis() < deadline) {
+                    usleep(100000u)
+                    observedRoutes = ipJson("route", "show", "table", "all", context = context)
+                    if (routeDifference(baselineRoutes, observedRoutes) != null &&
+                        !settling(observedRoutes)) break
+                }
+            }
+            routeDifference(baselineRoutes, observedRoutes)?.let {
+                fail(ExitCode.RECOVERY, "Routes differ from baseline: $it")
+            }
             if (ipJson("rule", context = context) != before.getValue("rules"))
                 fail(ExitCode.RECOVERY, "Rules differ from baseline")
             if (resolverSnapshot(context) != before.getValue("resolver"))

@@ -27,7 +27,7 @@ def main() -> None:
         assert report["readOnly"] is True
         assert report["mode"] == "socks5"
         assert report["listen"] == "127.0.0.1"
-        assert report["port"] == 10999
+        assert report["port"] == 10808
         assert report["readyForRun"] is True
         assert report["runtimeCertified"] is False
         assert len(report["coreSha256"]) == 64

@@ -2,10 +2,52 @@
 
 package com.android.xrayfa.cli
 
-import com.android.xrayfa.cli.host.*
-import kotlinx.cinterop.*
-import kotlinx.serialization.json.*
-import platform.posix.*
+import com.android.xrayfa.cli.host.xf_errno
+import com.android.xrayfa.cli.host.xf_fd_device
+import com.android.xrayfa.cli.host.xf_fd_inode
+import com.android.xrayfa.cli.host.xf_fd_owned
+import com.android.xrayfa.cli.host.xf_millis
+import com.android.xrayfa.cli.host.xf_random_bytes
+import com.android.xrayfa.cli.host.xf_snapshot_open_path
+import com.android.xrayfa.cli.host.xf_trusted_core
+import com.android.xrayfa.cli.host.xf_try_lock
+import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.allocArray
+import kotlinx.cinterop.get
+import kotlinx.cinterop.set
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.toKString
+import kotlinx.cinterop.usePinned
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import platform.posix.EINTR
+import platform.posix.ENOENT
+import platform.posix.F_OK
+import platform.posix.O_CLOEXEC
+import platform.posix.O_CREAT
+import platform.posix.O_DIRECTORY
+import platform.posix.O_NOFOLLOW
+import platform.posix.O_RDONLY
+import platform.posix.O_RDWR
+import platform.posix.access
+import platform.posix.close
+import platform.posix.fsync
+import platform.posix.geteuid
+import platform.posix.getpid
+import platform.posix.open
+import platform.posix.read
+import platform.posix.readlink
+import platform.posix.rename
+import platform.posix.unlink
 
 internal fun procStart(pid: Int): String? =
     try {
@@ -240,7 +282,7 @@ internal class NetworkLease private constructor(private val fd: Int, record: Jso
     }
 }
 
-internal fun nodeSnapshot(caller: CallerIdentity, id: Int): JsonObject {
+internal fun nodeSnapshot(caller: CallerIdentity, id: Int?): JsonObject {
     val fd = xf_snapshot_open_path(caller.profile, caller.uid)
     if (fd < 0)
         fail(
@@ -274,5 +316,11 @@ internal fun nodeSnapshot(caller: CallerIdentity, id: Int): JsonObject {
         } catch (_: Exception) {
             fail(ExitCode.IO, "Unsupported node snapshot schema")
         }
+    if (id == null) {
+        val nodes = store.getValue("nodes").jsonArray
+        if (nodes.size != 1)
+            fail(ExitCode.USAGE, "Use ls, then run ID; automatic selection requires exactly one node")
+        return nodes.single().jsonObject
+    }
     return NodeStoreCodec.find(store, id) ?: fail(ExitCode.NODE_MISSING, "Node ID does not exist")
 }

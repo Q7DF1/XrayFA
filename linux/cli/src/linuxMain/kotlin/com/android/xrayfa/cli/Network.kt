@@ -2,10 +2,27 @@
 
 package com.android.xrayfa.cli
 
-import com.android.xrayfa.cli.host.*
-import kotlinx.cinterop.*
-import kotlinx.serialization.json.*
-import platform.posix.*
+import com.android.xrayfa.cli.host.xf_errno
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
+import platform.posix.ENOENT
+import platform.posix.F_OK
+import platform.posix.O_NOFOLLOW
+import platform.posix.R_OK
+import platform.posix.W_OK
+import platform.posix.X_OK
+import platform.posix.access
+import platform.posix.chmod
 
 // Ubuntu 18.04 commonly exposes /sbin/ip as a symlink to /bin/ip. Mutation
 // helpers are opened with O_NOFOLLOW, so prefer a real executable path.
@@ -196,16 +213,25 @@ internal fun ipJson(
         if (r.exit != 0 || r.timedOut) fail(ExitCode.EXECUTION, "System command failed: $IP rule")
         return legacyRuleJson(r.output)
     }
+    return systemJson(IP, *args, context = context)
+}
+
+/** Unlogged JSON helpers must keep complete documents, including hosts with many TAPs. */
+internal fun systemJson(
+    path: String,
+    vararg args: String,
+    context: OperationContext = OperationContext(),
+): JsonArray {
     val r =
         tool(
-            IP,
+            path,
             listOf("-j", *args),
             maxLineLength = JSON_OUTPUT_LIMIT,
             maxCapturedBytes = JSON_OUTPUT_LIMIT,
             context = context,
         )
     if (r.exit != 0 || r.timedOut)
-        fail(ExitCode.EXECUTION, "System command failed: $IP ${args.take(2).joinToString(" ")}")
+        fail(ExitCode.EXECUTION, "System command failed: $path ${args.take(2).joinToString(" ")}")
     return json.parseToJsonElement(r.output).jsonArray
 }
 
@@ -531,7 +557,7 @@ internal fun runtimeFinalConfig(
                 put("autoOutboundsInterface", JsonPrimitive(plan.underlay))
             }
         )
-    base["inbounds"] = JsonArray(listOf(JsonObject(inbound)))
+    base["inbounds"] = JsonArray(listOf(JsonObject(inbound)) + socksConfig(adapted, level).getValue("inbounds").jsonArray)
     // TCP upstream works for all baseline protocols, including HTTP/SOCKS.
     base["dns"] = buildJsonObject {
         putJsonArray("servers") { add("tcp://1.1.1.1") }
@@ -644,15 +670,8 @@ internal fun tunIdentity(
     context: OperationContext = OperationContext(),
     policy: TunPolicy = TunPolicy.CURRENT,
 ): JsonObject? {
-    val r = tool(IP, listOf("-j", "address", "show"), context = context)
-    if (r.exit != 0) {
-        if (!r.timedOut && "does not exist" in r.output) return null
-        fail(ExitCode.EXECUTION, "Cannot inspect TUN state")
-    }
     val link =
-        json
-            .parseToJsonElement(r.output)
-            .jsonArray
+        ipJson("address", "show", context = context)
             .map { it.jsonObject }
             .firstOrNull { it["ifname"]?.jsonPrimitive?.content == policy.interfaceName }
             ?: return null
@@ -665,14 +684,7 @@ internal fun tunIdentity(
 }
 
 internal fun tunLinkIdentity(context: OperationContext = OperationContext()): JsonObject? {
-    val r = tool(IP, listOf("-j", "link", "show"), context = context)
-    if (r.exit != 0) {
-        if (!r.timedOut && "does not exist" in r.output) return null
-        fail(ExitCode.EXECUTION, "Cannot inspect TUN link")
-    }
-    return json
-        .parseToJsonElement(r.output)
-        .jsonArray
+    return ipJson("link", "show", context = context)
         .map { it.jsonObject }
         .firstOrNull { it["ifname"]?.jsonPrimitive?.content == TunPolicy.CURRENT.interfaceName }
 }

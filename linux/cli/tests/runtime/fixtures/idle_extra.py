@@ -42,7 +42,7 @@ def main():
            if k.lower() not in ['http_proxy', 'https_proxy', 'all_proxy', 'no_proxy']}
     env.update(PATH='/usr/sbin:/usr/bin:/sbin:/bin', LANG='C', LC_ALL='C', SUDO_UID='1000')
     log_file = (out / 'cli.log').open('wb')
-    process = subprocess.Popen([CLI, 'run', str(node), '--core', CORE, '--log-level', 'debug'],
+    process = subprocess.Popen([CLI, 'run', str(node), '--tun','--core', CORE, '--log-level', 'debug'],
                                stdout=log_file, stderr=subprocess.STDOUT, env=env)
     nonce = uuid.uuid4().hex
     try:
@@ -61,7 +61,7 @@ def main():
         record['afterIdleRequest'] = request
         process.send_signal(signal.SIGTERM)
         process.wait(timeout=24)
-        record['command'] = {'argv': [CLI, 'run', str(node), '--core', CORE],
+        record['command'] = {'argv': [CLI, 'run', str(node), '--tun','--core', CORE],
                              'exit': process.returncode}
         record['recover'] = probe.cmd([CLI, 'recover'], timeout=24)
         record['recoverAgain'] = probe.cmd([CLI, 'recover'], timeout=24)

@@ -38,7 +38,7 @@ def main():
     env = {k: v for k, v in os.environ.items()
            if k.lower() not in ['http_proxy', 'https_proxy', 'all_proxy', 'no_proxy']}
     env.update(PATH='/usr/sbin:/usr/bin:/sbin:/bin', LANG='C', LC_ALL='C', SUDO_UID='1000')
-    process = subprocess.Popen([CLI, 'run', str(node), '--core', CORE, '--log-level', 'debug'],
+    process = subprocess.Popen([CLI, 'run', str(node), '--tun','--core', CORE, '--log-level', 'debug'],
                                stdout=(out / 'cli.log').open('wb'), stderr=subprocess.STDOUT,
                                env=env)
     changed = False
@@ -57,7 +57,7 @@ def main():
             raise RuntimeError('DNS mutation fixture failed')
         changed = True
         process.wait(timeout=22)
-        record['command'] = {'argv': [CLI, 'run', str(node), '--core', CORE],
+        record['command'] = {'argv': [CLI, 'run', str(node), '--tun','--core', CORE],
                              'exit': process.returncode}
         record['journalRetained'] = journal.exists()
         if process.returncode != 9 or not record['journalRetained']:

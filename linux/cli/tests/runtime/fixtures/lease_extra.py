@@ -79,7 +79,7 @@ def main():
             LOADER, '--library-path', '/opt/xrayfa-runtime/test-tools/lib', STRACE,
             '-o', str(trace), '-e', f'trace={syscall}',
             '-e', f'inject={syscall}:error=EIO:when={ordinal}',
-            CLI, 'run', str(node), '--core', CORE,
+            CLI, 'run', str(node), '--tun','--core', CORE,
         ], timeout=35)
         after = probe.snapshot()
         record = {
@@ -115,7 +115,7 @@ def main():
     folder.mkdir(mode=0o700)
     before = probe.snapshot()
     log = (folder / 'cli.log').open('wb')
-    process = subprocess.Popen([CLI, 'run', str(node), '--core', CORE, '--log-level', 'debug'],
+    process = subprocess.Popen([CLI, 'run', str(node), '--tun','--core', CORE, '--log-level', 'debug'],
                                stdout=log, stderr=subprocess.STDOUT)
     record = {'id': 'LEASE-01/partial-intent', 'status': 'failed', 'before': before}
     table = None

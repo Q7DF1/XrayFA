@@ -107,9 +107,10 @@ suite executes a core or changes networking. The `linux-cli-model-tests` CI job
 runs both. Linux cross-compilation on macOS does not establish runtime support.
 
 `check` validates private SOCKS5 JSON. `run` supervises an unprivileged loopback
-SOCKS5 listener on port 10999, without changing host networking. `clear` backs up
-and clears current and legacy stores explicitly. Legacy `stop`/`recover` remain
-for old TUN journals and must only be tested in disposable VMs. Pure tests and
+SOCKS5 listener on port 10808. Explicit `run --tun` requires root and additionally
+takes over IPv4 routing/DNS; `stop`/`recover` stop or restore current and legacy
+TUN sessions. TUN network mutation tests must run in disposable VMs. `clear`
+backs up and clears current and legacy stores explicitly. Pure tests and
 SOCKS5 acceptance use synthetic fixtures and isolated profiles; never publish
 operator credentials or raw machine-specific reports.
 
@@ -231,6 +232,7 @@ Routing presets in `common/routing/RegionRoutingPreset.kt` support independent C
 ## 7. Code Style & Conventions
 
 - Kotlin official style; 4-space indent; match surrounding code. No ktlint/detekt.
+- **Explicit imports only**: Do not introduce wildcard/star imports (`import package.*`, Java static wildcard imports, or Python `from package import *`). Import each referenced symbol explicitly, including Kotlin/Native `platform.posix`, `kotlinx.cinterop`, generated C bindings, and test/JSON helpers. Remove unused imports and expand wildcard imports in handwritten files changed by a task. Do not mechanically rewrite generated files or upstream submodules.
 - **Documentation**: Keep only necessary documents in the repository, in English. Other-language versions may be used locally or shared outside the repository, but must not be committed. Update existing documentation rather than adding redundant plans, handovers, or indexes.
 - **Versions**: only `gradle/libs.versions.toml` + `gradle.properties` for app version.
 - **DI**: Koin modules (`androidKoinModules()`, `appAgentDiModule`, `sharedServicesDiModule`, …). `XrayAppCompatFactory` still constructs Android components; new injectables go in Koin, not Dagger.
@@ -260,6 +262,7 @@ F-Droid: `dependenciesInfo.includeInApk/Bundle = false`. Debian builders skip iO
 
 ## 9. Security & Gotchas
 
+- Linux TUN recovery restores the startup network configuration; it is not a kill switch. Applications may use direct system routes after TUN stops. Do not claim that successful rollback prevents traffic leaks. Unexpected shutdown must report the stop reason, restoration result, and any required `recover` action. Preserve incomplete recovery journals and ownership checks; never delete a journal or overwrite another application's network settings to force startup.
 - Linux CLI publication: exclude operator inputs, device captures, raw runtime evidence, and private author/committer email addresses from outgoing commits. Synthetic node fixtures must remain independent of real subscriptions.
 - Never commit `androidApp/xrayfa.jks`, `local.properties`, `.env`, entitlements hacks, `androidApp/libs/*.aar`, `LibXrayLite.xcframework`, `.kotlin/`.
 - Do not commit unpublished `AndroidLibXrayLite` SHAs.

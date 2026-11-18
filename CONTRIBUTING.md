@@ -14,4 +14,10 @@ Fork the repository and follow the [build instructions](README.md#build-from-sou
 
 Check the affected functionality before submitting and briefly describe how you tested it. For documentation changes, checking the content and links is enough. Include screenshots for UI changes when helpful.
 
+Use explicit imports for each symbol. Do not introduce wildcard imports, including
+Kotlin/Java `import package.*`, Java static wildcard imports, or Python
+`from package import *`. Expand existing wildcard imports in handwritten files
+you modify and remove unused imports. Generated files and upstream submodules
+are excluded. See [code conventions](AGENT.md#7-code-style--conventions).
+
 Please keep discussions respectful. Contributions follow the project's [Apache-2.0 license](LICENSE).

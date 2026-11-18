@@ -2,9 +2,16 @@
 
 package com.android.xrayfa.cli
 
-import com.android.xrayfa.cli.host.*
-import kotlinx.serialization.json.*
-import platform.posix.*
+import com.android.xrayfa.cli.host.xf_interrupted
+import com.android.xrayfa.cli.host.xf_millis
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import platform.posix.usleep
 
 internal fun awaitTunReadiness(
     core: RunningCore,
@@ -106,11 +113,42 @@ internal fun superviseSession(
                 fail(ExitCode.EXECUTION, "IPv6 protection changed")
             if (resolverSnapshot() != lease.record["resolverAfter"])
                 fail(ExitCode.EXECUTION, "System resolver configuration changed")
-            if (
-                normalizedNetwork(ipJson("route", "show", "table", "all")) !=
-                    normalizedNetwork(lease.record.getValue("routesAfter"))
-            )
-                fail(ExitCode.EXECUTION, "Routing configuration changed")
+            var observedRoutes = ipJson("route", "show", "table", "all")
+            val initialObservedRoutes = observedRoutes
+            val expectedRoutes = lease.record.getValue("routesAfter")
+            val baselineRoutes = plan.baseline.getValue("routes")
+            if (connectivityMetricTransition(baselineRoutes, expectedRoutes, observedRoutes, plan.underlay)) {
+                val deadline = xf_millis() + 250
+                do {
+                    usleep(50000u)
+                    core.tick()
+                    if (core.exitCode != null)
+                        fail(ExitCode.EXECUTION, "Core exited during DHCP route replacement")
+                    if (xf_interrupted() != 0) return
+                    observedRoutes = ipJson("route", "show", "table", "all")
+                } while (xf_millis() < deadline && connectivityMetricTransition(baselineRoutes, expectedRoutes, observedRoutes, plan.underlay))
+                if (routeDifference(expectedRoutes, observedRoutes) == null)
+                    log.event("network", "Underlay DHCP default route replacement completed within the bounded observation window", force = true)
+            }
+            routeDifference(expectedRoutes, observedRoutes)?.let { difference ->
+                if (connectivityMetricChange(baselineRoutes, expectedRoutes, observedRoutes, plan.underlay)) {
+                    lease.update(JournalField.ROUTES_AFTER to observedRoutes)
+                    log.event("network", "Underlay DHCP default connectivity metric penalty changed; gateway, interface and other routes unchanged", force = true)
+                    return@let
+                }
+                try {
+                    lease.update(JournalField.ROUTE_DRIFT to buildJsonObject {
+                        put("utc", utc())
+                        put("expected", expectedRoutes)
+                        put("initialObserved", initialObservedRoutes)
+                        put("observed", observedRoutes)
+                        put("summary", difference)
+                    })
+                } catch (_: Exception) {
+                    log.event("error", "Cannot persist route difference snapshot", severity = LogLevel.ERROR, force = true)
+                }
+                fail(ExitCode.EXECUTION, "Routing configuration changed: $difference")
+            }
             if (ipJson("rule") != lease.record["rulesAfter"])
                 fail(ExitCode.EXECUTION, "Routing rules changed")
             inspected = xf_millis()

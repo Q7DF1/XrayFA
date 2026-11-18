@@ -2,28 +2,38 @@
 
 package com.android.xrayfa.cli
 
-import com.android.xrayfa.cli.host.*
-import kotlinx.cinterop.*
+import com.android.xrayfa.cli.host.xf_signals
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.*
-import platform.posix.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
+import platform.posix.exit
+import platform.posix.fputs
+import platform.posix.geteuid
+import platform.posix.stderr
+import platform.posix.umask
 
 internal const val VERSION = "0.2.0-runtime-dev"
 private val help =
-    """XrayFA $VERSION — Linux SOCKS5 client
+    """XrayFA $VERSION — Linux SOCKS5/TUN client
 Usage:
   xrayfa add FILE | --link URI | --link-file FILE
   xrayfa ls
   xrayfa clear
   xrayfa doctor [--core PATH] [--json]
-  xrayfa run [ID] [--core PATH] [--log-level debug|info|warning|error]
+  xrayfa run [ID] [--tun] [--core PATH] [--log-level debug|info|warning|error]
   sudo xrayfa stop
   sudo xrayfa recover
   xrayfa check ID --output FILE [--core PATH] [--log-level debug|info|warning|error]
   xrayfa logs [--system] [--tail N] [--follow]
   xrayfa --version | --help
-run listens on 127.0.0.1:10999 in the foreground. Ctrl+C stops it.
-stop/recover are legacy TUN recovery commands.
+run listens on 127.0.0.1:$SOCKS_PORT in the foreground. Ctrl+C stops it.
+--tun additionally takes over IPv4 routing and DNS; requires explicit sudo/root.
+stop/recover stop or restore TUN sessions, including legacy sessions.
 System logs: /var/log/xrayfa/<UID>; recovery journal: /run/xrayfa/session.json
 Private data: ~/.local/share/xrayfa; logs: ~/.local/state/xrayfa/logs
 XRAYFA_HOME isolates add/ls/check/user logs. Runtime commands use the passwd caller identity.
@@ -71,16 +81,21 @@ fun main(args: Array<String>) {
                     }
                     "run" -> {
                         val idArgument = args.getOrNull(1)?.takeUnless { it.startsWith("--") }
+                        val opt = options(args.drop(if (idArgument == null) 1 else 2), setOf("--core", "--log-level", "--tun"), setOf("--tun"))
+                        val tun = "--tun" in opt
+                        if (tun && geteuid() != 0u)
+                            fail(ExitCode.PERMISSION, "TUN run requires root; invoke explicitly with sudo")
                         val id = if (idArgument != null) idArgument.toIntOrNull()?.takeIf { it > 0 }
                             ?: fail(ExitCode.USAGE, "Positive node ID required")
+                        else if (tun) nodeSnapshot(callerIdentity(), null).getValue("id").jsonPrimitive.int
                         else storeLock { directory ->
                             val nodes = loadStore(directory).getValue("nodes").jsonArray
                             if (nodes.size != 1) fail(ExitCode.USAGE, "Use ls, then run ID; automatic selection requires exactly one node")
                             nodes.single().jsonObject.getValue("id").jsonPrimitive.int
                         }
-                        val opt = options(args.drop(if (idArgument == null) 1 else 2), setOf("--core", "--log-level"))
                         val level = LogLevel.parse(opt["--log-level"] ?: "info")
-                        runSocksNode(id, opt["--core"], level)
+                        if (tun) runNode(id, opt["--core"], level)
+                        else runSocksNode(id, opt["--core"], level)
                     }
                     "stop" -> {
                         if (args.size != 1) fail(ExitCode.USAGE, "Unexpected arguments")

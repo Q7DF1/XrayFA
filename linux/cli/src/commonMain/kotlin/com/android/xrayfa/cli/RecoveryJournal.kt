@@ -1,6 +1,13 @@
 package com.android.xrayfa.cli
 
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 internal enum class SessionPhase(val wire: String) {
     LEASED("leased"),
@@ -52,6 +59,7 @@ internal enum class JournalField(val wire: String) {
     TUN_AFTER("tunAfter"),
     TUN_INTENT("tunIntent"),
     ROUTES_AFTER("routesAfter"),
+    ROUTE_DRIFT("routeDrift"),
     RULES_AFTER("rulesAfter"),
     RESOLVER_INTENT("resolverIntent"),
     RESOLVER_STEP_BEFORE("resolverStepBefore"),

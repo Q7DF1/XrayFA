@@ -192,12 +192,12 @@ static inline int xf_log_file(int fd){struct stat s;return !fstat(fd,&s)&&S_ISRE
 /* Exclusive bind probe: never enables SO_REUSEPORT and never changes networking. */
 #include <sys/socket.h>
 #include <netinet/in.h>
-static inline int xf_socks_port_available(void) {
+static inline int xf_socks_port_available(int port) {
     int fd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
     if (fd < 0) return 0;
     struct sockaddr_in address = {0};
     address.sin_family = AF_INET;
-    address.sin_port = htons(10999);
+    address.sin_port = htons(port);
     address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     int ok = bind(fd, (struct sockaddr *)&address, sizeof(address)) == 0;
     close(fd);

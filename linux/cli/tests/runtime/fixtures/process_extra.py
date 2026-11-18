@@ -103,7 +103,7 @@ def main():
         try:
             core = fake_core(folder, mode)
             with (folder / 'cli.log').open('wb') as log:
-                proc = subprocess.Popen([CLI, 'run', str(node), '--core', core,
+                proc = subprocess.Popen([CLI, 'run', str(node), '--tun','--core', core,
                                          '--log-level', 'debug'], stdout=log,
                                         stderr=subprocess.STDOUT,
                                         env={**os.environ, 'PATH': '/usr/sbin:/usr/bin:/sbin:/bin',
@@ -122,7 +122,7 @@ def main():
                     proc.kill()
                     proc.wait(timeout=3)
                     raise RuntimeError('Synthetic core process exceeded cleanup deadline')
-                record['command'] = {'argv': [CLI, 'run', str(node), '--core', core],
+                record['command'] = {'argv': [CLI, 'run', str(node), '--tun','--core', core],
                                      'exit': proc.returncode}
             record['log'] = (folder / 'cli.log').read_text(errors='replace')[-131072:]
             after = probe.snapshot()

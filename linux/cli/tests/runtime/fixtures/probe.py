@@ -113,7 +113,7 @@ def main():
         capture('management-dns',['tcpdump','-U','-nn','-i',management,'-c','12000','-w',str(out/'management-dns.pcap'),'port','53'])
         with open(out/'cli.log','wb') as log:
             env={'PATH':'/usr/sbin:/usr/bin:/sbin:/bin','LANG':'C','LC_ALL':'C','SUDO_UID':'1000'}
-            client=subprocess.Popen([CLI,'run',str(report['nodeId']),'--core',CORE,'--log-level','debug'],stdout=log,stderr=log,env=env)
+            client=subprocess.Popen([CLI,'run',str(report['nodeId']),'--tun','--core',CORE,'--log-level','debug'],stdout=log,stderr=log,env=env)
             report['controller']=pid_record(client.pid);save()
             deadline=time.monotonic()+17
             while time.monotonic()<deadline and client.poll() is None:

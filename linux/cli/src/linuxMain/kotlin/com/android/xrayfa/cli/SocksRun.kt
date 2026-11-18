@@ -2,9 +2,28 @@
 
 package com.android.xrayfa.cli
 
-import com.android.xrayfa.cli.host.*
-import kotlinx.serialization.json.*
-import platform.posix.*
+import com.android.xrayfa.cli.host.xf_errno
+import com.android.xrayfa.cli.host.xf_interrupted
+import com.android.xrayfa.cli.host.xf_runtime_core
+import com.android.xrayfa.cli.host.xf_socks_port_available
+import com.android.xrayfa.cli.host.xf_try_lock
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import platform.posix.ENOENT
+import platform.posix.O_CLOEXEC
+import platform.posix.O_CREAT
+import platform.posix.O_NOFOLLOW
+import platform.posix.O_RDONLY
+import platform.posix.O_RDWR
+import platform.posix.X_OK
+import platform.posix.access
+import platform.posix.chmod
+import platform.posix.close
+import platform.posix.getuid
+import platform.posix.open
+import platform.posix.unlink
+import platform.posix.usleep
 
 /** Foreground supervisor: no privileged network helpers or persistent process IDs. */
 internal suspend fun runSocksNode(id: Int, coreOption: String?, level: LogLevel): Int {
@@ -33,7 +52,7 @@ internal suspend fun runSocksNode(id: Int, coreOption: String?, level: LogLevel)
         if (lockFd < 0) fail(ExitCode.IO, "Cannot open SOCKS5 session lock")
         ownedFile(lockPath)
         if (xf_try_lock(lockFd) != 0) fail(ExitCode.CONFLICT, "A SOCKS5 session is already running for this profile")
-        if (xf_socks_port_available() == 0) fail(ExitCode.CONFLICT, "SOCKS5 port 10999 is unavailable")
+        if (xf_socks_port_available(SOCKS_PORT) == 0) fail(ExitCode.CONFLICT, "SOCKS5 port $SOCKS_PORT is unavailable")
         val output = "$dataDir/socks-${log.session}.json"
         newFile(output, json.encodeToString(JsonObject.serializer(), config) + "\n")
         configPath = output
@@ -46,7 +65,7 @@ internal suspend fun runSocksNode(id: Int, coreOption: String?, level: LogLevel)
         if (hashFile(output) != configHash || hashFile(path) != coreHash)
             fail(ExitCode.CONFLICT, "Core or configuration changed during validation")
         if (!log.flushBoundary()) fail(ExitCode.LOG, "Cannot persist runtime log")
-        log.event("runtime", "START SOCKS5 listen=127.0.0.1:10999", force = true)
+        log.event("runtime", "START SOCKS5 listen=127.0.0.1:$SOCKS_PORT", force = true)
         core = RunningCore.gated(fd, path, listOf("run", "-c", output), log, dieWithParent = true)
         core.release()
         while (xf_interrupted() == 0) {
@@ -89,13 +108,13 @@ internal fun socksDoctor(coreOption: String?, asJson: Boolean): Int {
         put("mode", "socks5")
         put("readOnly", true)
         put("listen", "127.0.0.1")
-        put("port", 10999)
+        put("port", SOCKS_PORT)
         put("corePath", path)
         put("coreSha256", hashFile(path))
         put("readyForRun", ready)
         put("runtimeCertified", false)
     }
     if (asJson) println(json.encodeToString(JsonObject.serializer(), report))
-    else println("SOCKS5 127.0.0.1:10999 coreAvailable=$ready (bind and remote connectivity verified during use)")
+    else println("SOCKS5 127.0.0.1:$SOCKS_PORT coreAvailable=$ready (bind and remote connectivity verified during use)")
     return if (ready) 0 else ExitCode.DEPENDENCY.value
 }

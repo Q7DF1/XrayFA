@@ -2,11 +2,28 @@
 
 package com.android.xrayfa.cli
 
-import com.android.xrayfa.cli.host.*
+import com.android.xrayfa.cli.host.xf_fd_device
+import com.android.xrayfa.cli.host.xf_fd_inode
+import com.android.xrayfa.cli.host.xf_interrupted
+import com.android.xrayfa.cli.host.xf_millis
+import com.android.xrayfa.cli.host.xf_runtime_core
+import com.android.xrayfa.cli.host.xf_socks_port_available
 import com.android.xrayfa.common.utils.calculateBytesHash
-import kotlinx.cinterop.*
-import kotlinx.serialization.json.*
-import platform.posix.*
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import platform.posix.F_OK
+import platform.posix.O_CLOEXEC
+import platform.posix.O_NOFOLLOW
+import platform.posix.O_RDONLY
+import platform.posix.X_OK
+import platform.posix.access
+import platform.posix.chmod
+import platform.posix.close
+import platform.posix.fputs
+import platform.posix.geteuid
+import platform.posix.getpid
+import platform.posix.open
+import platform.posix.stderr
 
 internal class RuntimeStop : Exception()
 
@@ -26,6 +43,7 @@ internal fun runNode(id: Int, coreOption: String?, level: LogLevel): Int {
     var coreFd = -1
     var code = ExitCode.EXECUTION
     var primaryAt: Long? = null
+    var recoveryVerified = false
     var phase = "prepare"
     try {
         log.event(
@@ -36,7 +54,7 @@ internal fun runNode(id: Int, coreOption: String?, level: LogLevel): Int {
         val node = nodeSnapshot(caller, id)
         val parser = NodeParser()
         val prepared = prepareStoredNode(node, parser, log)
-        val outbound = prepared.outbound
+        val outbound = nodeTunOutbound(prepared.record, prepared.outbound)
         log.event("prepare", "Node loaded: ${summary(prepared.record)}", force = true)
         val corePath = canonicalCore(locateCore(caller, coreOption))
         coreFd = open(corePath, O_RDONLY or O_NOFOLLOW or O_CLOEXEC)
@@ -59,6 +77,8 @@ internal fun runNode(id: Int, coreOption: String?, level: LogLevel): Int {
             force = true,
         )
         phase = "network-preflight"
+        if (xf_socks_port_available(SOCKS_PORT) == 0)
+            fail(ExitCode.CONFLICT, "SOCKS5 port $SOCKS_PORT is unavailable")
         val plan = NetworkPlan.inspect(log.session)
         phase = "config-generation"
         val config = runtimeFinalConfig(bootstrapOutbound(outbound, log), level, plan)
@@ -119,7 +139,7 @@ internal fun runNode(id: Int, coreOption: String?, level: LogLevel): Int {
         phase = "running"
         log.event(
             "Running",
-            "Local resources ready; remote request success is measured separately; underlay=${plan.underlay}",
+            "Local resources ready; SOCKS5 listen=127.0.0.1:$SOCKS_PORT; remote request success is measured separately; underlay=${plan.underlay}",
             force = true,
         )
         superviseSession(core, lease, log, plan, tun)
@@ -131,6 +151,8 @@ internal fun runNode(id: Int, coreOption: String?, level: LogLevel): Int {
         primaryAt = xf_millis()
         code = e.exitCode
         log.event("error", e.message, severity = LogLevel.ERROR, force = true)
+        if (lease != null)
+            log.event("stopping", "Stopping TUN after the reported failure; restoring owned network settings", severity = LogLevel.WARNING, force = true)
     } catch (e: Exception) {
         primaryAt = xf_millis()
         code = ExitCode.IO
@@ -144,11 +166,18 @@ internal fun runNode(id: Int, coreOption: String?, level: LogLevel): Int {
         )
     } finally {
         if (lease != null) {
-            val complete = restoreOwned(lease.record, log, core, lease)
+            val complete = try {
+                restoreOwned(lease.record, log, core, lease)
+            } catch (error: Exception) {
+                val detail = redact(clean(error.message.orEmpty()), log.secrets).take(400)
+                log.event("restore", "Recovery could not complete [${error::class.simpleName}]: $detail", severity = LogLevel.ERROR, force = true)
+                false
+            }
             if (!complete) code = ExitCode.RECOVERY
             else
                 try {
                     finishJournal(lease.record, log)
+                    recoveryVerified = true
                 } catch (_: Exception) {
                     code = ExitCode.RECOVERY
                 }
@@ -164,6 +193,19 @@ internal fun runNode(id: Int, coreOption: String?, level: LogLevel): Int {
         )
         log.close()
         code = exitAfterLogging(code, primaryAt, log.failedAtMillis, preserveRecovery = true)
+        val journalRetained = access(CliPaths.JOURNAL, F_OK) == 0
+        val status = when {
+            lease == null && code == ExitCode.RECOVERY && journalRetained ->
+                "TUN did not start. A previous recovery journal is retained; run sudo ./xrayfa recover."
+            lease == null -> "TUN did not start; no network ownership was acquired."
+            recoveryVerified ->
+                "TUN stopped; startup network settings restored. Applications may now use normal system routes."
+            journalRetained ->
+                "TUN session ended; network restoration is NOT confirmed. Journal retained at ${CliPaths.JOURNAL}; run sudo ./xrayfa recover."
+            else ->
+                "TUN session ended; recovery completion is NOT confirmed. Inspect the recovery archive and logs before restarting."
+        }
+        fputs("$status Exit=${code.value}\n", stderr)
     }
     return code.value
 }

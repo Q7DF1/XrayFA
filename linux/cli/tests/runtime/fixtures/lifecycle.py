@@ -37,7 +37,7 @@ def main():
         def start(prefix=None):
             nonlocal proc,log
             log=open(folder/'cli.log','wb')
-            proc=subprocess.Popen((prefix or [])+[CLI,'run',str(node),'--core',CORE,'--log-level','debug'],stdout=log,stderr=log,env=env)
+            proc=subprocess.Popen((prefix or [])+[CLI,'run',str(node),'--tun','--core',CORE,'--log-level','debug'],stdout=log,stderr=log,env=env)
             r['launcher']=probe.pid_record(proc.pid)
             end=time.monotonic()+16
             while time.monotonic()<end and proc.poll() is None:
@@ -64,7 +64,7 @@ def main():
                 if not r['assertion']:raise RuntimeError('Active recovery was not safely refused')
             elif action=='duplicate':
                 start();old=Path('/run/xrayfa/session.json').read_bytes();during=probe.snapshot()
-                r['command']=cli('run',str(node),'--core',CORE)
+                r['command']=cli('run',str(node),'--tun','--core',CORE)
                 r['assertion']=r['command']['exit']==8 and Path('/run/xrayfa/session.json').read_bytes()==old and probe.config_snapshot(during)==probe.config_snapshot(probe.snapshot())
                 proc.send_signal(signal.SIGTERM);wait(0);r['expectedExit']=8
                 if not r['assertion']:raise RuntimeError('Duplicate start altered active state')

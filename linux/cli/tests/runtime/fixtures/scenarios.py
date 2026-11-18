@@ -47,12 +47,12 @@ def main():
             label=('root' if root else 'user')+'-'+fmt
             run_case('DIAG-01/'+label,0,lambda root=root,fmt=fmt:cli('doctor','--core',CORE,*(['--json'] if fmt=='json' else []),user=not root),
                 lambda r,root=root,fmt=fmt: json.loads(r['stdout'])['uid']==1000 and json.loads(r['stdout'])['effectiveUid']==(0 if root else 1000) if fmt=='json' else 'profile=/home/xfa/.local/share/xrayfa' in r['stdout'])
-    run_case('AUTH-01/unprivileged',4,lambda:cli('run',str(seed_id),'--core',CORE,user=True))
-    run_case('STORE-01/missing',3,lambda:cli('run','2147483646','--core',CORE))
+    run_case('AUTH-01/unprivileged',4,lambda:cli('run',str(seed_id),'--tun','--core',CORE,user=True))
+    run_case('STORE-01/missing',3,lambda:cli('run','2147483646','--tun','--core',CORE))
     def mutate_store(case,mutation):
         try:
             mutation()
-            run_case('STORE-01/'+case,10,lambda:cli('run',str(seed_id),'--core',CORE))
+            run_case('STORE-01/'+case,10,lambda:cli('run',str(seed_id),'--tun','--core',CORE))
         finally:
             if store.is_symlink():store.unlink()
             if not store.exists():store.touch(mode=0o600)
@@ -64,9 +64,9 @@ def main():
     def symlink():store.unlink();store.symlink_to(sentinel)
     mutate_store('symlink',symlink)
     if sentinel.read_text()!='unmodified':raise RuntimeError('Foreign symlink target modified')
-    run_case('PRE-01/missing-core',5,lambda:cli('run',str(seed_id),'--core','/opt/xrayfa-runtime/missing-core'))
+    run_case('PRE-01/missing-core',5,lambda:cli('run',str(seed_id),'--tun','--core','/opt/xrayfa-runtime/missing-core'))
     nonexec=out/'nonexec-core';shutil.copyfile(CORE,nonexec);nonexec.chmod(0o600)
-    run_case('PRE-01/nonexec-core',4,lambda:cli('run',str(seed_id),'--core',str(nonexec)))
+    run_case('PRE-01/nonexec-core',4,lambda:cli('run',str(seed_id),'--tun','--core',str(nonexec)))
     nonexec.unlink()
     # Dependencies are hidden only for the duration of a VM-local case and restored
     # by the fixture finally block. The product must never repair these test faults.
@@ -77,7 +77,7 @@ def main():
         if saved.exists() or saved.is_symlink():raise RuntimeError('Dependency backup already exists')
         def action():
             path.rename(saved)
-            try:return cli('run',str(seed_id),'--core',CORE)
+            try:return cli('run',str(seed_id),'--tun','--core',CORE)
             finally:saved.rename(path)
         run_case(case,5,action)
     dependency('PRE-02/tun','/dev/net/tun')
@@ -87,7 +87,7 @@ def main():
         saved=out/'saved-resolv.conf';resolver.rename(saved)
         try:
             resolver.symlink_to('/run/systemd/resolve/resolv.conf')
-            return cli('run',str(seed_id),'--core',CORE)
+            return cli('run',str(seed_id),'--tun','--core',CORE)
         finally:
             resolver.unlink();saved.rename(resolver)
     run_case('PRE-02/resolver',5,unsupported_resolver)

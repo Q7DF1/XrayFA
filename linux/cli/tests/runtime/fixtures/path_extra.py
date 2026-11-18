@@ -68,7 +68,7 @@ def main():
         save()
 
     try:
-        process = subprocess.Popen([CLI, 'run', str(node), '--core', CORE,
+        process = subprocess.Popen([CLI, 'run', str(node), '--tun','--core', CORE,
                                     '--log-level', 'debug'], stdout=log_file,
                                    stderr=subprocess.STDOUT, env=env)
         deadline = time.monotonic() + 18

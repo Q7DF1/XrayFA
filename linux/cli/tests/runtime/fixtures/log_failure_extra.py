@@ -54,7 +54,7 @@ def main():
         folder.mkdir(mode=0o700)
         before = probe.snapshot()
         log_file = (folder / 'cli.log').open('wb')
-        process = subprocess.Popen([CLI, 'run', str(node), '--core', CORE, '--log-level', 'debug'],
+        process = subprocess.Popen([CLI, 'run', str(node), '--tun','--core', CORE, '--log-level', 'debug'],
                                    stdout=log_file, stderr=subprocess.STDOUT, env=env)
         record = {'id': case_id, 'status': 'failed', 'before': before}
         changed = False
@@ -93,7 +93,7 @@ def main():
                     record['logFailureObservedBeforeCoreKill'] = False
                 os.kill(current['corePid'], signal.SIGKILL)
             process.wait(timeout=24)
-            record['command'] = {'argv': [CLI, 'run', str(node), '--core', CORE],
+            record['command'] = {'argv': [CLI, 'run', str(node), '--tun','--core', CORE],
                                  'exit': process.returncode}
             record['logModeAfterFault'] = oct(LOG.stat().st_mode & 0o777) if LOG.exists() else None
             if process.returncode != 11:

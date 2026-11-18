@@ -38,6 +38,11 @@ def main():
         node = root / 'node.json'
         node.write_text(json.dumps(source, indent=2))
         run('run', code=2)  # Empty automatic selection.
+        run('run', '1', '--tun', '--tun', code=2)
+        run('run', '1', '--tun', 'true', code=2)
+        if os.geteuid() != 0:
+            run('run', '1', '--tun', code=4)
+            run('run', '--tun', code=4)
         run('add', node)
         output = root / 'validated.json'
         run('check', '1', '--output', output)  # Adjacent core, even outside its cwd.
@@ -45,14 +50,14 @@ def main():
         assert config['outbounds'] == source['outbounds']
         assert len(config['inbounds']) == 1
         assert config['inbounds'][0]['listen'] == '127.0.0.1'
-        assert config['inbounds'][0]['port'] == 10999
+        assert config['inbounds'][0]['port'] == 10808
         with (root / 'runtime.log').open('wb') as log:
             process = subprocess.Popen([str(cli), 'run'], env=env, stdout=log, stderr=log)
             try:
                 for _ in range(300):
                     assert process.poll() is None, 'Automatic startup failed'
                     try:
-                        with socket.create_connection(('127.0.0.1', 10999), .1):
+                        with socket.create_connection(('127.0.0.1', 10808), .1):
                             break
                     except OSError:
                         time.sleep(.05)

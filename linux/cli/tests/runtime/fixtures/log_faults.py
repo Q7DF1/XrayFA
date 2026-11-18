@@ -27,7 +27,7 @@ def main():
     r={'schemaVersion':1,'instance':args.instance,'boot':Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
        'cliSha256':probe.sha(probe.CLI),'coreSha256':probe.sha(probe.CORE),'fixtureSha256':probe.sha(__file__),'cases':[]}
     env={'PATH':'/usr/sbin:/usr/bin:/sbin:/bin','LANG':'C','LC_ALL':'C','SUDO_UID':'1000'}
-    argv=[probe.CLI,'run',str(node),'--core',probe.CORE,'--log-level','debug']
+    argv=[probe.CLI,'run',str(node),'--tun','--core',probe.CORE,'--log-level','debug']
     def save():(out/'result.json').write_text(json.dumps(r,indent=2)+'\n')
     def ready(proc):
         end=time.monotonic()+16

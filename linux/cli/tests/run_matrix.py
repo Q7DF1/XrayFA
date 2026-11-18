@@ -54,7 +54,7 @@ for i,case in enumerate(manifest['cases']):
                 data=json.loads(config.read_text())
                 checks={
                     'inbounds.0.protocol':'socks','inbounds.0.listen':'127.0.0.1',
-                    'inbounds.0.port':10999,'inbounds.0.settings.auth':'noauth',
+                    'inbounds.0.port':10808,'inbounds.0.settings.auth':'noauth',
                     'inbounds.0.settings.udp':True,'outbounds.0.tag':'proxy',
                     'log.access':'none','log.loglevel':'debug',
                     **case['assertions']}

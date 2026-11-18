@@ -2,7 +2,11 @@ package com.android.xrayfa.cli
 
 import com.android.xrayfa.config.JsonVpnConfig
 import com.android.xrayfa.config.XDriveForm
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 /** Import outbound configurations without permitting additional listeners or file logging. */
 internal fun inspectCliJson(text: String): JsonObject {
@@ -25,4 +29,15 @@ internal fun nodeSocksConfig(record: JsonObject, outbound: JsonObject, level: Lo
     val source = inspectCliJson(record.getValue("url").jsonPrimitive.content)
     val transport = socksConfig(outbound, level)
     return JsonObject(source + mapOf("inbounds" to transport.getValue("inbounds"), "log" to transport.getValue("log")))
+}
+
+/** TUN owns DNS/routing; reject imported policies instead of silently discarding them. */
+internal fun nodeTunOutbound(record: JsonObject, outbound: JsonObject): JsonObject {
+    if (record["protocol"] != JsonPrimitive("json-config")) return outbound
+    val source = inspectCliJson(record.getValue("url").jsonPrimitive.content)
+    if (source.getValue("outbounds").jsonArray.size != 1 ||
+        source.keys.any { it in setOf("routing", "dns", "policy") })
+        fail(ExitCode.CONFIGURATION,
+            "TUN JSON requires one outbound with managed DNS/routing; imported chains, routing, DNS and policy are unsupported")
+    return outbound
 }

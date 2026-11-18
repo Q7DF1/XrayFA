@@ -143,7 +143,7 @@ def main():
             capture = subprocess.Popen(['tcpdump', '-U', '-nn', '-i', 'xfa-underlay',
                                         '-w', str(capture_path)],
                                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            command = probe.cmd([CLI, 'run', str(case['nodeId']), '--core', CORE,
+            command = probe.cmd([CLI, 'run', str(case['nodeId']), '--tun','--core', CORE,
                                  '--log-level', 'debug'], timeout=30)
             case['command'] = command
             case['terminationSignal'] = None

@@ -40,7 +40,7 @@ def main():
     results['baseline']=guest(['sudo','python3','-c',"import json,subprocess; print(json.dumps({k:subprocess.check_output(v,text=True) for k,v in {'route':['ip','-j','route','show','table','all'],'address':['ip','-j','address'],'resolver':['resolvectl','status'],'nft':['nft','-j','list','ruleset']}.items()}))"])
     with open(out/'run.log','w') as log:
         vm.verify(w,s)
-        proc=subprocess.Popen([str(a) for a in vm.ssh(w,s)]+['sudo /opt/xrayfa-runtime/xrayfa run 1 --core /opt/xrayfa-runtime/xray --log-level debug'],stdout=log,stderr=log)
+        proc=subprocess.Popen([str(a) for a in vm.ssh(w,s)]+['sudo /opt/xrayfa-runtime/xrayfa run 1 --tun --core /opt/xrayfa-runtime/xray --log-level debug'],stdout=log,stderr=log)
         deadline=time.monotonic()+18
         while proc.poll() is None and time.monotonic()<deadline:
             if 'stage=Running' in (out/'run.log').read_text():break

@@ -136,13 +136,13 @@ def main():
 
     for mode, expected in [('test-failure', 6), ('config-replaced', 6), ('core-replaced', 5)]:
         run_case('PRE-01/' + mode, expected,
-                 lambda folder, mode=mode: call(CLI, 'run', str(node), '--core', fake_core(folder, mode)))
+                 lambda folder, mode=mode: call(CLI, 'run', str(node), '--tun','--core', fake_core(folder, mode)))
 
     def conflict_case(folder, kind):
         if kind == 'interface':
             call('/usr/sbin/ip', 'link', 'add', 'xrayfa0', 'type', 'dummy')
             try:
-                return call(CLI, 'run', str(node), '--core', CORE)
+                return call(CLI, 'run', str(node), '--tun','--core', CORE)
             finally:
                 call('/usr/sbin/ip', 'link', 'delete', 'xrayfa0')
         if kind == 'address':
@@ -150,13 +150,13 @@ def main():
             call('/usr/sbin/ip', 'link', 'set', 'xfa-conflict', 'up')
             call('/usr/sbin/ip', 'address', 'add', '198.18.0.1/30', 'dev', 'xfa-conflict')
             try:
-                return call(CLI, 'run', str(node), '--core', CORE)
+                return call(CLI, 'run', str(node), '--tun','--core', CORE)
             finally:
                 call('/usr/sbin/ip', 'link', 'delete', 'xfa-conflict')
         if kind == 'vpn':
             call('/usr/sbin/ip', 'tuntap', 'add', 'dev', 'xfa-vpn', 'mode', 'tun')
             try:
-                return call(CLI, 'run', str(node), '--core', CORE)
+                return call(CLI, 'run', str(node), '--tun','--core', CORE)
             finally:
                 call('/usr/sbin/ip', 'link', 'delete', 'xfa-vpn')
         if kind == 'dns':
@@ -164,7 +164,7 @@ def main():
             if changed['exit'] != 0:
                 raise RuntimeError('DNS conflict fixture could not be applied')
             try:
-                return call(CLI, 'run', str(node), '--core', CORE)
+                return call(CLI, 'run', str(node), '--tun','--core', CORE)
             finally:
                 call('/usr/bin/resolvectl', 'domain', 'ens2', '')
         if kind == 'route':
@@ -173,7 +173,7 @@ def main():
             if changed['exit'] != 0:
                 raise RuntimeError('Route conflict fixture could not be applied')
             try:
-                return call(CLI, 'run', str(node), '--core', CORE)
+                return call(CLI, 'run', str(node), '--tun','--core', CORE)
             finally:
                 call('/usr/sbin/ip', 'rule', 'del', 'priority', '100',
                      'from', '10.0.2.0/24', 'table', '100')
@@ -188,7 +188,7 @@ def main():
     folder = out / 'PRE-03-active-session'
     folder.mkdir(mode=0o700)
     before = probe.snapshot()
-    controller = subprocess.Popen([CLI, 'run', str(node), '--core', CORE],
+    controller = subprocess.Popen([CLI, 'run', str(node), '--tun','--core', CORE],
                                   stdout=(folder / 'controller.log').open('wb'),
                                   stderr=subprocess.STDOUT,
                                   env={**os.environ, 'PATH': '/usr/sbin:/usr/bin:/sbin:/bin',
@@ -198,7 +198,7 @@ def main():
         while time.monotonic() < deadline and not journal.exists() and controller.poll() is None:
             time.sleep(.05)
         record = {'id': 'PRE-03/active-session', 'expectedExit': 8, 'status': 'failed',
-                  'before': before, 'command': call(CLI, 'run', str(node), '--core', CORE),
+                  'before': before, 'command': call(CLI, 'run', str(node), '--tun','--core', CORE),
                   'journalPreserved': journal.exists()}
         controller.send_signal(signal.SIGTERM)
         controller.wait(timeout=22)

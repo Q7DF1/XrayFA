@@ -86,7 +86,7 @@ int main(int argc,char **argv){
     if(controller==0){
         if(ptrace(PTRACE_TRACEME,0,0,0))_exit(126);
         raise(SIGSTOP);
-        char *args[]={CLI,"run",argv[3],"--core",CORE,"--log-level","debug",NULL};
+        char *args[]={CLI,"run",argv[3],"--tun","--core",CORE,"--log-level","debug",NULL};
         char *env[]={"PATH=/usr/sbin:/usr/bin:/sbin:/bin","LANG=C","LC_ALL=C","SUDO_UID=1000",NULL};
         execve(CLI,args,env);_exit(127);
     }
