@@ -194,7 +194,12 @@ class AbstractConfigParserGoldenTest {
         val ruleTags = rules.mapNotNull { it.jsonObject["ruleTag"]?.jsonPrimitive?.content }
         assertTrue(ruleTags.contains("DNS Traffic"))
         assertTrue(!ruleTags.contains("DNS Direct (TCP-only proxy)"))
-        assertTrue(ruleTags.contains("Block QUIC (TCP-only proxy)"))
+        assertTrue(!ruleTags.contains("Block QUIC (TCP-only proxy)"))
         assertTrue(ruleTags.contains("UDP Direct (TCP-only proxy)"))
+        val udpDirect = rules.first {
+            it.jsonObject["ruleTag"]?.jsonPrimitive?.content == "UDP Direct (TCP-only proxy)"
+        }.jsonObject
+        assertEquals("udp", udpDirect["network"]?.jsonPrimitive?.content)
+        assertTrue("port" !in udpDirect)
     }
 }
