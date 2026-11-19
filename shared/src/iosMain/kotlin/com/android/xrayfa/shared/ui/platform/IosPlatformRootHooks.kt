@@ -1,13 +1,11 @@
 package com.android.xrayfa.shared.ui.platform
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -34,6 +32,7 @@ import com.android.xrayfa.shared.ui.home.HomeUiLabels
 import com.android.xrayfa.shared.ui.qr.SharedQrScannerScreen
 import com.android.xrayfa.shared.ui.rememberConfigUiLabels
 import com.android.xrayfa.shared.ui.rememberSettingsUiLabels
+import com.android.xrayfa.shared.ui.qr.ExpandableShareQrCode
 import com.android.xrayfa.shared.ui.settings.SharedBugReport
 import com.android.xrayfa.shared.ui.settings.SharedInDevelopmentScreen
 import com.android.xrayfa.shared.ui.settings.SharedInProcessAppLogScreen
@@ -133,18 +132,13 @@ object IosPlatformRootHooks : PlatformRootHooks {
             Surface(
                 shape = MaterialTheme.shapes.medium,
                 tonalElevation = 8.dp,
-                modifier = Modifier.padding(16.dp),
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(bottom = 16.dp),
                 ) {
                     if (qrBitmap != null) {
-                        Image(
-                            bitmap = qrBitmap,
-                            contentDescription = labels.shareLabel,
-                            modifier = Modifier.size(250.dp),
-                        )
+                        ExpandableShareQrCode(bitmap = qrBitmap)
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                     if (node.isManagedXDrive) {

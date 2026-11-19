@@ -381,4 +381,7 @@
     <string name="node_pre_unavailable">Unavailable node</string>
     <string name="node_pre_hint">A node setting overrides the subscription pre-node. Supports one ordinary pre-node; XDRIVE storage requests also use this hop.</string>
     <string name="node_pre_error">The pre-node is unavailable or forms an unsupported chain. Select another node or remove its pre-node setting.</string>
+    <string name="share_qr_expand">Tap to enlarge QR code</string>
+    <string name="share_qr_preview">Share QR code</string>
+    <string name="share_qr_close">Close QR preview</string>
 </resources>

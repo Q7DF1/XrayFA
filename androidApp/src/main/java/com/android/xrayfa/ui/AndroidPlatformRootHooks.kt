@@ -1,13 +1,11 @@
 package com.android.xrayfa.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -39,6 +37,7 @@ import com.android.xrayfa.ui.component.AndroidAppsScreen
 import com.android.xrayfa.ui.component.AndroidLogcatScreen
 import com.android.xrayfa.ui.component.AndroidSettingsGeneralViewModelExtras
 import com.android.xrayfa.ui.component.AndroidSettingsNetworkViewModelExtras
+import com.android.xrayfa.shared.ui.qr.ExpandableShareQrCode
 import com.android.xrayfa.shared.ui.settings.SharedBugReport
 import com.android.xrayfa.ui.component.CompactHomeContent
 import com.android.xrayfa.ui.component.ExpandedHomeContent
@@ -144,17 +143,12 @@ internal class AndroidPlatformRootHooks(
                 Surface(
                     shape = MaterialTheme.shapes.medium,
                     tonalElevation = 8.dp,
-                    modifier = Modifier.padding(16.dp),
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.padding(bottom = 16.dp),
                     ) {
-                        Image(
-                            bitmap = bitmap.asImageBitmap(),
-                            contentDescription = "qrcode",
-                            modifier = Modifier.size(250.dp),
-                        )
+                        ExpandableShareQrCode(bitmap = bitmap.asImageBitmap())
                         Spacer(modifier = Modifier.height(16.dp))
                         if (node.isManagedXDrive) {
                             com.android.xrayfa.shared.ui.config.XDriveShareHint()

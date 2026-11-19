@@ -374,4 +374,7 @@
     <string name="node_pre_unavailable">节点已失效</string>
     <string name="node_pre_hint">单独设置优先于订阅设置。支持一个普通前置节点；XDRIVE 的存储请求也会经过此前置。</string>
     <string name="node_pre_error">前置节点已失效或形成了不支持的代理链，请重新选择，或取消前置节点自身的前置设置。</string>
+    <string name="share_qr_expand">点击放大二维码</string>
+    <string name="share_qr_preview">分享二维码</string>
+    <string name="share_qr_close">关闭二维码预览</string>
 </resources>

@@ -24,7 +24,7 @@ import com.android.xrayfa.repository.NodeRepository
 import com.android.xrayfa.vpn.VpnController
 import com.android.xrayfa.vpn.isConnected
 import com.android.xrayfa.utils.BarcodeUtils
-import com.google.zxing.BarcodeFormat
+import com.android.xrayfa.utils.ShareQrMatrixEncoder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -433,7 +433,11 @@ class XrayViewmodel(
             val node = repository.loadLinksById(id).first() ?: return@launch
             if (!node.canShareConfiguration || shareNodeId != id) return@launch
             shareUrl = node.configurationShareLink() ?: return@launch
-            val bitmap = BarcodeUtils.encodeBitmap(shareUrl, BarcodeFormat.QR_CODE,400,400)
+            val bitmap = withContext(Dispatchers.Default) {
+                runCatching {
+                    BarcodeUtils.createBitmap(ShareQrMatrixEncoder.encode(shareUrl))
+                }.getOrNull()
+            }
             _qrcodeBitmap.value = bitmap
         }
     }
