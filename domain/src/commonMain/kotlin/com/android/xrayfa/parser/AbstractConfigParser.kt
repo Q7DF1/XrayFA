@@ -218,13 +218,6 @@ abstract class AbstractConfigParser<T : AbsOutboundConfigurationObject, P> {
             RuleObject(
                 type = "field",
                 network = "udp",
-                port = "443",
-                outboundTag = "block",
-                ruleTag = "Block QUIC (TCP-only proxy)",
-            ),
-            RuleObject(
-                type = "field",
-                network = "udp",
                 outboundTag = "direct",
                 ruleTag = "UDP Direct (TCP-only proxy)",
             ),
