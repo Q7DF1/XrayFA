@@ -363,4 +363,7 @@
     <string name="xdrive_limits">XDRIVE는 현재 오프라인 지연 테스트와 앱 프록시 체인을 지원하지 않습니다.</string>
     <string name="xdrive_setup_required">연결 전에 노드를 편집하여 XDRIVE 저장소 설정을 완료하세요.</string>
     <string name="xdrive_pending">vless · xdrive · 설정 필요</string>
+    <string name="share_qr_expand">탭하여 QR 코드 확대</string>
+    <string name="share_qr_preview">공유 QR 코드</string>
+    <string name="share_qr_close">QR 코드 미리보기 닫기</string>
 </resources>

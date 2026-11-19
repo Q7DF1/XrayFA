@@ -362,4 +362,7 @@
     <string name="xdrive_limits">Для XDRIVE пока недоступны автономные проверки задержки и цепочки прокси приложения.</string>
     <string name="xdrive_setup_required">Перед подключением заполните настройки хранилища XDRIVE в редакторе узла.</string>
     <string name="xdrive_pending">vless · xdrive · требуется настройка</string>
+    <string name="share_qr_expand">Нажмите, чтобы увеличить QR-код</string>
+    <string name="share_qr_preview">QR-код для отправки</string>
+    <string name="share_qr_close">Закрыть QR-код</string>
 </resources>
