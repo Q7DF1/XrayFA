@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import com.android.xrayfa.shared.ui.theme.AppRadius
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
@@ -126,7 +127,11 @@ internal fun ConfigTabScreen(
                                     modifier = Modifier.size(20.dp),
                                 )
                             }
-                            DropdownMenu(expanded = showSortMenu, onDismissRequest = { showSortMenu = false }) {
+                            DropdownMenu(
+                                expanded = showSortMenu,
+                                onDismissRequest = { showSortMenu = false },
+                                shape = AppRadius.shapeMedium,
+                            ) {
                                 DropdownMenuItem(
                                     text = { Text(stringResource(Res.string.config_sort_default)) },
                                     leadingIcon = { if (!configState.sortByDelay) Icon(Icons.Filled.Check, contentDescription = null) },
