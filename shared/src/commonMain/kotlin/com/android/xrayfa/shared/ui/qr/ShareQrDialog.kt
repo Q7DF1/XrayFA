@@ -22,6 +22,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.android.xrayfa.shared.resources.Res
 import com.android.xrayfa.shared.resources.xdrive_no_sharing
+import com.android.xrayfa.shared.ui.theme.AppRadius
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -42,11 +43,11 @@ fun ShareQrDialog(
         ) {
             Surface(
                 modifier = Modifier.widthIn(max = 320.dp).fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
+                shape = AppRadius.shapeLarge,
                 tonalElevation = 8.dp,
             ) {
                 Column(
-                    modifier = Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
+                    modifier = Modifier.verticalScroll(rememberScrollState()).padding(bottom = 16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     bitmap?.let {
@@ -56,13 +57,16 @@ fun ShareQrDialog(
                     if (showStorageHint) {
                         Text(
                             text = stringResource(Res.string.xdrive_no_sharing),
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Spacer(Modifier.height(16.dp))
                     }
-                    Button(onClick = onCopy, modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = onCopy,
+                        modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+                    ) {
                         Text(copyLabel)
                     }
                 }

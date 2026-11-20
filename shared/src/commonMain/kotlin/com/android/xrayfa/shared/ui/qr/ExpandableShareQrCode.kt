@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
@@ -39,7 +38,7 @@ fun ExpandableShareQrCode(bitmap: ImageBitmap) {
         bitmap = bitmap,
         contentDescription = stringResource(Res.string.share_qr_expand),
         filterQuality = FilterQuality.None,
-        modifier = Modifier.widthIn(max = 250.dp).fillMaxWidth().aspectRatio(1f).clickable { expanded = true },
+        modifier = Modifier.fillMaxWidth().aspectRatio(1f).clickable { expanded = true },
     )
     if (expanded) {
         Dialog(
