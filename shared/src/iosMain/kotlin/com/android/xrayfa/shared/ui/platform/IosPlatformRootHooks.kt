@@ -1,21 +1,11 @@
 package com.android.xrayfa.shared.ui.platform
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import com.android.xrayfa.model.configurationShareLink
 import com.android.xrayfa.model.Node
 import com.android.xrayfa.model.isManagedXDrive
@@ -26,17 +16,17 @@ import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.platform.ClipboardWriter
 import com.android.xrayfa.shared.platform.qr.encodeQrImageBitmap
 import com.android.xrayfa.shared.resources.*
+import org.jetbrains.compose.resources.stringResource
 import com.android.xrayfa.shared.ui.SharedHomeSection
 import com.android.xrayfa.shared.ui.nav.rememberFloatingNavClearance
 import com.android.xrayfa.shared.ui.home.HomeUiLabels
 import com.android.xrayfa.shared.ui.qr.SharedQrScannerScreen
 import com.android.xrayfa.shared.ui.rememberConfigUiLabels
 import com.android.xrayfa.shared.ui.rememberSettingsUiLabels
-import com.android.xrayfa.shared.ui.qr.ExpandableShareQrCode
+import com.android.xrayfa.shared.ui.qr.ShareQrDialog
 import com.android.xrayfa.shared.ui.settings.SharedBugReport
 import com.android.xrayfa.shared.ui.settings.SharedInDevelopmentScreen
 import com.android.xrayfa.shared.ui.settings.SharedInProcessAppLogScreen
-import org.jetbrains.compose.resources.stringResource
 import org.koin.mp.KoinPlatform
 
 /**
@@ -128,37 +118,16 @@ object IosPlatformRootHooks : PlatformRootHooks {
         val clipboardWriter = remember { KoinPlatform.getKoin().get<ClipboardWriter>() }
         val shareUrl = remember(node) { node.configurationShareLink() } ?: return
         val qrBitmap = remember(shareUrl) { encodeQrImageBitmap(shareUrl) }
-        Dialog(onDismissRequest = onDismiss) {
-            Surface(
-                shape = MaterialTheme.shapes.medium,
-                tonalElevation = 8.dp,
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(bottom = 16.dp),
-                ) {
-                    if (qrBitmap != null) {
-                        ExpandableShareQrCode(bitmap = qrBitmap)
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-                    if (node.isManagedXDrive) {
-                        Text(stringResource(Res.string.xdrive_no_sharing),
-                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-                    Button(
-                        onClick = {
-                            if (shareUrl.isNotEmpty()) {
-                                clipboardWriter.writeText(shareUrl)
-                            }
-                            onDismiss()
-                        },
-                    ) {
-                        Text(text = labels.shareLabel)
-                    }
-                }
-            }
-        }
+        ShareQrDialog(
+            bitmap = qrBitmap,
+            showStorageHint = node.isManagedXDrive,
+            copyLabel = labels.shareLabel,
+            onCopy = {
+                if (shareUrl.isNotEmpty()) clipboardWriter.writeText(shareUrl)
+                onDismiss()
+            },
+            onDismiss = onDismiss,
+        )
     }
 
     @Composable

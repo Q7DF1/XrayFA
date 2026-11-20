@@ -1,28 +1,17 @@
 package com.android.xrayfa.ui
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.window.core.layout.WindowWidthSizeClass
 import com.android.xrayfa.R
 import com.android.xrayfa.model.Node
@@ -37,7 +26,7 @@ import com.android.xrayfa.ui.component.AndroidAppsScreen
 import com.android.xrayfa.ui.component.AndroidLogcatScreen
 import com.android.xrayfa.ui.component.AndroidSettingsGeneralViewModelExtras
 import com.android.xrayfa.ui.component.AndroidSettingsNetworkViewModelExtras
-import com.android.xrayfa.shared.ui.qr.ExpandableShareQrCode
+import com.android.xrayfa.shared.ui.qr.ShareQrDialog
 import com.android.xrayfa.shared.ui.settings.SharedBugReport
 import com.android.xrayfa.ui.component.CompactHomeContent
 import com.android.xrayfa.ui.component.ExpandedHomeContent
@@ -134,36 +123,16 @@ internal class AndroidPlatformRootHooks(
             onDispose { xrayViewmodel.dismissDialog() }
         }
         qrBitMap?.let { bitmap ->
-            Dialog(
-                onDismissRequest = {
+            ShareQrDialog(
+                bitmap = bitmap.asImageBitmap(),
+                showStorageHint = node.isManagedXDrive,
+                copyLabel = stringResource(R.string.clipboard_export),
+                onCopy = { xrayViewmodel.exportConfigToClipboard(context, onDone = onDismiss) },
+                onDismiss = {
                     xrayViewmodel.dismissDialog()
                     onDismiss()
                 },
-            ) {
-                Surface(
-                    shape = MaterialTheme.shapes.medium,
-                    tonalElevation = 8.dp,
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(bottom = 16.dp),
-                    ) {
-                        ExpandableShareQrCode(bitmap = bitmap.asImageBitmap())
-                        Spacer(modifier = Modifier.height(16.dp))
-                        if (node.isManagedXDrive) {
-                            com.android.xrayfa.shared.ui.config.XDriveShareHint()
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
-                        Button(
-                            onClick = {
-                                xrayViewmodel.exportConfigToClipboard(context, onDone = onDismiss)
-                            },
-                        ) {
-                            Text(text = stringResource(R.string.clipboard_export))
-                        }
-                    }
-                }
-            }
+            )
         }
     }
 
