@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -23,6 +24,7 @@ import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.android.xrayfa.shared.ui.theme.AppRadius
 import com.android.xrayfa.shared.resources.Res
 import com.android.xrayfa.shared.resources.cancel
 import kotlinx.coroutines.launch
@@ -59,8 +61,9 @@ fun SharedModalBottomSheet(
     val closeLabel = stringResource(Res.string.cancel)
     Dialog(
         onDismissRequest = ::dismissSheet,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+        properties = sharedSheetDialogProperties(),
     ) {
+        SharedSheetSystemBars()
         Box(Modifier.fillMaxSize()) {
             // The dialog owns focus and back handling; tapping outside the sheet dismisses it.
             Box(
@@ -80,7 +83,7 @@ fun SharedModalBottomSheet(
                         .onSizeChanged { sheetHeight = it.height.toFloat() }
                         .graphicsLayer { translationY = entrance.value * sheetHeight + dragOffset }
                         .semantics { if (title != null) paneTitle = title },
-                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                    shape = RoundedCornerShape(topStart = AppRadius.large, topEnd = AppRadius.large),
                     color = MaterialTheme.colorScheme.surfaceContainerLow,
                     tonalElevation = 0.dp,
                 ) {
@@ -103,7 +106,7 @@ fun SharedModalBottomSheet(
                         ) {
                             Box(Modifier.size(32.dp, 4.dp).background(
                                 MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                                RoundedCornerShape(2.dp),
+                                CircleShape,
                             ))
                         }
                         if (title != null) {
@@ -139,3 +142,9 @@ fun SharedModalBottomSheet(
         }
     }
 }
+
+@Composable
+internal expect fun sharedSheetDialogProperties(): DialogProperties
+
+@Composable
+internal expect fun SharedSheetSystemBars()

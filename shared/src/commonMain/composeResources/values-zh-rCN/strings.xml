@@ -377,4 +377,5 @@
     <string name="share_qr_expand">点击放大二维码</string>
     <string name="share_qr_preview">分享二维码</string>
     <string name="share_qr_close">关闭二维码预览</string>
+    <string name="node_actions">节点操作</string>
 </resources>

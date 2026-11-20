@@ -1,5 +1,6 @@
 package com.android.xrayfa.shared.ui.config
 
+import com.android.xrayfa.shared.ui.theme.AppRadius
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.MoreVert
@@ -37,6 +38,7 @@ fun SharedConfigImportMenu(
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = { expanded = false },
+        shape = AppRadius.shapeMedium,
     ) {
         DropdownMenuItem(
             text = { Text(importFromClipboardLabel) },

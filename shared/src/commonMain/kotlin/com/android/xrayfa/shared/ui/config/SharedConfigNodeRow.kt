@@ -7,7 +7,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,7 +33,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.outlined.MoreHoriz
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Surface
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
+import com.android.xrayfa.shared.ui.theme.AppRadius
+import com.android.xrayfa.shared.ui.widgets.SharedModalBottomSheet
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,7 +58,7 @@ import com.android.xrayfa.shared.resources.*
 import org.jetbrains.compose.resources.stringResource
 import com.android.xrayfa.model.protocol.protocolPrefixMap
 
-/** Flat list row — visual parity with Android `NodeCard` list mode (roundCorner = false). */
+/** Node list row with secondary actions in a dedicated bottom sheet. */
 @Composable
 fun SharedConfigNodeRow(
     node: Node,
@@ -70,6 +77,7 @@ fun SharedConfigNodeRow(
     onEdit: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
 ) {
+    var showActions by remember(node.id) { mutableStateOf(false) }
     Box(
         modifier =
             modifier
@@ -117,6 +125,16 @@ fun SharedConfigNodeRow(
                         modifier = Modifier.size(20.dp),
                     )
                 }
+                if (favorite) {
+                    Surface(
+                        modifier = Modifier.align(Alignment.BottomEnd).size(18.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surface,
+                    ) {
+                        Icon(Icons.Filled.Favorite, labels.removeFromFavoritesLabel,
+                            modifier = Modifier.padding(3.dp), tint = MaterialTheme.colorScheme.tertiary)
+                    }
+                }
             }
 
             Spacer(Modifier.width(14.dp))
@@ -128,7 +146,7 @@ fun SharedConfigNodeRow(
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
-                    modifier = Modifier.basicMarquee(),
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Spacer(Modifier.height(2.dp))
                 Row(
@@ -153,34 +171,6 @@ fun SharedConfigNodeRow(
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (onFavorite != null) {
-                    IconButton(
-                        onClick = onFavorite,
-                        modifier = Modifier.size(36.dp),
-                    ) {
-                        Icon(
-                            imageVector =
-                                if (favorite) {
-                                    Icons.Filled.Favorite
-                                } else {
-                                    Icons.Outlined.FavoriteBorder
-                                },
-                            contentDescription =
-                                if (favorite) {
-                                    labels.removeFromFavoritesLabel
-                                } else {
-                                    labels.addToFavoritesLabel
-                                },
-                            tint =
-                                if (favorite) {
-                                    MaterialTheme.colorScheme.tertiary
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                },
-                            modifier = Modifier.size(20.dp),
-                        )
-                    }
-                }
                 if (onTest != null) {
                     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
                     val scale by
@@ -226,37 +216,89 @@ fun SharedConfigNodeRow(
                         )
                     }
                 }
-                if (onShare != null) {
-                    IconButton(onClick = onShare, modifier = Modifier.size(36.dp)) {
-                        Icon(
-                            imageVector = Icons.Outlined.Share,
-                            contentDescription = labels.shareLabel,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp),
-                        )
-                    }
-                }
-                if (onEdit != null) {
-                    IconButton(onClick = onEdit, modifier = Modifier.size(36.dp)) {
-                        Icon(
-                            imageVector = Icons.Outlined.Edit,
-                            contentDescription = labels.editLabel,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp),
-                        )
-                    }
-                }
-                if (onDelete != null) {
-                    IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
-                        Icon(
-                            imageVector = Icons.Outlined.Delete,
-                            contentDescription = labels.deleteLabel,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp),
-                        )
+                if (onFavorite != null || onShare != null || onEdit != null || onDelete != null) {
+                    IconButton(onClick = { showActions = true }, modifier = Modifier.size(48.dp)) {
+                        Icon(Icons.Outlined.MoreHoriz, stringResource(Res.string.node_actions),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
+        }
+    }
+    if (showActions) {
+        SharedModalBottomSheet(onDismissRequest = { showActions = false }) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                Box(Modifier.size(48.dp).clip(CircleShape).background(MaterialTheme.colorScheme.secondaryContainer),
+                    contentAlignment = Alignment.Center) {
+                    if (countryEmoji.isNotEmpty()) Text(countryEmoji, fontSize = 26.sp)
+                    else Icon(Icons.Outlined.Dns, null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                }
+                Column(Modifier.weight(1f)) {
+                    Text(node.remark?.takeIf { it.isNotBlank() } ?: node.address,
+                        style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        if (node.isJsonConfig) stringResource(Res.string.json_config_title)
+                        else protocolPrefixMap[node.protocolPrefix]?.protocolType ?: labels.unknownProtocolLabel,
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (onFavorite != null) {
+                    NodeActionTile(
+                        if (favorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                        if (favorite) labels.removeFromFavoritesLabel else labels.addToFavoritesLabel,
+                        Modifier.weight(1f), active = favorite,
+                    ) { showActions = false; onFavorite() }
+                }
+                if (onShare != null) NodeActionTile(Icons.Outlined.Share, labels.shareLabel, Modifier.weight(1f)) {
+                    showActions = false
+                    onShare()
+                }
+                if (onEdit != null) NodeActionTile(Icons.Outlined.Edit, labels.editLabel, Modifier.weight(1f)) {
+                    showActions = false
+                    onEdit()
+                }
+            }
+            if (onDelete != null) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                Surface(
+                    onClick = { showActions = false; onDelete() },
+                    shape = AppRadius.shapeMedium,
+                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
+                    contentColor = MaterialTheme.colorScheme.error,
+                ) {
+                    Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Icon(Icons.Outlined.Delete, null, Modifier.size(22.dp))
+                        Text(labels.deleteLabel, style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun NodeActionTile(
+    icon: ImageVector,
+    label: String,
+    modifier: Modifier = Modifier,
+    active: Boolean = false,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier,
+        shape = AppRadius.shapeMedium,
+        color = if (active) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = if (active) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSurface,
+    ) {
+        Column(Modifier.padding(horizontal = 8.dp, vertical = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Icon(icon, null, Modifier.size(26.dp))
+            Text(label, style = MaterialTheme.typography.labelMedium,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
     }
 }
