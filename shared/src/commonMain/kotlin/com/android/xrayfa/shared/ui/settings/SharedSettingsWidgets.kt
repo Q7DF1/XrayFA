@@ -48,8 +48,8 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import com.android.xrayfa.shared.ui.theme.AppRadius
 import com.android.xrayfa.shared.ui.widgets.SharedGlassToggle
 
 @Composable
@@ -182,9 +182,7 @@ fun SharedSettingsSelectRow(
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    offset = DpOffset(0.dp, 0.dp),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = AppRadius.shapeMedium,
                 ) {
                     options.forEach { (code, label) ->
                         DropdownMenuItem(
