@@ -100,7 +100,8 @@ internal fun resolveAndroidColorScheme(
     dynamicColor: Boolean = true,
 ): ColorScheme = when {
     dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
-        if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        (if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context))
+            .withSubtleDynamicSurfaces()
     darkTheme -> DarkColorScheme
     else -> LightColorScheme
 }

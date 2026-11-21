@@ -44,7 +44,7 @@ fun ShareQrDialog(
             Surface(
                 modifier = Modifier.widthIn(max = 320.dp).fillMaxWidth(),
                 shape = AppRadius.shapeLarge,
-                tonalElevation = 8.dp,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
             ) {
                 Column(
                     modifier = Modifier.verticalScroll(rememberScrollState()).padding(bottom = 16.dp),
