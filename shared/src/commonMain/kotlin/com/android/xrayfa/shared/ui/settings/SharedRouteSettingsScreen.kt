@@ -138,9 +138,9 @@ fun SharedRouteSettingsScreen(
     }
 
     SharedListScaffold(
+        scrolledChromeShadowElevation = 4.dp,
         title = labels.title,
         modifier = modifier.fillMaxSize(),
-        lockCollapsedTitle = true,
         navigationIcon = {
             if (onBack != null) {
                 IconButton(onClick = onBack) {

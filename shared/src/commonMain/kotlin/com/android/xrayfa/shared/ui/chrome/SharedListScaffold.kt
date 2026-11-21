@@ -7,11 +7,13 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
@@ -20,26 +22,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.TopAppBarState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 
 private val CollapsingTitleHeight = 64.dp
@@ -50,8 +43,8 @@ fun SharedListScaffold(
     title: String,
     modifier: Modifier = Modifier,
     largeTitle: Boolean = true,
+    expandedTitleExtraStartPadding: Dp = 0.dp,
     collapseTitleOnScroll: Boolean = false,
-    lockCollapsedTitle: Boolean = false,
     titleExpandKey: Any? = null,
     /**
      * 供需要让折叠状态跨导航存活的调用方传入。一个调用点要么始终传、要么始终不传 ——
@@ -63,6 +56,8 @@ fun SharedListScaffold(
     footerUnderBar: @Composable () -> Unit = {},
     chromeColor: Color = Color.Unspecified,
     chromeShadowElevation: Dp = 0.dp,
+    /** Maximum shadow when list content scrolls underneath the app bar. */
+    scrolledChromeShadowElevation: Dp = 0.dp,
     chromeTonalElevation: Dp = 0.dp,
     showChromeHairline: Boolean = false,
     contentWindowInsets: WindowInsets = ScaffoldDefaults.contentWindowInsets,
@@ -79,34 +74,12 @@ fun SharedListScaffold(
             titleCollapse.expand()
         }
     }
-    val collapsedTitleLock = remember { CollapsedTitleLock() }
-    val rawScrollBehavior =
+    val scrollBehavior =
         if (largeTitle && !collapseTitleOnScroll) {
             TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
         } else {
             null
         }
-    val scrollBehavior =
-        if (rawScrollBehavior != null && lockCollapsedTitle) {
-            remember(rawScrollBehavior) {
-                LockingTopAppBarScrollBehavior(rawScrollBehavior, collapsedTitleLock)
-            }
-        } else {
-            rawScrollBehavior
-        }
-    LaunchedEffect(scrollBehavior?.state?.collapsedFraction, lockCollapsedTitle) {
-        val behavior = scrollBehavior ?: return@LaunchedEffect
-        if (lockCollapsedTitle && behavior.state.collapsedFraction >= 0.99f) {
-            collapsedTitleLock.lock()
-            behavior.state.heightOffset = behavior.state.heightOffsetLimit
-        }
-    }
-    val showCollapsedHairline =
-        lockCollapsedTitle &&
-            (
-                collapsedTitleLock.locked ||
-                    (scrollBehavior?.state?.collapsedFraction ?: 0f) > 0.02f
-            )
     val nestedScrollConnection =
         when {
             collapseTitleOnScroll -> titleCollapse.connection
@@ -133,10 +106,9 @@ fun SharedListScaffold(
             SharedListScaffoldTopBar(
                 title = title,
                 largeTitle = largeTitle && !collapseTitleOnScroll,
+                expandedTitleExtraStartPadding = expandedTitleExtraStartPadding,
                 collapseTitleOnScroll = collapseTitleOnScroll,
-                lockCollapsedTitle = lockCollapsedTitle,
                 collapsedFraction = titleCollapse.collapsedFraction,
-                showCollapsedHairline = showCollapsedHairline,
                 navigationIcon = navigationIcon,
                 actions = actions,
                 footerUnderBar = footerUnderBar,
@@ -145,6 +117,7 @@ fun SharedListScaffold(
                 pinnedChrome = pinnedChrome,
                 chromeColor = chromeColor,
                 chromeShadowElevation = chromeShadowElevation,
+                scrolledChromeShadowElevation = scrolledChromeShadowElevation,
                 chromeTonalElevation = chromeTonalElevation,
                 showChromeHairline = showChromeHairline,
             )
@@ -162,10 +135,9 @@ fun SharedListScaffold(
 private fun SharedListScaffoldTopBar(
     title: String,
     largeTitle: Boolean,
+    expandedTitleExtraStartPadding: Dp,
     collapseTitleOnScroll: Boolean,
-    lockCollapsedTitle: Boolean,
     collapsedFraction: Float,
-    showCollapsedHairline: Boolean,
     navigationIcon: @Composable () -> Unit,
     actions: @Composable RowScope.() -> Unit,
     footerUnderBar: @Composable () -> Unit,
@@ -174,6 +146,7 @@ private fun SharedListScaffoldTopBar(
     pinnedChrome: Boolean,
     chromeColor: Color,
     chromeShadowElevation: Dp,
+    scrolledChromeShadowElevation: Dp,
     chromeTonalElevation: Dp,
     showChromeHairline: Boolean,
 ) {
@@ -211,21 +184,28 @@ private fun SharedListScaffoldTopBar(
                     )
                 }
             } else if (largeTitle) {
-                val scrolledContainer =
-                    if (lockCollapsedTitle) {
-                        barContainerColor
-                    } else {
-                        MaterialTheme.colorScheme.surfaceContainer
-                    }
                 LargeTopAppBar(
-                    title = { Text(title, fontWeight = FontWeight.Bold) },
+                    title = {
+                        // Material renders this slot twice with different text styles.
+                        // Add the inset only to the expanded title; keep the compact row
+                        // aligned with its navigation icon.
+                        val isExpandedTitle =
+                            LocalTextStyle.current.fontSize > MaterialTheme.typography.titleLarge.fontSize
+                        Text(
+                            title,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(
+                                start = if (isExpandedTitle) expandedTitleExtraStartPadding else 0.dp,
+                            ),
+                        )
+                    },
                     navigationIcon = navigationIcon,
                     actions = actions,
                     scrollBehavior = scrollBehavior,
                     colors =
                         TopAppBarDefaults.largeTopAppBarColors(
                             containerColor = barContainerColor,
-                            scrolledContainerColor = scrolledContainer,
+                            scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                         ),
                 )
             } else {
@@ -241,7 +221,7 @@ private fun SharedListScaffoldTopBar(
                 )
             }
             footerUnderBar()
-            if (showChromeHairline || showCollapsedHairline) {
+            if (showChromeHairline) {
                 HorizontalDivider(
                     thickness = 1.dp,
                     color = MaterialTheme.colorScheme.outlineVariant,
@@ -249,10 +229,11 @@ private fun SharedListScaffoldTopBar(
             }
         }
     }
-    if (pinnedChrome) {
+    if (pinnedChrome || scrolledChromeShadowElevation > 0.dp) {
+        val overlap = (scrollBehavior?.state?.overlappedFraction ?: 0f).coerceIn(0f, 1f)
         Surface(
-            color = chromeColor,
-            shadowElevation = chromeShadowElevation,
+            color = if (pinnedChrome) chromeColor else MaterialTheme.colorScheme.background,
+            shadowElevation = chromeShadowElevation + scrolledChromeShadowElevation * overlap,
             tonalElevation = chromeTonalElevation,
         ) {
             barContent()
@@ -260,64 +241,4 @@ private fun SharedListScaffoldTopBar(
     } else {
         barContent()
     }
-}
-
-private class CollapsedTitleLock {
-    var locked by mutableStateOf(false)
-        private set
-
-    fun lock() {
-        locked = true
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-private class LockingTopAppBarScrollBehavior(
-    private val base: TopAppBarScrollBehavior,
-    private val lock: CollapsedTitleLock,
-) : TopAppBarScrollBehavior {
-    override val state: TopAppBarState
-        get() = base.state
-    override val isPinned: Boolean
-        get() = base.isPinned
-    override val snapAnimationSpec
-        get() = if (lock.locked) null else base.snapAnimationSpec
-    override val flingAnimationSpec
-        get() = if (lock.locked) null else base.flingAnimationSpec
-    override val nestedScrollConnection: NestedScrollConnection =
-        object : NestedScrollConnection {
-            override fun onPreScroll(
-                available: Offset,
-                source: NestedScrollSource,
-            ): Offset {
-                if (lock.locked) return Offset.Zero
-                return base.nestedScrollConnection.onPreScroll(available, source).also { maybeLock() }
-            }
-
-            override fun onPostScroll(
-                consumed: Offset,
-                available: Offset,
-                source: NestedScrollSource,
-            ): Offset {
-                if (lock.locked) return Offset.Zero
-                return base.nestedScrollConnection
-                    .onPostScroll(consumed, available, source)
-                    .also { maybeLock() }
-            }
-
-            override suspend fun onPostFling(
-                consumed: Velocity,
-                available: Velocity,
-            ): Velocity {
-                if (lock.locked) return Velocity.Zero
-                return base.nestedScrollConnection.onPostFling(consumed, available).also { maybeLock() }
-            }
-
-            private fun maybeLock() {
-                if (base.state.collapsedFraction >= 0.99f) {
-                    lock.lock()
-                    base.state.heightOffset = base.state.heightOffsetLimit
-                }
-            }
-        }
 }

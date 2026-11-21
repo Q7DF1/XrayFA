@@ -37,9 +37,9 @@ fun SharedConnectMapScreen(
     var showOriginPicker by remember { mutableStateOf(false) }
 
     SharedListScaffold(
+        scrolledChromeShadowElevation = 4.dp,
         title = labels.connectMapTitle,
         modifier = modifier,
-        lockCollapsedTitle = true,
         navigationIcon = {
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = labels.cancelLabel)

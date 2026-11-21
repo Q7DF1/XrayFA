@@ -117,8 +117,7 @@ fun SharedBugReportDialog(
                 .widthIn(max = 520.dp)
                 .padding(horizontal = 20.dp),
             shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 6.dp,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
             shadowElevation = 8.dp,
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {

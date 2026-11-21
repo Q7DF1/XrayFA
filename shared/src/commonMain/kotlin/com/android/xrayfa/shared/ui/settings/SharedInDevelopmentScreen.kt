@@ -27,7 +27,6 @@ fun SharedInDevelopmentScreen(
     SharedListScaffold(
         title = title,
         modifier = modifier.fillMaxSize(),
-        lockCollapsedTitle = true,
         navigationIcon = {
             IconButton(onClick = onBack) {
                 Icon(

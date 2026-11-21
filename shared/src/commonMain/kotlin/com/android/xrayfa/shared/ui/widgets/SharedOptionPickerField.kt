@@ -75,7 +75,7 @@ fun <T> SharedOptionPickerField(
         Dialog(onDismissRequest = { showPicker = false }) {
             Surface(
                 shape = MaterialTheme.shapes.medium,
-                tonalElevation = 6.dp,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
             ) {
                 Column(
                     modifier =

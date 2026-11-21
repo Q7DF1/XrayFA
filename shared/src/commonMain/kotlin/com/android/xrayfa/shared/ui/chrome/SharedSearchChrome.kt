@@ -59,6 +59,7 @@ internal fun SharedSearchChrome(
     onBack: () -> Unit,
     backContentDescription: String,
     modifier: Modifier = Modifier,
+    transitionDestination: String = TransitionDestinations.SEARCH,
     results: @Composable ColumnScope.() -> Unit,
 ) {
     val clearLabel = stringResource(Res.string.search_clear)
@@ -110,7 +111,7 @@ internal fun SharedSearchChrome(
                                 Icons.Outlined.Search,
                                 contentDescription = searchLabel,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.sharedIcon(TransitionDestinations.SEARCH).size(24.dp),
+                                modifier = Modifier.sharedIcon(transitionDestination).size(24.dp),
                             )
                         }
                     }

@@ -65,6 +65,7 @@ class DefaultRootComponent(
                         RootComponent.StackChild.Subscriptions(subscriptionComponentFactory(childContext))
                     RootStackConfig.QrScanner -> RootComponent.StackChild.QrScanner
                     RootStackConfig.Apps -> RootComponent.StackChild.Apps
+                    RootStackConfig.AppsSearch -> RootComponent.StackChild.AppsSearch
                     RootStackConfig.Logcat -> RootComponent.StackChild.Logcat
                     RootStackConfig.ConnectMap -> RootComponent.StackChild.ConnectMap
                     RootStackConfig.RouteSettings -> RootComponent.StackChild.RouteSettings
@@ -140,6 +141,7 @@ class DefaultRootComponent(
             navigation.select(index = RootTab.Config.ordinal)
         }
     }
+    override fun openAppsSearch() = bringOrPush(RootStackConfig.AppsSearch)
     override fun openApps() = pushOnSettingsOrIdle(RootStackConfig.Apps)
     override fun openLogcat() = pushOnSettingsOrIdle(RootStackConfig.Logcat)
     override fun openConnectMap() {
@@ -167,6 +169,7 @@ class DefaultRootComponent(
             RootStackConfig.Subscriptions -> openSubscriptions()
             RootStackConfig.Settings -> openSettings()
             RootStackConfig.Apps -> openApps()
+            RootStackConfig.AppsSearch -> openAppsSearch()
             RootStackConfig.ConnectMap -> openConnectMap()
             RootStackConfig.RouteSettings -> openRouteSettings()
             RootStackConfig.QrScanner -> openQrScanner()

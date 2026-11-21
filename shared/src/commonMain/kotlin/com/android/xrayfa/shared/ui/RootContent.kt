@@ -216,10 +216,22 @@ fun RootContent(
                         RootComponent.StackChild.Apps ->
                             platformHooks.AppsScreen(
                                 component = component.settingsComponent,
+                                onOpenSearch = component::openAppsSearch,
                                 onBack = component::navigateBack,
                                 modifier =
                                     Modifier.settingsDetailDestination(SettingsDetailTransitions.Apps)
                                     .fillMaxSize(),
+                            )
+                        RootComponent.StackChild.AppsSearch ->
+                            platformHooks.AppsSearchScreen(
+                                component = component.settingsComponent,
+                                onBack = component::navigateBack,
+                                modifier = Modifier.sharedContainer(
+                                    destination = TransitionDestinations.APPS_SEARCH,
+                                    fixedContentSize = true,
+                                    shape = rememberDestinationShape(startCorner = 24.dp),
+                                    containerColor = MaterialTheme.colorScheme.surface,
+                                ).fillMaxSize(),
                             )
                         RootComponent.StackChild.Logcat ->
                             platformHooks.LogcatScreen(
