@@ -39,8 +39,10 @@ internal fun SettingsTabScreen(
 
     SharedListScaffold(
         title = stringResource(Res.string.settings_title),
+        // Match the section labels at 24.dp (the app bar already provides 16.dp).
+        expandedTitleExtraStartPadding = 8.dp,
+        scrolledChromeShadowElevation = 4.dp,
         modifier = modifier,
-        lockCollapsedTitle = true,
         navigationIcon = {
             IconButton(onClick = onBack) {
                 Icon(

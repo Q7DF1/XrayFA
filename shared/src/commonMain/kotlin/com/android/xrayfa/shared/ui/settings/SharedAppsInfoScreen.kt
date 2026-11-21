@@ -60,8 +60,8 @@ fun SharedAppsPickerScreen(
 
     SharedListScaffold(
         title = labels.appsInfoTitle,
+        scrolledChromeShadowElevation = 4.dp,
         modifier = modifier.fillMaxSize(),
-        lockCollapsedTitle = true,
         navigationIcon = {
             if (onBack != null) {
                 IconButton(onClick = onBack) {

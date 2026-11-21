@@ -101,9 +101,9 @@ fun SharedSubscriptionScreen(
 
     ProvideFloatingNavBackdrop {
         SharedListScaffold(
+            scrolledChromeShadowElevation = 4.dp,
             title = labels.title,
             modifier = modifier,
-            lockCollapsedTitle = true,
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(
