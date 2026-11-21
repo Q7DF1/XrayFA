@@ -41,6 +41,7 @@ fun ThemeReveal(content: @Composable () -> Unit) {
     var capturing by remember { mutableStateOf(false) }
     var position by remember { mutableStateOf(Offset.Zero) }
     val colors = rememberUpdatedState(MaterialTheme.colorScheme)
+    val background = MaterialTheme.colorScheme.background
     val controller = remember {
         ThemeRevealController { origin, update ->
             if (!capturing && frame == null) {
@@ -72,7 +73,12 @@ fun ThemeReveal(content: @Composable () -> Unit) {
     CompositionLocalProvider(LocalThemeRevealController provides controller) {
         Box(Modifier.fillMaxSize().onGloballyPositioned { position = it.positionInWindow() }) {
             Box(Modifier.fillMaxSize().drawWithContent {
-                layer.record { this@drawWithContent.drawContent() }
+                layer.record {
+                    // Include the backdrop in the snapshot so unpainted areas never expose
+                    // the window background or the new theme outside the reveal circle.
+                    drawRect(background)
+                    this@drawWithContent.drawContent()
+                }
                 drawLayer(layer)
             }) { content() }
             frame?.let { saved ->
