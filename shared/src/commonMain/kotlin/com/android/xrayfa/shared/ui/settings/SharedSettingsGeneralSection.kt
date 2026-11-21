@@ -33,6 +33,8 @@ fun SharedSettingsGeneralSection(
     additionalNetworkContent: @Composable ColumnScope.() -> Unit = {},
 ) {
     val state by component.state.subscribeAsState()
+    val systemDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val themeReveal = com.android.xrayfa.shared.ui.theme.LocalThemeRevealController.current
     val platformHooks = LocalPlatformRootHooks.current
     val themeOptions =
         mapOf(
@@ -62,6 +64,15 @@ fun SharedSettingsGeneralSection(
                 selectedLabel = selectedThemeLabel,
                 options = themeOptions,
                 onSelected = component::onSetTheme,
+                onSelectedAt = { code, origin ->
+                    if (code != state.darkMode) {
+                        if (themeReveal != null &&
+                            Theme.fromCode(code).resolvesToDark(systemDark) !=
+                            Theme.fromCode(state.darkMode).resolvesToDark(systemDark)
+                        ) themeReveal.change(origin) { component.onSetTheme(code) }
+                        else component.onSetTheme(code)
+                    }
+                },
                 icon = Icons.Outlined.Palette,
             )
             if (platformHooks.supportsBootAutoStart) SharedSettingsSwitchRow(

@@ -5,6 +5,10 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,6 +44,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -139,6 +145,7 @@ fun SharedSettingsSelectRow(
     options: Map<Int, String>,
     onSelected: (Int) -> Unit,
     icon: ImageVector? = null,
+    onSelectedAt: ((Int, androidx.compose.ui.geometry.Offset) -> Unit)? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
     ListItem(
@@ -185,11 +192,22 @@ fun SharedSettingsSelectRow(
                     shape = AppRadius.shapeMedium,
                 ) {
                     options.forEach { (code, label) ->
+                        var center by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+                        var itemPosition by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
                         DropdownMenuItem(
+                            modifier = Modifier.onGloballyPositioned {
+                                itemPosition = it.positionInWindow()
+                                center = itemPosition + androidx.compose.ui.geometry.Offset(it.size.width / 2f, it.size.height / 2f)
+                            }.pointerInput(Unit) {
+                                awaitEachGesture {
+                                    val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                                    center = itemPosition + down.position
+                                }
+                            },
                             text = { Text(label) },
                             onClick = {
-                                onSelected(code)
                                 expanded = false
+                                if (onSelectedAt != null) onSelectedAt(code, center) else onSelected(code)
                             },
                         )
                     }

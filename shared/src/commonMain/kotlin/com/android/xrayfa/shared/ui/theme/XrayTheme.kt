@@ -82,6 +82,6 @@ fun XrayTheme(
 ) {
     MaterialTheme(
         colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
-        content = content,
+        content = { ThemeReveal(content = content) },
     )
 }
