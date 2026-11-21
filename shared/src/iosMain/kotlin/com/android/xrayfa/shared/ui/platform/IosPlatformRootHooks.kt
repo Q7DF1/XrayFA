@@ -49,6 +49,7 @@ object IosPlatformRootHooks : PlatformRootHooks {
     @Composable
     override fun AppsScreen(
         component: SettingsComponent,
+        onOpenSearch: () -> Unit,
         onBack: () -> Unit,
         modifier: Modifier,
     ) {

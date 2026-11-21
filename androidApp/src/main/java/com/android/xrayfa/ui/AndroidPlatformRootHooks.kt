@@ -22,6 +22,7 @@ import com.android.xrayfa.shared.navigation.HomeComponent
 import com.android.xrayfa.shared.navigation.SettingsComponent
 import com.android.xrayfa.shared.ui.home.HomeUiLabels
 import com.android.xrayfa.shared.ui.platform.PlatformRootHooks
+import com.android.xrayfa.ui.component.AndroidAppsSearchScreen
 import com.android.xrayfa.ui.component.AndroidAppsScreen
 import com.android.xrayfa.ui.component.AndroidLogcatScreen
 import com.android.xrayfa.ui.component.AndroidSettingsGeneralViewModelExtras
@@ -52,16 +53,27 @@ internal class AndroidPlatformRootHooks(
         AndroidSettingsNetworkViewModelExtras(settingsViewmodel)
     }
 
-    // 这三个屏幕的实现都在 `ui/component/` 下，那是本计划明令不得改动的 Navigation3 遗留目录，
-    // 所以 modifier 挂在外面包的 Box 上，而不是下传给它们。
+    // Keep root transition modifiers outside the platform-specific content.
     @Composable
     override fun AppsScreen(
+        component: SettingsComponent,
+        onOpenSearch: () -> Unit,
+        onBack: () -> Unit,
+        modifier: Modifier,
+    ) {
+        Box(modifier = modifier) {
+            AndroidAppsScreen(viewmodel = appsViewmodel, onOpenSearch = onOpenSearch, onBack = onBack)
+        }
+    }
+
+    @Composable
+    override fun AppsSearchScreen(
         component: SettingsComponent,
         onBack: () -> Unit,
         modifier: Modifier,
     ) {
         Box(modifier = modifier) {
-            AndroidAppsScreen(viewmodel = appsViewmodel, onBack = onBack)
+            AndroidAppsSearchScreen(viewmodel = appsViewmodel, onBack = onBack)
         }
     }
 

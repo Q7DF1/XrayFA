@@ -30,6 +30,23 @@ class DefaultRootComponentStackTest {
     }
 
     @Test
+    fun appsSearchKeepsAppListUnderneathAndDoesNotDuplicate() {
+        val root = testRootComponent()
+        root.openSettings()
+        root.openApps()
+        root.openAppsSearch()
+        root.openAppsSearch()
+        assertEquals(
+            listOf(RootStackConfig.Idle, RootStackConfig.Settings, RootStackConfig.Apps, RootStackConfig.AppsSearch),
+            configs(root),
+        )
+        root.navigateBack()
+        assertEquals(RootStackConfig.Apps, active(root))
+        root.navigateBack()
+        assertEquals(RootStackConfig.Settings, active(root))
+    }
+
+    @Test
     fun secondOpenSettingsDoesNotStackTwice() {
         val root = testRootComponent()
         root.openSettings()

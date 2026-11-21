@@ -52,9 +52,19 @@ interface PlatformRootHooks {
     @Composable
     fun AppsScreen(
         component: SettingsComponent,
+        onOpenSearch: () -> Unit,
         onBack: () -> Unit,
         modifier: Modifier,
     )
+
+    @Composable
+    fun AppsSearchScreen(
+        component: SettingsComponent,
+        onBack: () -> Unit,
+        modifier: Modifier,
+    ) {
+        AppsScreen(component = component, onOpenSearch = {}, onBack = onBack, modifier = modifier)
+    }
 
     @Composable
     fun LogcatScreen(
@@ -118,6 +128,7 @@ private object DefaultPlatformRootHooks : PlatformRootHooks {
     @Composable
     override fun AppsScreen(
         component: SettingsComponent,
+        onOpenSearch: () -> Unit,
         onBack: () -> Unit,
         modifier: Modifier,
     ) {

@@ -12,6 +12,7 @@ object TransitionDestinations {
     const val SEARCH = "search"
     const val CONNECT_MAP = "connect-map"
     const val APPS = "apps"
+    const val APPS_SEARCH = "apps-search"
     const val LOGCAT = "logcat"
     const val ROUTE = "route"
     const val QR = "qr"

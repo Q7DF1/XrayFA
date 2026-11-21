@@ -28,6 +28,8 @@ interface RootComponent : BackHandlerOwner {
 
     fun openQrScanner()
 
+    fun openAppsSearch()
+
     fun openApps()
 
     fun openLogcat()
@@ -57,6 +59,7 @@ interface RootComponent : BackHandlerOwner {
         class Subscriptions(val component: SubscriptionComponent) : StackChild()
         data object QrScanner : StackChild()
         data object Apps : StackChild()
+        data object AppsSearch : StackChild()
         data object Logcat : StackChild()
         data object ConnectMap : StackChild()
         data object RouteSettings : StackChild()

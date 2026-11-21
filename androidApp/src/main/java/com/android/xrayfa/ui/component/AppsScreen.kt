@@ -1,11 +1,8 @@
-@file:OptIn(androidx.compose.animation.ExperimentalSharedTransitionApi::class)
-
 package com.android.xrayfa.ui.component
 
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,6 +24,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -36,29 +34,38 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import com.android.xrayfa.R
 import com.android.xrayfa.repository.AppInfoRepository.PermissionState
 import com.android.xrayfa.shared.ui.rememberSettingsUiLabels
 import com.android.xrayfa.shared.ui.settings.SharedAppListItem
 import com.android.xrayfa.shared.ui.settings.SharedAppsPickerScreen
-import com.android.xrayfa.ui.navigation.Apps
+import com.android.xrayfa.shared.ui.settings.SharedAppsSearchScreen
 import com.android.xrayfa.viewmodel.AppsViewmodel
 import com.android.xrayfa.viewmodel.AppInfo
 
 @Composable
 fun AndroidAppsScreen(
     viewmodel: AppsViewmodel,
+    onOpenSearch: () -> Unit,
     onBack: () -> Unit,
 ) {
-    AppsScreen(viewmodel = viewmodel, onBack = onBack)
+    AppsScreen(viewmodel = viewmodel, onBack = onBack, onOpenSearch = onOpenSearch)
+}
+
+@Composable
+fun AndroidAppsSearchScreen(
+    viewmodel: AppsViewmodel,
+    onBack: () -> Unit,
+) {
+    AppsScreen(viewmodel = viewmodel, onBack = onBack, searchMode = true)
 }
 
 @Composable
 fun AppsScreen(
     viewmodel: AppsViewmodel,
     onBack: () -> Unit,
-    sharedTransitionScope: SharedTransitionScope? = null,
+    onOpenSearch: (() -> Unit)? = null,
+    searchMode: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val isLoading by viewmodel.loading.collectAsState()
@@ -84,77 +91,52 @@ fun AppsScreen(
     }
 
     val labels = rememberSettingsUiLabels()
-    val pickerModifier = modifier.fillMaxSize()
-    val sharedScope = sharedTransitionScope
-    if (sharedScope != null) {
-        with(sharedScope) {
-            SharedAppsPickerScreen(
-                items = appInfos.toSharedAppListItems(),
-                labels = labels,
-                modifier =
-                    pickerModifier.sharedElement(
-                        sharedContentState = rememberSharedContentState(key = Apps.route),
-                        animatedVisibilityScope = LocalNavAnimatedContentScope.current,
-                    ),
-                onBack = onBack,
-                searchQuery = searchQuery,
-                onSearchQueryChange = viewmodel::onSearch,
-                onToggle = { packageName, selected ->
-                    if (selected) {
-                        viewmodel.addAllowPackage(packageName)
-                    } else {
-                        viewmodel.removeAllowPackage(packageName)
-                    }
-                },
-                onClearAll = { viewmodel.setAllowedPackages(emptyList()) },
-                isLoading = isLoading && appInfos.isEmpty(),
-                showPermissionDenied = permissionState == PermissionState.DENIED,
-                permissionDeniedContent = {
-                    PermissionRequiredContent(onRetry = { viewmodel.recheckPermission() })
-                },
-                leadingContent = { item ->
-                val painter = appInfos.firstOrNull { it.packageName == item.packageName }?.icon
-                if (painter != null) {
-                    Image(
-                        painter = painter,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp).padding(start = 8.dp),
-                    )
-                }
-            },
+    val items = remember(appInfos) { appInfos.toSharedAppListItems() }
+    val icons = remember(appInfos) { appInfos.associate { it.packageName to it.icon } }
+    val toggle: (String, Boolean) -> Unit = { packageName, selected ->
+        if (selected) {
+            viewmodel.addAllowPackage(packageName)
+        } else {
+            viewmodel.removeAllowPackage(packageName)
+        }
+    }
+    val appIcon: @Composable (SharedAppListItem) -> Unit = { item ->
+        icons[item.packageName]?.let { painter ->
+            Image(
+                painter = painter,
+                contentDescription = null,
+                modifier = Modifier.size(40.dp),
             )
         }
-    } else {
-        SharedAppsPickerScreen(
-            items = appInfos.toSharedAppListItems(),
-            labels = labels,
-            modifier = pickerModifier,
-            onBack = onBack,
+    }
+    if (searchMode) {
+        SharedAppsSearchScreen(
+            items = items,
             searchQuery = searchQuery,
             onSearchQueryChange = viewmodel::onSearch,
-            onToggle = { packageName, selected ->
-                if (selected) {
-                    viewmodel.addAllowPackage(packageName)
-                } else {
-                    viewmodel.removeAllowPackage(packageName)
-                }
-            },
+            onToggle = toggle,
+            onBack = onBack,
+            labels = labels,
+            isLoading = isLoading && appInfos.isEmpty(),
+            leadingContent = appIcon,
+            modifier = modifier,
+        )
+    } else {
+        SharedAppsPickerScreen(
+            items = items,
+            labels = labels,
+            modifier = modifier.fillMaxSize(),
+            onBack = onBack,
+            searchQuery = searchQuery,
+            onOpenSearch = onOpenSearch,
+            onToggle = toggle,
             onClearAll = { viewmodel.setAllowedPackages(emptyList()) },
             isLoading = isLoading && appInfos.isEmpty(),
             showPermissionDenied = permissionState == PermissionState.DENIED,
             permissionDeniedContent = {
                 PermissionRequiredContent(onRetry = { viewmodel.recheckPermission() })
             },
-            leadingContent = { item ->
-                val painter = appInfos.firstOrNull { it.packageName == item.packageName }?.icon
-                if (painter != null) {
-                    Image(
-                        painter = painter,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp).padding(start = 8.dp),
-                    )
-                }
-            },
+            leadingContent = appIcon,
         )
     }
 }

@@ -10,6 +10,7 @@ sealed interface RootStackConfig {
     @Serializable data object Subscriptions : RootStackConfig
     @Serializable data object QrScanner : RootStackConfig
     @Serializable data object Apps : RootStackConfig
+    @Serializable data object AppsSearch : RootStackConfig
     @Serializable data object Logcat : RootStackConfig
     @Serializable data object ConnectMap : RootStackConfig
     @Serializable data object RouteSettings : RootStackConfig
