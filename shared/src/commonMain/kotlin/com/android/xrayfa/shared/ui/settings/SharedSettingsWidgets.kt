@@ -45,7 +45,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -145,7 +146,7 @@ fun SharedSettingsSelectRow(
     options: Map<Int, String>,
     onSelected: (Int) -> Unit,
     icon: ImageVector? = null,
-    onSelectedAt: ((Int, androidx.compose.ui.geometry.Offset) -> Unit)? = null,
+    onSelectedAt: ((Int, Offset) -> Unit)? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
     ListItem(
@@ -192,22 +193,31 @@ fun SharedSettingsSelectRow(
                     shape = AppRadius.shapeMedium,
                 ) {
                     options.forEach { (code, label) ->
-                        var center by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
-                        var itemPosition by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+                        var itemCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+                        var pressOnScreen by remember { mutableStateOf<Offset?>(null) }
                         DropdownMenuItem(
                             modifier = Modifier.onGloballyPositioned {
-                                itemPosition = it.positionInWindow()
-                                center = itemPosition + androidx.compose.ui.geometry.Offset(it.size.width / 2f, it.size.height / 2f)
+                                itemCoordinates = it
                             }.pointerInput(Unit) {
                                 awaitEachGesture {
                                     val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
-                                    center = itemPosition + down.position
+                                    pressOnScreen = itemCoordinates
+                                        ?.takeIf { it.isAttached }
+                                        ?.localToScreen(down.position)
                                 }
                             },
                             text = { Text(label) },
                             onClick = {
+                                val origin = pressOnScreen ?: itemCoordinates
+                                    ?.takeIf { it.isAttached }
+                                    ?.let { it.localToScreen(Offset(it.size.width / 2f, it.size.height / 2f)) }
+                                pressOnScreen = null
                                 expanded = false
-                                if (onSelectedAt != null) onSelectedAt(code, center) else onSelected(code)
+                                if (onSelectedAt != null && origin != null && origin.x.isFinite() && origin.y.isFinite()) {
+                                    onSelectedAt(code, origin)
+                                } else {
+                                    onSelected(code)
+                                }
                             },
                         )
                     }

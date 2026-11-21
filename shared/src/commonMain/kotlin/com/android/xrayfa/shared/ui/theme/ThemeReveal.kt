@@ -18,14 +18,14 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.layout.LayoutCoordinates
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.hypot
 import kotlin.math.max
 
-/** Window coordinates also work for theme choices hosted in a dropdown popup. */
+/** Receives screen coordinates so dropdown popup and app windows share the same reference. */
 class ThemeRevealController internal constructor(val change: (Offset, () -> Unit) -> Unit)
 
 val LocalThemeRevealController = staticCompositionLocalOf<ThemeRevealController?> { null }
@@ -39,19 +39,22 @@ fun ThemeReveal(content: @Composable () -> Unit) {
     val progress = remember { Animatable(0f) }
     var frame by remember { mutableStateOf<RevealFrame?>(null) }
     var capturing by remember { mutableStateOf(false) }
-    var position by remember { mutableStateOf(Offset.Zero) }
+    var coordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val colors = rememberUpdatedState(MaterialTheme.colorScheme)
     val background = MaterialTheme.colorScheme.background
     val controller = remember {
         ThemeRevealController { origin, update ->
-            if (!capturing && frame == null) {
+            val localOrigin = coordinates?.takeIf { it.isAttached }?.screenToLocal(origin)
+            if (localOrigin == null || !localOrigin.x.isFinite() || !localOrigin.y.isFinite()) {
+                update()
+            } else if (!capturing && frame == null) {
                 capturing = true
                 scope.launch {
                     try {
                         val previousColors = colors.value
                         val image = layer.toImageBitmap()
                         progress.snapTo(0f)
-                        val pending = RevealFrame(image, origin - position)
+                        val pending = RevealFrame(image, localOrigin)
                         frame = pending
                         update()
                         // DataStore publishes asynchronously. Keep the old frame until the new theme arrives.
@@ -71,7 +74,7 @@ fun ThemeReveal(content: @Composable () -> Unit) {
         }
     }
     CompositionLocalProvider(LocalThemeRevealController provides controller) {
-        Box(Modifier.fillMaxSize().onGloballyPositioned { position = it.positionInWindow() }) {
+        Box(Modifier.fillMaxSize().onGloballyPositioned { coordinates = it }) {
             Box(Modifier.fillMaxSize().drawWithContent {
                 layer.record {
                     // Include the backdrop in the snapshot so unpainted areas never expose
