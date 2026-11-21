@@ -5,6 +5,10 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,6 +44,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -139,6 +146,7 @@ fun SharedSettingsSelectRow(
     options: Map<Int, String>,
     onSelected: (Int) -> Unit,
     icon: ImageVector? = null,
+    onSelectedAt: ((Int, Offset) -> Unit)? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
     ListItem(
@@ -185,11 +193,31 @@ fun SharedSettingsSelectRow(
                     shape = AppRadius.shapeMedium,
                 ) {
                     options.forEach { (code, label) ->
+                        var itemCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+                        var pressOnScreen by remember { mutableStateOf<Offset?>(null) }
                         DropdownMenuItem(
+                            modifier = Modifier.onGloballyPositioned {
+                                itemCoordinates = it
+                            }.pointerInput(Unit) {
+                                awaitEachGesture {
+                                    val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                                    pressOnScreen = itemCoordinates
+                                        ?.takeIf { it.isAttached }
+                                        ?.localToScreen(down.position)
+                                }
+                            },
                             text = { Text(label) },
                             onClick = {
-                                onSelected(code)
+                                val origin = pressOnScreen ?: itemCoordinates
+                                    ?.takeIf { it.isAttached }
+                                    ?.let { it.localToScreen(Offset(it.size.width / 2f, it.size.height / 2f)) }
+                                pressOnScreen = null
                                 expanded = false
+                                if (onSelectedAt != null && origin != null && origin.x.isFinite() && origin.y.isFinite()) {
+                                    onSelectedAt(code, origin)
+                                } else {
+                                    onSelected(code)
+                                }
                             },
                         )
                     }
