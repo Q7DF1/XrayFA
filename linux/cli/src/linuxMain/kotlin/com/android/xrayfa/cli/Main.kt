@@ -130,10 +130,14 @@ fun main(args: Array<String>) {
                         val node =
                             try {
                                 NodeParser().parse(link)
+                            } catch (error: CliError) {
+                                throw error
+                            } catch (error: com.android.xrayfa.config.JsonConfigException) {
+                                fail(ExitCode.CONFIGURATION, "Invalid JSON configuration: ${error.reason.name}")
                             } catch (_: Exception) {
                                 fail(
                                     ExitCode.CONFIGURATION,
-                                    "Invalid link or configuration; XDRIVE requires complete JSON storage settings",
+                                    "Invalid link or configuration",
                                 )
                             }
                         val record = storeLock { directory ->

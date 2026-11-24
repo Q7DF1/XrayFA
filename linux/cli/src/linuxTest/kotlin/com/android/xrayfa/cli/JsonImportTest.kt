@@ -18,6 +18,41 @@ import kotlin.test.assertTrue
 
 class JsonImportTest {
     @Test
+    fun socksPreservesSingleInboundRoutingIdentity() = runBlocking {
+        val parser = NodeParser()
+        val text = """{"inbounds":[{"tag":"client","protocol":"mixed","port":9000}],"outbounds":[{"protocol":"freedom","tag":"direct"}],"routing":{"rules":[{"type":"field","inboundTag":["client","dns-module"],"outboundTag":"direct"}]}}"""
+        val source = json.parseToJsonElement(text).jsonObject
+        val config = nodeSocksConfig(nodeRecord(parser.parse(text), 1), parser.outbound(text), LogLevel.INFO)
+        assertEquals(source["routing"], config["routing"])
+        assertEquals(source["outbounds"], config["outbounds"])
+        val inbound = config.getValue("inbounds").jsonArray.single().jsonObject
+        assertEquals(JsonPrimitive("client"), inbound["tag"])
+        assertEquals(JsonPrimitive("socks"), inbound["protocol"])
+        assertEquals(JsonPrimitive("127.0.0.1"), inbound["listen"])
+        assertEquals(JsonPrimitive(10808), inbound["port"])
+    }
+
+    @Test
+    fun socksDoesNotActivateUnmatchedInboundRules() = runBlocking {
+        val parser = NodeParser()
+        for (inbounds in listOf("", "\"inbounds\":[{\"protocol\":\"socks\"}],")) {
+            val text = """{$inbounds"outbounds":[{"protocol":"freedom"}],"routing":{"rules":[{"type":"field","inboundTag":["socks","socks-1"],"outboundTag":"direct"}]}}"""
+            val config = nodeSocksConfig(nodeRecord(parser.parse(text), 1), parser.outbound(text), LogLevel.INFO)
+            assertEquals(JsonPrimitive("socks-1-1"), config.getValue("inbounds").jsonArray.single().jsonObject["tag"])
+            assertEquals(json.parseToJsonElement(text).jsonObject["routing"], config["routing"])
+        }
+    }
+
+    @Test
+    fun multipleInboundsWithRoutingReportAmbiguity() {
+        val error = assertFailsWith<CliError> {
+            inspectCliJson("""{"inbounds":[{"tag":"a","protocol":"socks"},{"tag":"b","protocol":"http"}],"outbounds":[{"protocol":"freedom"}],"routing":{"rules":[{"inboundTag":["a"]}]}}""")
+        }
+        assertEquals(ExitCode.CONFIGURATION, error.exitCode)
+        assertTrue(error.message.orEmpty().contains("multiple inbounds"))
+    }
+
+    @Test
     fun tunRejectsImportedPoliciesAndChainsRatherThanDiscardingThem() = runBlocking {
         val parser = NodeParser()
         for (text in listOf(
@@ -94,7 +129,6 @@ class JsonImportTest {
         for (input in listOf(
             """{"outbounds":[{"protocol":"freedom"}],"outbounds":[]}""",
             """{"outbounds":[{"protocol":"freedom"}],"api":{}}""",
-            """{"outbounds":[{"protocol":"freedom"}],"routing":{"rules":[{"inboundTag":["old"]}]}}""",
             """{"outbounds":[{"protocol":"vless","streamSettings":{"network":"xdrive","xdriveSettings":{}}}]}""",
             """{"outbounds":[{"protocol":"freedom"}],"log":{"error":"/tmp/operator.log"}}""",
         )) assertFails { inspectCliJson(input) }

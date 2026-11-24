@@ -46,8 +46,9 @@ Private data lives in `~/.local/share/xrayfa`, logs in `~/.local/state/xrayfa/lo
 `clear` preserves the next ID and makes private backups containing credentials;
 it does not stop an active session. Unsafe or corrupt stores are rejected.
 SOCKS5 JSON composition preserves outbound chains, DNS, routing and policy while replacing
-listeners and logs. Inbound-specific routing, external file references, and
-unrelated top-level services are rejected. Configuration validation cannot prove
+listeners and logs. A single original inbound's tag is preserved so its routing
+rules continue to match. Multiple inbounds combined with inbound-specific routing,
+external file references, and unrelated top-level services are rejected. Configuration validation cannot prove
 remote authentication or connectivity: test real traffic separately.
 
 The supervisor rejects duplicate sessions and occupied ports, drains bounded core
