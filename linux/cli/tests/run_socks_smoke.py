@@ -9,6 +9,12 @@ p.add_argument('--core',required=True)
 p.add_argument('--upstream-socks-port',type=int)
 p.add_argument('--local-only',action='store_true',help='Verify real VLESS forwarding against a local HTTP destination only')
 a=p.parse_args()
+with socket.socket() as preflight:
+ preflight.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+ try:
+  preflight.bind(('127.0.0.1',10808));preflight.listen()
+ except OSError:
+  raise SystemExit('SOCKS5 smoke test requires a free 127.0.0.1:10808; an existing listener must be stopped first')
 from pathlib import Path
 os.umask(0o077)
 d=Path(tempfile.mkdtemp(prefix='xrayfa-socks-smoke-'));env={**os.environ,'XRAYFA_HOME':str(d/'profile')}
@@ -33,29 +39,40 @@ class Handler(http.server.BaseHTTPRequestHandler):
  def log_message(self,*args):pass
 destination=http.server.ThreadingHTTPServer(('127.0.0.1',0),Handler)
 threading.Thread(target=destination.serve_forever,daemon=True).start()
+def wait_for_proxy(process):
+ for _ in range(300):
+  if process.poll() is not None:raise AssertionError('runtime exited before listening')
+  try:
+   with socket.create_connection(('127.0.0.1',10808),.1):return
+  except OSError:time.sleep(.05)
+ raise AssertionError('listen timeout')
+def verify_local_forwarding():
+ local=subprocess.run(['curl','--proxy','socks5h://127.0.0.1:10808','--noproxy','','--max-time','10','--fail','--silent',f'http://127.0.0.1:{destination.server_port}/'],capture_output=True,text=True)
+ assert local.returncode==0 and local.stdout==nonce, 'Local real VLESS data path failed'
 try:
  link=d/'link';link.write_text(f'vless://{u}@127.0.0.1:{port}?security=none&type=tcp#synthetic')
  for args in [['add','--link-file',str(link)],['ls'],['check','1','--output',str(d/'check.json'),'--core',core]]:
   r=subprocess.run([cli,*args],env=env,capture_output=True);assert r.returncode==0,(args[0],r.returncode)
  log=(d/'runtime.log').open('wb');proxy=subprocess.Popen([cli,'run','1','--core',core],env=env,stdout=log,stderr=log)
- for _ in range(300):
-  if proxy.poll() is not None:raise AssertionError('runtime exited')
-  try:
-   with socket.create_connection(('127.0.0.1',10808),.1):break
-  except OSError:time.sleep(.05)
- else:raise AssertionError('listen timeout')
+ wait_for_proxy(proxy)
  conflict=subprocess.run([cli,'run','1','--core',core],env=env,capture_output=True,timeout=15)
  assert conflict.returncode!=0, 'occupied port must fail'
- local=subprocess.run(['curl','--proxy','socks5h://127.0.0.1:10808','--noproxy','','--max-time','10','--fail','--silent',f'http://127.0.0.1:{destination.server_port}/'],capture_output=True,text=True)
- assert local.returncode==0 and local.stdout==nonce, 'Local real VLESS data path failed'
+ verify_local_forwarding()
  print('local VLESS HTTP nonce matched',flush=True)
  for url in ([] if a.local_only else ['https://example.com','https://www.google.com','https://www.cloudflare.com']):
   r=subprocess.run(['curl','--proxy','socks5h://127.0.0.1:10808','--noproxy','','--max-time','20','-s','-o','/dev/null','-w','%{http_code}',url],capture_output=True,text=True)
   print(url,'curl_exit',r.returncode,'http',r.stdout,flush=True)
   assert r.returncode==0 and 200 <= int(r.stdout) < 400, 'HTTPS proxy acceptance failed'
- proxy.send_signal(signal.SIGTERM);assert proxy.wait(timeout=10)==0
+ proxy.send_signal(signal.SIGINT);assert proxy.wait(timeout=10)==0
  with socket.socket() as released:
+  released.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
   released.bind(('127.0.0.1',10808))
+  released.listen()
+ assert not list((d/'profile/.local/share/xrayfa').glob('socks-*.json'))
+ proxy=subprocess.Popen([cli,'run','1','--core',core],env=env,stdout=log,stderr=log)
+ wait_for_proxy(proxy)
+ verify_local_forwarding()
+ proxy.send_signal(signal.SIGTERM);assert proxy.wait(timeout=10)==0
  assert not list((d/'profile/.local/share/xrayfa').glob('socks-*.json'))
  print('shutdown and private config cleanup passed',flush=True)
 finally:

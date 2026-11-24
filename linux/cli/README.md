@@ -127,6 +127,7 @@ Use an immutable executable and new output directories for integration tests:
 python3 linux/cli/tests/run_matrix.py --cli /path/xrayfa --core /path/xray --out /tmp/new-matrix
 python3 linux/cli/tests/run_acceptance.py --cli /path/xrayfa --out /tmp/new-acceptance
 python3 linux/cli/tests/test_cli_workflow.py --cli /path/xrayfa --core /path/xray
+python3 linux/cli/tests/test_socks_port.py
 python3 linux/cli/tests/run_socks_smoke.py --cli /path/xrayfa --core /path/xray
 python3 linux/cli/tests/run_socks_smoke.py --cli /path/xrayfa --core /path/xray --local-only
 python3 linux/cli/tests/run_web_acceptance.py --proxy socks5h://127.0.0.1:10808 --out /tmp/new-web-acceptance

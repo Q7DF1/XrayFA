@@ -189,17 +189,24 @@ static inline int xf_random_bytes(unsigned char *out,int length){
 static inline int xf_nonblocking_stderr(void){int flags=fcntl(2,F_GETFL);return flags<0?-1:fcntl(2,F_SETFL,flags|O_NONBLOCK);}
 static inline int xf_log_file(int fd){struct stat s;return !fstat(fd,&s)&&S_ISREG(s.st_mode)&&s.st_uid==getuid()&&(s.st_mode&0777)==0600;}
 
-/* Exclusive bind probe: never enables SO_REUSEPORT and never changes networking. */
+/* Match the core's TIME_WAIT reuse without sharing an active listener.
+ * Never enable SO_REUSEPORT or change networking. */
 #include <sys/socket.h>
 #include <netinet/in.h>
 static inline int xf_socks_port_available(int port) {
     int fd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
     if (fd < 0) return 0;
+    int reuse = 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) != 0) {
+        close(fd);
+        return 0;
+    }
     struct sockaddr_in address = {0};
     address.sin_family = AF_INET;
     address.sin_port = htons(port);
     address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    int ok = bind(fd, (struct sockaddr *)&address, sizeof(address)) == 0;
+    int ok = bind(fd, (struct sockaddr *)&address, sizeof(address)) == 0
+        && listen(fd, 1) == 0;
     close(fd);
     return ok;
 }
