@@ -22,7 +22,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -168,7 +168,7 @@ class HomeMapVisualTest {
 
     @Test fun buttonStaysAnchoredWhenDashboardContentChanges() {
         showHome(dark = false)
-        val button = compose.onNodeWithContentDescription("Toggle VPN")
+        val button = compose.onNodeWithTag("home-connect-button")
         val before = button.fetchSemanticsNode().boundsInRoot
         compose.runOnIdle { currentState.value = currentState.value.copy(selectedNode = null) }
         compose.waitForIdle()
@@ -180,7 +180,7 @@ class HomeMapVisualTest {
 
     @Test fun compactHomeScrollsInformationWithoutMovingButton() {
         showHome(dark = false, availableHeight = 400.dp, availableWidth = 360.dp, fontScale = 1.5f)
-        val button = compose.onNodeWithContentDescription("Toggle VPN")
+        val button = compose.onNodeWithTag("home-connect-button")
         button.assertIsDisplayed()
         val before = button.fetchSemanticsNode().boundsInRoot
         compose.onNodeWithText("DE · FRA 01").performScrollTo().assertIsDisplayed()
@@ -195,7 +195,7 @@ class HomeMapVisualTest {
         showHome(dark = false, availableHeight = 540.dp, availableWidth = 360.dp)
         compose.onNodeWithText("法兰克福").assertIsDisplayed()
         compose.onNodeWithText("DE · FRA 01").assertIsDisplayed()
-        compose.onNodeWithContentDescription("Toggle VPN").assertIsDisplayed()
+        compose.onNodeWithTag("home-connect-button").assertIsDisplayed()
         val scrollable = compose.onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.VerticalScrollAxisRange))
             .fetchSemanticsNodes().single()
         assertTrue("A normal-font small phone must fit without scrolling",
@@ -218,7 +218,7 @@ class HomeMapVisualTest {
         compose.runOnIdle { currentState.value = currentState.value.copy(selectedNode = null) }
         compose.waitForIdle()
         compose.onNodeWithText(HomeUiLabels().emptyNodeMessage).assertIsDisplayed()
-        compose.onNodeWithContentDescription("Toggle VPN").assertIsDisplayed()
+        compose.onNodeWithTag("home-connect-button").assertIsDisplayed()
         val scrollable = compose.onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.VerticalScrollAxisRange))
             .fetchSemanticsNodes().single()
         assertTrue("Pixel 3 with enlarged display size must show the entire dashboard",

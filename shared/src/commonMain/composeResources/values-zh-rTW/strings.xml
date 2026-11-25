@@ -377,4 +377,9 @@
     <string name="share_qr_preview">分享 QR Code</string>
     <string name="share_qr_close">關閉 QR Code 預覽</string>
     <string name="node_actions">節點動作</string>
+    <string name="home_connect_action">連接網路</string>
+    <string name="home_disconnect_action">中斷連線</string>
+    <string name="home_connecting_action">正在連線…</string>
+    <string name="home_disconnecting_action">正在中斷…</string>
+    <string name="home_connection_ready">準備連線</string>
 </resources>

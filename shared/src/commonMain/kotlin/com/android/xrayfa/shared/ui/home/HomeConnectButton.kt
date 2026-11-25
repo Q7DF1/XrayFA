@@ -1,165 +1,162 @@
 package com.android.xrayfa.shared.ui.home
 
-import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.StartOffset
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.border
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.PowerSettingsNew
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.android.xrayfa.shared.ui.theme.XrayBrand
+import com.android.xrayfa.shared.resources.Res
+import com.android.xrayfa.shared.resources.connected
+import com.android.xrayfa.shared.resources.home_connect_action
+import com.android.xrayfa.shared.resources.home_connecting_action
+import com.android.xrayfa.shared.resources.home_connection_ready
+import com.android.xrayfa.shared.resources.home_disconnect_action
+import com.android.xrayfa.shared.resources.home_disconnecting_action
+import com.android.xrayfa.shared.ui.theme.AppRadius
+import org.jetbrains.compose.resources.stringResource
 
+/** A single, labelled connection action. Busy state never implies a successful connection. */
 @Composable
 fun HomeConnectButton(
     isConnected: Boolean,
     enabled: Boolean,
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
-    diameter: Dp = 200.dp,
-    innerDiameter: Dp = 148.dp,
+    busy: Boolean = false,
+    nodeLabel: String? = null,
 ) {
-    val buttonBrush =
-        if (isConnected) {
-            Brush.linearGradient(colors = listOf(Color(0xFF16B7B4), Color(0xFF1976D2), XrayBrand.BlueDeep))
-        } else {
-            Brush.linearGradient(
-                colors =
-                    listOf(
-                        Color(0xFF204F78),
-                        Color(0xFF173557),
-                        Color(0xFF111C2E),
-                    ),
-            )
-        }
-    val shadowColor = if (isConnected) Color(0xFF31D7D0).copy(alpha = 0.44f) else Color(0xFF36BFC7).copy(alpha = 0.20f)
-    val scale = remember { Animatable(1.0f) }
-    val interactionSource = remember { MutableInteractionSource() }
+    val colors = MaterialTheme.colorScheme
+    val dark = colors.background.luminance() < 0.5f
+    val background by animateColorAsState(
+        when {
+            isConnected -> colors.primary
+            dark -> colors.secondaryContainer
+            else -> colors.secondary
+        },
+        label = "connectionBackground",
+    )
+    val foreground by animateColorAsState(
+        when {
+            isConnected -> colors.onPrimary
+            dark -> colors.onSecondaryContainer
+            else -> colors.onSecondary
+        },
+        label = "connectionForeground",
+    )
+    val contentColor = if (!enabled && !busy) colors.onSurfaceVariant else foreground
+    val title = stringResource(
+        when {
+            busy && isConnected -> Res.string.home_disconnecting_action
+            busy -> Res.string.home_connecting_action
+            isConnected -> Res.string.home_disconnect_action
+            else -> Res.string.home_connect_action
+        },
+    )
+    val status = stringResource(if (isConnected) Res.string.connected else Res.string.home_connection_ready)
+    val subtitle = nodeLabel?.takeIf { it.isNotBlank() }?.let { "$status · $it" } ?: status
+    val shape = AppRadius.shapeLarge
 
-    // Idle 子节点在压栈时会被释放，返回时是一次全新组合。没有这个保护，每次从设置页返回
-    // 都会重放一次入场弹跳。
-    var skipInitialBounce by remember { mutableStateOf(true) }
-    LaunchedEffect(isConnected) {
-        if (skipInitialBounce) {
-            skipInitialBounce = false
-            return@LaunchedEffect
-        }
-        scale.animateTo(
-            targetValue = 1.2f,
-            animationSpec = tween(durationMillis = 150),
-        )
-        scale.animateTo(
-            targetValue = 1.0f,
-            animationSpec =
-                spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow,
-                ),
-        )
-    }
-
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = modifier.size(diameter),
+    Button(
+        onClick = onToggle,
+        enabled = enabled && !busy,
+        shape = shape,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = background,
+            contentColor = foreground,
+            disabledContainerColor = if (busy) background else colors.surfaceContainerHighest,
+            disabledContentColor = if (busy) foreground else colors.onSurfaceVariant,
+        ),
+        contentPadding = PaddingValues(start = 11.dp, end = 20.dp, top = 11.dp, bottom = 11.dp),
+        modifier = modifier.fillMaxWidth().heightIn(min = 68.dp)
+            .clip(shape)
+            .then(if (isConnected && !busy && enabled) connectionFlow(foreground) else Modifier)
+            .testTag("home-connect-button"),
     ) {
-        Box(
-            modifier =
-                Modifier
-                    .size(innerDiameter * 1.52f)
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(shadowColor.copy(alpha = if (isConnected) 0.34f else 0.18f), Color.Transparent),
-                        ),
-                        CircleShape,
-                    ),
-        )
-        if (isConnected) {
-            HomeConnectPulseRings(color = Color(0xFF48E5D5))
-        }
-
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier =
-                Modifier
-                    .size(innerDiameter)
-                    .scale(scale.value)
-                    .connectButtonSurface(
-                        brush = buttonBrush,
-                        shadowElevation = if (isConnected) 24.dp else 10.dp,
-                        shadowColor = shadowColor,
-                    )
-                    .clickable(
-                        enabled = enabled,
-                        indication = null,
-                        interactionSource = interactionSource,
-                        onClick = onToggle,
-                    ),
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(13.dp),
         ) {
-            GuardCatMark(
-                size = innerDiameter * 0.42f,
-                bodyTint = if (isConnected) Color.White else XrayBrand.Blue,
-                eyeTint = if (isConnected) XrayBrand.CatEyeGreen else XrayBrand.CatEyeAmber,
-                contentDescription = "Toggle VPN",
-            )
+            Box(
+                Modifier.size(43.dp).clip(AppRadius.shapeMedium)
+                    .background(contentColor.copy(alpha = 0.045f))
+                    .border(1.dp, contentColor.copy(alpha = 0.035f), AppRadius.shapeMedium),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (busy) {
+                    CircularProgressIndicator(Modifier.size(21.dp), color = contentColor, strokeWidth = 1.6.dp)
+                } else {
+                    Icon(
+                        if (isConnected) Icons.Filled.Check else Icons.Outlined.PowerSettingsNew,
+                        contentDescription = null,
+                        modifier = Modifier.size(21.dp),
+                    )
+                }
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(title, style = MaterialTheme.typography.labelLarge)
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = contentColor.copy(alpha = 0.65f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun BoxScope.HomeConnectPulseRings(color: Color) {
-    val transition = rememberInfiniteTransition(label = "pulse")
-    repeat(2) { index ->
-        val progress by
-            transition.animateFloat(
-                initialValue = 0f,
-                targetValue = 1f,
-                animationSpec =
-                    infiniteRepeatable(
-                        animation = tween(durationMillis = 2400, easing = LinearEasing),
-                        initialStartOffset = StartOffset(index * 1200),
-                    ),
-                label = "ring$index",
-            )
-        Box(
-            modifier =
-                Modifier
-                    .matchParentSize()
-                    .scale(0.74f + progress * 0.26f)
-                    .clip(CircleShape)
-                    .border(
-                        width = 2.dp,
-                        color = color.copy(alpha = (1f - progress) * 0.5f),
-                        shape = CircleShape,
-                    ),
+private fun connectionFlow(color: Color): Modifier {
+    val transition = rememberInfiniteTransition(label = "connectionFlow")
+    val progress by transition.animateFloat(0f, 1f, infiniteRepeatable(tween(5500, easing = LinearEasing)), label = "flow")
+    return Modifier.drawWithContent {
+        drawContent()
+        val travel = ((progress - 0.12f) / 0.53f).coerceIn(0f, 1f)
+        // Size the highlight by button height, not by the much wider content row.
+        val width = (size.height * 0.8f).coerceIn(32.dp.toPx(), 64.dp.toPx())
+        val center = -width * 2 + travel * (size.width + width * 4)
+        drawRect(
+            Brush.linearGradient(
+                listOf(Color.Transparent, color.copy(alpha = 0.10f), Color.Transparent),
+                // The gradient normal slopes down-right, so the visible band slopes /.
+                start = Offset(center - width / 2, size.height / 2 - width * 0.3f),
+                end = Offset(center + width / 2, size.height / 2 + width * 0.3f),
+            ),
         )
     }
 }
-
-internal expect fun Modifier.connectButtonSurface(
-    brush: Brush,
-    shadowElevation: Dp,
-    shadowColor: Color,
-): Modifier

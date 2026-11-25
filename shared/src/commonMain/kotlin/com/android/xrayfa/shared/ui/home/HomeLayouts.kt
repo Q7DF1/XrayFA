@@ -59,8 +59,7 @@ internal fun HomeBrandHeroLayout(
         contentAlignment = Alignment.TopCenter,
     ) {
         // Reserve most of a short viewport for information, including enlarged display settings.
-        val buttonDiameter = (maxHeight * 0.24f).coerceIn(96.dp, 160.dp)
-        val compactAction = buttonDiameter < 144.dp
+        val compactAction = maxHeight < 600.dp
         val actionBottomGap = if (compactAction) 8.dp else 16.dp
 
         Column(Modifier.widthIn(max = 480.dp).fillMaxSize().padding(horizontal = 20.dp)) {
@@ -103,8 +102,8 @@ internal fun HomeBrandHeroLayout(
                     isConnected = state.isConnected,
                     enabled = !state.busy && !state.startupPending,
                     onToggle = callbacks.onConnectToggle,
-                    diameter = buttonDiameter,
-                    innerDiameter = buttonDiameter * 0.76f,
+                    busy = state.busy || state.startupPending,
+                    nodeLabel = state.selectedNode?.remark,
                 )
             }
         }
