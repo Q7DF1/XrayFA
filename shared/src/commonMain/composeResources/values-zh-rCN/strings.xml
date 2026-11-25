@@ -378,4 +378,9 @@
     <string name="share_qr_preview">分享二维码</string>
     <string name="share_qr_close">关闭二维码预览</string>
     <string name="node_actions">节点操作</string>
+    <string name="home_connect_action">连接网络</string>
+    <string name="home_disconnect_action">断开连接</string>
+    <string name="home_connecting_action">正在连接…</string>
+    <string name="home_disconnecting_action">正在断开…</string>
+    <string name="home_connection_ready">准备连接</string>
 </resources>

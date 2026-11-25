@@ -385,4 +385,9 @@
     <string name="share_qr_preview">Share QR code</string>
     <string name="share_qr_close">Close QR preview</string>
     <string name="node_actions">Node actions</string>
+    <string name="home_connect_action">Connect network</string>
+    <string name="home_disconnect_action">Disconnect</string>
+    <string name="home_connecting_action">Connecting…</string>
+    <string name="home_disconnecting_action">Disconnecting…</string>
+    <string name="home_connection_ready">Ready to connect</string>
 </resources>
